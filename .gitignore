@@ -10,3 +10,6 @@ Desktop.ini
 # 로그/임시
 *.log
 *.tmp
+
+# Claude Code 개인 설정
+.claude/settings.local.json
