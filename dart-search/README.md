@@ -16,11 +16,12 @@
 ```
 dart-search/
 ├─ collect.py            # ① OpenDART 수집 스크립트 (표준 라이브러리만 사용, pip 설치 불필요)
+├─ summarize.py          # ② Claude API로 요약·핵심지표 자동 추출 (pip install anthropic 필요)
 ├─ config.example.json   # 설정 예시 (복사해서 config.json 으로 사용)
 ├─ web/
 │  ├─ index.html         # 검색 화면 (브라우저로 열기)
 │  ├─ demo-data.js       # 키 없이 동작을 볼 수 있는 데모 샘플
-│  └─ data.js            # collect.py 가 만드는 '진짜' 데이터 (깃에 안 올라감)
+│  └─ data.js            # collect.py/summarize.py 가 만드는 '진짜' 데이터 (깃에 안 올라감)
 └─ data/                 # 수집 원본/캐시 (깃에 안 올라감)
 ```
 
@@ -58,6 +59,27 @@ python3 collect.py
 끝나면 `web/data.js` 가 생기고, `web/index.html` 을 새로고침하면 **실제 사업보고서**가 검색됩니다.
 
 > 💡 인증키 없이 텍스트 추출 로직만 점검: `python3 collect.py --selftest`
+
+## 3단계 — AI 부가가치 붙이기 (요약·핵심지표) ⭐
+
+원문만 있으면 애드센스에서 "스크랩 사이트"로 거부될 수 있어요. **우리만의 가치**를 더하는 단계입니다.
+
+### (1) 준비
+```bash
+pip install anthropic
+```
+- Claude(Anthropic) API 키 발급: https://console.anthropic.com → API Keys
+- `config.json` 의 `anthropic_api_key` 에 넣거나 환경변수 `ANTHROPIC_API_KEY` 로 설정
+
+### (2) 실행
+```bash
+python3 summarize.py
+```
+- `collect.py` 로 모은 보고서마다 **3~5문장 요약 + 사업 설명 + 핵심 포인트 + (찾으면)매출/영업이익/순이익**을 자동 생성해 `web/data.js` 에 채워 넣습니다.
+- 이미 요약된 보고서는 건너뛰어 **재실행 비용을 아낍니다.**
+
+> 💡 키 없이 어떤 프롬프트가 가는지 미리보기(요금 0): `python3 summarize.py --dry-run`
+> 💡 비용을 줄이려면 `config.json` 의 `summary_model` 을 `claude-haiku-4-5` 로 바꿔도 됩니다(품질↔비용은 본인 선택).
 
 ---
 

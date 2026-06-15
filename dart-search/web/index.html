@@ -88,6 +88,12 @@
   .vadd .box { background: var(--panel); border:1px dashed var(--accent2); border-radius:12px; padding:14px; }
   .vadd .box h3 { margin:0 0 6px; font-size:14px; color: var(--accent2); }
   .vadd .box p { margin:0; font-size:13px; color: var(--muted); }
+  .vadd .box .km-line { font-size:13px; color: var(--text); margin-bottom:8px; }
+  .vadd .box .km-table { width:100%; border-collapse:collapse; font-size:13px; margin:6px 0; }
+  .vadd .box .km-table th { text-align:left; color: var(--muted); font-weight:500; padding:2px 8px 2px 0; white-space:nowrap; }
+  .vadd .box .km-table td { color: var(--text); padding:2px 0; }
+  .vadd .box .km-points { margin:6px 0 0; padding-left:18px; font-size:13px; color:#cbd5e1; }
+  .vadd .box .km-points li { margin:2px 0; }
   .toc { background: var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin:14px 0; }
   .toc h3 { margin:0 0 8px; font-size:14px; }
   .toc a { display:block; font-size:14px; padding:3px 0; }
@@ -277,16 +283,37 @@
           ' · <a href="' + escapeHtml(r.dart_url || "#") + '" target="_blank" rel="noopener">DART 원문 보기 ↗</a>' +
         '</div>';
 
-      // 부가가치 자리 (다음 단계에서 자동으로 채울 영역)
+      // 부가가치 영역 (summarize.py 가 Claude API 로 채움)
+      var km = r.key_metrics || {};
+      var hasKm = !!(km.business || (km.key_points && km.key_points.length) ||
+                     km.revenue || km.operating_profit || km.net_profit);
+      var kmHtml = '';
+      if (hasKm) {
+        if (km.business) kmHtml += '<div class="km-line">🏢 ' + escapeHtml(km.business) + '</div>';
+        var fin = [];
+        if (km.revenue) fin.push(['매출액', km.revenue]);
+        if (km.operating_profit) fin.push(['영업이익', km.operating_profit]);
+        if (km.net_profit) fin.push(['당기순이익', km.net_profit]);
+        if (fin.length) {
+          kmHtml += '<table class="km-table">';
+          fin.forEach(function (p) {
+            kmHtml += '<tr><th>' + escapeHtml(p[0]) + '</th><td>' + escapeHtml(p[1]) + '</td></tr>';
+          });
+          kmHtml += '</table>';
+        }
+        if (km.key_points && km.key_points.length) {
+          kmHtml += '<ul class="km-points">';
+          km.key_points.forEach(function (pt) { kmHtml += '<li>' + escapeHtml(pt) + '</li>'; });
+          kmHtml += '</ul>';
+        }
+      }
       html += '<div class="vadd">' +
-        '<div class="box"><h3>🤖 AI 한줄 요약</h3><p>' +
-          (r.summary ? escapeHtml(r.summary) : '준비 중 — 다음 단계에서 보고서 핵심을 자동 요약해 채웁니다.') +
+        '<div class="box"><h3>🤖 AI 요약</h3><p>' +
+          (r.summary ? escapeHtml(r.summary) : '준비 중 — summarize.py 실행 시 보고서 핵심을 자동 요약해 채웁니다.') +
         '</p></div>' +
-        '<div class="box"><h3>📊 핵심 재무지표</h3><p>' +
-          (r.key_metrics && Object.keys(r.key_metrics).length
-            ? escapeHtml(JSON.stringify(r.key_metrics))
-            : '준비 중 — 매출/영업이익/순이익 등을 자동 추출해 채웁니다.') +
-        '</p></div></div>';
+        '<div class="box"><h3>📊 핵심 지표</h3>' +
+          (hasKm ? kmHtml : '<p>준비 중 — summarize.py 실행 시 사업 설명·핵심 포인트·재무지표를 자동 추출해 채웁니다.</p>') +
+        '</div></div>';
 
       // 목차 + 본문
       var secs = r.sections || [];
