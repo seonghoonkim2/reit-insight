@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>공시렌즈 | DART 사업보고서 전문 검색</title>
 <meta name="description" content="DART 사업보고서를 회사별·연도별·섹션별로 검색하고 비교하는 공시 리서치 검색엔진" />
+<!-- 실제 AdSense 사용 시 주석 해제하고 ca-pub-XXXX 를 본인 게시자 ID로 교체 + 아래 스크립트의 ADSENSE_CLIENT 설정
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX" crossorigin="anonymous"></script>
+-->
 <style>
   /* 라이트 리서치 테마 (ARCHITECTURE.md 디자인 토큰) */
   :root {
@@ -223,10 +226,26 @@
       if ((opt.contentQualityScore != null) && opt.contentQualityScore < 60) return false;
       return true;
     }
+    // 실제 AdSense를 켜려면: 아래 ADSENSE_CLIENT 에 'ca-pub-XXXXXXXX' 를 넣고,
+    // <head>의 AdSense 로더 주석을 해제하세요. (데모/미설정 시엔 안전한 placeholder만 노출)
+    var ADSENSE_CLIENT = "";  // 예: "ca-pub-1234567890123456"
+    var ADSENSE_SLOT = "";    // 광고 단위 슬롯 ID
     function adSlot(pageType, opt) {
-      return canShowAds(pageType, opt)
-        ? '<div class="ad">광고 영역 (데모 — 실제 광고 아님). 운영 시 AdSense가 이 위치에 들어갑니다.</div>'
-        : "";
+      if (!canShowAds(pageType, opt)) return "";
+      if (ADSENSE_CLIENT && ADSENSE_SLOT && !DATA.is_demo) {
+        // 실제 광고 단위. 렌더 후 adsbygoogle.push 는 mountAds()에서 처리.
+        return '<ins class="adsbygoogle" style="display:block" data-ad-client="' + escAttr(ADSENSE_CLIENT) +
+          '" data-ad-slot="' + escAttr(ADSENSE_SLOT) + '" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+      }
+      return '<div class="ad">광고 영역 (데모 — 실제 광고 아님). 운영 시 AdSense가 이 위치에 들어갑니다.</div>';
+    }
+    function mountAds() {
+      if (!(ADSENSE_CLIENT && ADSENSE_SLOT && !DATA.is_demo)) return;
+      try {
+        Array.prototype.forEach.call(document.querySelectorAll("ins.adsbygoogle"), function () {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        });
+      } catch (e) { /* 로더 미로딩 시 무시 */ }
     }
 
     function renderTables(tables) {
@@ -329,6 +348,7 @@
       qEl.value = route.page === "search" ? (route.params.q || "") : "";
       var fn = { home: renderHome, search: renderSearch, company: renderCompany, filing: renderFiling, topic: renderTopic }[route.page] || renderHome;
       fn(route);
+      mountAds();
       window.scrollTo(0, 0);
     }
 

@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: 공시렌즈(GongsiLens) API
+  version: "0.1.0"
+  description: >
+    DART 사업보고서 읽기 전용 JSON API (api.py 의 MVP 스펙).
+    본 서비스는 금융감독원 DART의 공식 서비스가 아닙니다. 정보 제공 목적.
+servers:
+  - url: http://127.0.0.1:8765
+    description: 로컬(api.py)
+paths:
+  /healthz:
+    get:
+      summary: 상태 확인
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  db: { type: string }
+                  filings: { type: integer }
+                  fts: { type: boolean }
+  /api/v1/search:
+    get:
+      summary: 문단 단위 전문검색 (FTS5, 폴백 LIKE)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string }, description: 검색어(공백으로 AND) }
+        - { name: year, in: query, schema: { type: integer }, description: 사업연도 필터 }
+        - { name: corp_code, in: query, schema: { type: string }, description: 회사 고유번호 필터 }
+        - { name: limit, in: query, schema: { type: integer, default: 30, maximum: 100 } }
+      responses:
+        "200":
+          description: 검색 결과
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query: { type: string }
+                  count: { type: integer }
+                  results:
+                    type: array
+                    items: { $ref: "#/components/schemas/SearchHit" }
+  /api/v1/companies:
+    get:
+      summary: 회사 목록
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count: { type: integer }
+                  companies:
+                    type: array
+                    items: { $ref: "#/components/schemas/Company" }
+  /api/v1/company/{corp_code}:
+    get:
+      summary: 회사 상세 + 연도별 보고서
+      parameters:
+        - { name: corp_code, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company: { $ref: "#/components/schemas/Company" }
+                  filings:
+                    type: array
+                    items: { $ref: "#/components/schemas/FilingMeta" }
+        "404": { description: 회사 없음 }
+  /api/v1/filings/{rcept_no}:
+    get:
+      summary: 보고서 상세 (섹션 원문 + 재무팩트)
+      parameters:
+        - { name: rcept_no, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  filing: { $ref: "#/components/schemas/FilingMeta" }
+                  sections:
+                    type: array
+                    items: { $ref: "#/components/schemas/Section" }
+                  financial_facts:
+                    type: array
+                    items: { $ref: "#/components/schemas/FinancialFact" }
+        "404": { description: 보고서 없음 }
+components:
+  schemas:
+    Company:
+      type: object
+      properties:
+        corp_code: { type: string }
+        corp_name: { type: string }
+        stock_code: { type: string, nullable: true }
+        market: { type: string, nullable: true }
+    FilingMeta:
+      type: object
+      properties:
+        rcept_no: { type: string }
+        corp_code: { type: string }
+        corp_name: { type: string }
+        report_nm: { type: string }
+        business_year: { type: integer }
+        rcept_dt: { type: string }
+        is_amended: { type: integer }
+        amendment_type: { type: string, nullable: true }
+        is_latest_version: { type: integer }
+        dart_viewer_url: { type: string }
+    Section:
+      type: object
+      properties:
+        section_order: { type: integer }
+        section_path: { type: string }
+        section_title: { type: string }
+        clean_text: { type: string }
+    FinancialFact:
+      type: object
+      properties:
+        fs_div: { type: string }
+        sj_div: { type: string }
+        account_nm: { type: string }
+        amount: { type: string }
+    SearchHit:
+      type: object
+      properties:
+        rcept_no: { type: string }
+        corp_code: { type: string }
+        corp_name: { type: string }
+        year: { type: integer }
+        report_nm: { type: string }
+        rcept_dt: { type: string }
+        section_title: { type: string }
+        snippet: { type: string, description: "일치 부분에 <mark> 강조" }
+        engine: { type: string, enum: [fts, like] }
