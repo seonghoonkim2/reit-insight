@@ -68,10 +68,16 @@ def log(msg):
 def http_get_bytes(path, params, timeout=30):
     """OpenDART API 를 호출해 응답을 bytes 로 돌려준다. (네트워크 오류 시 몇 번 재시도)"""
     url = API_BASE + path + "?" + urllib.parse.urlencode(params)
+    # 일부 서버가 비브라우저 요청을 막는 경우를 대비해 브라우저처럼 보이는 헤더 사용
+    headers = {
+        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
+        "Accept": "*/*",
+    }
     last_err = None
     for attempt in range(4):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "dart-search-poc/0.1"})
+            req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return resp.read()
         except (urllib.error.URLError, TimeoutError) as e:
