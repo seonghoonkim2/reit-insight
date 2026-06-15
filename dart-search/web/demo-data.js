@@ -4,7 +4,7 @@
 window.__DART_DATA__ = {
   "generated_at": "2026-06-15T00:00:00",
   "is_demo": true,
-  "count": 4,
+  "count": 5,
   "reports": [
     {
       "corp_code": "00000001", "corp_name": "샘플전자", "stock_code": "000001", "market": "KOSPI",
@@ -69,6 +69,22 @@ window.__DART_DATA__ = {
           "text": "부동산 PF 관련 우발채무와 책임준공 약정이 존재합니다. PF 보증 규모가 전년 대비 증가했다고 가정합니다. 우발부채 합계는 (예시) 2조원입니다." }
       ],
       "full_text": "샘플건설 PF 책임준공 우발부채 우발채무 미분양 공사손실충당부채", "char_count": 110, "truncated": false
+    },
+    {
+      "corp_code": "00000002", "corp_name": "샘플건설", "stock_code": "000002", "market": "KOSPI",
+      "rcept_no": "20260320000002", "report_nm": "사업보고서 (2025.12)", "report_type": "사업보고서",
+      "rcept_dt": "20260320", "year": "2025",
+      "filing_group_key": "00000002_사업보고서_2025", "is_latest_version": false,
+      "is_amended": false, "amendment_type": null, "version_count": 2,
+      "dart_url": "https://dart.fss.or.kr",
+      "summary": "", "key_metrics": {},
+      "sections": [
+        { "title": "I. 회사의 개요", "section_path": "I. 회사의 개요",
+          "text": "샘플건설은 데모용 가상의 건설사입니다. 주택, 토목, 부동산 개발을 주요 사업으로 합니다." },
+        { "title": "III. 재무에 관한 사항", "section_path": "III. 재무에 관한 사항 > 우발부채 및 약정사항",
+          "text": "부동산 PF 관련 우발채무가 존재합니다. 우발부채 합계는 (예시) 1.5조원입니다." }
+      ],
+      "full_text": "샘플건설 정정전 PF 우발부채 우발채무", "char_count": 60, "truncated": false
     },
     {
       "corp_code": "00000003", "corp_name": "샘플바이오", "stock_code": "000003", "market": "KOSDAQ",

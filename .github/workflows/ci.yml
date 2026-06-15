@@ -1,0 +1,71 @@
+# 공시렌즈 CI — 푸시/PR 시 자동 검증
+# - python: 모든 셀프테스트 + 검색 + SEO 생성 + 설정 유효성 (차단 게이트)
+# - frontend: Next.js 빌드 (참고용, 실패해도 전체는 막지 않음)
+# - backend: Docker 이미지 빌드 검증 (참고용)
+
+name: CI
+
+on:
+  push:
+    branches: ["master", "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python:
+    name: Python 셀프테스트 + 검색 + SEO
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dart-search
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: 셀프테스트
+        run: |
+          python collect.py --selftest
+          python db.py --selftest
+          python financials.py --selftest
+          python diff.py --selftest
+          python bulk.py --selftest
+      - name: 시드 + 검색
+        run: |
+          python seed.py --reset
+          python search.py 우발부채
+      - name: SEO 정적 생성
+        run: python build_site.py
+      - name: 설정 유효성 (JSON/YAML)
+        run: |
+          python -c "import json; json.load(open('backend/opensearch/index.json'))"
+          python -c "import yaml; yaml.safe_load(open('backend/docker-compose.yml')); yaml.safe_load(open('api/openapi.yaml'))"
+          python -c "import json; json.load(open('web-next/package.json')); json.load(open('web-next/tsconfig.json'))"
+
+  frontend:
+    name: Next.js 빌드 (참고)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: dart-search/web-next
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE: http://localhost:8000
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+  backend:
+    name: 백엔드 Docker 빌드 (참고)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: backend 이미지 빌드
+        run: docker build -f dart-search/backend/Dockerfile -t gongsilens-backend dart-search

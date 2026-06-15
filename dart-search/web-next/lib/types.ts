@@ -15,7 +15,24 @@ export interface FilingMeta {
   is_amended?: boolean;
   amendment_type?: string | null;
   is_latest_version?: boolean;
+  filing_group_key?: string;
   dart_viewer_url?: string;
+}
+
+export interface Version {
+  rcept_no: string;
+  report_nm: string;
+  rcept_dt: string;
+  is_amended?: boolean;
+  amendment_type?: string | null;
+  is_latest_version?: boolean;
+}
+
+export interface DiffResult {
+  new_sections: string[];
+  removed_sections: string[];
+  changed_sections: { title: string; similarity: number; change_pct: number }[];
+  keyword_delta: { keyword: string; before: number; after: number; delta: number }[];
 }
 
 export interface Section {

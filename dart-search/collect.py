@@ -291,6 +291,7 @@ def find_business_report(api_key, corp_code, years_back=3):
     chosen = versions[0]                            # 대표본 = 접수일 최신
     return {
         "row": chosen,
+        "versions": versions,                          # 정정 포함 전체 버전(접수일 내림차순)
         "business_year": latest_year,
         "is_amended": _amendment_type(chosen.get("report_nm", "")) is not None,
         "amendment_type": _amendment_type(chosen.get("report_nm", "")),
@@ -387,61 +388,54 @@ def run_collect():
             log(f"   최근 {years_back}년 내 사업보고서를 찾지 못했습니다. 건너뜀.")
             continue
 
-        row = found["row"]
-        rcept_no = row["rcept_no"]
         year = found["business_year"]
+        rep_rcept = found["row"]["rcept_no"]          # 대표본(최신본) 접수번호
+        group_key = f"{info['corp_code']}_사업보고서_{year}"
+        log(f"③ 사업연도 {year} · 버전 {found['version_count']}건(정정 포함) 수집...")
 
-        # 증분 수집: 이미 받은 보고서는 건너뛴다(설정 skip_existing, 기본 켜짐)
-        if skip_existing and _db_con is not None and db.filing_exists(_db_con, rcept_no):
-            log(f"   이미 수집됨(접수번호 {rcept_no}) — 건너뜀")
-            continue
-
-        log(f"③ 원문 내려받는 중... (접수번호 {rcept_no}, 사업연도 {year}, 정정 {found['version_count']-1}건)")
-        try:
-            raw_xml = download_document_text(api_key, rcept_no)
-        except Exception as e:
-            log(f"   원문 다운로드 실패: {e}")
-            continue
-
-        log("④ 텍스트 추출/정리...")
-        sections, full_text, truncated = parse_report_text(raw_xml)
-
-        report = {
-            "corp_code": info["corp_code"],
-            "corp_name": info["corp_name"],
-            "stock_code": code,
-            "market": info.get("market", ""),
-            "rcept_no": rcept_no,
-            "report_nm": row.get("report_nm", "").strip(),
-            "report_type": "사업보고서",
-            "rcept_dt": row.get("rcept_dt", ""),
-            "year": year,
-            # ↓ 정정/대표본 처리 (ARCHITECTURE.md 4장)
-            "filing_group_key": f"{info['corp_code']}_사업보고서_{year}",
-            "is_latest_version": True,            # 그룹 내 대표본만 저장
-            "is_amended": found["is_amended"],
-            "amendment_type": found["amendment_type"],
-            "version_count": found["version_count"],
-            "dart_url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rcept_no}",
-            "sections": sections,
-            "full_text": full_text,
-            "char_count": len(full_text),
-            "truncated": truncated,
-            # ↓ 부가가치 자리 (summarize.py 가 채움)
-            "summary": "",
-            "key_metrics": {},
-        }
-        reports.append(report)
-
-        # SQLite 에도 저장(있으면). 실패해도 수집은 계속 진행.
-        if _db_con is not None:
+        # 정정 포함 그룹의 모든 버전을 저장해 '정정 전후 비교'가 가능하게 한다.
+        for ver in found["versions"]:
+            rcept_no = ver["rcept_no"]
+            if skip_existing and _db_con is not None and db.filing_exists(_db_con, rcept_no):
+                log(f"   이미 수집됨({rcept_no}) — 건너뜀")
+                continue
             try:
-                db.save_report(_db_con, report)
+                raw_xml = download_document_text(api_key, rcept_no)
             except Exception as e:
-                log(f"   (SQLite 저장 경고: {e})")
-
-        log(f"   완료: 본문 {len(full_text):,}자, 섹션 {len(sections)}개")
-        time.sleep(0.5)  # API 에 부담 주지 않도록 잠깐 쉼
+                log(f"   원문 다운로드 실패({rcept_no}): {e}")
+                continue
+            sections, full_text, truncated = parse_report_text(raw_xml)
+            report = {
+                "corp_code": info["corp_code"],
+                "corp_name": info["corp_name"],
+                "stock_code": code,
+                "market": info.get("market", ""),
+                "rcept_no": rcept_no,
+                "report_nm": ver.get("report_nm", "").strip(),
+                "report_type": "사업보고서",
+                "rcept_dt": ver.get("rcept_dt", ""),
+                "year": year,
+                "filing_group_key": group_key,
+                "is_latest_version": (rcept_no == rep_rcept),   # 대표본만 True
+                "is_amended": _amendment_type(ver.get("report_nm", "")) is not None,
+                "amendment_type": _amendment_type(ver.get("report_nm", "")),
+                "version_count": found["version_count"],
+                "dart_url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rcept_no}",
+                "sections": sections,
+                "full_text": full_text,
+                "char_count": len(full_text),
+                "truncated": truncated,
+                "summary": "",
+                "key_metrics": {},
+            }
+            reports.append(report)
+            if _db_con is not None:
+                try:
+                    db.save_report(_db_con, report)
+                except Exception as e:
+                    log(f"   (SQLite 저장 경고: {e})")
+            log(f"   저장: {rcept_no} ({'최신본' if report['is_latest_version'] else '구버전'}) 본문 {len(full_text):,}자")
+            time.sleep(0.5)
 
     if not reports:
         log("\n수집된 보고서가 없습니다. 종목코드/인증키를 확인하세요.")
