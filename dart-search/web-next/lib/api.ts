@@ -1,7 +1,9 @@
 import type { Company, FilingMeta, Section, SearchHit, Version, DiffResult } from "./types";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// 서버 컴포넌트는 런타임 env(API_BASE)를, 클라이언트는 빌드시 NEXT_PUBLIC_* 를 사용.
+const BASE = process.env.API_BASE || process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+export const SITE_URL =
+  process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 async function apiGet<T>(path: string): Promise<T | null> {
   try {

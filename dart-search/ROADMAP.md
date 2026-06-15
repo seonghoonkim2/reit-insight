@@ -30,8 +30,12 @@
 - **정정 전후 비교**: `GET /api/v1/group/{key}`·`/api/v1/diff?a=&b=`(stdlib·FastAPI 양쪽),
   SPA 보고서 화면의 "정정 이력 + 정정 전후 비교", Next.js `/diff` 페이지
 
-- 다음: 자연어 QA(pgvector)·정기 자동수집 스케줄러·관리자/모니터링·
-  애드센스 신청·요금제/Pro·인증 붙은 공개 API·실제 CD(호스팅 시크릿 필요).
+## 0.7단계 — 배포(CD) + 실데이터 수집 자동화 (완료 ✅)
+- **CD**(`cd.yml`): backend·web 이미지를 **GHCR에 자동 발행**(외부 시크릿 불필요), `deploy/docker-compose.prod.yml` 로 운영 실행
+- **실데이터 수집**(`collect-data.yml`): GitHub 러너에서 OpenDART 실수집 → (선택)AI요약 → **GitHub Pages에 실데이터 사이트 배포** + reports.json 아티팩트
+- 가이드: [`DEPLOY.md`](./DEPLOY.md)
+
+- 다음: 자연어 QA(pgvector)·정기 자동수집 스케줄러(cron)·관리자/모니터링·애드센스 신청·요금제/Pro·인증 붙은 공개 API.
 
 ## 1단계 — 데이터 레이어 (전체 기업으로 확장)
 - **전체 상장사 목록**: `corpCode` 전체를 받아 종목코드/회사명/섹터 매핑

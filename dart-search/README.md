@@ -60,6 +60,10 @@ cd ../web-next && cp .env.example .env.local && npm install && npm run dev   # h
 ```
 자세한 건 `backend/README.md`, `web-next/README.md` 참고.
 
+### 배포 & 실데이터 수집
+👉 **[`DEPLOY.md`](./DEPLOY.md)** — GitHub Actions로 OpenDART **실수집→Pages 배포**(로컬 PC 불필요),
+GHCR 이미지 자동 발행(CD), `docker-compose.prod.yml` 운영 실행까지 한 곳에 정리.
+
 ### CI & 정정 전후 비교
 - **CI**: 푸시/PR마다 `.github/workflows/ci.yml` 가 셀프테스트·검색·SEO·설정 유효성을 자동 검증합니다.
 - **정정 버전**: `collect.py` 가 정정 그룹의 모든 버전을 저장 → `GET /api/v1/group/{key}`·`/api/v1/diff?a=&b=`,

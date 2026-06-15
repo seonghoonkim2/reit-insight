@@ -1,0 +1,102 @@
+# 실데이터 1회 수집 — GitHub Actions 러너(인터넷 가능)에서 OpenDART 실수집
+# 준비(한 번): 저장소 Settings → Secrets and variables → Actions 에
+#   DART_API_KEY (필수), ANTHROPIC_API_KEY (선택: AI 요약) 추가.
+#   그리고 Settings → Pages → Source = "GitHub Actions".
+# 실행: Actions 탭 → "Collect DART data" → Run workflow (종목코드 입력 가능)
+# 결과: 실데이터로 web/data.js 생성 → GitHub Pages 에 검색 사이트 배포 + reports.json 아티팩트
+
+name: Collect DART data
+
+on:
+  workflow_dispatch:
+    inputs:
+      stock_codes:
+        description: "수집할 종목코드(쉼표 구분)"
+        default: "005930,000660,035420"
+      years_back:
+        description: "최근 몇 년"
+        default: "3"
+      deploy_pages:
+        description: "GitHub Pages 에 배포할까요(true/false)"
+        default: "true"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: collect-data
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    defaults:
+      run:
+        working-directory: dart-search
+    env:
+      DART_API_KEY: ${{ secrets.DART_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 시크릿 확인
+        run: |
+          if [ -z "$DART_API_KEY" ]; then
+            echo "::error::DART_API_KEY 시크릿이 없습니다. Settings → Secrets 에 추가하세요."; exit 1
+          fi
+
+      - name: config.json 생성 (시크릿 기반, 커밋 안 됨)
+        env:
+          CODES: ${{ inputs.stock_codes }}
+          YEARS: ${{ inputs.years_back }}
+        run: |
+          python - <<'PY'
+          import json, os
+          codes = [c.strip() for c in os.environ["CODES"].split(",") if c.strip()]
+          cfg = {"api_key": os.environ["DART_API_KEY"], "stock_codes": codes,
+                 "years_back": int(os.environ["YEARS"])}
+          if os.environ.get("ANTHROPIC_API_KEY"):
+              cfg["anthropic_api_key"] = os.environ["ANTHROPIC_API_KEY"]
+          json.dump(cfg, open("config.json", "w"))
+          print("종목:", codes)
+          PY
+
+      - name: 수집 (collect.py)
+        run: python collect.py
+
+      - name: AI 요약 (ANTHROPIC_API_KEY 있을 때만)
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: |
+          pip install anthropic
+          python summarize.py
+
+      - name: SEO 정적 페이지 생성
+        run: python build_site.py
+
+      - name: 데이터 아티팩트 업로드 (reports.json / dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: gongsilens-data
+          path: |
+            dart-search/data/reports.json
+            dart-search/web/data.js
+            dart-search/dist
+
+      - name: Pages 아티팩트 (실데이터 SPA)
+        if: ${{ inputs.deploy_pages == 'true' }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dart-search/web
+
+      - name: GitHub Pages 배포
+        id: deploy
+        if: ${{ inputs.deploy_pages == 'true' }}
+        uses: actions/deploy-pages@v4

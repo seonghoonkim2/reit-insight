@@ -1,0 +1,52 @@
+# 공시렌즈 CD — Docker 이미지를 GitHub Container Registry(GHCR)에 발행
+# 외부 시크릿 불필요(내장 GITHUB_TOKEN 사용). master 푸시 또는 수동 실행 시 동작.
+# 발행 이미지:
+#   ghcr.io/<owner>/gongsilens-backend:latest
+#   ghcr.io/<owner>/gongsilens-web:latest
+# 운영: dart-search/deploy/docker-compose.prod.yml 로 pull 해서 실행.
+
+name: CD (publish images)
+
+on:
+  push:
+    branches: ["master"]
+    paths:
+      - "dart-search/backend/**"
+      - "dart-search/web-next/**"
+      - "dart-search/web/demo-data.js"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 소유자명 소문자화
+        id: o
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: backend 이미지 빌드/푸시
+        uses: docker/build-push-action@v6
+        with:
+          context: dart-search
+          file: dart-search/backend/Dockerfile
+          push: true
+          tags: ghcr.io/${{ steps.o.outputs.owner }}/gongsilens-backend:latest
+
+      - name: web(Next.js) 이미지 빌드/푸시
+        uses: docker/build-push-action@v6
+        with:
+          context: dart-search/web-next
+          file: dart-search/web-next/Dockerfile
+          push: true
+          tags: ghcr.io/${{ steps.o.outputs.owner }}/gongsilens-web:latest
