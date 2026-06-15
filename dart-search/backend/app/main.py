@@ -6,7 +6,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import db, search
+from . import db, search, diffutil
 from .settings import CORS_ORIGINS
 
 app = FastAPI(title="공시렌즈 API", version="0.2.0",
@@ -63,3 +63,30 @@ def api_filing(rcept_no: str):
     facts = db.query(
         "SELECT fs_div, sj_div, account_nm, amount FROM financial_facts WHERE source_rcept_no=%s", [rcept_no])
     return {"filing": f, "sections": secs, "financial_facts": facts}
+
+
+@app.get("/api/v1/group/{group_key}")
+def api_group(group_key: str):
+    vs = db.query(
+        "SELECT rcept_no, report_nm, rcept_dt, is_amended, amendment_type, is_latest_version "
+        "FROM filings WHERE filing_group_key=%s ORDER BY rcept_dt", [group_key])
+    if not vs:
+        raise HTTPException(404, "group_not_found")
+    return {"filing_group_key": group_key, "count": len(vs), "versions": vs}
+
+
+def _diff_sections(rcept_no: str):
+    rows = db.query(
+        "SELECT section_title AS title, clean_text AS text FROM filing_sections "
+        "WHERE rcept_no=%s ORDER BY section_order", [rcept_no])
+    return rows
+
+
+@app.get("/api/v1/diff")
+def api_diff(a: str, b: str):
+    fa, fb = db.query_one("SELECT * FROM filings WHERE rcept_no=%s", [a]), \
+             db.query_one("SELECT * FROM filings WHERE rcept_no=%s", [b])
+    if not fa or not fb:
+        raise HTTPException(404, "filing_not_found")
+    d = diffutil.compare(_diff_sections(a), _diff_sections(b))
+    return {"a": a, "b": b, "a_meta": fa, "b_meta": fb, "diff": d}

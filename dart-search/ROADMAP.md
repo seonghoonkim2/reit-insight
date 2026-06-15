@@ -23,8 +23,15 @@
   `load.py` 적재, OpenSearch 장애 시 Postgres 폴백. `api.py` 와 동일 엔드포인트.
 - **`web-next/`**: **Next.js(App Router, TS) SSR/SEO** — 회사/보고서/키워드 서버 렌더 +
   generateMetadata·JSON-LD·sitemap·robots. 백엔드 API 호출.
-- 다음: 정정 버전 보관(diff 연결)·자연어 QA(pgvector)·정기 자동수집 스케줄러·관리자/모니터링·
-  애드센스 신청·요금제/Pro·인증 붙은 공개 API.
+## 0.6단계 — CI + 정정 버전 비교 (완료 ✅)
+- **CI**(`.github/workflows/ci.yml`): 푸시/PR 시 셀프테스트·검색·SEO 생성·설정 유효성 자동 검증
+  (frontend Next 빌드·backend Docker 빌드는 참고 잡)
+- **정정 버전 보관**: `collect.py` 가 정정 그룹의 **모든 버전** 저장(대표본만 `is_latest_version`)
+- **정정 전후 비교**: `GET /api/v1/group/{key}`·`/api/v1/diff?a=&b=`(stdlib·FastAPI 양쪽),
+  SPA 보고서 화면의 "정정 이력 + 정정 전후 비교", Next.js `/diff` 페이지
+
+- 다음: 자연어 QA(pgvector)·정기 자동수집 스케줄러·관리자/모니터링·
+  애드센스 신청·요금제/Pro·인증 붙은 공개 API·실제 CD(호스팅 시크릿 필요).
 
 ## 1단계 — 데이터 레이어 (전체 기업으로 확장)
 - **전체 상장사 목록**: `corpCode` 전체를 받아 종목코드/회사명/섹터 매핑

@@ -26,6 +26,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 
 import db
 import search
+import diff as diffmod
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("GONGSILENS_DB", os.path.join(HERE, "data", "gongsilens.db"))
@@ -109,6 +110,26 @@ class Handler(BaseHTTPRequestHandler):
                 con = open_con()
                 p = filing_payload(con, parts[3])
                 return self._send(200, p) if p else self._send(404, {"error": "filing_not_found"})
+
+            # 정정 그룹의 버전 목록
+            if parts[:3] == ["api", "v1", "group"] and len(parts) == 4:
+                con = open_con()
+                vs = db.get_group_versions(con, parts[3])
+                return self._send(200, {"filing_group_key": parts[3], "count": len(vs), "versions": vs}) if vs \
+                    else self._send(404, {"error": "group_not_found"})
+
+            # 정정 전후 / 전년 대비 비교: a(새), b(비교대상) 접수번호
+            if parts[:3] == ["api", "v1", "diff"] and len(parts) == 3:
+                con = open_con()
+                a, b = (qs.get("a") or [""])[0], (qs.get("b") or [""])[0]
+                fa, fb = db.get_filing(con, a), db.get_filing(con, b)
+                if not fa or not fb:
+                    return self._send(404, {"error": "filing_not_found"})
+                d = diffmod.compare(
+                    {"sections": db.sections_for_diff(con, a)},
+                    {"sections": db.sections_for_diff(con, b)},
+                )
+                return self._send(200, {"a": a, "b": b, "a_meta": fa, "b_meta": fb, "diff": d})
 
             return self._send(404, {"error": "not_found", "path": u.path})
         except FileNotFoundError:

@@ -513,6 +513,24 @@
         ' · <a href="' + escAttr(r.dart_url || "#") + '" target="_blank" rel="noopener">DART 원문 보기 ↗</a></div>';
 
       html += renderInsight(r);
+
+      // 정정 이력 + 정정 전후 비교 (같은 filing_group_key 의 다른 버전이 있으면)
+      var versions = reports.filter(function (x) { return r.filing_group_key && x.filing_group_key === r.filing_group_key; })
+        .sort(function (a, b) { return (b.rcept_dt || "").localeCompare(a.rcept_dt || ""); });
+      if (versions.length > 1) {
+        html += '<h2 class="sec">정정 이력 (' + versions.length + "건)</h2><div class=\"vbox\">";
+        versions.forEach(function (v) {
+          html += '<div class="km-line">' + (v.rcept_no === r.rcept_no ? "▶ " : "") +
+            '<a href="' + reportUrl(v) + '">' + esc(v.rcept_dt) + " · " + esc(v.report_nm) + "</a>" +
+            (v.is_latest_version ? '<span class="badge latest">최신본</span>' : "") +
+            (v.is_amended ? '<span class="badge amend">' + esc(v.amendment_type || "정정") + "</span>" : "") + "</div>";
+        });
+        // 최신본 vs 직전 버전 비교
+        var newest = versions[0], prev = versions[1];
+        html += '<h3 style="margin:12px 0 4px;font-size:14px">🔀 정정 전후 비교 (' +
+          esc(newest.rcept_dt) + " ← " + esc(prev.rcept_dt) + ")</h3>" + compareYears(newest, prev) + "</div>";
+      }
+
       html += adSlot("filing", { contentQualityScore: 80, isRawContentOnly: false });
 
       var secs = r.sections || [];

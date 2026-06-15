@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getFiling, jsonLd, SITE_URL } from "@/lib/api";
+import { getFiling, getGroup, jsonLd, SITE_URL } from "@/lib/api";
 
 export const revalidate = 300;
 
@@ -25,6 +25,9 @@ export default async function FilingPage({ params }: { params: { rcept: string }
   const data = await getFiling(params.rcept);
   if (!data) notFound();
   const { filing: f, sections } = data;
+
+  const group = f.filing_group_key ? await getGroup(f.filing_group_key) : null;
+  const versions = group?.versions || [];
 
   const ld = {
     "@context": "https://schema.org",
@@ -52,6 +55,33 @@ export default async function FilingPage({ params }: { params: { rcept: string }
         접수일 {f.rcept_dt} · 접수번호 {f.rcept_no} ·{" "}
         <a href={f.dart_viewer_url || "#"} target="_blank" rel="noopener noreferrer nofollow">DART 원문 보기 ↗</a>
       </div>
+
+      {versions.length > 1 && (
+        <div className="vbox">
+          <h2 className="sec" style={{ marginTop: 0 }}>정정 이력 ({versions.length}건)</h2>
+          {versions
+            .slice()
+            .sort((a, b) => b.rcept_dt.localeCompare(a.rcept_dt))
+            .map((v) => (
+              <div key={v.rcept_no}>
+                {v.rcept_no === f.rcept_no ? "▶ " : ""}
+                <Link href={`/filing/${v.rcept_no}`}>{v.rcept_dt} · {v.report_nm}</Link>
+                {v.is_latest_version && <span className="badge latest">최신본</span>}
+                {v.is_amended && <span className="badge amend">{v.amendment_type || "정정"}</span>}
+              </div>
+            ))}
+          {(() => {
+            const sorted = versions.slice().sort((a, b) => b.rcept_dt.localeCompare(a.rcept_dt));
+            return (
+              <p style={{ marginTop: 10 }}>
+                <Link href={`/diff?a=${sorted[0].rcept_no}&b=${sorted[1].rcept_no}`}>
+                  🔀 정정 전후 비교 보기 →
+                </Link>
+              </p>
+            );
+          })()}
+        </div>
+      )}
 
       <div className="ad">광고 영역 (운영 시 AdSense)</div>
 

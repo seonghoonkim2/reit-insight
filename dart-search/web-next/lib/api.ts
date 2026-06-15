@@ -1,4 +1,4 @@
-import type { Company, FilingMeta, Section, SearchHit } from "./types";
+import type { Company, FilingMeta, Section, SearchHit, Version, DiffResult } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -38,6 +38,19 @@ export function getFiling(
   rcept: string
 ): Promise<{ filing: FilingMeta; sections: Section[]; financial_facts: any[] } | null> {
   return apiGet(`/api/v1/filings/${encodeURIComponent(rcept)}`);
+}
+
+export function getGroup(
+  key: string
+): Promise<{ filing_group_key: string; count: number; versions: Version[] } | null> {
+  return apiGet(`/api/v1/group/${encodeURIComponent(key)}`);
+}
+
+export function getDiff(
+  a: string,
+  b: string
+): Promise<{ a: string; b: string; a_meta: FilingMeta; b_meta: FilingMeta; diff: DiffResult } | null> {
+  return apiGet(`/api/v1/diff?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);
 }
 
 export const POPULAR = [

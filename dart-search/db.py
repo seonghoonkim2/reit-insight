@@ -211,6 +211,33 @@ def filing_exists(con, rcept_no):
     return con.execute("SELECT 1 FROM filings WHERE rcept_no = ?", (rcept_no,)).fetchone() is not None
 
 
+def get_group_versions(con, group_key):
+    """같은 정정 그룹(filing_group_key)의 모든 버전을 접수일 순으로 돌려준다(정정 이력)."""
+    rows = con.execute(
+        "SELECT rcept_no, report_nm, rcept_dt, is_amended, amendment_type, is_latest_version "
+        "FROM filings WHERE filing_group_key = ? ORDER BY rcept_dt", (group_key,)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_sections(con, rcept_no):
+    rows = con.execute(
+        "SELECT section_order, section_path, section_title, clean_text FROM filing_sections "
+        "WHERE rcept_no = ? ORDER BY section_order", (rcept_no,)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_filing(con, rcept_no):
+    row = con.execute("SELECT * FROM filings WHERE rcept_no = ?", (rcept_no,)).fetchone()
+    return dict(row) if row else None
+
+
+def sections_for_diff(con, rcept_no):
+    """diff.compare 가 기대하는 {title,text} 형식으로 섹션을 돌려준다."""
+    return [{"title": s["section_title"], "text": s["clean_text"]} for s in get_sections(con, rcept_no)]
+
+
 def save_report(con, report):
     upsert_company(con, {"corp_code": report.get("corp_code"), "stock_code": report.get("stock_code"),
                          "corp_name": report.get("corp_name"), "market": report.get("market")})

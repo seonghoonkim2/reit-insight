@@ -60,6 +60,11 @@ cd ../web-next && cp .env.example .env.local && npm install && npm run dev   # h
 ```
 자세한 건 `backend/README.md`, `web-next/README.md` 참고.
 
+### CI & 정정 전후 비교
+- **CI**: 푸시/PR마다 `.github/workflows/ci.yml` 가 셀프테스트·검색·SEO·설정 유효성을 자동 검증합니다.
+- **정정 버전**: `collect.py` 가 정정 그룹의 모든 버전을 저장 → `GET /api/v1/group/{key}`·`/api/v1/diff?a=&b=`,
+  SPA 보고서 화면의 "정정 이력 + 정정 전후 비교", Next.js `/diff` 페이지에서 확인.
+
 **검색 앱 화면(해시 라우팅):** 홈(`#/`) · 검색(`#/search?q=`) · 회사(`#/company/<코드>`) ·
 보고서(`#/filing/<접수번호>`) · 토픽(`#/topic/<키워드>`)
 회사 페이지에는 **전년 대비 변화**(새 섹션·키워드 증감), 보고서에는 **표 렌더링**·보고서 내 검색이 들어갑니다.

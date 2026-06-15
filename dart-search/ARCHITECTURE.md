@@ -181,7 +181,9 @@ filing_group_key = corp_code + report_type + business_year
 **다음 단계**
 - SQLite FTS5 → PostgreSQL FTS/OpenSearch, 한국어 형태소(nori)
 - Next.js SSR/SSG로 전환(현재 정적 생성기 → 동적 라우팅·증분 빌드)
-- 정정 전후 diff에 **버전 보관**(현재 대표본만 저장) 연결, 자연어 QA(pgvector)
+- ✅ 정정 전후 diff + **버전 보관** 연결 완료(collect 가 전 버전 저장, `/api/v1/diff`·SPA·Next `/diff`)
+- ✅ CI(`.github/workflows/ci.yml`); 다음은 실제 CD(호스팅 시크릿 필요)
+- 자연어 QA(pgvector)
 - 정기 자동 수집(스케줄러) + 관리자 대시보드 + 모니터링 + CSV/Excel export
 - 애드센스 신청 + 요금제/Pro + 인증·과금이 붙은 공개 API
 
