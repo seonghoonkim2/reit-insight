@@ -8,6 +8,9 @@
   - 상장리츠 기초 설명 / 리츠 목록 + 섹터 필터 + 검색 / 상세 모달 / 댓글
   - 리츠 데이터는 `index.html` 안의 `REITS` 배열에 하드코딩됨
   - 댓글은 브라우저 `localStorage`에 저장 (데모용 — 사용자 간 공유 안 됨)
+- `dart-search/` — **별도 하위 프로젝트 "공시렌즈(GongsiLens)"**: DART 사업보고서 전문 검색 사이트.
+  OpenDART 수집(`collect.py`)·AI 요약(`summarize.py`)·SQLite(`db.py`)·검색 앱(`web/index.html`).
+  설계: `dart-search/ARCHITECTURE.md`, 단계: `dart-search/ROADMAP.md`. (리츠 사이트와 독립)
 
 ## 주의사항
 - 배당수익률·주가 등 **숫자는 예시 샘플**, 종목명·종목코드는 실제 값

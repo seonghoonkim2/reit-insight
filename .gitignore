@@ -18,3 +18,10 @@ Desktop.ini
 dart-search/config.json
 dart-search/data/
 dart-search/web/data.js
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+
+# SEO 정적 생성물 (build_site.py 산출물)
+dart-search/dist/

@@ -39,6 +39,13 @@ CONFIG_PATH = os.path.join(HERE, "config.json")
 DATA_DIR = os.path.join(HERE, "data")
 WEB_DIR = os.path.join(HERE, "web")
 CORP_CACHE_PATH = os.path.join(DATA_DIR, "corpcode_cache.json")
+DB_PATH = os.path.join(DATA_DIR, "gongsilens.db")
+
+# SQLite 데이터 레이어(같은 폴더 db.py). 없거나 오류여도 수집은 JSON 으로 계속 동작.
+try:
+    import db  # noqa: E402
+except Exception:
+    db = None
 
 API_BASE = "https://opendart.fss.or.kr/api"
 
@@ -127,6 +134,23 @@ def strip_tags(s):
     return s.strip()
 
 
+def extract_tables(raw, max_tables=20, max_cell=200):
+    """원문 조각에서 <TABLE> 들을 찾아 'a | b | c' 줄 형태의 간단한 표 텍스트로 만든다."""
+    tables = []
+    for tbl in re.findall(r"<TABLE\b[^>]*>(.*?)</TABLE>", raw, re.IGNORECASE | re.DOTALL):
+        rows = []
+        for tr in re.findall(r"<TR\b[^>]*>(.*?)</TR>", tbl, re.IGNORECASE | re.DOTALL):
+            cells = re.findall(r"<T[DH]\b[^>]*>(.*?)</T[DH]>", tr, re.IGNORECASE | re.DOTALL)
+            cells = [strip_tags(c)[:max_cell] for c in cells]
+            if any(cells):
+                rows.append(cells)
+        if rows:
+            tables.append("\n".join(" | ".join(r) for r in rows))
+        if len(tables) >= max_tables:
+            break
+    return tables
+
+
 def parse_report_text(raw_xml, max_total_chars=1_000_000):
     """
     DART 원문 XML 에서
@@ -139,6 +163,7 @@ def parse_report_text(raw_xml, max_total_chars=1_000_000):
     matches = list(title_pattern.finditer(raw_xml))
 
     sections = []
+    current_top = None  # 가장 최근 대제목(I. II. ...) 을 기억해 섹션 경로(breadcrumb) 구성
     if matches:
         for i, m in enumerate(matches):
             title = strip_tags(m.group(1))
@@ -146,11 +171,18 @@ def parse_report_text(raw_xml, max_total_chars=1_000_000):
                 continue
             body_start = m.end()
             body_end = matches[i + 1].start() if i + 1 < len(matches) else len(raw_xml)
-            text = strip_tags(raw_xml[body_start:body_end])
-            # 너무 짧은(목차 표시만 있는) 섹션은 건너뜀
+            raw_slice = raw_xml[body_start:body_end]
+            text = strip_tags(raw_slice)
+            tables = extract_tables(raw_slice)
             if len(title) > 100:
                 title = title[:100] + "…"
-            sections.append({"title": title, "text": text})
+            # 'I.', 'II.', 'III.' 같은 로마자 대제목이면 최상위로 보고 경로 기준점으로 삼는다
+            if re.match(r"^[IVXLC]+\.\s", title):
+                current_top = title
+                section_path = title
+            else:
+                section_path = (current_top + " > " + title) if current_top else title
+            sections.append({"title": title, "section_path": section_path, "text": text, "tables": tables})
 
     full_text = strip_tags(raw_xml)
     truncated = False
@@ -200,9 +232,30 @@ def load_corp_map(api_key, max_age_days=7):
     return corp_map
 
 
-# ── ② 사업보고서 접수번호 찾기 ───────────────────────────────────────────────
+# ── ② 사업보고서 접수번호 찾기 (정정 포함 → 대표본 선택) ─────────────────────
+def _business_year(report_nm, rcept_dt):
+    """보고서명에 보통 (YYYY.MM) 형태로 사업연도가 들어있음. 없으면 접수연도로 추정."""
+    m = re.search(r"\((\d{4})\.\d{2}\)", report_nm or "")
+    return m.group(1) if m else (rcept_dt or "")[:4]
+
+
+def _amendment_type(report_nm):
+    """보고서명으로 정정 종류를 추정."""
+    if "기재정정" in report_nm:
+        return "기재정정"
+    if "첨부정정" in report_nm:
+        return "첨부정정"
+    if "정정" in report_nm:
+        return "정정"
+    return None
+
+
 def find_business_report(api_key, corp_code, years_back=3):
-    """해당 기업의 가장 최근 '사업보고서' 공시 1건을 찾는다."""
+    """
+    해당 기업의 사업보고서를 정정 포함 모두 모은 뒤, 가장 최근 사업연도의 '대표본'을 고른다.
+    돌려주는 값: {row, business_year, is_amended, amendment_type, version_count} 또는 None
+      - 대표본 = 같은 (corp_code+사업연도) 그룹 내 접수일이 가장 늦은 보고서 (= 최신본)
+    """
     today = datetime.date.today()
     bgn = (today - datetime.timedelta(days=365 * years_back + 30)).strftime("%Y%m%d")
     end = today.strftime("%Y%m%d")
@@ -212,26 +265,37 @@ def find_business_report(api_key, corp_code, years_back=3):
             "corp_code": corp_code,
             "bgn_de": bgn,
             "end_de": end,
-            "pblntf_ty": "A",     # A = 정기공시
+            "pblntf_ty": "A",      # A = 정기공시
+            "last_reprt_at": "N",  # N = 정정 포함 모두
             "page_count": "100",
         })
     except DartApiError as e:
-        if e.status == "013":     # 데이터 없음
+        if e.status == "013":      # 데이터 없음
             return None
         raise
 
-    candidates = []
+    # '사업보고서'만(분기/반기 제외) 모으고 사업연도별로 그룹화
+    groups = {}
     for row in data.get("list", []):
         name = row.get("report_nm", "")
-        # '사업보고서' 이면서 분기/반기 보고서는 제외
-        if "사업보고서" in name and "분기" not in name and "반기" not in name:
-            candidates.append(row)
+        if "사업보고서" not in name or "분기" in name or "반기" in name:
+            continue
+        yr = _business_year(name, row.get("rcept_dt", ""))
+        groups.setdefault(yr, []).append(row)
 
-    if not candidates:
+    if not groups:
         return None
-    # 접수일(rcept_dt) 기준 가장 최근 것
-    candidates.sort(key=lambda r: r.get("rcept_dt", ""), reverse=True)
-    return candidates[0]
+
+    latest_year = max(groups.keys())               # 가장 최근 사업연도
+    versions = sorted(groups[latest_year], key=lambda r: r.get("rcept_dt", ""), reverse=True)
+    chosen = versions[0]                            # 대표본 = 접수일 최신
+    return {
+        "row": chosen,
+        "business_year": latest_year,
+        "is_amended": _amendment_type(chosen.get("report_nm", "")) is not None,
+        "amendment_type": _amendment_type(chosen.get("report_nm", "")),
+        "version_count": len(versions),
+    }
 
 
 # ── ③④ 원문 다운로드 + 텍스트 추출 ──────────────────────────────────────────
@@ -291,11 +355,21 @@ def run_collect():
     api_key = cfg["api_key"]
     stock_codes = [str(c).zfill(6) for c in cfg.get("stock_codes", [])]
     years_back = int(cfg.get("years_back", 3))
+    skip_existing = cfg.get("skip_existing", True)  # 증분 수집(이미 받은 건 건너뜀)
     if not stock_codes:
         log("⚠️  config.json 의 stock_codes 가 비어 있습니다. 예: [\"005930\", \"000660\"]")
         sys.exit(1)
 
     corp_map = load_corp_map(api_key)
+
+    # SQLite 연결(있으면). 실패해도 JSON 저장은 그대로 동작.
+    _db_con = None
+    if db is not None:
+        try:
+            _db_con = db.connect(DB_PATH)
+            db.init_schema(_db_con)
+        except Exception as e:
+            log(f"(SQLite 초기화 건너뜀: {e})")
 
     reports = []
     for code in stock_codes:
@@ -305,16 +379,24 @@ def run_collect():
             continue
         log(f"② [{code}] {info['corp_name']} 사업보고서 찾는 중...")
         try:
-            row = find_business_report(api_key, info["corp_code"], years_back)
+            found = find_business_report(api_key, info["corp_code"], years_back)
         except DartApiError as e:
             log(f"   API 오류: {e}")
             continue
-        if not row:
+        if not found:
             log(f"   최근 {years_back}년 내 사업보고서를 찾지 못했습니다. 건너뜀.")
             continue
 
+        row = found["row"]
         rcept_no = row["rcept_no"]
-        log(f"③ 원문 내려받는 중... (접수번호 {rcept_no})")
+        year = found["business_year"]
+
+        # 증분 수집: 이미 받은 보고서는 건너뛴다(설정 skip_existing, 기본 켜짐)
+        if skip_existing and _db_con is not None and db.filing_exists(_db_con, rcept_no):
+            log(f"   이미 수집됨(접수번호 {rcept_no}) — 건너뜀")
+            continue
+
+        log(f"③ 원문 내려받는 중... (접수번호 {rcept_no}, 사업연도 {year}, 정정 {found['version_count']-1}건)")
         try:
             raw_xml = download_document_text(api_key, rcept_no)
         except Exception as e:
@@ -324,27 +406,40 @@ def run_collect():
         log("④ 텍스트 추출/정리...")
         sections, full_text, truncated = parse_report_text(raw_xml)
 
-        # 사업연도 추정 (보고서명에 보통 (YYYY.MM) 형태로 들어있음)
-        m = re.search(r"\((\d{4})\.\d{2}\)", row.get("report_nm", ""))
-        year = m.group(1) if m else row.get("rcept_dt", "")[:4]
-
-        reports.append({
+        report = {
             "corp_code": info["corp_code"],
             "corp_name": info["corp_name"],
             "stock_code": code,
+            "market": info.get("market", ""),
             "rcept_no": rcept_no,
             "report_nm": row.get("report_nm", "").strip(),
+            "report_type": "사업보고서",
             "rcept_dt": row.get("rcept_dt", ""),
             "year": year,
+            # ↓ 정정/대표본 처리 (ARCHITECTURE.md 4장)
+            "filing_group_key": f"{info['corp_code']}_사업보고서_{year}",
+            "is_latest_version": True,            # 그룹 내 대표본만 저장
+            "is_amended": found["is_amended"],
+            "amendment_type": found["amendment_type"],
+            "version_count": found["version_count"],
             "dart_url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rcept_no}",
             "sections": sections,
             "full_text": full_text,
             "char_count": len(full_text),
             "truncated": truncated,
-            # ↓ 부가가치 자리 (다음 단계에서 자동 채움: 예) Claude API 요약, 재무지표 추출)
+            # ↓ 부가가치 자리 (summarize.py 가 채움)
             "summary": "",
             "key_metrics": {},
-        })
+        }
+        reports.append(report)
+
+        # SQLite 에도 저장(있으면). 실패해도 수집은 계속 진행.
+        if _db_con is not None:
+            try:
+                db.save_report(_db_con, report)
+            except Exception as e:
+                log(f"   (SQLite 저장 경고: {e})")
+
         log(f"   완료: 본문 {len(full_text):,}자, 섹션 {len(sections)}개")
         time.sleep(0.5)  # API 에 부담 주지 않도록 잠깐 쉼
 
@@ -352,6 +447,8 @@ def run_collect():
         log("\n수집된 보고서가 없습니다. 종목코드/인증키를 확인하세요.")
         sys.exit(1)
     write_outputs(reports, is_demo=False)
+    if _db_con is not None:
+        log(f"🗄  SQLite 저장 완료 → {DB_PATH}")
 
 
 # ── 자체 점검 (인증키/네트워크 없이 텍스트 추출 로직만 확인) ──────────────────
@@ -399,6 +496,13 @@ def run_selftest():
         ok = False
     else:
         log("  ✅ 태그 제거 정상")
+
+    tbls = sections[1].get("tables", [])
+    if not tbls or "매출액 | 300조원" not in tbls[0]:
+        log(f"  ❌ 표 추출 실패: {tbls}")
+        ok = False
+    else:
+        log(f"  ✅ 표 추출 정상: {tbls[0]!r}")
 
     if ok:
         log("\n🎉 자체 점검 통과! 인증키만 넣으면 실제 수집을 시작할 수 있어요.")
