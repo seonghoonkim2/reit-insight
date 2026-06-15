@@ -169,13 +169,18 @@ filing_group_key = corp_code + report_type + business_year
 - **증분 수집**(이미 받은 보고서 건너뛰기)
 - 광고 노출 규칙(`canShowAds`) + 광고 슬롯 placeholder
 - SQLite 데이터 레이어(`db.py`) + collect.py 연동
-- **SEO 정적 사이트 생성기(`build_site.py`)**: 회사/보고서/토픽 페이지 + canonical + sitemap.xml + robots.txt
-- GitHub Pages 배포 워크플로(수동)
+- **전문검색 엔진**: SQLite **FTS5(trigram=한국어 부분일치)** + `search.py`(BM25, 폴백 LIKE)
+- **읽기 전용 JSON API**(`api.py`, 표준 라이브러리 HTTP) + **OpenAPI 스펙**(`api/openapi.yaml`)
+- **대량/재개형 수집**(`bulk.py`): 작업 큐(`ingestion_jobs`) + 하루 한도 + 중복방지 + 이어하기
+- **재무 구조화**(`financials.py`, `financial_facts`): OpenDART 재무 API 파싱/저장
+- **보고서 비교**(`diff.py`): 전년대비/정정 전후(새 섹션·변경률·키워드 증감)
+- **SEO 정적 생성기**(`build_site.py`): 회사/보고서/토픽 + canonical + **JSON-LD(Article/Organization/Breadcrumb)** + OG/twitter + sitemap.xml + robots.txt
+- 광고 노출 규칙(`canShowAds`) + **AdSense 실연동 훅**(ADSENSE_CLIENT 설정 시 활성)
+- `seed.py`(키 없이 풀스택 체험) + GitHub Pages 배포 워크플로(수동)
 
 **다음 단계**
-- SQLite→PostgreSQL, 전문검색 엔진(OpenSearch), 한국어 형태소(nori)
+- SQLite FTS5 → PostgreSQL FTS/OpenSearch, 한국어 형태소(nori)
 - Next.js SSR/SSG로 전환(현재 정적 생성기 → 동적 라우팅·증분 빌드)
-- 재무 구조화(`financial_facts`, OpenDART 재무 API)·CSV/Excel export
-- 정정 전후 diff(버전 보관), 자연어 QA(pgvector)
-- 정기 자동 수집(스케줄러) + 관리자 대시보드 + 모니터링
-- 애드센스 신청 + 요금제/Pro + API 상품
+- 정정 전후 diff에 **버전 보관**(현재 대표본만 저장) 연결, 자연어 QA(pgvector)
+- 정기 자동 수집(스케줄러) + 관리자 대시보드 + 모니터링 + CSV/Excel export
+- 애드센스 신청 + 요금제/Pro + 인증·과금이 붙은 공개 API

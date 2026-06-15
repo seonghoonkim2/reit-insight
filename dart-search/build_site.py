@@ -76,17 +76,40 @@ def load_reports():
     return [], False
 
 
-def page(title, body, description="", canonical=""):
+def page(title, body, description="", canonical="", jsonld=None, og_type="website"):
+    og = (
+        f"<meta property='og:title' content='{esc(title)}'>"
+        f"<meta property='og:description' content='{esc(description)}'>"
+        f"<meta property='og:type' content='{esc(og_type)}'>"
+        "<meta property='og:site_name' content='공시렌즈'>"
+        + (f"<meta property='og:url' content='{esc(canonical)}'>" if canonical else "")
+        + "<meta name='twitter:card' content='summary'>"
+    )
+    ld = ""
+    if jsonld:
+        ld = "<script type='application/ld+json'>" + json.dumps(jsonld, ensure_ascii=False) + "</script>"
     head = (
         "<!DOCTYPE html><html lang='ko'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
         f"<title>{esc(title)}</title>"
         f"<meta name='description' content='{esc(description)}'>"
         + (f"<link rel='canonical' href='{esc(canonical)}'>" if canonical else "")
+        + og + ld
         + f"<style>{CSS}</style></head><body>"
     )
     foot = f"<footer>⚠️ {esc(DISCLAIMER)}</footer></body></html>"
     return head + body + foot
+
+
+def _breadcrumb(items):
+    """items: [(name, url), ...] → schema.org BreadcrumbList"""
+    return {
+        "@context": "https://schema.org", "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "name": n, **({"item": u} if u else {})}
+            for i, (n, u) in enumerate(items)
+        ],
+    }
 
 
 def km_html(km):
@@ -143,7 +166,13 @@ def build(base_url=""):
         body += "</div>"
         title = f"{co['name']} 사업보고서 | 공시렌즈"
         desc = f"{co['name']}의 DART 사업보고서를 연도별로 검색·비교. 최신 {latest['year']} 사업보고서 요약 포함."
-        write(f"company/{code}.html", page(title, body, desc, _abs(base_url, f"company/{code}.html")))
+        canon = _abs(base_url, f"company/{code}.html")
+        jsonld = [
+            {"@context": "https://schema.org", "@type": "Organization", "name": co["name"],
+             **({"tickerSymbol": co["stock"]} if co.get("stock") else {}), **({"url": canon} if canon else {})},
+            _breadcrumb([("공시렌즈", _abs(base_url, "index.html")), (co["name"], canon)]),
+        ]
+        write(f"company/{code}.html", page(title, body, desc, canon, jsonld, "profile"))
         urls.append(f"company/{code}.html")
 
     # ── 보고서 페이지 ──
@@ -162,8 +191,21 @@ def build(base_url=""):
         title = f"{r['corp_name']} {r['year']} 사업보고서 | 공시렌즈"
         desc = f"{r['corp_name']} {r['year']} 사업보고서 전문 · 섹션별 원문과 요약, DART 원문 링크."
         canon = _abs(base_url, f"filing/{r['rcept_no']}.html")
-        # 최신본만 색인 권장: 구버전(있다면)은 noindex 가 맞지만 여기선 모두 최신본만 저장됨
-        write(f"filing/{r['rcept_no']}.html", page(title, body, desc, canon))
+        rdt = r.get("rcept_dt", "")
+        iso = (rdt[:4] + "-" + rdt[4:6] + "-" + rdt[6:8]) if len(rdt) == 8 else None
+        jsonld = [
+            {"@context": "https://schema.org", "@type": "Article",
+             "headline": f"{r['corp_name']} {r['year']} 사업보고서", "inLanguage": "ko",
+             **({"datePublished": iso} if iso else {}),
+             "author": {"@type": "Organization", "name": r["corp_name"]},
+             "publisher": {"@type": "Organization", "name": "공시렌즈"},
+             **({"mainEntityOfPage": canon} if canon else {})},
+            _breadcrumb([("공시렌즈", _abs(base_url, "index.html")),
+                         (r["corp_name"], _abs(base_url, f"company/{r['corp_code']}.html")),
+                         (f"{r['year']} 사업보고서", canon)]),
+        ]
+        # 최신본만 색인(여기선 모두 최신본). 구버전이 생기면 noindex 권장.
+        write(f"filing/{r['rcept_no']}.html", page(title, body, desc, canon, jsonld, "article"))
         if r.get("is_latest_version") is not False:
             urls.append(f"filing/{r['rcept_no']}.html")
 

@@ -13,8 +13,11 @@
 - `summarize.py`: Claude API로 **요약·핵심지표 자동 추출**(원문 기반, 출처 표기)
 - `web/index.html`: **공시렌즈 앱** — 홈/검색/회사/보고서/토픽, **문단 단위 검색** + 연도/섹션/숫자 필터,
   보고서 내 검색, **표 렌더링**, **전년 대비 변화**, 정정 배지, **광고 노출 규칙(`canShowAds`)** + 면책, 라이트 테마
-- `build_site.py`: **SEO 정적 페이지**(회사/보고서/토픽) + canonical + **sitemap.xml** + robots.txt, Pages 배포 워크플로
-- 남은 한계: 데이터가 `data.js` 한 파일(소수 기업), 검색은 클라이언트 문자열 매칭(아직 검색엔진 아님), 정적 페이지는 빌드 시점 스냅샷
+- `build_site.py`: **SEO 정적 페이지**(회사/보고서/토픽) + canonical + **JSON-LD/OG** + **sitemap.xml** + robots.txt, Pages 배포 워크플로
+- **검색 엔진**: SQLite **FTS5(trigram)** + `search.py`(BM25, 폴백 LIKE)
+- **JSON API**: `api.py`(표준 라이브러리 HTTP) + `api/openapi.yaml`, `seed.py`로 키 없이 풀스택 체험
+- **대량 수집**: `bulk.py`(작업 큐·하루 한도·이어하기), **재무 구조화** `financials.py`, **보고서 비교** `diff.py`
+- 남은 한계: 단일 노드(SQLite)·정적 스냅샷·정정 버전 미보관 → 다음 단계에서 PostgreSQL/OpenSearch·Next.js로 확장
 
 ## 1단계 — 데이터 레이어 (전체 기업으로 확장)
 - **전체 상장사 목록**: `corpCode` 전체를 받아 종목코드/회사명/섹터 매핑

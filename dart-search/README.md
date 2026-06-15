@@ -18,21 +18,37 @@
 
 ```
 dart-search/
-├─ collect.py            # ① OpenDART 수집 (정정→최신본, 섹션경로, 표 추출, 증분, SQLite) — pip 불필요
-├─ summarize.py          # ② Claude API로 요약·핵심지표 자동 추출 — pip install anthropic 필요
-├─ build_site.py         # ③ SEO 정적 사이트 생성기(회사/보고서/토픽 + sitemap) — pip 불필요
-├─ db.py                 # SQLite 데이터 레이어 (표준 라이브러리 sqlite3) — pip 불필요
-├─ ARCHITECTURE.md       # 전체 설계 확정 문서
-├─ ROADMAP.md            # 단계별 로드맵
-├─ config.example.json   # 설정 예시 (복사해서 config.json 으로 사용)
-├─ web/
-│  ├─ index.html         # 공시렌즈 검색 앱 (홈/검색/회사/보고서/토픽 — 브라우저로 열기)
-│  ├─ demo-data.js       # 키 없이 동작을 볼 수 있는 데모 샘플
-│  └─ data.js            # collect.py/summarize.py 가 만드는 '진짜' 데이터 (깃에 안 올라감)
-├─ data/                 # 수집 원본/캐시/SQLite(gongsilens.db) (깃에 안 올라감)
-└─ dist/                 # build_site.py 가 만드는 SEO 정적 페이지 (깃에 안 올라감)
+├─ collect.py            # OpenDART 수집(정정→최신본, 섹션경로, 표 추출, 증분, SQLite) — pip 불필요
+├─ bulk.py               # 대량/재개형 수집(작업 큐 기반, 하루 한도) — pip 불필요
+├─ summarize.py          # Claude API 요약·핵심지표 추출 — pip install anthropic
+├─ financials.py         # OpenDART 재무 구조화(financial_facts) — pip 불필요
+├─ db.py                 # SQLite 데이터 레이어 + FTS5 검색 인덱스 — pip 불필요
+├─ search.py             # 전문검색 엔진(FTS5 trigram, 폴백 LIKE) — pip 불필요
+├─ api.py                # 읽기 전용 JSON API(표준 라이브러리 HTTP) — pip 불필요
+├─ seed.py               # 데모 데이터를 SQLite로 시드(키 없이 풀스택 체험) — pip 불필요
+├─ build_site.py         # SEO 정적 사이트 생성(회사/보고서/토픽 + JSON-LD + sitemap) — pip 불필요
+├─ diff.py               # 보고서 비교(전년대비/정정 전후) — pip 불필요
+├─ api/openapi.yaml      # API 스펙(OpenAPI 3)
+├─ ARCHITECTURE.md · ROADMAP.md · config.example.json
+├─ web/  (index.html 검색앱 · demo-data.js · data.js[깃제외])
+├─ data/ (reports.json · SQLite gongsilens.db · 캐시  — 깃제외)
+└─ dist/ (build_site.py SEO 산출물 — 깃제외)
 ```
 (배포: `.github/workflows/gongsilens-pages.yml` — Actions에서 수동 실행 시 `web/`를 GitHub Pages에 게시)
+
+### 🚀 키 없이 풀스택 바로 체험 (데모 데이터)
+```bash
+python3 seed.py                 # 데모를 SQLite로 적재(+FTS 인덱스)
+python3 search.py 우발부채        # 전문검색(한국어 부분일치)
+python3 search.py PF             # 짧은 영문은 LIKE 폴백
+python3 api.py                  # http://127.0.0.1:8765/api/v1/search?q=우발부채
+```
+
+### 대량 수집 (실데이터, 키 필요)
+```bash
+python3 bulk.py                 # 상장사를 큐에 넣고 하루 한도만큼 처리(이어하기 가능)
+python3 bulk.py --status        # 큐 현황
+```
 
 **검색 앱 화면(해시 라우팅):** 홈(`#/`) · 검색(`#/search?q=`) · 회사(`#/company/<코드>`) ·
 보고서(`#/filing/<접수번호>`) · 토픽(`#/topic/<키워드>`)
@@ -110,9 +126,13 @@ python3 build_site.py --base-url https://내도메인  # sitemap 절대경로
 
 ## 점검 명령 (인증키/네트워크 없이 동작)
 ```bash
-python3 collect.py --selftest     # 텍스트 추출 + 표 추출 로직
-python3 db.py --selftest          # SQLite 스키마/업서트
+python3 collect.py --selftest     # 텍스트/표 추출
+python3 db.py --selftest          # SQLite 스키마/업서트/FTS/작업큐/재무
+python3 financials.py --selftest  # 재무 응답 파싱
+python3 diff.py --selftest        # 보고서 비교(전년대비/정정)
+python3 bulk.py --selftest        # 대량 수집 큐/재개/중복방지
 python3 summarize.py --dry-run    # AI 요약 프롬프트 미리보기
+python3 seed.py && python3 search.py 우발부채   # 시드 + 검색
 python3 build_site.py             # SEO 정적 페이지 생성(데모 데이터)
 ```
 

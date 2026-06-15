@@ -8,5 +8,13 @@
   "_안내2": "아래는 AI 요약(summarize.py)용. 비용을 줄이려면 summary_model 을 claude-haiku-4-5 로 바꿔도 됩니다.",
   "anthropic_api_key": "여기에_Claude_API_키를_붙여넣으세요(선택)",
   "summary_model": "claude-opus-4-8",
-  "summary_max_chars": 40000
+  "summary_max_chars": 40000,
+
+  "_안내3": "아래는 대량/재개형 수집(bulk.py)용. daily_limit 으로 하루 처리량을 제한합니다.",
+  "bulk": {
+    "daily_limit": 200,
+    "rate_seconds": 0.6,
+    "max_companies": 0,
+    "with_financials": false
+  }
 }
