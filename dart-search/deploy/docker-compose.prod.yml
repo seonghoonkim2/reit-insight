@@ -1,0 +1,75 @@
+# 공시렌즈 운영 스택 — GHCR 발행 이미지 + Postgres + OpenSearch(nori)
+# 사용(서버/로컬 어디서나, Docker만 있으면):
+#   cd dart-search/deploy
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml run --rm backend python load.py   # 데이터 적재
+#   # 프런트 → http://localhost:3000 , API → http://localhost:8000
+#
+# 이미지 소유자(seonghoonkim2)는 본인 GitHub 계정에 맞게 그대로/수정해서 쓰세요.
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: gongsi
+      POSTGRES_PASSWORD: gongsi
+      POSTGRES_DB: gongsilens
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../backend/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gongsi -d gongsilens"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  opensearch:
+    build:
+      context: ../backend
+      dockerfile: opensearch.Dockerfile
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    volumes:
+      - osdata:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    image: ghcr.io/seonghoonkim2/gongsilens-backend:latest
+    environment:
+      DATABASE_URL: postgresql://gongsi:gongsi@postgres:5432/gongsilens
+      OPENSEARCH_URL: http://opensearch:9200
+      OPENSEARCH_INDEX: chunks
+      SEARCH_BACKEND: opensearch
+      CORS_ORIGINS: "*"
+    volumes:
+      - ../data:/data:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres: { condition: service_healthy }
+      opensearch: { condition: service_healthy }
+
+  web:
+    image: ghcr.io/seonghoonkim2/gongsilens-web:latest
+    environment:
+      API_BASE: http://backend:8000          # SSR(서버) → 내부 백엔드
+      SITE_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  osdata:
