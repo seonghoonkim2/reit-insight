@@ -134,6 +134,23 @@ def strip_tags(s):
     return s.strip()
 
 
+def extract_tables(raw, max_tables=20, max_cell=200):
+    """원문 조각에서 <TABLE> 들을 찾아 'a | b | c' 줄 형태의 간단한 표 텍스트로 만든다."""
+    tables = []
+    for tbl in re.findall(r"<TABLE\b[^>]*>(.*?)</TABLE>", raw, re.IGNORECASE | re.DOTALL):
+        rows = []
+        for tr in re.findall(r"<TR\b[^>]*>(.*?)</TR>", tbl, re.IGNORECASE | re.DOTALL):
+            cells = re.findall(r"<T[DH]\b[^>]*>(.*?)</T[DH]>", tr, re.IGNORECASE | re.DOTALL)
+            cells = [strip_tags(c)[:max_cell] for c in cells]
+            if any(cells):
+                rows.append(cells)
+        if rows:
+            tables.append("\n".join(" | ".join(r) for r in rows))
+        if len(tables) >= max_tables:
+            break
+    return tables
+
+
 def parse_report_text(raw_xml, max_total_chars=1_000_000):
     """
     DART 원문 XML 에서
@@ -154,7 +171,9 @@ def parse_report_text(raw_xml, max_total_chars=1_000_000):
                 continue
             body_start = m.end()
             body_end = matches[i + 1].start() if i + 1 < len(matches) else len(raw_xml)
-            text = strip_tags(raw_xml[body_start:body_end])
+            raw_slice = raw_xml[body_start:body_end]
+            text = strip_tags(raw_slice)
+            tables = extract_tables(raw_slice)
             if len(title) > 100:
                 title = title[:100] + "…"
             # 'I.', 'II.', 'III.' 같은 로마자 대제목이면 최상위로 보고 경로 기준점으로 삼는다
@@ -163,7 +182,7 @@ def parse_report_text(raw_xml, max_total_chars=1_000_000):
                 section_path = title
             else:
                 section_path = (current_top + " > " + title) if current_top else title
-            sections.append({"title": title, "section_path": section_path, "text": text})
+            sections.append({"title": title, "section_path": section_path, "text": text, "tables": tables})
 
     full_text = strip_tags(raw_xml)
     truncated = False
@@ -336,6 +355,7 @@ def run_collect():
     api_key = cfg["api_key"]
     stock_codes = [str(c).zfill(6) for c in cfg.get("stock_codes", [])]
     years_back = int(cfg.get("years_back", 3))
+    skip_existing = cfg.get("skip_existing", True)  # 증분 수집(이미 받은 건 건너뜀)
     if not stock_codes:
         log("⚠️  config.json 의 stock_codes 가 비어 있습니다. 예: [\"005930\", \"000660\"]")
         sys.exit(1)
@@ -370,6 +390,12 @@ def run_collect():
         row = found["row"]
         rcept_no = row["rcept_no"]
         year = found["business_year"]
+
+        # 증분 수집: 이미 받은 보고서는 건너뛴다(설정 skip_existing, 기본 켜짐)
+        if skip_existing and _db_con is not None and db.filing_exists(_db_con, rcept_no):
+            log(f"   이미 수집됨(접수번호 {rcept_no}) — 건너뜀")
+            continue
+
         log(f"③ 원문 내려받는 중... (접수번호 {rcept_no}, 사업연도 {year}, 정정 {found['version_count']-1}건)")
         try:
             raw_xml = download_document_text(api_key, rcept_no)
@@ -470,6 +496,13 @@ def run_selftest():
         ok = False
     else:
         log("  ✅ 태그 제거 정상")
+
+    tbls = sections[1].get("tables", [])
+    if not tbls or "매출액 | 300조원" not in tbls[0]:
+        log(f"  ❌ 표 추출 실패: {tbls}")
+        ok = False
+    else:
+        log(f"  ✅ 표 추출 정상: {tbls[0]!r}")
 
     if ok:
         log("\n🎉 자체 점검 통과! 인증키만 넣으면 실제 수집을 시작할 수 있어요.")

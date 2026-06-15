@@ -1,0 +1,36 @@
+# 공시렌즈 데모 사이트를 GitHub Pages에 배포 (수동 실행)
+#
+# ⚠️ 자동 배포되지 않습니다. Actions 탭에서 "Run workflow"로 직접 실행해야 합니다.
+#    먼저 저장소 Settings → Pages 의 Source를 "GitHub Actions"로 설정하세요.
+#    배포되는 것은 dart-search/web (커밋된 demo-data.js 기준의 데모)입니다.
+#    실제 데이터로 SEO 정적 페이지를 배포하려면 build_site.py 산출물(dist/)을 쓰도록 path를 바꾸세요.
+
+name: GongsiLens Pages (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Upload site (dart-search/web)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dart-search/web
+      - id: deployment
+        uses: actions/deploy-pages@v4

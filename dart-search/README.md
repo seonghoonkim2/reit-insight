@@ -18,8 +18,9 @@
 
 ```
 dart-search/
-├─ collect.py            # ① OpenDART 수집 (정정→최신본 선택, 섹션 경로, SQLite 저장) — pip 불필요
+├─ collect.py            # ① OpenDART 수집 (정정→최신본, 섹션경로, 표 추출, 증분, SQLite) — pip 불필요
 ├─ summarize.py          # ② Claude API로 요약·핵심지표 자동 추출 — pip install anthropic 필요
+├─ build_site.py         # ③ SEO 정적 사이트 생성기(회사/보고서/토픽 + sitemap) — pip 불필요
 ├─ db.py                 # SQLite 데이터 레이어 (표준 라이브러리 sqlite3) — pip 불필요
 ├─ ARCHITECTURE.md       # 전체 설계 확정 문서
 ├─ ROADMAP.md            # 단계별 로드맵
@@ -28,11 +29,14 @@ dart-search/
 │  ├─ index.html         # 공시렌즈 검색 앱 (홈/검색/회사/보고서/토픽 — 브라우저로 열기)
 │  ├─ demo-data.js       # 키 없이 동작을 볼 수 있는 데모 샘플
 │  └─ data.js            # collect.py/summarize.py 가 만드는 '진짜' 데이터 (깃에 안 올라감)
-└─ data/                 # 수집 원본/캐시/SQLite(gongsilens.db) (깃에 안 올라감)
+├─ data/                 # 수집 원본/캐시/SQLite(gongsilens.db) (깃에 안 올라감)
+└─ dist/                 # build_site.py 가 만드는 SEO 정적 페이지 (깃에 안 올라감)
 ```
+(배포: `.github/workflows/gongsilens-pages.yml` — Actions에서 수동 실행 시 `web/`를 GitHub Pages에 게시)
 
-**화면 구성(해시 라우팅):** 홈(`#/`) · 검색(`#/search?q=`) · 회사(`#/company/<코드>`) ·
+**검색 앱 화면(해시 라우팅):** 홈(`#/`) · 검색(`#/search?q=`) · 회사(`#/company/<코드>`) ·
 보고서(`#/filing/<접수번호>`) · 토픽(`#/topic/<키워드>`)
+회사 페이지에는 **전년 대비 변화**(새 섹션·키워드 증감), 보고서에는 **표 렌더링**·보고서 내 검색이 들어갑니다.
 
 ---
 
@@ -92,11 +96,24 @@ python3 summarize.py
 
 ---
 
+## 4단계 — SEO 정적 페이지 생성 & 배포 (선택)
+검색엔진이 잘 읽도록 회사/보고서/토픽 페이지를 정적 HTML로 발행합니다.
+```bash
+python3 build_site.py                              # dist/ 에 생성 (데이터 없으면 데모로 생성)
+python3 build_site.py --base-url https://내도메인  # sitemap 절대경로
+```
+- 결과: `dist/index.html`, `dist/company/*`, `dist/filing/*`, `dist/topic/*`, `dist/sitemap.xml`, `dist/robots.txt`
+- **배포**: 저장소 Settings → Pages → Source를 "GitHub Actions"로 둔 뒤, Actions 탭에서
+  `GongsiLens Pages (manual)` 워크플로를 실행하면 `web/`(검색 앱 데모)가 게시됩니다.
+
+---
+
 ## 점검 명령 (인증키/네트워크 없이 동작)
 ```bash
-python3 collect.py --selftest     # 텍스트 추출 로직
+python3 collect.py --selftest     # 텍스트 추출 + 표 추출 로직
 python3 db.py --selftest          # SQLite 스키마/업서트
 python3 summarize.py --dry-run    # AI 요약 프롬프트 미리보기
+python3 build_site.py             # SEO 정적 페이지 생성(데모 데이터)
 ```
 
 ## 주의사항

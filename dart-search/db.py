@@ -150,6 +150,12 @@ def replace_sections(con, rcept_no, sections):
         )
 
 
+def filing_exists(con, rcept_no):
+    """이미 저장된 보고서인지(증분 수집 시 건너뛰기용)."""
+    row = con.execute("SELECT 1 FROM filings WHERE rcept_no = ?", (rcept_no,)).fetchone()
+    return row is not None
+
+
 def save_report(con, report):
     """report dict(컬렉터가 만든 형식) 한 건을 companies/filings/filing_sections 에 저장."""
     upsert_company(con, {

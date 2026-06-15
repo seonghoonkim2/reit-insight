@@ -160,18 +160,22 @@ filing_group_key = corp_code + report_type + business_year
 
 ## 11. 지금 구현 vs 다음 단계 (요약)
 
-**지금(POC에 반영 완료/예정)**
+**지금(POC에 반영 완료)**
 - 브랜딩 공시렌즈 + 면책문구 + 라이트 테마
 - 문단 단위 검색 + 연도/섹션/숫자포함 필터 + 보고서 내 검색
-- 회사·연도별 체계화(회사 페이지) + 토픽 페이지(키워드 모음·빈도)
+- 회사·연도별 체계화(회사 페이지) + **전년 대비 변화**(새 섹션·키워드 증감) + 토픽 페이지(키워드 빈도)
 - 정정(최신본) 처리: `filing_group_key`, `is_latest_version`, 정정 배지
+- **표 추출**(collect.py) + 뷰어 표 렌더링
+- **증분 수집**(이미 받은 보고서 건너뛰기)
 - 광고 노출 규칙(`canShowAds`) + 광고 슬롯 placeholder
 - SQLite 데이터 레이어(`db.py`) + collect.py 연동
+- **SEO 정적 사이트 생성기(`build_site.py`)**: 회사/보고서/토픽 페이지 + canonical + sitemap.xml + robots.txt
+- GitHub Pages 배포 워크플로(수동)
 
 **다음 단계**
 - SQLite→PostgreSQL, 전문검색 엔진(OpenSearch), 한국어 형태소(nori)
-- Next.js SSR/SSG 페이지 + sitemap/canonical(SEO)
-- 표 파싱(`filing_tables`)·재무 구조화(`financial_facts`)·CSV/Excel export
-- 전년대비/정정 diff, 자연어 QA(pgvector)
+- Next.js SSR/SSG로 전환(현재 정적 생성기 → 동적 라우팅·증분 빌드)
+- 재무 구조화(`financial_facts`, OpenDART 재무 API)·CSV/Excel export
+- 정정 전후 diff(버전 보관), 자연어 QA(pgvector)
 - 정기 자동 수집(스케줄러) + 관리자 대시보드 + 모니터링
 - 애드센스 신청 + 요금제/Pro + API 상품
