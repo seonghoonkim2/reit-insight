@@ -1,13 +1,16 @@
-# DART 사업보고서 검색 (POC)
+# 공시렌즈 (GongsiLens) — DART 사업보고서 전문 검색 (POC)
 
-한국 기업들의 **DART 사업보고서**를 OpenDART 공식 API로 자동 수집하고,
-본문을 **검색**할 수 있게 만드는 사이트의 개념증명(POC)입니다.
+한국 기업들의 **DART 사업보고서**를 OpenDART 공식 API로 자동 수집·정리하고,
+**문단 단위 전문 검색 · 회사/연도별 체계화 · 정정(최신본) 처리 · AI 요약**까지 제공하는
+공시 리서치 검색엔진의 개념증명(POC)입니다.
 
-> ⚠️ **중요 — 광고 수익이 목표라면**
-> 사업보고서 *원문만 그대로* 복사해 올리고 구글 광고를 붙이면, 구글 애드센스의
+> 📐 전체 설계(포지셔닝·아키텍처·DB 스키마·SEO·수익화·요금제)는 **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** 참고.
+
+> ⚠️ **광고 수익이 목표라면** — 사업보고서 *원문만 그대로* 복사해 광고를 붙이면 구글 애드센스의
 > "스크랩/중복 콘텐츠" 정책에 걸려 **승인 거부·계정 정지 위험**이 큽니다.
-> 그래서 이 프로젝트는 처음부터 **부가가치형**(원문 + 검색 + 앞으로 요약·핵심지표)으로
-> 설계했습니다. 원문 위에 우리만의 가치를 더하는 게 핵심입니다.
+> 그래서 이 프로젝트는 **원문 + 검색 + 정리 + 비교 + 출처(부가가치형)** 로 설계했습니다.
+
+> ⚠️ **면책**: 본 서비스는 금융감독원 전자공시시스템(DART)의 **공식 서비스가 아닙니다.**
 
 ---
 
@@ -15,15 +18,21 @@
 
 ```
 dart-search/
-├─ collect.py            # ① OpenDART 수집 스크립트 (표준 라이브러리만 사용, pip 설치 불필요)
-├─ summarize.py          # ② Claude API로 요약·핵심지표 자동 추출 (pip install anthropic 필요)
+├─ collect.py            # ① OpenDART 수집 (정정→최신본 선택, 섹션 경로, SQLite 저장) — pip 불필요
+├─ summarize.py          # ② Claude API로 요약·핵심지표 자동 추출 — pip install anthropic 필요
+├─ db.py                 # SQLite 데이터 레이어 (표준 라이브러리 sqlite3) — pip 불필요
+├─ ARCHITECTURE.md       # 전체 설계 확정 문서
+├─ ROADMAP.md            # 단계별 로드맵
 ├─ config.example.json   # 설정 예시 (복사해서 config.json 으로 사용)
 ├─ web/
-│  ├─ index.html         # 검색 화면 (브라우저로 열기)
+│  ├─ index.html         # 공시렌즈 검색 앱 (홈/검색/회사/보고서/토픽 — 브라우저로 열기)
 │  ├─ demo-data.js       # 키 없이 동작을 볼 수 있는 데모 샘플
 │  └─ data.js            # collect.py/summarize.py 가 만드는 '진짜' 데이터 (깃에 안 올라감)
-└─ data/                 # 수집 원본/캐시 (깃에 안 올라감)
+└─ data/                 # 수집 원본/캐시/SQLite(gongsilens.db) (깃에 안 올라감)
 ```
+
+**화면 구성(해시 라우팅):** 홈(`#/`) · 검색(`#/search?q=`) · 회사(`#/company/<코드>`) ·
+보고서(`#/filing/<접수번호>`) · 토픽(`#/topic/<키워드>`)
 
 ---
 
@@ -83,14 +92,19 @@ python3 summarize.py
 
 ---
 
-## 주의사항
-- **인증키(`config.json`)는 깃에 올리지 마세요.** `.gitignore` 로 자동 보호됩니다.
-- OpenDART 는 **하루 호출 한도**가 있어, "모든 기업"은 한 번에 못 받고 나눠서 수집해야 합니다.
-- 데이터 출처는 반드시 **금융감독원 DART** 로 표기하고, 정보 제공 목적임을 명시하세요.
+## 점검 명령 (인증키/네트워크 없이 동작)
+```bash
+python3 collect.py --selftest     # 텍스트 추출 로직
+python3 db.py --selftest          # SQLite 스키마/업서트
+python3 summarize.py --dry-run    # AI 요약 프롬프트 미리보기
+```
 
-## 다음 단계 후보
-- 수집 기업을 전체 상장사로 확장 + DB 저장(SQLite/PostgreSQL)
-- 전문 검색 엔진 도입(예: Meilisearch) — 빠른 전체 텍스트 검색
-- **부가가치**: AI 자동 요약(예: Claude API), 핵심 재무지표 자동 추출/비교
-- 정기 자동 수집(스케줄러: cron / GitHub Actions)
-- 사이트 공개 + 애드센스 신청
+## 주의사항
+- **인증키(`config.json`)·SQLite(`data/`)는 깃에 올리지 마세요.** `.gitignore` 로 자동 보호됩니다.
+- OpenDART 는 **하루 호출 한도**가 있어, "모든 기업"은 한 번에 못 받고 나눠서 수집해야 합니다.
+- 데이터 출처는 반드시 **금융감독원 DART** 로 표기하고, 정보 제공 목적·비공식임을 명시하세요.
+
+## 다음 단계
+👉 단계별 계획은 **[`ROADMAP.md`](./ROADMAP.md)**, 전체 설계는 **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** 참고.
+요약: SQLite→PostgreSQL · 전문검색 엔진(OpenSearch)·한국어 형태소 · Next.js SSR/SEO(sitemap·canonical) ·
+표 파싱·재무 구조화 · 전년대비/정정 diff · 정기 자동수집 · 애드센스 신청 · 요금제/API.
