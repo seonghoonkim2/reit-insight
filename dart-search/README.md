@@ -50,6 +50,16 @@ python3 bulk.py                 # 상장사를 큐에 넣고 하루 한도만큼
 python3 bulk.py --status        # 큐 현황
 ```
 
+### 프로덕션 스택 (확장 — Docker / Node)
+경량 무설치 경로(`api.py` + `web/index.html`) 외에, 대규모 운영용 풀스택도 포함되어 있습니다.
+- **`backend/`** — PostgreSQL + OpenSearch(nori 한국어 형태소) + FastAPI. `docker compose up` 으로 기동.
+- **`web-next/`** — Next.js(App Router, TS) SSR/SEO 프런트엔드. 백엔드 API 호출.
+```bash
+cd backend && docker compose up -d --build && docker compose run --rm backend python load.py
+cd ../web-next && cp .env.example .env.local && npm install && npm run dev   # http://localhost:3000
+```
+자세한 건 `backend/README.md`, `web-next/README.md` 참고.
+
 **검색 앱 화면(해시 라우팅):** 홈(`#/`) · 검색(`#/search?q=`) · 회사(`#/company/<코드>`) ·
 보고서(`#/filing/<접수번호>`) · 토픽(`#/topic/<키워드>`)
 회사 페이지에는 **전년 대비 변화**(새 섹션·키워드 증감), 보고서에는 **표 렌더링**·보고서 내 검색이 들어갑니다.

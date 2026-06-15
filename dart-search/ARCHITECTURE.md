@@ -184,3 +184,13 @@ filing_group_key = corp_code + report_type + business_year
 - 정정 전후 diff에 **버전 보관**(현재 대표본만 저장) 연결, 자연어 QA(pgvector)
 - 정기 자동 수집(스케줄러) + 관리자 대시보드 + 모니터링 + CSV/Excel export
 - 애드센스 신청 + 요금제/Pro + 인증·과금이 붙은 공개 API
+
+**프로덕션 스택 (코드 완성 — Docker/Node 로 실행)**
+- `backend/` — **PostgreSQL + OpenSearch(nori 한국어 형태소) + FastAPI**.
+  `docker compose up` 한 번으로 기동, `load.py` 로 적재. OpenSearch 장애 시 Postgres(trgm/tsvector) 폴백.
+  엔드포인트는 `api.py`/`api/openapi.yaml` 과 동일.
+- `web-next/` — **Next.js(App Router, TypeScript) SSR/SEO 프런트엔드**.
+  회사/보고서/키워드 페이지 서버 렌더 + `generateMetadata`·JSON-LD·`sitemap.ts`·`robots.ts`.
+  백엔드 API(`NEXT_PUBLIC_API_BASE`)를 호출.
+- 흐름: `collect.py`(수집) → `backend/load.py`(Postgres+OpenSearch 적재) → `web-next`(SSR) → 공개.
+  무설치 경량 경로(`api.py` + `web/index.html`)는 그대로 유지되어 개발/데모용으로 병행 가능.

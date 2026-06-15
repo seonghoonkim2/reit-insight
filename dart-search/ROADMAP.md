@@ -17,7 +17,14 @@
 - **검색 엔진**: SQLite **FTS5(trigram)** + `search.py`(BM25, 폴백 LIKE)
 - **JSON API**: `api.py`(표준 라이브러리 HTTP) + `api/openapi.yaml`, `seed.py`로 키 없이 풀스택 체험
 - **대량 수집**: `bulk.py`(작업 큐·하루 한도·이어하기), **재무 구조화** `financials.py`, **보고서 비교** `diff.py`
-- 남은 한계: 단일 노드(SQLite)·정적 스냅샷·정정 버전 미보관 → 다음 단계에서 PostgreSQL/OpenSearch·Next.js로 확장
+
+## 0.5단계 — 프로덕션 스택 (코드 완성 ✅, Docker/Node로 실행)
+- **`backend/`**: PostgreSQL + **OpenSearch(nori 한국어 형태소)** + FastAPI — `docker compose up` 한 번,
+  `load.py` 적재, OpenSearch 장애 시 Postgres 폴백. `api.py` 와 동일 엔드포인트.
+- **`web-next/`**: **Next.js(App Router, TS) SSR/SEO** — 회사/보고서/키워드 서버 렌더 +
+  generateMetadata·JSON-LD·sitemap·robots. 백엔드 API 호출.
+- 다음: 정정 버전 보관(diff 연결)·자연어 QA(pgvector)·정기 자동수집 스케줄러·관리자/모니터링·
+  애드센스 신청·요금제/Pro·인증 붙은 공개 API.
 
 ## 1단계 — 데이터 레이어 (전체 기업으로 확장)
 - **전체 상장사 목록**: `corpCode` 전체를 받아 종목코드/회사명/섹터 매핑
