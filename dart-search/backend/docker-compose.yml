@@ -1,0 +1,70 @@
+# 공시렌즈 백엔드 풀스택: PostgreSQL + OpenSearch(nori) + FastAPI
+# 사용:
+#   cd dart-search/backend
+#   docker compose up -d --build
+#   docker compose run --rm backend python load.py    # 데모(또는 ../data/reports.json) 적재
+#   # API → http://localhost:8000  (예: /api/v1/search?q=우발부채)
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: gongsi
+      POSTGRES_PASSWORD: gongsi
+      POSTGRES_DB: gongsilens
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gongsi -d gongsilens"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  opensearch:
+    build:
+      context: .
+      dockerfile: opensearch.Dockerfile
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    volumes:
+      - osdata:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://gongsi:gongsi@postgres:5432/gongsilens
+      OPENSEARCH_URL: http://opensearch:9200
+      OPENSEARCH_INDEX: chunks
+      SEARCH_BACKEND: opensearch
+      CORS_ORIGINS: "*"
+    volumes:
+      - ../data:/data:ro    # ../data/reports.json 이 있으면 그걸 적재
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  osdata:

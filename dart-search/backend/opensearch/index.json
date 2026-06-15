@@ -1,0 +1,33 @@
+{
+  "settings": {
+    "index": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "analysis": {
+      "tokenizer": {
+        "korean_nori": { "type": "nori_tokenizer", "decompound_mode": "mixed" }
+      },
+      "analyzer": {
+        "korean": {
+          "type": "custom",
+          "tokenizer": "korean_nori",
+          "filter": ["nori_readingform", "lowercase"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "rcept_no":      { "type": "keyword" },
+      "corp_code":     { "type": "keyword" },
+      "stock_code":    { "type": "keyword" },
+      "corp_name":     { "type": "text", "analyzer": "korean", "fields": { "raw": { "type": "keyword" } } },
+      "business_year": { "type": "integer" },
+      "section_title": { "type": "text", "analyzer": "korean" },
+      "section_path":  { "type": "keyword" },
+      "report_nm":     { "type": "keyword" },
+      "rcept_dt":      { "type": "keyword" },
+      "is_latest_version": { "type": "boolean" },
+      "has_number":    { "type": "boolean" },
+      "text":          { "type": "text", "analyzer": "korean" }
+    }
+  }
+}
