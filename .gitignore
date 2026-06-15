@@ -13,3 +13,8 @@ Desktop.ini
 
 # Claude Code 개인 설정
 .claude/settings.local.json
+
+# DART 수집기 — 인증키/수집 데이터는 깃에 올리지 않음
+dart-search/config.json
+dart-search/data/
+dart-search/web/data.js

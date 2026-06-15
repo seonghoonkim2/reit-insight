@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DART 사업보고서 검색</title>
+<style>
+  :root {
+    --bg: #0f172a; --panel: #1e293b; --panel2: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8; --accent2:#22d3ee;
+    --line: #334155; --mark: #fde047;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+    line-height: 1.65;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 64px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(15,23,42,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line); padding: 14px 0;
+  }
+  .brand { display:flex; align-items:center; gap:10px; max-width:980px; margin:0 auto; padding:0 16px;}
+  .brand h1 { font-size: 18px; margin: 0; }
+  .brand .tag { font-size: 12px; color: var(--muted); border:1px solid var(--line);
+                padding:2px 8px; border-radius:999px; }
+  .brand .spacer { flex: 1; }
+  .searchbar { max-width:980px; margin: 10px auto 0; padding: 0 16px; display:flex; gap:8px; }
+  .search-wrap { flex:1; position: relative; }
+  .searchbar input {
+    width: 100%; padding: 12px 40px 12px 14px; font-size: 16px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--text);
+  }
+  .searchbar input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .clear-btn {
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    background:var(--panel2); border:none; color:var(--text); width:24px; height:24px;
+    border-radius:50%; cursor:pointer; font-size:14px; line-height:1; display:none;
+  }
+  .clear-btn.show { display:block; }
+
+  .demo-banner {
+    background: #422006; color: #fde68a; border: 1px solid #a16207;
+    padding: 10px 14px; border-radius: 10px; margin: 16px 0; font-size: 14px;
+  }
+  .hint { color: var(--muted); font-size: 14px; margin: 10px 0; }
+
+  .toolbar { display:flex; align-items:center; gap:10px; margin:18px 0 10px; flex-wrap:wrap; }
+  .toolbar .count { color: var(--muted); font-size: 14px; }
+  .toolbar .spacer { flex:1; }
+  .toolbar label { font-size: 13px; color: var(--muted); }
+  .toolbar select {
+    background: var(--panel); color: var(--text); border:1px solid var(--line);
+    border-radius: 8px; padding: 6px 8px; font-size: 13px;
+  }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; margin-bottom: 12px; cursor: pointer; transition: border-color .15s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card .name { font-size: 17px; font-weight: 700; }
+  .card .meta { color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+  .card .snippet { font-size: 14px; color: #cbd5e1;
+                   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .chip { display:inline-block; font-size:12px; background:var(--panel2); color:var(--text);
+          padding:2px 8px; border-radius:999px; margin-right:6px; }
+  .chip.hit { background:#0c4a6e; color:#bae6fd; }
+  mark { background: var(--mark); color: #1e293b; padding: 0 2px; border-radius: 3px; }
+
+  /* 상세 보기 */
+  .detail-head {
+    position: sticky; top: 96px; z-index: 5; background: rgba(15,23,42,.92);
+    backdrop-filter: blur(8px); display:flex; align-items:center; gap:10px;
+    padding: 10px 0; margin: 0 0 4px; border-bottom:1px solid var(--line);
+  }
+  .btn { background: var(--panel2); border:1px solid var(--line); color: var(--text);
+         padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .btn:hover { border-color: var(--accent); }
+  .detail h2 { margin: 10px 0 4px; }
+  .detail .meta { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .vadd { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .vadd .box { background: var(--panel); border:1px dashed var(--accent2); border-radius:12px; padding:14px; }
+  .vadd .box h3 { margin:0 0 6px; font-size:14px; color: var(--accent2); }
+  .vadd .box p { margin:0; font-size:13px; color: var(--muted); }
+  .vadd .box .km-line { font-size:13px; color: var(--text); margin-bottom:8px; }
+  .vadd .box .km-table { width:100%; border-collapse:collapse; font-size:13px; margin:6px 0; }
+  .vadd .box .km-table th { text-align:left; color: var(--muted); font-weight:500; padding:2px 8px 2px 0; white-space:nowrap; }
+  .vadd .box .km-table td { color: var(--text); padding:2px 0; }
+  .vadd .box .km-points { margin:6px 0 0; padding-left:18px; font-size:13px; color:#cbd5e1; }
+  .vadd .box .km-points li { margin:2px 0; }
+  .toc { background: var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin:14px 0; }
+  .toc h3 { margin:0 0 8px; font-size:14px; }
+  .toc a { display:block; font-size:14px; padding:3px 0; }
+  .section { border-top:1px solid var(--line); padding: 16px 0; scroll-margin-top: 150px; }
+  .section h3 { margin: 0 0 8px; font-size: 16px; color: #f1f5f9; }
+  .section .body { white-space: pre-wrap; font-size: 14px; color: #cbd5e1; }
+  mark.first { box-shadow: 0 0 0 2px #f59e0b; }
+  .empty { text-align:center; color: var(--muted); padding: 60px 0; }
+  footer { color: var(--muted); font-size: 12px; text-align:center; margin-top: 40px;
+           border-top:1px solid var(--line); padding-top: 16px; }
+  @media (max-width: 640px){ .vadd{ grid-template-columns: 1fr; } .detail-head{ top: 92px; } }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span style="font-size:20px">📑</span>
+      <h1>DART 사업보고서 검색</h1>
+      <span class="tag">POC</span>
+      <span class="spacer"></span>
+      <span class="tag" id="totalTag"></span>
+    </div>
+    <div class="searchbar">
+      <div class="search-wrap">
+        <input id="q" type="text" placeholder="회사명 또는 본문 내용으로 검색 (예: 반도체, 배당, 신약)  —  '/' 키로 포커스" autocomplete="off" />
+        <button class="clear-btn" id="clearBtn" title="지우기 (Esc)">✕</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="banner"></div>
+    <div id="view"></div>
+    <footer>
+      OpenDART 공식 API 로 수집한 데이터입니다 · 정보 제공 목적이며 투자 권유가 아닙니다<br/>
+      출처: 금융감독원 전자공시시스템(DART)
+    </footer>
+  </div>
+
+  <!-- 1) 데모 데이터를 먼저 불러오고 -->
+  <script src="demo-data.js"></script>
+  <!-- 2) collect.py 가 만든 실제 data.js 가 있으면 데모를 덮어씁니다(없으면 그냥 무시) -->
+  <script src="data.js" onerror="window.__NO_REAL_DATA__=true"></script>
+  <script>
+  (function () {
+    var DATA = window.__DART_DATA__ || { reports: [], is_demo: true };
+    var reports = DATA.reports || [];
+    var qEl = document.getElementById("q");
+    var viewEl = document.getElementById("view");
+    var bannerEl = document.getElementById("banner");
+    var clearBtn = document.getElementById("clearBtn");
+    var totalTag = document.getElementById("totalTag");
+    var sortMode = "relevance";
+
+    // ── 상단 배너/카운트 ──
+    if (DATA.is_demo) {
+      bannerEl.innerHTML =
+        '<div class="demo-banner">⚠️ 지금은 <b>데모 샘플</b>입니다(가짜 데이터). ' +
+        '실제 데이터를 보려면 <code>collect.py</code> 를 실행하세요. ' +
+        '자세한 방법은 <code>README.md</code> 참고.</div>';
+    } else if (DATA.generated_at) {
+      bannerEl.innerHTML = '<div class="hint">마지막 수집: ' + DATA.generated_at + '</div>';
+    }
+    totalTag.textContent = '보고서 ' + reports.length + '건';
+
+    // ── 검색용 텍스트 미리 만들어두기 ──
+    reports.forEach(function (r) {
+      r._search = ((r.corp_name || "") + " " + (r.full_text || "")).toLowerCase();
+    });
+
+    function escapeHtml(s) {
+      return (s || "").replace(/[&<>"]/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+      });
+    }
+    function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+    function countMatches(hay, q) {
+      if (!q) return 0;
+      var re = new RegExp(escapeRe(q.toLowerCase()), "g");
+      return ((hay || "").match(re) || []).length;
+    }
+    // markFirst=true 면 첫 일치를 특별 강조(.first)해서 스크롤 대상으로 삼음
+    function highlight(text, q, markFirstHolder) {
+      var safe = escapeHtml(text);
+      if (!q) return safe;
+      var re = new RegExp(escapeRe(q), "gi");
+      return safe.replace(re, function (m) {
+        if (markFirstHolder && !markFirstHolder.done) {
+          markFirstHolder.done = true;
+          return '<mark class="first" id="firstHit">' + m + "</mark>";
+        }
+        return "<mark>" + m + "</mark>";
+      });
+    }
+    function snippet(r, q) {
+      var t = r.full_text || "";
+      if (!q) return t.slice(0, 180);
+      var i = (r.full_text || "").toLowerCase().indexOf(q.toLowerCase());
+      if (i < 0) return t.slice(0, 180);
+      var start = Math.max(0, i - 60);
+      return (start > 0 ? "…" : "") + t.slice(start, start + 200);
+    }
+    function fmtCount(n) { return n >= 10000 ? Math.round(n/1000)+"천자" : n.toLocaleString()+"자"; }
+
+    // ── 목록(검색 결과) 화면 ──
+    function renderList(q) {
+      var list = reports.slice();
+      if (q) {
+        var lq = q.toLowerCase();
+        list = list.filter(function (r) { return r._search.indexOf(lq) >= 0; });
+        list.forEach(function (r) { r._hits = countMatches(r._search, q); });
+      }
+      // 정렬
+      list.sort(function (a, b) {
+        if (sortMode === "name") return (a.corp_name || "").localeCompare(b.corp_name || "", "ko");
+        if (sortMode === "recent") return (b.rcept_dt || "").localeCompare(a.rcept_dt || "");
+        // relevance: 검색 시 일치 횟수, 평소엔 최신순
+        if (q) return (b._hits || 0) - (a._hits || 0);
+        return (b.rcept_dt || "").localeCompare(a.rcept_dt || "");
+      });
+
+      if (reports.length === 0) {
+        viewEl.innerHTML = '<div class="empty">아직 수집된 보고서가 없습니다.<br/>' +
+          'collect.py 를 실행해 데이터를 만들어 주세요.</div>';
+        return;
+      }
+
+      var html = '<div class="toolbar">' +
+        '<span class="count">' + (q ? '"' + escapeHtml(q) + '" 검색 결과 ' : '전체 ') +
+          '<b>' + list.length + '</b>건</span>' +
+        '<span class="spacer"></span>' +
+        '<label for="sort">정렬</label>' +
+        '<select id="sort">' +
+          '<option value="relevance"' + (sortMode==="relevance"?" selected":"") + '>' + (q?'관련도순':'최신순') + '</option>' +
+          '<option value="recent"' + (sortMode==="recent"?" selected":"") + '>최신순</option>' +
+          '<option value="name"' + (sortMode==="name"?" selected":"") + '>회사명순</option>' +
+        '</select></div>';
+
+      if (list.length === 0) {
+        html += '<div class="empty">일치하는 결과가 없습니다.</div>';
+      }
+      list.forEach(function (r) {
+        var realIdx = reports.indexOf(r);
+        var hitChip = (q && r._hits) ? '<span class="chip hit">본문 ' + r._hits + '회 일치</span>' : '';
+        html += '<div class="card" data-i="' + realIdx + '">' +
+          '<div class="name">' + highlight(r.corp_name, q) + '</div>' +
+          '<div class="meta">' +
+            '<span class="chip">' + escapeHtml(r.stock_code || "") + '</span>' +
+            hitChip +
+            escapeHtml(r.report_nm || "") + ' · 접수일 ' + escapeHtml(r.rcept_dt || "") +
+            (r.char_count ? ' · ' + fmtCount(r.char_count) : '') +
+          '</div>' +
+          '<div class="snippet">' + highlight(snippet(r, q), q) + '</div>' +
+        '</div>';
+      });
+      viewEl.innerHTML = html;
+
+      var sortSel = document.getElementById("sort");
+      if (sortSel) sortSel.addEventListener("change", function () {
+        sortMode = this.value; renderList(qEl.value.trim());
+      });
+      Array.prototype.forEach.call(viewEl.querySelectorAll(".card"), function (el) {
+        el.addEventListener("click", function () {
+          renderDetail(parseInt(el.getAttribute("data-i"), 10), q);
+        });
+      });
+    }
+
+    // ── 상세 보기 화면 ──
+    function renderDetail(i, q) {
+      var r = reports[i];
+      if (!r) return;
+      var firstHolder = { done: false };
+      var total = q ? countMatches(r._search, q) : 0;
+
+      var html = '<div class="detail">' +
+        '<div class="detail-head">' +
+          '<button class="btn" id="backBtn">← 목록</button>' +
+          (q ? '<span class="chip hit">"' + escapeHtml(q) + '" ' + total + '회</span>' : '') +
+          '<span class="spacer" style="flex:1"></span>' +
+          '<button class="btn" id="topBtn">맨 위로 ↑</button>' +
+        '</div>' +
+        '<h2>' + escapeHtml(r.corp_name) + '</h2>' +
+        '<div class="meta"><span class="chip">' + escapeHtml(r.stock_code || "") + '</span>' +
+          escapeHtml(r.report_nm || "") + ' · 접수일 ' + escapeHtml(r.rcept_dt || "") +
+          (r.char_count ? ' · ' + fmtCount(r.char_count) : '') +
+          ' · <a href="' + escapeHtml(r.dart_url || "#") + '" target="_blank" rel="noopener">DART 원문 보기 ↗</a>' +
+        '</div>';
+
+      // 부가가치 영역 (summarize.py 가 Claude API 로 채움)
+      var km = r.key_metrics || {};
+      var hasKm = !!(km.business || (km.key_points && km.key_points.length) ||
+                     km.revenue || km.operating_profit || km.net_profit);
+      var kmHtml = '';
+      if (hasKm) {
+        if (km.business) kmHtml += '<div class="km-line">🏢 ' + escapeHtml(km.business) + '</div>';
+        var fin = [];
+        if (km.revenue) fin.push(['매출액', km.revenue]);
+        if (km.operating_profit) fin.push(['영업이익', km.operating_profit]);
+        if (km.net_profit) fin.push(['당기순이익', km.net_profit]);
+        if (fin.length) {
+          kmHtml += '<table class="km-table">';
+          fin.forEach(function (p) {
+            kmHtml += '<tr><th>' + escapeHtml(p[0]) + '</th><td>' + escapeHtml(p[1]) + '</td></tr>';
+          });
+          kmHtml += '</table>';
+        }
+        if (km.key_points && km.key_points.length) {
+          kmHtml += '<ul class="km-points">';
+          km.key_points.forEach(function (pt) { kmHtml += '<li>' + escapeHtml(pt) + '</li>'; });
+          kmHtml += '</ul>';
+        }
+      }
+      html += '<div class="vadd">' +
+        '<div class="box"><h3>🤖 AI 요약</h3><p>' +
+          (r.summary ? escapeHtml(r.summary) : '준비 중 — summarize.py 실행 시 보고서 핵심을 자동 요약해 채웁니다.') +
+        '</p></div>' +
+        '<div class="box"><h3>📊 핵심 지표</h3>' +
+          (hasKm ? kmHtml : '<p>준비 중 — summarize.py 실행 시 사업 설명·핵심 포인트·재무지표를 자동 추출해 채웁니다.</p>') +
+        '</div></div>';
+
+      // 목차 + 본문
+      var secs = r.sections || [];
+      if (secs.length) {
+        html += '<div class="toc"><h3>📑 목차 (' + secs.length + ')</h3>';
+        secs.forEach(function (s, idx) {
+          html += '<a href="#sec' + idx + '">' + escapeHtml(s.title) + '</a>';
+        });
+        html += '</div>';
+        secs.forEach(function (s, idx) {
+          html += '<div class="section" id="sec' + idx + '">' +
+            '<h3>' + highlight(s.title, q, firstHolder) + '</h3>' +
+            '<div class="body">' + highlight(s.text || "", q, firstHolder) + '</div></div>';
+        });
+      } else {
+        html += '<div class="section"><div class="body">' +
+          highlight((r.full_text || "").slice(0, 200000), q, firstHolder) + '</div></div>';
+      }
+      if (r.truncated) {
+        html += '<div class="hint">※ 본문이 너무 길어 일부만 저장되었습니다. 전체는 DART 원문을 참고하세요.</div>';
+      }
+      html += '</div>';
+      viewEl.innerHTML = html;
+      window.scrollTo(0, 0);
+
+      document.getElementById("backBtn").addEventListener("click", function () {
+        renderList(qEl.value.trim()); window.scrollTo(0, 0);
+      });
+      document.getElementById("topBtn").addEventListener("click", function () {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      // 검색어가 있으면 첫 일치 위치로 부드럽게 이동
+      var fh = document.getElementById("firstHit");
+      if (fh) setTimeout(function () { fh.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60);
+    }
+
+    // ── 검색 입력 / 단축키 연결 ──
+    function update() {
+      var v = qEl.value.trim();
+      clearBtn.classList.toggle("show", v.length > 0);
+      renderList(v);
+    }
+    var timer = null;
+    qEl.addEventListener("input", function () {
+      clearTimeout(timer); timer = setTimeout(update, 120);
+    });
+    clearBtn.addEventListener("click", function () { qEl.value = ""; qEl.focus(); update(); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "/" && document.activeElement !== qEl) { e.preventDefault(); qEl.focus(); }
+      if (e.key === "Escape" && qEl.value) { qEl.value = ""; update(); }
+    });
+
+    renderList("");
+    qEl.focus();
+  })();
+  </script>
+</body>
+</html>

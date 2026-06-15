@@ -1,0 +1,11 @@
+{
+  "_안내": "이 파일을 복사해서 config.json 으로 저장한 뒤, 아래 값을 채우세요. config.json 은 깃에 올라가지 않습니다(인증키 보호).",
+  "api_key": "여기에_OpenDART_인증키를_붙여넣으세요",
+  "stock_codes": ["005930", "000660", "035420"],
+  "years_back": 3,
+
+  "_안내2": "아래는 AI 요약(summarize.py)용. 비용을 줄이려면 summary_model 을 claude-haiku-4-5 로 바꿔도 됩니다.",
+  "anthropic_api_key": "여기에_Claude_API_키를_붙여넣으세요(선택)",
+  "summary_model": "claude-opus-4-8",
+  "summary_max_chars": 40000
+}
