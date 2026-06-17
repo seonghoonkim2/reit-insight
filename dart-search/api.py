@@ -20,7 +20,10 @@ SQLite(data/gongsilens.db)를 그대로 읽어 JSON 으로 돌려주는 작은 A
 """
 
 import os
+import io
+import csv
 import json
+import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
 
@@ -73,6 +76,25 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_csv(self, rows, filename="search.csv"):
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["회사명", "종목코드", "사업연도", "보고서", "접수일", "섹션", "발췌", "접수번호", "DART"])
+        for r in rows:
+            snip = re.sub(r"</?mark>", "", r.get("snippet", ""))
+            w.writerow([r.get("corp_name"), r.get("corp_code"), r.get("year"), r.get("report_nm"),
+                        r.get("rcept_dt"), r.get("section_title"), snip, r.get("rcept_no"),
+                        f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={r.get('rcept_no')}"])
+        # 엑셀 한글 깨짐 방지용 BOM
+        body = ("﻿" + buf.getvalue()).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/csv; charset=utf-8")
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def log_message(self, *a):
         pass  # 조용히
 
@@ -81,46 +103,54 @@ class Handler(BaseHTTPRequestHandler):
         parts = [unquote(p) for p in u.path.strip("/").split("/") if p]
         qs = parse_qs(u.query)
 
+        # DB 가 아직 없으면(시드/수집 전) 503
+        if not os.path.exists(DB_PATH):
+            return self._send(503, {"error": "db_missing", "hint": "python3 seed.py 또는 collect.py 먼저 실행"})
+
+        con = open_con()
         try:
             if u.path == "/healthz":
-                con = open_con()
                 n = con.execute("SELECT COUNT(*) FROM filings").fetchone()[0]
                 return self._send(200, {"ok": True, "db": DB_PATH, "filings": n, "fts": db.fts_enabled(con)})
 
             if parts[:3] == ["api", "v1", "search"]:
-                con = open_con()
                 q = (qs.get("q") or [""])[0]
                 year = (qs.get("year") or [None])[0]
                 corp = (qs.get("corp_code") or [None])[0]
+                sort = (qs.get("sort") or ["relevance"])[0]
                 limit = int((qs.get("limit") or ["30"])[0])
-                res = search.search(con, q, limit=min(limit, 100), year=year, corp_code=corp)
+                res = search.search(con, q, limit=min(limit, 100), year=year, corp_code=corp, sort=sort)
                 return self._send(200, {"query": q, "count": len(res), "results": res})
 
+            # 검색 결과 CSV 내보내기
+            if parts[:2] == ["api", "v1"] and parts[2:3] == ["search.csv"]:
+                q = (qs.get("q") or [""])[0]
+                year = (qs.get("year") or [None])[0]
+                corp = (qs.get("corp_code") or [None])[0]
+                sort = (qs.get("sort") or ["relevance"])[0]
+                res = search.search(con, q, limit=1000, year=year, corp_code=corp, sort=sort)
+                return self._send_csv(res, filename="gongsilens_search.csv")
+
             if parts[:3] == ["api", "v1", "companies"] and len(parts) == 3:
-                con = open_con()
                 rows = con.execute("SELECT corp_code, corp_name, stock_code, market FROM companies ORDER BY corp_name").fetchall()
                 return self._send(200, {"count": len(rows), "companies": [dict(r) for r in rows]})
 
             if parts[:3] == ["api", "v1", "company"] and len(parts) == 4:
-                con = open_con()
                 p = company_payload(con, parts[3])
                 return self._send(200, p) if p else self._send(404, {"error": "company_not_found"})
 
             if parts[:3] == ["api", "v1", "filings"] and len(parts) == 4:
-                con = open_con()
                 p = filing_payload(con, parts[3])
                 return self._send(200, p) if p else self._send(404, {"error": "filing_not_found"})
 
             # 정정 그룹의 버전 목록
             if parts[:3] == ["api", "v1", "group"] and len(parts) == 4:
-                con = open_con()
                 vs = db.get_group_versions(con, parts[3])
                 return self._send(200, {"filing_group_key": parts[3], "count": len(vs), "versions": vs}) if vs \
                     else self._send(404, {"error": "group_not_found"})
 
             # 정정 전후 / 전년 대비 비교: a(새), b(비교대상) 접수번호
             if parts[:3] == ["api", "v1", "diff"] and len(parts) == 3:
-                con = open_con()
                 a, b = (qs.get("a") or [""])[0], (qs.get("b") or [""])[0]
                 fa, fb = db.get_filing(con, a), db.get_filing(con, b)
                 if not fa or not fb:
@@ -132,10 +162,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {"a": a, "b": b, "a_meta": fa, "b_meta": fb, "diff": d})
 
             return self._send(404, {"error": "not_found", "path": u.path})
-        except FileNotFoundError:
-            return self._send(503, {"error": "db_missing", "hint": "python3 seed.py 또는 collect.py 먼저 실행"})
         except Exception as e:  # 마지막 안전망
             return self._send(500, {"error": "internal", "detail": str(e)})
+        finally:
+            con.close()
 
 
 def main():

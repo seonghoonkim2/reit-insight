@@ -2,6 +2,8 @@ import type { Company, FilingMeta, Section, SearchHit, Version, DiffResult } fro
 
 // 서버 컴포넌트는 런타임 env(API_BASE)를, 클라이언트는 빌드시 NEXT_PUBLIC_* 를 사용.
 const BASE = process.env.API_BASE || process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+// 브라우저에서 직접 접근할 백엔드 주소(CSV 다운로드 링크 등). 빌드시 인라인.
+export const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 export const SITE_URL =
   process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -17,13 +19,22 @@ async function apiGet<T>(path: string): Promise<T | null> {
 
 export function search(
   q: string,
-  opts: { year?: string; corp_code?: string; limit?: number } = {}
+  opts: { year?: string; corp_code?: string; sort?: string; limit?: number } = {}
 ): Promise<{ query: string; count: number; results: SearchHit[] } | null> {
+  return apiGet(`/api/v1/search?${searchParams(q, opts).toString()}`);
+}
+
+function searchParams(q: string, opts: { year?: string; corp_code?: string; sort?: string; limit?: number }) {
   const p = new URLSearchParams({ q });
   if (opts.year) p.set("year", opts.year);
   if (opts.corp_code) p.set("corp_code", opts.corp_code);
+  if (opts.sort && opts.sort !== "relevance") p.set("sort", opts.sort);
   if (opts.limit) p.set("limit", String(opts.limit));
-  return apiGet(`/api/v1/search?${p.toString()}`);
+  return p;
+}
+
+export function csvUrl(q: string, opts: { year?: string; corp_code?: string; sort?: string } = {}) {
+  return `${PUBLIC_API_BASE}/api/v1/search.csv?${searchParams(q, opts).toString()}`;
 }
 
 export function getCompanies(): Promise<{ count: number; companies: Company[] } | null> {

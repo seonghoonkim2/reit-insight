@@ -35,7 +35,13 @@
 - **실데이터 수집**(`collect-data.yml`): GitHub 러너에서 OpenDART 실수집 → (선택)AI요약 → **GitHub Pages에 실데이터 사이트 배포** + reports.json 아티팩트
 - 가이드: [`DEPLOY.md`](./DEPLOY.md)
 
-- 다음: 자연어 QA(pgvector)·정기 자동수집 스케줄러(cron)·관리자/모니터링·애드센스 신청·요금제/Pro·인증 붙은 공개 API.
+## 0.8단계 — 품질/기능 보강 (완료 ✅)
+- **테스트 스위트**(`tests/`, unittest 22+): 파싱·표·FTS/LIKE·정렬·정정 diff·재무·큐·API 통합 → **CI에 연동**
+- **검색 정렬**(관련도/최신/회사명) + **CSV 내보내기**(`/api/v1/search.csv` · SPA 클라이언트 다운로드 · Next 링크)
+- **정기 자동수집**: `collect-data.yml` 에 주간 cron 추가
+- **버그/SEO 수정**: api.py 커넥션 누수 해소, 구버전(정정 이전) 페이지 **noindex + 최신본 canonical**
+
+- 다음: 자연어 QA(pgvector)·관리자/모니터링·애드센스 신청·요금제/Pro·인증 붙은 공개 API.
 
 ## 1단계 — 데이터 레이어 (전체 기업으로 확장)
 - **전체 상장사 목록**: `corpCode` 전체를 받아 종목코드/회사명/섹터 매핑

@@ -31,6 +31,8 @@ jobs:
           python financials.py --selftest
           python diff.py --selftest
           python bulk.py --selftest
+      - name: 유닛 테스트 (unittest)
+        run: python -m unittest discover -s tests -t . -v
       - name: 시드 + 검색
         run: |
           python seed.py --reset
