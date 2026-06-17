@@ -23,16 +23,16 @@ def _terms(q):
     return [t for t in (q or "").strip().split() if t]
 
 
-def search(query, limit=30, year=None, corp_code=None):
+def search(query, limit=30, year=None, corp_code=None, sort="relevance"):
     if SEARCH_BACKEND == "opensearch":
         try:
-            return _search_opensearch(query, limit, year, corp_code)
+            return _search_opensearch(query, limit, year, corp_code, sort)
         except Exception:
             pass  # OpenSearch 미가동/오류 → Postgres 폴백
-    return _search_postgres(query, limit, year, corp_code)
+    return _search_postgres(query, limit, year, corp_code, sort)
 
 
-def _search_opensearch(query, limit, year, corp_code):
+def _search_opensearch(query, limit, year, corp_code, sort="relevance"):
     must = [{
         "multi_match": {
             "query": query,
@@ -50,6 +50,10 @@ def _search_opensearch(query, limit, year, corp_code):
         "query": {"bool": {"must": must, "filter": filt}},
         "highlight": {"fields": {"text": {"pre_tags": ["<mark>"], "post_tags": ["</mark>"], "fragment_size": 220, "number_of_fragments": 1}}},
     }
+    if sort == "recent":
+        body["sort"] = [{"rcept_dt": "desc"}]
+    elif sort == "company":
+        body["sort"] = [{"corp_name.raw": "asc"}]
     res = _client().search(index=OPENSEARCH_INDEX, body=body)
     out = []
     for h in res["hits"]["hits"]:
@@ -75,7 +79,7 @@ def _snippet(text, terms, width=220):
     return s
 
 
-def _search_postgres(query, limit, year, corp_code):
+def _search_postgres(query, limit, year, corp_code, sort="relevance"):
     terms = _terms(query)
     where, params = [], []
     if year:
@@ -85,12 +89,13 @@ def _search_postgres(query, limit, year, corp_code):
     for t in terms:
         where.append("(c.text ILIKE %s OR c.section_title ILIKE %s OR c.corp_name ILIKE %s)")
         like = "%" + t + "%"; params += [like, like, like]
+    order = {"recent": "f.rcept_dt DESC", "company": "c.corp_name"}.get(sort, "f.rcept_dt DESC")
     sql = (
         "SELECT c.rcept_no, c.corp_code, c.corp_name, c.business_year AS year, c.section_title, c.text, "
         "f.report_nm, f.rcept_dt "
         "FROM filing_chunks c JOIN filings f ON f.rcept_no = c.rcept_no "
         + ("WHERE " + " AND ".join(where) + " " if where else "")
-        + "LIMIT %s"
+        + "ORDER BY " + order + " LIMIT %s"
     )
     rows = db.query(sql, params + [limit])
     return [{

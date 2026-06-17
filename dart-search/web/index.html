@@ -392,6 +392,7 @@
       var fNum = route.params.num === "1";
       var fLatest = route.params.latest !== "0"; // 기본 최신본만
       var fCompany = route.params.company || "";
+      var fSort = route.params.sort || "relevance";
       var ts = terms(q);
 
       var matched = chunks.filter(function (c) {
@@ -403,6 +404,8 @@
         if (!ts.length) return true;
         return ts.every(function (t) { return c.lower.indexOf(t) >= 0; });
       });
+      if (fSort === "recent") matched.sort(function (a, b) { return (b.r.rcept_dt || "").localeCompare(a.r.rcept_dt || ""); });
+      else if (fSort === "company") matched.sort(function (a, b) { return (a.r.corp_name || "").localeCompare(b.r.corp_name || ""); });
 
       var coSet = {}, fiSet = {};
       matched.forEach(function (c) { coSet[c.r.corp_code] = 1; fiSet[c.r.rcept_no] = 1; });
@@ -416,8 +419,12 @@
       html += '<div class="filters">' +
         '<select id="fYear"><option value="">전체 연도</option>' + opts(years, fYear) + "</select>" +
         '<select id="fSec"><option value="">전체 섹션</option>' + opts(secs, route.params.sec || "") + "</select>" +
+        '<select id="fSort">' + ["relevance:관련도순", "recent:최신순", "company:회사명순"].map(function (o) {
+          var p = o.split(":"); return '<option value="' + p[0] + '"' + (p[0] === fSort ? " selected" : "") + ">" + p[1] + "</option>";
+        }).join("") + "</select>" +
         '<label><input type="checkbox" id="fNum" ' + (fNum ? "checked" : "") + "/> 숫자 포함 문단</label>" +
         '<label><input type="checkbox" id="fLatest" ' + (fLatest ? "checked" : "") + "/> 최신본만</label>" +
+        '<button id="csvBtn" type="button" class="chip" style="cursor:pointer">📥 CSV 내보내기</button>' +
         (fCompany && byCode[fCompany] ? '<span class="tag">회사: ' + esc(byCode[fCompany].corp_name) + '</span><a href="' + searchUrl(q, {}) + '">회사필터 해제</a>' : "") +
         "</div>";
 
@@ -445,18 +452,37 @@
         navigateSearch(q, {
           year: document.getElementById("fYear").value,
           sec: document.getElementById("fSec").value,
+          sort: document.getElementById("fSort").value,
           num: document.getElementById("fNum").checked ? "1" : "",
           latest: document.getElementById("fLatest").checked ? "" : "0",
           company: fCompany,
         });
       }
-      ["fYear", "fSec", "fNum", "fLatest"].forEach(function (id) {
+      ["fYear", "fSec", "fSort", "fNum", "fLatest"].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.addEventListener("change", go);
       });
+      var csvBtn = document.getElementById("csvBtn");
+      if (csvBtn) csvBtn.addEventListener("click", function () { downloadCsv(matched, q); });
+    }
+    function csvCell(v) { return '"' + (v == null ? "" : String(v)).replace(/"/g, '""') + '"'; }
+    function downloadCsv(list, q) {
+      var head = ["회사명", "종목코드", "사업연도", "보고서", "접수일", "섹션", "발췌", "접수번호", "DART"];
+      var lines = [head.map(csvCell).join(",")];
+      var ts2 = terms(q);
+      list.forEach(function (c) {
+        var r = c.r, snip = (snippet(c.text, ts2) || "").replace(/\s+/g, " ");
+        lines.push([r.corp_name, r.stock_code, r.year, r.report_nm, r.rcept_dt,
+          (c.s.section_path || c.s.title || ""), snip, r.rcept_no, r.dart_url].map(csvCell).join(","));
+      });
+      var blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "gongsilens_search.csv";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
     }
     function navigateSearch(q, p) {
       var u = "#/search?q=" + encodeURIComponent(q);
-      ["year", "sec", "num", "latest", "company"].forEach(function (k) { if (p[k]) u += "&" + k + "=" + encodeURIComponent(p[k]); });
+      ["year", "sec", "sort", "num", "latest", "company"].forEach(function (k) { if (p[k]) u += "&" + k + "=" + encodeURIComponent(p[k]); });
       location.hash = u;
     }
     function uniqueSorted(arr) { var s = {}; arr.forEach(function (x) { if (x) s[x] = 1; }); return Object.keys(s).sort(); }

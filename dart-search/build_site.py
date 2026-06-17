@@ -76,7 +76,8 @@ def load_reports():
     return [], False
 
 
-def page(title, body, description="", canonical="", jsonld=None, og_type="website"):
+def page(title, body, description="", canonical="", jsonld=None, og_type="website", robots="index"):
+    robots_meta = "<meta name='robots' content='noindex,follow'>" if robots == "noindex" else ""
     og = (
         f"<meta property='og:title' content='{esc(title)}'>"
         f"<meta property='og:description' content='{esc(description)}'>"
@@ -94,7 +95,7 @@ def page(title, body, description="", canonical="", jsonld=None, og_type="websit
         f"<title>{esc(title)}</title>"
         f"<meta name='description' content='{esc(description)}'>"
         + (f"<link rel='canonical' href='{esc(canonical)}'>" if canonical else "")
-        + og + ld
+        + robots_meta + og + ld
         + f"<style>{CSS}</style></head><body>"
     )
     foot = f"<footer>⚠️ {esc(DISCLAIMER)}</footer></body></html>"
@@ -175,6 +176,12 @@ def build(base_url=""):
         write(f"company/{code}.html", page(title, body, desc, canon, jsonld, "profile"))
         urls.append(f"company/{code}.html")
 
+    # 정정 그룹별 최신본 매핑(구버전 페이지의 canonical/noindex 처리에 사용)
+    group_latest = {}
+    for r in reports:
+        if r.get("is_latest_version") is not False:
+            group_latest[r.get("filing_group_key")] = r["rcept_no"]
+
     # ── 보고서 페이지 ──
     for r in reports:
         body = f"<div class='crumb'><a href='../index.html'>공시렌즈</a> › <a href='../company/{esc(r['corp_code'])}.html'>{esc(r['corp_name'])}</a> › 보고서</div>"
@@ -190,7 +197,11 @@ def build(base_url=""):
             body += f"<div class='body'>{esc(s.get('text'))}</div></div>"
         title = f"{r['corp_name']} {r['year']} 사업보고서 | 공시렌즈"
         desc = f"{r['corp_name']} {r['year']} 사업보고서 전문 · 섹션별 원문과 요약, DART 원문 링크."
-        canon = _abs(base_url, f"filing/{r['rcept_no']}.html")
+        # 구버전(정정 이전)은 noindex + 최신본으로 canonical
+        is_latest = r.get("is_latest_version") is not False
+        robots = "index" if is_latest else "noindex"
+        lat = group_latest.get(r.get("filing_group_key"))
+        canon = _abs(base_url, f"filing/{(r['rcept_no'] if is_latest or not lat else lat)}.html")
         rdt = r.get("rcept_dt", "")
         iso = (rdt[:4] + "-" + rdt[4:6] + "-" + rdt[6:8]) if len(rdt) == 8 else None
         jsonld = [
@@ -204,8 +215,7 @@ def build(base_url=""):
                          (r["corp_name"], _abs(base_url, f"company/{r['corp_code']}.html")),
                          (f"{r['year']} 사업보고서", canon)]),
         ]
-        # 최신본만 색인(여기선 모두 최신본). 구버전이 생기면 noindex 권장.
-        write(f"filing/{r['rcept_no']}.html", page(title, body, desc, canon, jsonld, "article"))
+        write(f"filing/{r['rcept_no']}.html", page(title, body, desc, canon, jsonld, "article", robots))
         if r.get("is_latest_version") is not False:
             urls.append(f"filing/{r['rcept_no']}.html")
 

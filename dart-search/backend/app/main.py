@@ -3,7 +3,12 @@
 엔드포인트는 stdlib api.py 와 동일한 모양을 유지합니다(웹/Next.js 가 그대로 사용).
 실행: uvicorn app.main:app --host 0.0.0.0 --port 8000
 """
+import io
+import csv
+import re
+
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import db, search, diffutil
@@ -29,9 +34,26 @@ def healthz():
 
 @app.get("/api/v1/search")
 def api_search(q: str = "", year: int | None = None, corp_code: str | None = None,
-               limit: int = Query(30, le=100)):
-    res = search.search(q, limit=limit, year=year, corp_code=corp_code)
+               sort: str = "relevance", limit: int = Query(30, le=100)):
+    res = search.search(q, limit=limit, year=year, corp_code=corp_code, sort=sort)
     return {"query": q, "count": len(res), "results": res}
+
+
+@app.get("/api/v1/search.csv")
+def api_search_csv(q: str = "", year: int | None = None, corp_code: str | None = None,
+                   sort: str = "relevance"):
+    res = search.search(q, limit=1000, year=year, corp_code=corp_code, sort=sort)
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["회사명", "종목코드", "사업연도", "보고서", "접수일", "섹션", "발췌", "접수번호", "DART"])
+    for r in res:
+        snip = re.sub(r"</?mark>", "", r.get("snippet", ""))
+        w.writerow([r.get("corp_name"), r.get("corp_code"), r.get("year"), r.get("report_nm"),
+                    r.get("rcept_dt"), r.get("section_title"), snip, r.get("rcept_no"),
+                    f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={r.get('rcept_no')}"])
+    body = ("﻿" + buf.getvalue()).encode("utf-8")
+    return Response(content=body, media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": 'attachment; filename="gongsilens_search.csv"'})
 
 
 @app.get("/api/v1/companies")

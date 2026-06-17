@@ -145,6 +145,7 @@ python3 build_site.py --base-url https://내도메인  # sitemap 절대경로
 
 ## 점검 명령 (인증키/네트워크 없이 동작)
 ```bash
+python3 -m unittest discover -s tests -t .   # ⭐ 전체 테스트 스위트(22+) — 파싱/검색/정렬/CSV/정정 diff/API
 python3 collect.py --selftest     # 텍스트/표 추출
 python3 db.py --selftest          # SQLite 스키마/업서트/FTS/작업큐/재무
 python3 financials.py --selftest  # 재무 응답 파싱
@@ -154,6 +155,7 @@ python3 summarize.py --dry-run    # AI 요약 프롬프트 미리보기
 python3 seed.py && python3 search.py 우발부채   # 시드 + 검색
 python3 build_site.py             # SEO 정적 페이지 생성(데모 데이터)
 ```
+(검색은 **정렬**(관련도/최신/회사명)·**CSV 내보내기**(`/api/v1/search.csv`, SPA 버튼) 지원)
 
 ## 주의사항
 - **인증키(`config.json`)·SQLite(`data/`)는 깃에 올리지 마세요.** `.gitignore` 로 자동 보호됩니다.

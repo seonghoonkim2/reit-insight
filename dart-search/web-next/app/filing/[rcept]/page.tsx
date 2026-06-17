@@ -18,6 +18,8 @@ export async function generateMetadata({ params }: { params: { rcept: string } }
     description: `${f.corp_name} ${f.business_year} 사업보고서 전문 · 섹션별 원문과 요약, DART 원문 링크.`,
     alternates: { canonical: `${SITE_URL}/filing/${params.rcept}` },
     openGraph: { type: "article" },
+    // 구버전(정정 이전)은 색인 제외
+    robots: f.is_latest_version === false ? { index: false, follow: true } : undefined,
   };
 }
 

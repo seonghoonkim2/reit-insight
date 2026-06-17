@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { search } from "@/lib/api";
+import { search, csvUrl } from "@/lib/api";
 
 export const revalidate = 60;
 
@@ -16,14 +16,20 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
   const q = one(searchParams.q);
   const year = one(searchParams.year);
   const corp = one(searchParams.corp_code);
-  const data = q ? await search(q, { year, corp_code: corp, limit: 60 }) : { count: 0, results: [] };
+  const sort = one(searchParams.sort) || "relevance";
+  const data = q ? await search(q, { year, corp_code: corp, sort, limit: 60 }) : { count: 0, results: [] };
   const results = data?.results || [];
 
   const years = Array.from(new Set(results.map((r) => String(r.year)))).sort();
-  const link = (extra: Record<string, string>) => {
-    const p = new URLSearchParams({ q, ...(corp ? { corp_code: corp } : {}), ...extra });
-    return `/search?${p.toString()}`;
+  const base: Record<string, string> = {
+    q, ...(corp ? { corp_code: corp } : {}), ...(year ? { year } : {}), ...(sort !== "relevance" ? { sort } : {}),
   };
+  const link = (extra: Record<string, string>) => {
+    const merged: Record<string, string> = { ...base, ...extra };
+    Object.keys(merged).forEach((k) => merged[k] === "" && delete merged[k]);
+    return `/search?${new URLSearchParams(merged).toString()}`;
+  };
+  const sorts: [string, string][] = [["relevance", "관련도순"], ["recent", "최신순"], ["company", "회사명순"]];
 
   return (
     <main>
@@ -31,9 +37,16 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
       <h1 className="page">&quot;{q || "전체"}&quot; 검색</h1>
       <div className="stat">총 <b>{results.length}</b>건</div>
 
+      <div className="filters">
+        {sorts.map(([v, label]) => (
+          <Link key={v} className={sort === v ? "on" : ""} href={link({ sort: v })}>{label}</Link>
+        ))}
+        {q && <a className="chip" href={csvUrl(q, { year, corp_code: corp, sort })}>📥 CSV</a>}
+      </div>
+
       {years.length > 1 && (
         <div className="filters">
-          <Link className={!year ? "on" : ""} href={link({})}>전체 연도</Link>
+          <Link className={!year ? "on" : ""} href={link({ year: "" })}>전체 연도</Link>
           {years.map((y) => (
             <Link key={y} className={year === y ? "on" : ""} href={link({ year: y })}>{y}</Link>
           ))}

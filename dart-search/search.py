@@ -39,7 +39,7 @@ def _snippet(text, terms, width=220):
     return s + ("…" if len(text) > start + width else "")
 
 
-def search(con, query, limit=30, year=None, corp_code=None):
+def search(con, query, limit=30, year=None, corp_code=None, sort="relevance"):
     terms = _terms(query)
     tok = db.detect_fts(con)
     use_fts = bool(terms) and db.fts_enabled(con) and tok == "trigram" and all(len(t) >= 3 for t in terms)
@@ -52,6 +52,10 @@ def search(con, query, limit=30, year=None, corp_code=None):
         where.append("f.corp_code = ?")
         params.append(corp_code)
 
+    # 정렬: relevance(기본) / recent(접수일↓) / company(회사명)
+    fts_order = {"recent": "f.rcept_dt DESC", "company": "f.corp_name"}.get(sort, "rank")
+    like_order = {"recent": "f.rcept_dt DESC", "company": "f.corp_name"}.get(sort, "f.rcept_dt DESC")
+
     rows = []
     if use_fts:
         match = " ".join('"%s"' % t.replace('"', '""') for t in terms)
@@ -62,7 +66,7 @@ def search(con, query, limit=30, year=None, corp_code=None):
             "FROM chunks_fts cf JOIN filings f ON f.rcept_no = cf.rcept_no "
             "WHERE chunks_fts MATCH ? "
             + ("AND " + " AND ".join(where) + " " if where else "")
-            + "ORDER BY rank LIMIT ?"
+            + "ORDER BY " + fts_order + " LIMIT ?"
         )
         rows = con.execute(sql, [match] + params + [limit]).fetchall()
         out = []
@@ -85,7 +89,7 @@ def search(con, query, limit=30, year=None, corp_code=None):
         "s.section_title, s.clean_text "
         "FROM filing_sections s JOIN filings f ON f.rcept_no = s.rcept_no "
         + ("WHERE " + " AND ".join(cond) + " " if cond else "")
-        + "LIMIT ?"
+        + "ORDER BY " + like_order + " LIMIT ?"
     )
     rows = con.execute(sql, params + [limit]).fetchall()
     out = []

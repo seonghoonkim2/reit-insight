@@ -19,6 +19,8 @@ on:
       deploy_pages:
         description: "GitHub Pages 에 배포할까요(true/false)"
         default: "true"
+  schedule:
+    - cron: "0 18 * * 1"   # 매주 월요일 18:00 UTC 자동 갱신(시크릿 있을 때만 의미)
 
 permissions:
   contents: read
@@ -55,8 +57,8 @@ jobs:
 
       - name: config.json 생성 (시크릿 기반, 커밋 안 됨)
         env:
-          CODES: ${{ inputs.stock_codes }}
-          YEARS: ${{ inputs.years_back }}
+          CODES: ${{ inputs.stock_codes || '005930,000660,035420' }}
+          YEARS: ${{ inputs.years_back || '3' }}
         run: |
           python - <<'PY'
           import json, os
@@ -91,12 +93,12 @@ jobs:
             dart-search/dist
 
       - name: Pages 아티팩트 (실데이터 SPA)
-        if: ${{ inputs.deploy_pages == 'true' }}
+        if: ${{ (inputs.deploy_pages || 'true') == 'true' }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: dart-search/web
 
       - name: GitHub Pages 배포
         id: deploy
-        if: ${{ inputs.deploy_pages == 'true' }}
+        if: ${{ (inputs.deploy_pages || 'true') == 'true' }}
         uses: actions/deploy-pages@v4
