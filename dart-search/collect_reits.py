@@ -35,29 +35,39 @@ except Exception:
 # 큐레이션 정적 메타(네이버에 없는 리츠 고유 정보). 종목명·코드는 실제.
 REIT_META = {
     "330590": {"name": "롯데리츠", "sector": "리테일", "dividend_freq": "반기", "amc": "롯데에이엠씨",
-               "listing_date": "2019-10-30", "homepage": "https://www.lottereit.co.kr",
+               "listing_date": "2019-10-30", "homepage": "https://www.lottereit.co.kr", "pay_months": [3, 9],
                "portfolio": ["롯데백화점 강남점", "롯데마트 다수 점포", "롯데아울렛", "롯데물류센터"]},
     "395400": {"name": "SK리츠", "sector": "복합/인프라", "dividend_freq": "분기", "amc": "SK리츠운용",
-               "listing_date": "2021-09-14", "homepage": "https://www.skreits.com",
+               "listing_date": "2021-09-14", "homepage": "https://www.skreits.com", "pay_months": [3, 6, 9, 12],
                "portfolio": ["SK서린빌딩", "전국 SK 주유소", "데이터센터"]},
     "365550": {"name": "ESR켄달스퀘어리츠", "sector": "물류", "dividend_freq": "반기", "amc": "켄달스퀘어자산운용",
-               "listing_date": "2020-12-23", "homepage": "https://www.esrkendallsquarereit.com",
+               "listing_date": "2020-12-23", "homepage": "https://www.esrkendallsquarereit.com", "pay_months": [2, 8],
                "portfolio": ["부천·고양·안성·이천 물류센터"]},
     "293940": {"name": "신한알파리츠", "sector": "오피스", "dividend_freq": "반기", "amc": "신한리츠운용",
-               "listing_date": "2018-08-27", "homepage": "https://www.shalphareit.com",
+               "listing_date": "2018-08-27", "homepage": "https://www.shalphareit.com", "pay_months": [6, 12],
                "portfolio": ["판교 크래프톤타워", "용산 더프라임타워", "트윈시티 남산"]},
     "348950": {"name": "제이알글로벌리츠", "sector": "해외오피스", "dividend_freq": "반기", "amc": "제이알투자운용",
-               "listing_date": "2020-08-07", "homepage": "https://www.jrglobalreit.com",
+               "listing_date": "2020-08-07", "homepage": "https://www.jrglobalreit.com", "pay_months": [3, 9],
                "portfolio": ["벨기에 브뤼셀 파이낸스타워"]},
     "357250": {"name": "코람코라이프인프라리츠", "sector": "인프라", "dividend_freq": "반기", "amc": "코람코자산신탁",
-               "listing_date": "2018-06-27", "homepage": "https://www.koramcolifeinfra.co.kr",
+               "listing_date": "2018-06-27", "homepage": "https://www.koramcolifeinfra.co.kr", "pay_months": [5, 11],
                "portfolio": ["전국 주유소", "물류·인프라 자산"]},
     "357430": {"name": "미래에셋맵스리츠", "sector": "리테일", "dividend_freq": "반기", "amc": "미래에셋자산운용",
-               "listing_date": "2020-08-05", "homepage": "https://www.maps-reit.com",
+               "listing_date": "2020-08-05", "homepage": "https://www.maps-reit.com", "pay_months": [2, 8],
                "portfolio": ["광교 센트럴푸르지오시티 상업시설", "분당스퀘어"]},
     "404990": {"name": "신한서부티엔디리츠", "sector": "복합(호텔/리테일)", "dividend_freq": "반기", "amc": "신한리츠운용",
-               "listing_date": "2021-12-10", "homepage": "https://www.shsbtndreit.com",
+               "listing_date": "2021-12-10", "homepage": "https://www.shsbtndreit.com", "pay_months": [3, 9],
                "portfolio": ["그랜드머큐어 앰배서더 호텔 용산", "스퀘어원(인천)"]},
+    "088260": {"name": "이리츠코크렙", "sector": "리테일", "dividend_freq": "반기", "amc": "코람코자산신탁",
+               "portfolio": ["뉴코아 강남·일산·평촌", "2001아울렛 중계·분당"]},
+    "451800": {"name": "한화리츠", "sector": "오피스", "dividend_freq": "반기", "amc": "한화자산운용",
+               "portfolio": ["한화생명 여의도 사옥 등 한화생명 사옥"]},
+    "432320": {"name": "KB스타리츠", "sector": "복합", "dividend_freq": "반기", "amc": "KB자산운용",
+               "portfolio": ["벨기에 노스갤럭시 타워 등 국내외 오피스"]},
+    "417310": {"name": "코람코더원리츠", "sector": "오피스", "dividend_freq": "반기", "amc": "코람코자산운용",
+               "portfolio": ["여의도 하나증권 빌딩"]},
+    "400760": {"name": "NH올원리츠", "sector": "복합", "dividend_freq": "반기", "amc": "엔에이치리츠운용",
+               "portfolio": ["오피스·물류 복합 포트폴리오"]},
 }
 
 
@@ -85,30 +95,48 @@ def _from_total(infos, *needles):
     return None
 
 
+def _str_field(v):
+    """네이버 값이 문자열/숫자/딕셔너리 어느 형태로 와도 표시용 문자열로 강제."""
+    if v is None:
+        return ""
+    if isinstance(v, dict):
+        for k in ("name", "text", "value", "code"):
+            if v.get(k):
+                return str(v[k])
+        return ""
+    return str(v)
+
+
 def parse_naver(code, integration, basic, meta):
     integration = integration or {}
     basic = basic or {}
     infos = integration.get("totalInfos") or integration.get("totalInfo") or []
-    name = integration.get("stockName") or basic.get("stockName") or meta.get("name")
-    price = basic.get("closePrice") or integration.get("closePrice")
+    name = _str_field(integration.get("stockName") or basic.get("stockName")) or meta.get("name")
+    price = _str_field(basic.get("closePrice") or integration.get("closePrice"))
     if not price:
         dti = integration.get("dealTrendInfos") or []
         if dti:
-            price = dti[0].get("closePrice")
-    market_cap = _from_total(infos, "시가총액", "marketvalue", "marketsum")
-    dy = _from_total(infos, "배당수익률", "dividendyield")
-    ex = integration.get("stockExchangeType")
-    market = (ex.get("name") if isinstance(ex, dict) else ex) or basic.get("stockExchangeType") or meta.get("market") or "KOSPI"
+            price = _str_field(dti[0].get("closePrice"))
+    market_cap = _str_field(_from_total(infos, "시가총액", "marketvalue", "marketsum"))
+    dy = _str_field(_from_total(infos, "배당수익률", "dividendyield"))
+    high52 = _str_field(_from_total(infos, "52주최고", "52주 최고", "highprice52", "highvalue52"))
+    low52 = _str_field(_from_total(infos, "52주최저", "52주 최저", "lowprice52", "lowvalue52"))
+    market = (_str_field(integration.get("stockExchangeType"))
+              or _str_field(basic.get("stockExchangeType")) or meta.get("market") or "KOSPI")
 
     out = dict(meta)
     out.update({"ticker": code, "name": name or code, "market": market,
                 "summary": "", "key_points": []})
     if price:
-        out["price"] = str(price).replace("원", "") + "원"
+        out["price"] = price.replace("원", "") + "원"
     if market_cap:
-        out["market_cap"] = str(market_cap)
+        out["market_cap"] = market_cap
     if dy:
-        out["dividend_yield"] = str(dy).replace("%", "").strip()
+        out["dividend_yield"] = dy.replace("%", "").strip()
+    if high52:
+        out["week52_high"] = high52
+    if low52:
+        out["week52_low"] = low52
     return out
 
 
@@ -138,6 +166,8 @@ def run():
         try:
             integration, basic = fetch_naver(code)
             r = parse_naver(code, integration, basic, meta)
+            print(f"  → 주가 {r.get('price', '-')} · 시총 {r.get('market_cap', '-')} · "
+                  f"배당 {r.get('dividend_yield', '-')}% · 52주 {r.get('week52_high', '-')}/{r.get('week52_low', '-')}")
         except Exception as e:
             print(f"  실패: {e} — 메타만 저장")
             r = dict(meta); r.update({"ticker": code, "summary": "", "key_points": []})
@@ -156,6 +186,8 @@ SAMPLE_INTEGRATION = {
         {"code": "marketValue", "key": "시가총액", "value": "1조 2,345억"},
         {"code": "dividendYield", "key": "배당수익률", "value": "6.70%"},
         {"code": "per", "key": "PER", "value": "15.2배"},
+        {"code": "highPrice52Week", "key": "52주최고", "value": "3,800"},
+        {"code": "lowPrice52Week", "key": "52주최저", "value": "2,900"},
     ],
 }
 SAMPLE_BASIC = {"closePrice": "3,250", "stockName": "롯데리츠"}
@@ -170,6 +202,8 @@ def run_selftest():
         ("price", r.get("price") == "3,250원"),
         ("market_cap", r.get("market_cap") == "1조 2,345억"),
         ("dividend_yield", r.get("dividend_yield") == "6.70"),
+        ("week52_high", r.get("week52_high") == "3,800"),
+        ("week52_low", r.get("week52_low") == "2,900"),
         ("market", r.get("market") == "KOSPI"),
         ("정적메타(섹터)", r.get("sector") == "리테일"),
         ("정적메타(포트폴리오)", isinstance(r.get("portfolio"), list) and r["portfolio"]),

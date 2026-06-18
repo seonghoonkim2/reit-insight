@@ -114,6 +114,9 @@ CREATE TABLE IF NOT EXISTS reits (
   key_points      JSONB,
   corp_code       VARCHAR(8),
   homepage        TEXT,
+  pay_months      JSONB,
+  week52_high     TEXT,
+  week52_low      TEXT,
   updated_at      TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_reits_sector ON reits(sector);

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getReit, jsonLd, SITE_URL } from "@/lib/api";
+import { getReit, jsonLd, payMonths, SITE_URL } from "@/lib/api";
+import { sectorInfo } from "@/lib/sectors";
 
 export const revalidate = 300;
 
@@ -48,9 +49,13 @@ export default async function ReitPage({ params }: { params: { ticker: string } 
       <div className="vbox">
         <table className="kvt"><tbody>
           <Row k="주가" v={r.price} /><Row k="시가총액" v={r.market_cap} />
+          <Row k="52주 최고" v={r.week52_high} /><Row k="52주 최저" v={r.week52_low} />
           <Row k="배당수익률" v={r.dividend_yield ? `${r.dividend_yield}%` : undefined} />
-          <Row k="배당주기" v={r.dividend_freq} /><Row k="주가/NAV" v={r.nav_ratio} />
-          <Row k="신용등급" v={r.credit_rating} /><Row k="상장일" v={r.listing_date} />
+          <Row k="배당주기" v={r.dividend_freq} />
+          <Row k="예상 배당월" v={payMonths(r).map((m) => `${m}월`).join(" · ") || undefined} />
+          <Row k="주가/NAV" v={r.nav_ratio} />
+          <Row k="신용등급" v={r.credit_rating} />
+          <Row k="상장일" v={r.listing_date} />
           <Row k="자산관리회사(AMC)" v={r.amc} />
         </tbody></table>
       </div>
@@ -64,6 +69,13 @@ export default async function ReitPage({ params }: { params: { ticker: string } 
           ) : <p>준비 중</p>}
         </div>
       </div>
+
+      {sectorInfo(r.sector) && (
+        <div className="vbox" style={{ marginTop: 12 }}>
+          <h3 style={{ margin: "0 0 6px" }}>📚 {r.sector} 리츠란? <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 400 }}>(섹터 일반 설명)</span></h3>
+          <p style={{ margin: 0 }}>{sectorInfo(r.sector)}</p>
+        </div>
+      )}
 
       <div className="ad">광고 영역 (운영 시 AdSense)</div>
 

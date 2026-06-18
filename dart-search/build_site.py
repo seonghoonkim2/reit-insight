@@ -68,7 +68,8 @@ def _load_js_array(filename, var):
     for path in [os.path.join(HERE, "data", filename.replace("-demo.js", ".json")),
                  os.path.join(HERE, "web", filename)]:
         if os.path.exists(path):
-            txt = open(path, encoding="utf-8").read()
+            with open(path, encoding="utf-8") as f:
+                txt = f.read()
             m = re.search(re.escape(var) + r"\s*=\s*(\[.*\]);", txt, re.S)
             if m:
                 return json.loads(m.group(1))
@@ -94,12 +95,51 @@ def _points(items):
     return "<ul>" + "".join(f"<li>{esc(p)}</li>" for p in (items or [])) + "</ul>" if items else ""
 
 
+SECTOR_INFO = {
+    "리테일": "백화점·마트·아울렛 등 상업시설에서 임대료를 받는 리츠입니다. 소비 경기, 점포 임대 조건, 책임임대(임차인이 공실 위험을 떠안는 구조) 여부가 수익 안정성을 좌우합니다.",
+    "오피스": "도심·업무지구의 사무용 빌딩을 보유해 임대료를 받습니다. 공실률, 임대료 상승률, 우량 임차인 비중, 금리가 핵심 변수입니다.",
+    "물류": "물류센터(창고)를 임대하는 리츠입니다. 이커머스 성장과 함께 수요가 늘지만, 신규 공급 과잉과 공실이 리스크입니다.",
+    "인프라": "주유소·물류 등 생활·산업 인프라 자산에서 장기 임대수익을 얻습니다. 장기 계약 기반의 안정성이 특징이며, 자산 재계약·에너지 전환 추세가 변수입니다.",
+    "해외오피스": "해외에 있는 오피스를 보유하는 리츠로, 임대수익과 함께 환율·현지 임대차·해외 금리에 노출됩니다.",
+    "복합": "여러 유형의 부동산을 함께 담아 특정 자산군의 부진을 다른 자산이 보완하도록 설계된 리츠입니다.",
+    "복합/인프라": "오피스·주유소·인프라 등 여러 유형의 자산을 함께 담아 변동성을 분산하는 리츠입니다.",
+    "복합(호텔/리테일)": "호텔과 리테일을 함께 담은 복합형으로, 관광·소비 회복 시 수혜가 가능하나 호텔 운영 변동성이 리테일보다 큰 편입니다.",
+}
+
+
+def _sector_info(sec):
+    if not sec:
+        return ""
+    if sec in SECTOR_INFO:
+        return SECTOR_INFO[sec]
+    for k, v in SECTOR_INFO.items():
+        if k in sec:
+            return v
+    return ""
+
+
+def _pay_months(r):
+    """배당 지급(예상)월: 큐레이션 pay_months 우선, 없으면 배당주기로 추정."""
+    pm = r.get("pay_months")
+    if pm:
+        return [m for m in pm if isinstance(m, int) and 1 <= m <= 12]
+    f = r.get("dividend_freq") or ""
+    if "분기" in f:
+        return [3, 6, 9, 12]
+    if "매월" in f:
+        return list(range(1, 13))
+    if "반기" in f:
+        return [6, 12]
+    return []
+
+
 def load_reports():
     if os.path.exists(DATA_JSON):
         with open(DATA_JSON, "r", encoding="utf-8") as f:
             return json.load(f).get("reports", []), False
     if os.path.exists(DEMO_JS):
-        txt = open(DEMO_JS, "r", encoding="utf-8").read()
+        with open(DEMO_JS, "r", encoding="utf-8") as f:
+            txt = f.read()
         m = re.search(r"window\.__DART_DATA__\s*=\s*(\{.*\});", txt, re.S)
         if m:
             return json.loads(m.group(1)).get("reports", []), True
@@ -300,13 +340,20 @@ def build(base_url=""):
                 (f" · <a href='{esc(r.get('homepage'))}' rel='noopener'>홈페이지</a>" if r.get("homepage") else "") + "</div>"
         body += "<h2>핵심 지표 (숫자는 예시)</h2><div class='vbox'>" + _kv([
             ("주가", r.get("price")), ("시가총액", r.get("market_cap")),
+            ("52주 최고", r.get("week52_high")), ("52주 최저", r.get("week52_low")),
             ("배당수익률", (r.get("dividend_yield") + "%") if r.get("dividend_yield") else ""),
-            ("배당주기", r.get("dividend_freq")), ("주가/NAV", r.get("nav_ratio")),
-            ("신용등급", r.get("credit_rating")), ("상장일", r.get("listing_date")),
+            ("배당주기", r.get("dividend_freq")),
+            ("예상 배당월", " · ".join(f"{m}월" for m in _pay_months(r))),
+            ("주가/NAV", r.get("nav_ratio")),
+            ("신용등급", r.get("credit_rating")),
+            ("상장일", r.get("listing_date")),
             ("자산관리회사(AMC)", r.get("amc")),
         ]) + "</div>"
         if r.get("summary"):
             body += f"<h2>AI 요약 (참고)</h2><div class='vbox'>{esc(r['summary'])}{_points(r.get('key_points'))}</div>"
+        sinfo = _sector_info(r.get("sector"))
+        if sinfo:
+            body += f"<h2>📚 {esc(r.get('sector'))} 리츠란?</h2><div class='vbox'>{esc(sinfo)}</div>"
         if r.get("portfolio"):
             body += "<h2>주요 보유자산</h2><div class='card'>" + "".join(f"<div class='row'>{esc(p)}</div>" for p in r["portfolio"]) + "</div>"
         mine = bonds_by_issuer.get(r["ticker"], [])
@@ -356,9 +403,40 @@ def build(base_url=""):
     write("bonds.html", page("리츠 발행 채권 | 리츠인사이트", bbody, "상장리츠가 발행한 채권을 ISIN별로 정리.", _abs(base_url, "bonds.html")))
     urls.append("bonds.html")
 
+    # ── 배당 캘린더 ──
+    by_month = {m: [] for m in range(1, 13)}
+    for r in reits:
+        for m in _pay_months(r):
+            by_month[m].append(r)
+    cbody = "<div class='crumb'><a href='index.html'>리츠인사이트</a> › 배당 캘린더</div>"
+    cbody += "<h1>배당 캘린더 <span class='kv'>(결산월 기준 예상 지급월)</span></h1>"
+    cbody += ("<p class='kv'>상장리츠의 배당 지급 시기를 월별로 모았습니다. ●는 그 달에 배당이 예상되는 리츠이며, "
+              "실제 분배락·지급일·금액은 각 리츠 공시로 확인하세요.</p>")
+    cbody += "<div style='overflow-x:auto'><table class='km' style='min-width:760px'><tr><th style='text-align:left'>리츠</th><th>주기</th>"
+    cbody += "".join(f"<th>{m}</th>" for m in range(1, 13)) + "</tr>"
+    for r in sorted(reits, key=lambda x: x["name"]):
+        pm = set(_pay_months(r))
+        cbody += (f"<tr><td style='text-align:left'><a href='reit/{esc(r['ticker'])}.html'>{esc(r['name'])}</a></td>"
+                  f"<td>{esc(r.get('dividend_freq') or '-')}</td>")
+        cbody += "".join(f"<td>{'●' if m in pm else '·'}</td>" for m in range(1, 13))
+        cbody += "</tr>"
+    cbody += "</table></div>"
+    cbody += "<h2>월별 배당 리츠</h2><div class='card'>"
+    for m in range(1, 13):
+        names = " · ".join(f"<a href='reit/{esc(r['ticker'])}.html'>{esc(r['name'])}</a>" for r in by_month[m]) or "예상 배당 없음"
+        cbody += f"<div class='row'><b>{m}월</b><div class='kv'>{names}</div></div>"
+    cbody += "</div>"
+    cbody += "<p class='kv'>결산월 기준 추정 지급월입니다. 투자 권유가 아닙니다.</p>"
+    write("calendar.html", page("배당 캘린더 | 리츠인사이트", cbody,
+                                "상장리츠 배당 지급(예상)월을 월별로 정리한 배당 캘린더. 결산월 기준 추정치.",
+                                _abs(base_url, "calendar.html")))
+    urls.append("calendar.html")
+
     # ── 홈 (리츠 중심) ──
     body = "<h1>리츠인사이트 — 상장리츠(REITs) 정보</h1>"
     body += "<p class='kv'>상장리츠를 핵심지표·배당·포트폴리오·AI 요약으로. 공시·발행 채권까지 연결. (숫자는 예시)</p>"
+    body += ("<div><a class='chip' href='reits.html'>리츠 목록</a><a class='chip' href='calendar.html'>배당 캘린더</a>"
+             "<a class='chip' href='bonds.html'>발행 채권</a></div>")
     body += "<h2>상장리츠 <a style='font-size:13px' href='reits.html'>전체 →</a></h2><div class='card'>"
     for r in sorted(reits, key=lambda x: x["name"]):
         body += reit_row(r).replace("../reit/", "reit/")

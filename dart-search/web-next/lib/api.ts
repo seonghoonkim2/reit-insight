@@ -88,6 +88,16 @@ export function getBond(isin: string): Promise<Bond | null> {
   return apiGet(`/api/v1/bond/${encodeURIComponent(isin)}`);
 }
 
+// 배당 지급(예상)월: 큐레이션 pay_months 우선, 없으면 배당주기로 추정
+export function payMonths(r: Reit): number[] {
+  if (r.pay_months && r.pay_months.length) return r.pay_months.filter((m) => m >= 1 && m <= 12);
+  const f = r.dividend_freq || "";
+  if (f.includes("분기")) return [3, 6, 9, 12];
+  if (f.includes("매월")) return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  if (f.includes("반기")) return [6, 12];
+  return [];
+}
+
 export const POPULAR = [
   "우발부채", "PF", "배당정책", "재고자산", "계속기업 불확실성",
   "소송", "특수관계자 거래", "영업권 손상", "책임준공", "미분양",

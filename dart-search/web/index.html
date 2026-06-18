@@ -59,6 +59,14 @@
   .list-row:last-child { border-bottom:0; }
   .list-row .t { font-weight:600; }
   .list-row .m { font-size:12px; color:var(--muted); }
+  .row-flex { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .yield { font-size:15px; font-weight:700; color:var(--accent); white-space:nowrap; }
+  .yield small { display:block; font-size:10px; font-weight:500; color:var(--muted); text-align:right; }
+  /* 홈 통계 스트립 */
+  .statgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:8px 0 16px; }
+  .statbox { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 10px; text-align:center; box-shadow:var(--shadow); }
+  .statbox .n { font-size:20px; font-weight:700; color:var(--primary); }
+  .statbox .l { font-size:12px; color:var(--muted); margin-top:2px; }
 
   /* 검색 결과 */
   .filters { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0; }
@@ -111,7 +119,7 @@
   .empty { text-align:center; color:var(--muted); padding:48px 0; }
   footer { color:var(--muted); font-size:12px; text-align:center; margin-top:40px;
     border-top:1px solid var(--border); padding-top:16px; }
-  @media (max-width:640px){ .grid2,.vadd{ grid-template-columns:1fr; } .brand small{ display:none; } }
+  @media (max-width:640px){ .grid2,.vadd{ grid-template-columns:1fr; } .brand small{ display:none; } .statgrid{ grid-template-columns:repeat(2,1fr); } }
 </style>
 </head>
 <body>
@@ -159,6 +167,25 @@
     BONDS.forEach(function (b) { bondByIsin[b.isin] = b; });
 
     var POPULAR = ["우발부채", "PF", "배당정책", "재고자산", "계속기업 불확실성", "소송", "특수관계자 거래", "영업권 손상"];
+
+    // 섹터별 입문 설명(일반적·교육용 — 종목별 추정이 아님)
+    var SECTOR_INFO = {
+      "리테일": "백화점·마트·아울렛 등 상업시설에서 임대료를 받는 리츠입니다. 소비 경기, 점포 임대 조건, 책임임대(임차인이 공실 위험을 떠안는 구조) 여부가 수익 안정성을 좌우합니다.",
+      "오피스": "도심·업무지구의 사무용 빌딩을 보유해 임대료를 받습니다. 공실률, 임대료 상승률, 우량 임차인 비중, 금리가 핵심 변수입니다.",
+      "물류": "물류센터(창고)를 임대하는 리츠입니다. 이커머스 성장과 함께 수요가 늘지만, 신규 공급 과잉과 공실이 리스크입니다.",
+      "인프라": "주유소·물류 등 생활·산업 인프라 자산에서 장기 임대수익을 얻습니다. 장기 계약 기반의 안정성이 특징이며, 자산 재계약·에너지 전환 추세가 변수입니다.",
+      "해외오피스": "해외에 있는 오피스를 보유하는 리츠로, 임대수익과 함께 환율·현지 임대차·해외 금리에 노출됩니다.",
+      "복합": "여러 유형의 부동산을 함께 담아 특정 자산군의 부진을 다른 자산이 보완하도록 설계된 리츠입니다.",
+      "복합/인프라": "오피스·주유소·인프라 등 여러 유형의 자산을 함께 담아 변동성을 분산하는 리츠입니다.",
+      "복합(호텔/리테일)": "호텔과 리테일을 함께 담은 복합형으로, 관광·소비 회복 시 수혜가 가능하나 호텔 운영 변동성이 리테일보다 큰 편입니다."
+    };
+    function sectorInfo(sec) {
+      if (!sec) return "";
+      if (SECTOR_INFO[sec]) return SECTOR_INFO[sec];
+      var keys = Object.keys(SECTOR_INFO);
+      for (var i = 0; i < keys.length; i++) { if (sec.indexOf(keys[i]) >= 0) return SECTOR_INFO[keys[i]]; }
+      return "";
+    }
 
     // ── 인덱스 만들기 ──
     var byCode = {};      // corp_code → {info, reports[]}
@@ -365,7 +392,8 @@
       qEl.value = route.page === "search" ? (route.params.q || "") : "";
       var fn = { home: renderHome, search: renderSearch, company: renderCompany, filing: renderFiling,
                  topic: renderTopic, reits: renderReits, reit: renderReit,
-                 bonds: renderBonds, bond: renderBond, compare: renderCompare, tools: renderTools }[route.page] || renderHome;
+                 bonds: renderBonds, bond: renderBond, compare: renderCompare, tools: renderTools,
+                 calendar: renderCalendar, favorites: renderFavorites }[route.page] || renderHome;
       fn(route);
       mountAds();
       window.scrollTo(0, 0);
@@ -383,10 +411,117 @@
     }
     function reitUrl(t) { return "#/reit/" + encodeURIComponent(t); }
     function bondUrl(i) { return "#/bond/" + encodeURIComponent(i); }
+    // 관심 리츠(즐겨찾기) — 이 브라우저(localStorage)에만 저장
+    function getFavs() { try { return JSON.parse(localStorage.getItem("reit_favs") || "[]"); } catch (e) { return []; } }
+    function isFav(t) { return getFavs().indexOf(t) >= 0; }
+    function toggleFav(t) {
+      var f = getFavs(); var i = f.indexOf(t);
+      if (i >= 0) f.splice(i, 1); else f.push(t);
+      try { localStorage.setItem("reit_favs", JSON.stringify(f)); } catch (e) { }
+      return i < 0;
+    }
+
+    // 배당 지급(예상)월: 큐레이션된 pay_months 우선, 없으면 배당주기로 추정
+    function payMonths(r) {
+      if (r && r.pay_months && r.pay_months.length) return r.pay_months.slice();
+      var f = (r && r.dividend_freq) || "";
+      if (f.indexOf("분기") >= 0) return [3, 6, 9, 12];
+      if (f.indexOf("매월") >= 0) return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      if (f.indexOf("반기") >= 0) return [6, 12];
+      return [];
+    }
+
+    // ── 리츠별 공유 댓글 ──
+    // Supabase 를 채우면 사용자 간 공유 댓글, 비우면 이 브라우저 localStorage 데모.
+    // (anon 키는 공개키라 노출돼도 됩니다 — RLS 로 보호. COMMENTS.md 참고)
+    var SUPABASE_URL = "";       // 예: "https://xxxx.supabase.co"
+    var SUPABASE_ANON_KEY = "";  // Supabase anon public key
+    var COMMENTS_KEY = "reit_comments_";
+    function commentsShared() { return !!(SUPABASE_URL && SUPABASE_ANON_KEY); }
+    function sbHeaders() {
+      return { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY, "Content-Type": "application/json" };
+    }
+    function lsComments(ticker) {
+      try { return JSON.parse(localStorage.getItem(COMMENTS_KEY + ticker) || "[]"); } catch (e) { return []; }
+    }
+    function loadComments(ticker, cb) {
+      if (commentsShared() && typeof fetch === "function") {
+        fetch(SUPABASE_URL + "/rest/v1/comments?reit_ticker=eq." + encodeURIComponent(ticker) +
+              "&select=*&order=created_at.desc&limit=200", { headers: sbHeaders() })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject("HTTP " + r.status); })
+          .then(function (d) { cb(null, d || []); })
+          .catch(function (e) { cb(e, null); });
+        return;
+      }
+      var arr = lsComments(ticker);
+      arr.sort(function (a, b) { return (b.created_at || "").localeCompare(a.created_at || ""); });
+      cb(null, arr);
+    }
+    function addComment(ticker, nick, body, cb) {
+      if (commentsShared() && typeof fetch === "function") {
+        fetch(SUPABASE_URL + "/rest/v1/comments", { method: "POST", headers: sbHeaders(),
+          body: JSON.stringify({ reit_ticker: ticker, nickname: nick, body: body }) })
+          .then(function (r) { cb(r.ok ? null : "HTTP " + r.status); })
+          .catch(function (e) { cb(String(e)); });
+        return;
+      }
+      var arr = lsComments(ticker);
+      arr.push({ nickname: nick, body: body, created_at: new Date().toISOString() });
+      try { localStorage.setItem(COMMENTS_KEY + ticker, JSON.stringify(arr)); } catch (e) { }
+      cb(null);
+    }
+    function fmtTime(iso) {
+      if (!iso) return "";
+      var d = new Date(iso); if (isNaN(d.getTime())) return "";
+      try { return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" }); } catch (e) { return iso.slice(0, 16).replace("T", " "); }
+    }
+    function commentsSection() {
+      return '<h2 class="sec">💬 투자자 댓글 <span style="font-size:12px;color:var(--muted)">(' +
+        (commentsShared() ? "공유" : "이 브라우저 데모") + ')</span></h2>' +
+        '<div class="vbox">' +
+        '<input id="cNick" placeholder="닉네임(선택)" maxlength="20" style="width:160px;padding:7px;border:1px solid var(--border);border-radius:6px;margin-right:6px">' +
+        '<textarea id="cBody" rows="2" maxlength="500" placeholder="이 리츠에 대한 의견을 남겨보세요. (투자 권유·비방·개인정보·광고 금지)" style="width:100%;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:6px;box-sizing:border-box"></textarea>' +
+        '<div style="margin-top:6px"><button id="cSubmit" type="button" class="chip" style="cursor:pointer">댓글 남기기</button> <span id="cMsg" style="font-size:12px;color:var(--muted)"></span></div>' +
+        '<div id="commentList" style="margin-top:12px">불러오는 중…</div>' +
+        '<div class="hint" style="margin-top:8px">댓글은 참고용 의견이며 투자 권유가 아닙니다. 비방·허위·개인정보·광고성 글은 삼가주세요.</div>' +
+        "</div>";
+    }
+    function mountComments(ticker) {
+      var listEl = document.getElementById("commentList");
+      function refresh() {
+        loadComments(ticker, function (err, items) {
+          if (!listEl) return;
+          if (err) { listEl.innerHTML = '<div class="kv">댓글을 불러오지 못했습니다. (' + esc(String(err)) + ")</div>"; return; }
+          if (!items || !items.length) { listEl.innerHTML = '<div class="kv">아직 댓글이 없습니다. 첫 댓글을 남겨보세요.</div>'; return; }
+          listEl.innerHTML = items.map(function (c) {
+            return '<div class="list-row"><div class="t">' + esc(c.nickname || "익명") +
+              ' <span style="font-size:11px;color:var(--muted)">' + esc(fmtTime(c.created_at)) + "</span></div>" +
+              '<div class="m" style="white-space:pre-wrap">' + esc(c.body) + "</div></div>";
+          }).join("");
+        });
+      }
+      var submitEl = document.getElementById("cSubmit");
+      if (submitEl) submitEl.addEventListener("click", function () {
+        var nick = ((document.getElementById("cNick") || {}).value || "").trim();
+        var body = ((document.getElementById("cBody") || {}).value || "").trim();
+        var msg = document.getElementById("cMsg");
+        if (!body) { if (msg) msg.textContent = "내용을 입력하세요."; return; }
+        submitEl.disabled = true; if (msg) msg.textContent = "등록 중…";
+        addComment(ticker, nick || "익명", body, function (err) {
+          submitEl.disabled = false;
+          if (err) { if (msg) msg.textContent = "등록 실패: " + err; return; }
+          var bEl = document.getElementById("cBody"); if (bEl) bEl.value = "";
+          if (msg) msg.textContent = "등록되었습니다.";
+          refresh();
+        });
+      });
+      refresh();
+    }
     function reitRow(r) {
-      return '<a class="list-row" href="' + reitUrl(r.ticker) + '"><div class="t">' + esc(r.name) +
-        ' <span class="tag">' + esc(r.sector) + "</span></div><div class=\"m\">" +
-        esc(r.ticker) + " · 배당수익률 " + esc(r.dividend_yield) + "% · " + esc(r.dividend_freq) + " 배당 · NAV " + esc(r.nav_ratio) + "</div></a>";
+      var y = r.dividend_yield ? '<div class="yield">' + esc(r.dividend_yield) + "%<small>배당수익률</small></div>" : "";
+      return '<a class="list-row" href="' + reitUrl(r.ticker) + '"><div class="row-flex"><div><div class="t">' + esc(r.name) +
+        ' <span class="tag">' + esc(r.sector) + '</span></div><div class="m">' +
+        esc(r.ticker) + " · " + esc(r.dividend_freq) + " 배당 · NAV " + esc(r.nav_ratio) + "</div></div>" + y + "</div></a>";
     }
     function bondRow(b) {
       return '<a class="list-row" href="' + bondUrl(b.isin) + '"><div class="t">' + esc(b.bond_name) + ratingBadge(b.credit_rating) +
@@ -399,7 +534,24 @@
         "<h1>상장리츠 인사이트</h1>" +
         "<p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로 한눈에. 공시·발행 채권까지 연결.</p></div>";
 
-      html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
+      html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/calendar">배당 캘린더</a><a class="chip" href="#/favorites">★ 관심 리츠</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
+
+      // 통계 스트립 (데이터 기반)
+      var ys = REITS.map(function (r) { return parseFloat(r.dividend_yield); }).filter(function (x) { return !isNaN(x); }).sort(function (a, b) { return a - b; });
+      var medY = ys.length ? (ys.length % 2 ? ys[(ys.length - 1) / 2] : (ys[ys.length / 2 - 1] + ys[ys.length / 2]) / 2).toFixed(1) : "-";
+      html += '<div class="statgrid">' +
+        '<div class="statbox"><div class="n">' + REITS.length + '</div><div class="l">상장리츠</div></div>' +
+        '<div class="statbox"><div class="n">' + SECTORS.length + '</div><div class="l">섹터</div></div>' +
+        '<div class="statbox"><div class="n">' + BONDS.length + '</div><div class="l">발행 채권</div></div>' +
+        '<div class="statbox"><div class="n">' + medY + '%</div><div class="l">배당수익률 중앙값</div></div>' +
+        "</div>";
+      var curM = new Date().getMonth() + 1;
+      var payNow = REITS.filter(function (r) { return payMonths(r).indexOf(curM) >= 0; });
+      if (payNow.length) {
+        html += '<div class="hint" style="margin:0 0 12px">📅 이번 달(' + curM + '월) 배당 예상: ' +
+          payNow.slice(0, 6).map(function (r) { return '<a href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a>"; }).join(", ") +
+          (payNow.length > 6 ? " 외 " + (payNow.length - 6) + "개" : "") + ' · <a href="#/calendar">배당 캘린더 →</a></div>';
+      }
       html += '<h2 class="sec">상장리츠 <a style="font-size:13px;font-weight:400" href="#/reits">전체 보기 →</a></h2>';
       html += '<div class="chips"><a class="chip" href="#/reits">전체</a>';
       SECTORS.forEach(function (s) { html += '<a class="chip" href="#/reits?sector=' + encodeURIComponent(s) + '">' + esc(s) + "</a>"; });
@@ -752,16 +904,28 @@
       html += '<h1 class="page">' + esc(r.name) + ' <span class="tag">' + esc(r.sector) + "</span>" + ratingBadge(r.credit_rating) + "</h1>";
       html += '<div class="kv">종목코드 ' + esc(r.ticker) + (r.market ? " · " + esc(r.market) : "") +
         (r.homepage ? ' · <a href="' + escAttr(r.homepage) + '" target="_blank" rel="noopener">홈페이지 ↗</a>' : "") + "</div>";
+      html += '<div style="margin:8px 0 4px"><button id="favBtn" type="button" class="chip" style="cursor:pointer">' +
+        (isFav(r.ticker) ? "★ 관심 해제" : "☆ 관심 추가") + "</button></div>";
 
       html += '<h2 class="sec">핵심 지표 <span style="font-size:12px;color:var(--muted)">(숫자는 예시)</span></h2><div class="vbox">' +
         kvTable([
           ["주가", r.price], ["시가총액", r.market_cap],
+          ["52주 최고", r.week52_high], ["52주 최저", r.week52_low],
           ["배당수익률", r.dividend_yield ? r.dividend_yield + "%" : ""], ["배당주기", r.dividend_freq],
+          ["예상 배당월", payMonths(r).map(function (m) { return m + "월"; }).join(" · ")],
           ["주가/NAV", r.nav_ratio], ["신용등급", r.credit_rating],
           ["상장일", r.listing_date], ["자산관리회사(AMC)", r.amc],
         ]) + "</div>";
 
       html += insightBox(r.summary, r.key_points);
+
+      var sinfo = sectorInfo(r.sector);
+      if (sinfo) {
+        html += '<div class="vbox" style="margin-top:12px"><h3 style="margin:0 0 6px">📚 ' + esc(r.sector) +
+          ' 리츠란? <span style="font-size:11px;color:var(--muted);font-weight:400">(섹터 일반 설명)</span></h3><p style="margin:0">' +
+          esc(sinfo) + "</p></div>";
+      }
+
       html += adSlot("reit", { contentQualityScore: 80 });
 
       if (r.portfolio && r.portfolio.length) {
@@ -781,6 +945,31 @@
       // 관련 공시
       html += '<h2 class="sec">관련 공시(DART)</h2><div class="card"><a class="list-row" href="#/search?q=' + encodeURIComponent(r.name) +
         '"><div class="t">"' + esc(r.name) + '" 사업보고서 문단 검색 →</div><div class="m">공시렌즈(DART 전문검색)로 연결</div></a></div>';
+
+      // 투자자 댓글 (핵심 기능)
+      html += commentsSection();
+
+      appEl.innerHTML = html;
+      var fb = document.getElementById("favBtn");
+      if (fb) fb.addEventListener("click", function () { toggleFav(r.ticker); render(); });
+      mountComments(r.ticker);
+    }
+
+    // ── 관심 리츠(즐겨찾기) 목록 ──
+    function renderFavorites(route) {
+      var favs = getFavs();
+      var list = REITS.filter(function (r) { return favs.indexOf(r.ticker) >= 0; });
+      var html = '<div class="crumb"><a href="#/">홈</a> › 관심 리츠</div>';
+      html += '<h1 class="page">★ 관심 리츠</h1>';
+      html += '<div class="kv">별표(★)로 저장한 리츠입니다. 이 브라우저에만 저장됩니다(localStorage · 기기/브라우저 간 공유 안 됨).</div>';
+      if (!list.length) {
+        html += '<div class="empty">아직 관심 리츠가 없습니다.<br/>리츠 상세 페이지에서 <b>☆ 관심 추가</b>를 눌러보세요. · <a href="#/reits">리츠 목록 보기</a></div>';
+        appEl.innerHTML = html; return;
+      }
+      html += '<div class="stat">총 <b>' + list.length + "</b>개</div>";
+      html += '<div class="card">';
+      list.forEach(function (r) { html += reitRow(r); });
+      html += "</div>";
       appEl.innerHTML = html;
     }
 
@@ -847,6 +1036,7 @@
         ["섹터", function (r) { return esc(r.sector); }],
         ["배당수익률", function (r) { return esc(r.dividend_yield) + "%"; }],
         ["배당주기", function (r) { return esc(r.dividend_freq); }],
+        ["예상 배당월", function (r) { return esc(payMonths(r).map(function (m) { return m + "월"; }).join("·") || "-"); }],
         ["주가/NAV", function (r) { return esc(r.nav_ratio); }],
         ["신용등급", function (r) { return ratingBadge(r.credit_rating); }],
         ["운용사", function (r) { return esc(r.amc); }],
@@ -886,6 +1076,67 @@
       }
       ["tAmt", "tYield", "tTax"].forEach(function (id) { document.getElementById(id).addEventListener("input", calc); });
       calc();
+    }
+
+    // ── 배당 캘린더 ──
+    function renderCalendar(route) {
+      var html = '<div class="crumb"><a href="#/">홈</a> › 배당 캘린더</div>';
+      html += '<h1 class="page">배당 캘린더 <span style="font-size:12px;color:var(--muted)">(결산월 기준 예상 지급월)</span></h1>';
+      html += '<div class="kv">상장리츠가 배당을 지급하는 시기를 월별로 모았습니다. ●는 그 달에 배당이 예상되는 리츠이며, <b>실제 분배락·지급일·금액은 각 리츠 공시로 확인</b>하세요.</div>';
+      if (!REITS.length) { appEl.innerHTML = html + '<div class="empty">리츠 데이터가 없습니다.</div>'; return; }
+
+      var curM = new Date().getMonth() + 1;
+      var byMonth = []; for (var m = 0; m <= 12; m++) byMonth[m] = [];
+      REITS.forEach(function (r) { payMonths(r).forEach(function (mm) { if (mm >= 1 && mm <= 12) byMonth[mm].push(r); }); });
+
+      // 이번 달 / 다음 배당 달
+      var thisList = byMonth[curM] || [];
+      var nextM = 0, nextList = [];
+      for (var step = 1; step <= 12; step++) {
+        var mm2 = ((curM - 1 + step) % 12) + 1;
+        if (byMonth[mm2] && byMonth[mm2].length) { nextM = mm2; nextList = byMonth[mm2]; break; }
+      }
+      function chipsOf(list) {
+        return list.length
+          ? '<div class="chips">' + list.map(function (r) { return '<a class="chip" href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a>"; }).join("") + "</div>"
+          : '<p class="kv">예상 리츠 없음</p>';
+      }
+      html += '<div class="vadd">' +
+        '<div class="vbox"><h3>📅 이번 달(' + curM + '월) 배당 예상</h3>' + chipsOf(thisList) + "</div>" +
+        '<div class="vbox"><h3>⏭️ 다음 배당 달' + (nextM ? "(" + nextM + "월)" : "") + "</h3>" + chipsOf(nextList) + "</div></div>";
+
+      html += adSlot("calendar", { contentQualityScore: 75 });
+
+      // 리츠 × 12개월 매트릭스
+      html += '<h2 class="sec">리츠별 배당월</h2>';
+      html += '<div style="overflow-x:auto"><table class="stbl" style="min-width:780px">';
+      html += '<tr><th style="text-align:left">리츠</th><th>주기</th>';
+      for (var i = 1; i <= 12; i++) html += "<th" + (i === curM ? ' style="color:var(--accent)"' : "") + ">" + i + "</th>";
+      html += "</tr>";
+      REITS.forEach(function (r) {
+        var pm = {}; payMonths(r).forEach(function (mm3) { pm[mm3] = 1; });
+        html += '<tr><td style="text-align:left"><a href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a></td>";
+        html += "<td>" + esc(r.dividend_freq || "-") + "</td>";
+        for (var c = 1; c <= 12; c++) {
+          html += "<td" + (c === curM ? ' style="background:#f3f4f6"' : "") + ">" +
+            (pm[c] ? '<span style="color:var(--accent);font-weight:700">●</span>' : '<span style="color:var(--border)">·</span>') + "</td>";
+        }
+        html += "</tr>";
+      });
+      html += "</table></div>";
+
+      // 월별 목록
+      html += '<h2 class="sec">월별 배당 리츠</h2><div class="card">';
+      for (var mo = 1; mo <= 12; mo++) {
+        var lst = byMonth[mo] || [];
+        html += '<div class="list-row"><div class="t">' + mo + "월" + (mo === curM ? ' <span class="tag">이번 달</span>' : "") +
+          '</div><div class="m">' +
+          (lst.length ? lst.map(function (r) { return '<a href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a>"; }).join(" · ") : "예상 배당 없음") +
+          "</div></div>";
+      }
+      html += "</div>";
+      html += '<div class="hint">결산월 기준 추정 지급월입니다. 분배락·실제 지급일은 각 리츠 IR/공시를 확인하세요. 투자 권유가 아닙니다.</div>';
+      appEl.innerHTML = html;
     }
 
     // ── 검색창 + 라우팅 연결 ──

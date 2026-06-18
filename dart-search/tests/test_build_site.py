@@ -48,6 +48,17 @@ class TestBuildSite(unittest.TestCase):
         sm = self.read("sitemap.xml")
         self.assertIn("reit/330590.html", sm)
         self.assertIn("bond/KR6035651G47.html", sm)
+        self.assertIn("calendar.html", sm)
+
+    def test_calendar_page(self):
+        self.assertTrue(os.path.exists(self.f("calendar.html")))
+        html = self.read("calendar.html")
+        self.assertIn("배당 캘린더", html)
+        self.assertIn("롯데리츠", html)
+        self.assertIn("●", html)  # 매트릭스 마커
+
+    def test_reit_page_has_pay_months(self):
+        self.assertIn("예상 배당월", self.read("reit/330590.html"))
 
 
 if __name__ == "__main__":
