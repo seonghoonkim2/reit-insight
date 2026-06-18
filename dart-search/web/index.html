@@ -365,7 +365,8 @@
       qEl.value = route.page === "search" ? (route.params.q || "") : "";
       var fn = { home: renderHome, search: renderSearch, company: renderCompany, filing: renderFiling,
                  topic: renderTopic, reits: renderReits, reit: renderReit,
-                 bonds: renderBonds, bond: renderBond, compare: renderCompare, tools: renderTools }[route.page] || renderHome;
+                 bonds: renderBonds, bond: renderBond, compare: renderCompare, tools: renderTools,
+                 calendar: renderCalendar }[route.page] || renderHome;
       fn(route);
       mountAds();
       window.scrollTo(0, 0);
@@ -383,6 +384,15 @@
     }
     function reitUrl(t) { return "#/reit/" + encodeURIComponent(t); }
     function bondUrl(i) { return "#/bond/" + encodeURIComponent(i); }
+    // 배당 지급(예상)월: 큐레이션된 pay_months 우선, 없으면 배당주기로 추정
+    function payMonths(r) {
+      if (r && r.pay_months && r.pay_months.length) return r.pay_months.slice();
+      var f = (r && r.dividend_freq) || "";
+      if (f.indexOf("분기") >= 0) return [3, 6, 9, 12];
+      if (f.indexOf("매월") >= 0) return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      if (f.indexOf("반기") >= 0) return [6, 12];
+      return [];
+    }
     function reitRow(r) {
       return '<a class="list-row" href="' + reitUrl(r.ticker) + '"><div class="t">' + esc(r.name) +
         ' <span class="tag">' + esc(r.sector) + "</span></div><div class=\"m\">" +
@@ -399,7 +409,7 @@
         "<h1>상장리츠 인사이트</h1>" +
         "<p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로 한눈에. 공시·발행 채권까지 연결.</p></div>";
 
-      html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
+      html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/calendar">배당 캘린더</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
       html += '<h2 class="sec">상장리츠 <a style="font-size:13px;font-weight:400" href="#/reits">전체 보기 →</a></h2>';
       html += '<div class="chips"><a class="chip" href="#/reits">전체</a>';
       SECTORS.forEach(function (s) { html += '<a class="chip" href="#/reits?sector=' + encodeURIComponent(s) + '">' + esc(s) + "</a>"; });
@@ -757,6 +767,7 @@
         kvTable([
           ["주가", r.price], ["시가총액", r.market_cap],
           ["배당수익률", r.dividend_yield ? r.dividend_yield + "%" : ""], ["배당주기", r.dividend_freq],
+          ["예상 배당월", payMonths(r).map(function (m) { return m + "월"; }).join(" · ")],
           ["주가/NAV", r.nav_ratio], ["신용등급", r.credit_rating],
           ["상장일", r.listing_date], ["자산관리회사(AMC)", r.amc],
         ]) + "</div>";
@@ -886,6 +897,67 @@
       }
       ["tAmt", "tYield", "tTax"].forEach(function (id) { document.getElementById(id).addEventListener("input", calc); });
       calc();
+    }
+
+    // ── 배당 캘린더 ──
+    function renderCalendar(route) {
+      var html = '<div class="crumb"><a href="#/">홈</a> › 배당 캘린더</div>';
+      html += '<h1 class="page">배당 캘린더 <span style="font-size:12px;color:var(--muted)">(결산월 기준 예상 지급월)</span></h1>';
+      html += '<div class="kv">상장리츠가 배당을 지급하는 시기를 월별로 모았습니다. ●는 그 달에 배당이 예상되는 리츠이며, <b>실제 분배락·지급일·금액은 각 리츠 공시로 확인</b>하세요.</div>';
+      if (!REITS.length) { appEl.innerHTML = html + '<div class="empty">리츠 데이터가 없습니다.</div>'; return; }
+
+      var curM = new Date().getMonth() + 1;
+      var byMonth = []; for (var m = 0; m <= 12; m++) byMonth[m] = [];
+      REITS.forEach(function (r) { payMonths(r).forEach(function (mm) { if (mm >= 1 && mm <= 12) byMonth[mm].push(r); }); });
+
+      // 이번 달 / 다음 배당 달
+      var thisList = byMonth[curM] || [];
+      var nextM = 0, nextList = [];
+      for (var step = 1; step <= 12; step++) {
+        var mm2 = ((curM - 1 + step) % 12) + 1;
+        if (byMonth[mm2] && byMonth[mm2].length) { nextM = mm2; nextList = byMonth[mm2]; break; }
+      }
+      function chipsOf(list) {
+        return list.length
+          ? '<div class="chips">' + list.map(function (r) { return '<a class="chip" href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a>"; }).join("") + "</div>"
+          : '<p class="kv">예상 리츠 없음</p>';
+      }
+      html += '<div class="vadd">' +
+        '<div class="vbox"><h3>📅 이번 달(' + curM + '월) 배당 예상</h3>' + chipsOf(thisList) + "</div>" +
+        '<div class="vbox"><h3>⏭️ 다음 배당 달' + (nextM ? "(" + nextM + "월)" : "") + "</h3>" + chipsOf(nextList) + "</div></div>";
+
+      html += adSlot("calendar", { contentQualityScore: 75 });
+
+      // 리츠 × 12개월 매트릭스
+      html += '<h2 class="sec">리츠별 배당월</h2>';
+      html += '<div style="overflow-x:auto"><table class="stbl" style="min-width:780px">';
+      html += '<tr><th style="text-align:left">리츠</th><th>주기</th>';
+      for (var i = 1; i <= 12; i++) html += "<th" + (i === curM ? ' style="color:var(--accent)"' : "") + ">" + i + "</th>";
+      html += "</tr>";
+      REITS.forEach(function (r) {
+        var pm = {}; payMonths(r).forEach(function (mm3) { pm[mm3] = 1; });
+        html += '<tr><td style="text-align:left"><a href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a></td>";
+        html += "<td>" + esc(r.dividend_freq || "-") + "</td>";
+        for (var c = 1; c <= 12; c++) {
+          html += "<td" + (c === curM ? ' style="background:#f3f4f6"' : "") + ">" +
+            (pm[c] ? '<span style="color:var(--accent);font-weight:700">●</span>' : '<span style="color:var(--border)">·</span>') + "</td>";
+        }
+        html += "</tr>";
+      });
+      html += "</table></div>";
+
+      // 월별 목록
+      html += '<h2 class="sec">월별 배당 리츠</h2><div class="card">';
+      for (var mo = 1; mo <= 12; mo++) {
+        var lst = byMonth[mo] || [];
+        html += '<div class="list-row"><div class="t">' + mo + "월" + (mo === curM ? ' <span class="tag">이번 달</span>' : "") +
+          '</div><div class="m">' +
+          (lst.length ? lst.map(function (r) { return '<a href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a>"; }).join(" · ") : "예상 배당 없음") +
+          "</div></div>";
+      }
+      html += "</div>";
+      html += '<div class="hint">결산월 기준 추정 지급월입니다. 분배락·실제 지급일은 각 리츠 IR/공시를 확인하세요. 투자 권유가 아닙니다.</div>';
+      appEl.innerHTML = html;
     }
 
     // ── 검색창 + 라우팅 연결 ──

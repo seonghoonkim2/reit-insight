@@ -95,6 +95,21 @@ def _points(items):
     return "<ul>" + "".join(f"<li>{esc(p)}</li>" for p in (items or [])) + "</ul>" if items else ""
 
 
+def _pay_months(r):
+    """배당 지급(예상)월: 큐레이션 pay_months 우선, 없으면 배당주기로 추정."""
+    pm = r.get("pay_months")
+    if pm:
+        return [m for m in pm if isinstance(m, int) and 1 <= m <= 12]
+    f = r.get("dividend_freq") or ""
+    if "분기" in f:
+        return [3, 6, 9, 12]
+    if "매월" in f:
+        return list(range(1, 13))
+    if "반기" in f:
+        return [6, 12]
+    return []
+
+
 def load_reports():
     if os.path.exists(DATA_JSON):
         with open(DATA_JSON, "r", encoding="utf-8") as f:
@@ -303,7 +318,9 @@ def build(base_url=""):
         body += "<h2>핵심 지표 (숫자는 예시)</h2><div class='vbox'>" + _kv([
             ("주가", r.get("price")), ("시가총액", r.get("market_cap")),
             ("배당수익률", (r.get("dividend_yield") + "%") if r.get("dividend_yield") else ""),
-            ("배당주기", r.get("dividend_freq")), ("주가/NAV", r.get("nav_ratio")),
+            ("배당주기", r.get("dividend_freq")),
+            ("예상 배당월", " · ".join(f"{m}월" for m in _pay_months(r))),
+            ("주가/NAV", r.get("nav_ratio")),
             ("신용등급", r.get("credit_rating")), ("상장일", r.get("listing_date")),
             ("자산관리회사(AMC)", r.get("amc")),
         ]) + "</div>"
@@ -358,9 +375,40 @@ def build(base_url=""):
     write("bonds.html", page("리츠 발행 채권 | 리츠인사이트", bbody, "상장리츠가 발행한 채권을 ISIN별로 정리.", _abs(base_url, "bonds.html")))
     urls.append("bonds.html")
 
+    # ── 배당 캘린더 ──
+    by_month = {m: [] for m in range(1, 13)}
+    for r in reits:
+        for m in _pay_months(r):
+            by_month[m].append(r)
+    cbody = "<div class='crumb'><a href='index.html'>리츠인사이트</a> › 배당 캘린더</div>"
+    cbody += "<h1>배당 캘린더 <span class='kv'>(결산월 기준 예상 지급월)</span></h1>"
+    cbody += ("<p class='kv'>상장리츠의 배당 지급 시기를 월별로 모았습니다. ●는 그 달에 배당이 예상되는 리츠이며, "
+              "실제 분배락·지급일·금액은 각 리츠 공시로 확인하세요.</p>")
+    cbody += "<div style='overflow-x:auto'><table class='km' style='min-width:760px'><tr><th style='text-align:left'>리츠</th><th>주기</th>"
+    cbody += "".join(f"<th>{m}</th>" for m in range(1, 13)) + "</tr>"
+    for r in sorted(reits, key=lambda x: x["name"]):
+        pm = set(_pay_months(r))
+        cbody += (f"<tr><td style='text-align:left'><a href='reit/{esc(r['ticker'])}.html'>{esc(r['name'])}</a></td>"
+                  f"<td>{esc(r.get('dividend_freq') or '-')}</td>")
+        cbody += "".join(f"<td>{'●' if m in pm else '·'}</td>" for m in range(1, 13))
+        cbody += "</tr>"
+    cbody += "</table></div>"
+    cbody += "<h2>월별 배당 리츠</h2><div class='card'>"
+    for m in range(1, 13):
+        names = " · ".join(f"<a href='reit/{esc(r['ticker'])}.html'>{esc(r['name'])}</a>" for r in by_month[m]) or "예상 배당 없음"
+        cbody += f"<div class='row'><b>{m}월</b><div class='kv'>{names}</div></div>"
+    cbody += "</div>"
+    cbody += "<p class='kv'>결산월 기준 추정 지급월입니다. 투자 권유가 아닙니다.</p>"
+    write("calendar.html", page("배당 캘린더 | 리츠인사이트", cbody,
+                                "상장리츠 배당 지급(예상)월을 월별로 정리한 배당 캘린더. 결산월 기준 추정치.",
+                                _abs(base_url, "calendar.html")))
+    urls.append("calendar.html")
+
     # ── 홈 (리츠 중심) ──
     body = "<h1>리츠인사이트 — 상장리츠(REITs) 정보</h1>"
     body += "<p class='kv'>상장리츠를 핵심지표·배당·포트폴리오·AI 요약으로. 공시·발행 채권까지 연결. (숫자는 예시)</p>"
+    body += ("<div><a class='chip' href='reits.html'>리츠 목록</a><a class='chip' href='calendar.html'>배당 캘린더</a>"
+             "<a class='chip' href='bonds.html'>발행 채권</a></div>")
     body += "<h2>상장리츠 <a style='font-size:13px' href='reits.html'>전체 →</a></h2><div class='card'>"
     for r in sorted(reits, key=lambda x: x["name"]):
         body += reit_row(r).replace("../reit/", "reit/")

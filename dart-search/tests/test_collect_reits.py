@@ -26,6 +26,17 @@ class TestCollectReits(unittest.TestCase):
         for code, m in cr.REIT_META.items():
             self.assertTrue(m.get("name") and m.get("sector"))
 
+    def test_pay_months_present_and_valid(self):
+        # 배당 캘린더용 pay_months 가 모든 리츠에 있고 1~12 범위인지
+        for code, m in cr.REIT_META.items():
+            pm = m.get("pay_months")
+            self.assertTrue(isinstance(pm, list) and pm, f"{code} pay_months 없음")
+            for mo in pm:
+                self.assertTrue(1 <= mo <= 12, f"{code} 잘못된 월: {mo}")
+        # parse 결과에도 그대로 합쳐져야 (네이버는 pay_months 를 주지 않음)
+        r = cr.parse_naver("330590", {}, {}, cr.REIT_META["330590"])
+        self.assertEqual(r["pay_months"], [3, 9])
+
     def test_dict_fields_coerced_to_str(self):
         # 네이버가 stockExchangeType / value 를 dict 로 줄 때도 문자열이어야
         # (SQLite 바인딩·SPA 렌더가 dict 면 깨짐)
