@@ -422,6 +422,93 @@
       if (f.indexOf("반기") >= 0) return [6, 12];
       return [];
     }
+
+    // ── 리츠별 공유 댓글 ──
+    // Supabase 를 채우면 사용자 간 공유 댓글, 비우면 이 브라우저 localStorage 데모.
+    // (anon 키는 공개키라 노출돼도 됩니다 — RLS 로 보호. COMMENTS.md 참고)
+    var SUPABASE_URL = "";       // 예: "https://xxxx.supabase.co"
+    var SUPABASE_ANON_KEY = "";  // Supabase anon public key
+    var COMMENTS_KEY = "reit_comments_";
+    function commentsShared() { return !!(SUPABASE_URL && SUPABASE_ANON_KEY); }
+    function sbHeaders() {
+      return { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY, "Content-Type": "application/json" };
+    }
+    function lsComments(ticker) {
+      try { return JSON.parse(localStorage.getItem(COMMENTS_KEY + ticker) || "[]"); } catch (e) { return []; }
+    }
+    function loadComments(ticker, cb) {
+      if (commentsShared() && typeof fetch === "function") {
+        fetch(SUPABASE_URL + "/rest/v1/comments?reit_ticker=eq." + encodeURIComponent(ticker) +
+              "&select=*&order=created_at.desc&limit=200", { headers: sbHeaders() })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject("HTTP " + r.status); })
+          .then(function (d) { cb(null, d || []); })
+          .catch(function (e) { cb(e, null); });
+        return;
+      }
+      var arr = lsComments(ticker);
+      arr.sort(function (a, b) { return (b.created_at || "").localeCompare(a.created_at || ""); });
+      cb(null, arr);
+    }
+    function addComment(ticker, nick, body, cb) {
+      if (commentsShared() && typeof fetch === "function") {
+        fetch(SUPABASE_URL + "/rest/v1/comments", { method: "POST", headers: sbHeaders(),
+          body: JSON.stringify({ reit_ticker: ticker, nickname: nick, body: body }) })
+          .then(function (r) { cb(r.ok ? null : "HTTP " + r.status); })
+          .catch(function (e) { cb(String(e)); });
+        return;
+      }
+      var arr = lsComments(ticker);
+      arr.push({ nickname: nick, body: body, created_at: new Date().toISOString() });
+      try { localStorage.setItem(COMMENTS_KEY + ticker, JSON.stringify(arr)); } catch (e) { }
+      cb(null);
+    }
+    function fmtTime(iso) {
+      if (!iso) return "";
+      var d = new Date(iso); if (isNaN(d.getTime())) return "";
+      try { return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" }); } catch (e) { return iso.slice(0, 16).replace("T", " "); }
+    }
+    function commentsSection() {
+      return '<h2 class="sec">💬 투자자 댓글 <span style="font-size:12px;color:var(--muted)">(' +
+        (commentsShared() ? "공유" : "이 브라우저 데모") + ')</span></h2>' +
+        '<div class="vbox">' +
+        '<input id="cNick" placeholder="닉네임(선택)" maxlength="20" style="width:160px;padding:7px;border:1px solid var(--border);border-radius:6px;margin-right:6px">' +
+        '<textarea id="cBody" rows="2" maxlength="500" placeholder="이 리츠에 대한 의견을 남겨보세요. (투자 권유·비방·개인정보·광고 금지)" style="width:100%;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:6px;box-sizing:border-box"></textarea>' +
+        '<div style="margin-top:6px"><button id="cSubmit" type="button" class="chip" style="cursor:pointer">댓글 남기기</button> <span id="cMsg" style="font-size:12px;color:var(--muted)"></span></div>' +
+        '<div id="commentList" style="margin-top:12px">불러오는 중…</div>' +
+        '<div class="hint" style="margin-top:8px">댓글은 참고용 의견이며 투자 권유가 아닙니다. 비방·허위·개인정보·광고성 글은 삼가주세요.</div>' +
+        "</div>";
+    }
+    function mountComments(ticker) {
+      var listEl = document.getElementById("commentList");
+      function refresh() {
+        loadComments(ticker, function (err, items) {
+          if (!listEl) return;
+          if (err) { listEl.innerHTML = '<div class="kv">댓글을 불러오지 못했습니다. (' + esc(String(err)) + ")</div>"; return; }
+          if (!items || !items.length) { listEl.innerHTML = '<div class="kv">아직 댓글이 없습니다. 첫 댓글을 남겨보세요.</div>'; return; }
+          listEl.innerHTML = items.map(function (c) {
+            return '<div class="list-row"><div class="t">' + esc(c.nickname || "익명") +
+              ' <span style="font-size:11px;color:var(--muted)">' + esc(fmtTime(c.created_at)) + "</span></div>" +
+              '<div class="m" style="white-space:pre-wrap">' + esc(c.body) + "</div></div>";
+          }).join("");
+        });
+      }
+      var submitEl = document.getElementById("cSubmit");
+      if (submitEl) submitEl.addEventListener("click", function () {
+        var nick = ((document.getElementById("cNick") || {}).value || "").trim();
+        var body = ((document.getElementById("cBody") || {}).value || "").trim();
+        var msg = document.getElementById("cMsg");
+        if (!body) { if (msg) msg.textContent = "내용을 입력하세요."; return; }
+        submitEl.disabled = true; if (msg) msg.textContent = "등록 중…";
+        addComment(ticker, nick || "익명", body, function (err) {
+          submitEl.disabled = false;
+          if (err) { if (msg) msg.textContent = "등록 실패: " + err; return; }
+          var bEl = document.getElementById("cBody"); if (bEl) bEl.value = "";
+          if (msg) msg.textContent = "등록되었습니다.";
+          refresh();
+        });
+      });
+      refresh();
+    }
     function reitRow(r) {
       return '<a class="list-row" href="' + reitUrl(r.ticker) + '"><div class="t">' + esc(r.name) +
         ' <span class="tag">' + esc(r.sector) + "</span></div><div class=\"m\">" +
@@ -839,9 +926,14 @@
       // 관련 공시
       html += '<h2 class="sec">관련 공시(DART)</h2><div class="card"><a class="list-row" href="#/search?q=' + encodeURIComponent(r.name) +
         '"><div class="t">"' + esc(r.name) + '" 사업보고서 문단 검색 →</div><div class="m">공시렌즈(DART 전문검색)로 연결</div></a></div>';
+
+      // 투자자 댓글 (핵심 기능)
+      html += commentsSection();
+
       appEl.innerHTML = html;
       var fb = document.getElementById("favBtn");
       if (fb) fb.addEventListener("click", function () { toggleFav(r.ticker); render(); });
+      mountComments(r.ticker);
     }
 
     // ── 관심 리츠(즐겨찾기) 목록 ──
