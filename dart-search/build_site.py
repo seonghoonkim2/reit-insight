@@ -68,7 +68,8 @@ def _load_js_array(filename, var):
     for path in [os.path.join(HERE, "data", filename.replace("-demo.js", ".json")),
                  os.path.join(HERE, "web", filename)]:
         if os.path.exists(path):
-            txt = open(path, encoding="utf-8").read()
+            with open(path, encoding="utf-8") as f:
+                txt = f.read()
             m = re.search(re.escape(var) + r"\s*=\s*(\[.*\]);", txt, re.S)
             if m:
                 return json.loads(m.group(1))
@@ -99,7 +100,8 @@ def load_reports():
         with open(DATA_JSON, "r", encoding="utf-8") as f:
             return json.load(f).get("reports", []), False
     if os.path.exists(DEMO_JS):
-        txt = open(DEMO_JS, "r", encoding="utf-8").read()
+        with open(DEMO_JS, "r", encoding="utf-8") as f:
+            txt = f.read()
         m = re.search(r"window\.__DART_DATA__\s*=\s*(\{.*\});", txt, re.S)
         if m:
             return json.loads(m.group(1)).get("reports", []), True

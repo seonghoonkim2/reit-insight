@@ -85,30 +85,42 @@ def _from_total(infos, *needles):
     return None
 
 
+def _str_field(v):
+    """네이버 값이 문자열/숫자/딕셔너리 어느 형태로 와도 표시용 문자열로 강제."""
+    if v is None:
+        return ""
+    if isinstance(v, dict):
+        for k in ("name", "text", "value", "code"):
+            if v.get(k):
+                return str(v[k])
+        return ""
+    return str(v)
+
+
 def parse_naver(code, integration, basic, meta):
     integration = integration or {}
     basic = basic or {}
     infos = integration.get("totalInfos") or integration.get("totalInfo") or []
-    name = integration.get("stockName") or basic.get("stockName") or meta.get("name")
-    price = basic.get("closePrice") or integration.get("closePrice")
+    name = _str_field(integration.get("stockName") or basic.get("stockName")) or meta.get("name")
+    price = _str_field(basic.get("closePrice") or integration.get("closePrice"))
     if not price:
         dti = integration.get("dealTrendInfos") or []
         if dti:
-            price = dti[0].get("closePrice")
-    market_cap = _from_total(infos, "시가총액", "marketvalue", "marketsum")
-    dy = _from_total(infos, "배당수익률", "dividendyield")
-    ex = integration.get("stockExchangeType")
-    market = (ex.get("name") if isinstance(ex, dict) else ex) or basic.get("stockExchangeType") or meta.get("market") or "KOSPI"
+            price = _str_field(dti[0].get("closePrice"))
+    market_cap = _str_field(_from_total(infos, "시가총액", "marketvalue", "marketsum"))
+    dy = _str_field(_from_total(infos, "배당수익률", "dividendyield"))
+    market = (_str_field(integration.get("stockExchangeType"))
+              or _str_field(basic.get("stockExchangeType")) or meta.get("market") or "KOSPI")
 
     out = dict(meta)
     out.update({"ticker": code, "name": name or code, "market": market,
                 "summary": "", "key_points": []})
     if price:
-        out["price"] = str(price).replace("원", "") + "원"
+        out["price"] = price.replace("원", "") + "원"
     if market_cap:
-        out["market_cap"] = str(market_cap)
+        out["market_cap"] = market_cap
     if dy:
-        out["dividend_yield"] = str(dy).replace("%", "").strip()
+        out["dividend_yield"] = dy.replace("%", "").strip()
     return out
 
 
