@@ -109,6 +109,9 @@ def parse_naver(code, integration, basic, meta):
             price = _str_field(dti[0].get("closePrice"))
     market_cap = _str_field(_from_total(infos, "시가총액", "marketvalue", "marketsum"))
     dy = _str_field(_from_total(infos, "배당수익률", "dividendyield"))
+    high52 = _str_field(_from_total(infos, "52주최고", "52주 최고", "highprice52", "highvalue52"))
+    low52 = _str_field(_from_total(infos, "52주최저", "52주 최저", "lowprice52", "lowvalue52"))
+    foreign = _str_field(_from_total(infos, "외국인소진율", "외국인", "foreignratio", "foreignfraction"))
     market = (_str_field(integration.get("stockExchangeType"))
               or _str_field(basic.get("stockExchangeType")) or meta.get("market") or "KOSPI")
 
@@ -121,6 +124,12 @@ def parse_naver(code, integration, basic, meta):
         out["market_cap"] = market_cap
     if dy:
         out["dividend_yield"] = dy.replace("%", "").strip()
+    if high52:
+        out["week52_high"] = high52
+    if low52:
+        out["week52_low"] = low52
+    if foreign:
+        out["foreign_ratio"] = foreign
     return out
 
 
@@ -168,6 +177,9 @@ SAMPLE_INTEGRATION = {
         {"code": "marketValue", "key": "시가총액", "value": "1조 2,345억"},
         {"code": "dividendYield", "key": "배당수익률", "value": "6.70%"},
         {"code": "per", "key": "PER", "value": "15.2배"},
+        {"code": "highPrice52Week", "key": "52주최고", "value": "3,800"},
+        {"code": "lowPrice52Week", "key": "52주최저", "value": "2,900"},
+        {"code": "foreignRatio", "key": "외국인소진율", "value": "12.3%"},
     ],
 }
 SAMPLE_BASIC = {"closePrice": "3,250", "stockName": "롯데리츠"}
@@ -182,6 +194,9 @@ def run_selftest():
         ("price", r.get("price") == "3,250원"),
         ("market_cap", r.get("market_cap") == "1조 2,345억"),
         ("dividend_yield", r.get("dividend_yield") == "6.70"),
+        ("week52_high", r.get("week52_high") == "3,800"),
+        ("week52_low", r.get("week52_low") == "2,900"),
+        ("foreign_ratio", r.get("foreign_ratio") == "12.3%"),
         ("market", r.get("market") == "KOSPI"),
         ("정적메타(섹터)", r.get("sector") == "리테일"),
         ("정적메타(포트폴리오)", isinstance(r.get("portfolio"), list) and r["portfolio"]),

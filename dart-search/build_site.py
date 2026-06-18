@@ -317,11 +317,14 @@ def build(base_url=""):
                 (f" · <a href='{esc(r.get('homepage'))}' rel='noopener'>홈페이지</a>" if r.get("homepage") else "") + "</div>"
         body += "<h2>핵심 지표 (숫자는 예시)</h2><div class='vbox'>" + _kv([
             ("주가", r.get("price")), ("시가총액", r.get("market_cap")),
+            ("52주 최고", r.get("week52_high")), ("52주 최저", r.get("week52_low")),
             ("배당수익률", (r.get("dividend_yield") + "%") if r.get("dividend_yield") else ""),
             ("배당주기", r.get("dividend_freq")),
             ("예상 배당월", " · ".join(f"{m}월" for m in _pay_months(r))),
             ("주가/NAV", r.get("nav_ratio")),
-            ("신용등급", r.get("credit_rating")), ("상장일", r.get("listing_date")),
+            ("신용등급", r.get("credit_rating")),
+            ("외국인 소진율", r.get("foreign_ratio")),
+            ("상장일", r.get("listing_date")),
             ("자산관리회사(AMC)", r.get("amc")),
         ]) + "</div>"
         if r.get("summary"):

@@ -785,9 +785,11 @@
       html += '<h2 class="sec">핵심 지표 <span style="font-size:12px;color:var(--muted)">(숫자는 예시)</span></h2><div class="vbox">' +
         kvTable([
           ["주가", r.price], ["시가총액", r.market_cap],
+          ["52주 최고", r.week52_high], ["52주 최저", r.week52_low],
           ["배당수익률", r.dividend_yield ? r.dividend_yield + "%" : ""], ["배당주기", r.dividend_freq],
           ["예상 배당월", payMonths(r).map(function (m) { return m + "월"; }).join(" · ")],
           ["주가/NAV", r.nav_ratio], ["신용등급", r.credit_rating],
+          ["외국인 소진율", r.foreign_ratio],
           ["상장일", r.listing_date], ["자산관리회사(AMC)", r.amc],
         ]) + "</div>";
 

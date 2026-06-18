@@ -142,6 +142,10 @@ CREATE TABLE IF NOT EXISTS reits (
   key_points      TEXT,               -- JSON 배열
   corp_code       TEXT,               -- DART 연결용(있으면)
   homepage        TEXT,
+  pay_months      TEXT,               -- JSON 배열(예상 배당월)
+  week52_high     TEXT,               -- 52주 최고(네이버)
+  week52_low      TEXT,               -- 52주 최저(네이버)
+  foreign_ratio   TEXT,               -- 외국인 소진율(네이버)
   updated_at      TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_reits_sector ON reits(sector);
@@ -423,12 +427,13 @@ def bonds_by_issuer_code(con, issuer_code):
 # ── 상장리츠(REIT) ───────────────────────────────────────────────────────────
 _REIT_COLS = ["ticker", "name", "sector", "market", "price", "market_cap", "dividend_yield",
               "dividend_freq", "nav_ratio", "amc", "listing_date", "credit_rating",
-              "portfolio", "summary", "key_points", "corp_code", "homepage"]
+              "portfolio", "summary", "key_points", "corp_code", "homepage",
+              "pay_months", "week52_high", "week52_low", "foreign_ratio"]
 
 
 def upsert_reit(con, r):
     vals = dict(r)
-    for jf in ("portfolio", "key_points"):
+    for jf in ("portfolio", "key_points", "pay_months"):
         if isinstance(vals.get(jf), (list, dict)):
             vals[jf] = _json.dumps(vals[jf], ensure_ascii=False)
     cols = [c for c in _REIT_COLS if c in vals]
@@ -445,7 +450,7 @@ def upsert_reit(con, r):
 
 def _reit_to_dict(r):
     d = dict(r)
-    for jf in ("portfolio", "key_points"):
+    for jf in ("portfolio", "key_points", "pay_months"):
         if d.get(jf):
             try:
                 d[jf] = _json.loads(d[jf])

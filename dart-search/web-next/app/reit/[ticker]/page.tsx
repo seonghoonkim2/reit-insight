@@ -48,11 +48,14 @@ export default async function ReitPage({ params }: { params: { ticker: string } 
       <div className="vbox">
         <table className="kvt"><tbody>
           <Row k="주가" v={r.price} /><Row k="시가총액" v={r.market_cap} />
+          <Row k="52주 최고" v={r.week52_high} /><Row k="52주 최저" v={r.week52_low} />
           <Row k="배당수익률" v={r.dividend_yield ? `${r.dividend_yield}%` : undefined} />
           <Row k="배당주기" v={r.dividend_freq} />
           <Row k="예상 배당월" v={payMonths(r).map((m) => `${m}월`).join(" · ") || undefined} />
           <Row k="주가/NAV" v={r.nav_ratio} />
-          <Row k="신용등급" v={r.credit_rating} /><Row k="상장일" v={r.listing_date} />
+          <Row k="신용등급" v={r.credit_rating} />
+          <Row k="외국인 소진율" v={r.foreign_ratio} />
+          <Row k="상장일" v={r.listing_date} />
           <Row k="자산관리회사(AMC)" v={r.amc} />
         </tbody></table>
       </div>
