@@ -30,16 +30,19 @@ class TestCollectReits(unittest.TestCase):
         self.assertEqual(r["name"], "테스트")
         self.assertNotIn("price", r)  # 가격 없으면 키 자체가 없어야
 
-    def test_meta_covers_8_reits(self):
-        self.assertEqual(len(cr.REIT_META), 8)
+    def test_meta_reits_valid(self):
+        self.assertGreaterEqual(len(cr.REIT_META), 8)
         for code, m in cr.REIT_META.items():
-            self.assertTrue(m.get("name") and m.get("sector"))
+            self.assertRegex(code, r"^\d{6}$")  # 종목코드는 6자리 숫자(실제값)
+            self.assertTrue(m.get("name") and m.get("sector") and m.get("dividend_freq"))
 
-    def test_pay_months_present_and_valid(self):
-        # 배당 캘린더용 pay_months 가 모든 리츠에 있고 1~12 범위인지
+    def test_pay_months_valid_when_present(self):
+        # pay_months 가 있으면 1~12 범위여야(없으면 배당주기로 추정하므로 선택)
         for code, m in cr.REIT_META.items():
             pm = m.get("pay_months")
-            self.assertTrue(isinstance(pm, list) and pm, f"{code} pay_months 없음")
+            if pm is None:
+                continue
+            self.assertTrue(isinstance(pm, list) and pm, f"{code} pay_months 비정상")
             for mo in pm:
                 self.assertTrue(1 <= mo <= 12, f"{code} 잘못된 월: {mo}")
         # parse 결과에도 그대로 합쳐져야 (네이버는 pay_months 를 주지 않음)

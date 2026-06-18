@@ -58,6 +58,16 @@ REIT_META = {
     "404990": {"name": "신한서부티엔디리츠", "sector": "복합(호텔/리테일)", "dividend_freq": "반기", "amc": "신한리츠운용",
                "listing_date": "2021-12-10", "homepage": "https://www.shsbtndreit.com", "pay_months": [3, 9],
                "portfolio": ["그랜드머큐어 앰배서더 호텔 용산", "스퀘어원(인천)"]},
+    "088260": {"name": "이리츠코크렙", "sector": "리테일", "dividend_freq": "반기", "amc": "코람코자산신탁",
+               "portfolio": ["뉴코아 강남·일산·평촌", "2001아울렛 중계·분당"]},
+    "451800": {"name": "한화리츠", "sector": "오피스", "dividend_freq": "반기", "amc": "한화자산운용",
+               "portfolio": ["한화생명 여의도 사옥 등 한화생명 사옥"]},
+    "432320": {"name": "KB스타리츠", "sector": "복합", "dividend_freq": "반기", "amc": "KB자산운용",
+               "portfolio": ["벨기에 노스갤럭시 타워 등 국내외 오피스"]},
+    "417310": {"name": "코람코더원리츠", "sector": "오피스", "dividend_freq": "반기", "amc": "코람코자산운용",
+               "portfolio": ["여의도 하나증권 빌딩"]},
+    "400760": {"name": "NH올원리츠", "sector": "복합", "dividend_freq": "반기", "amc": "엔에이치리츠운용",
+               "portfolio": ["오피스·물류 복합 포트폴리오"]},
 }
 
 
