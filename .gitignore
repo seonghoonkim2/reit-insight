@@ -18,6 +18,8 @@ Desktop.ini
 dart-search/config.json
 dart-search/data/
 dart-search/web/data.js
+dart-search/web/reits.js
+dart-search/web/bonds.js
 
 # 파이썬 캐시
 __pycache__/
