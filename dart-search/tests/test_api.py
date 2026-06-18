@@ -94,6 +94,31 @@ class TestApi(unittest.TestCase):
         d = json.loads(body)["diff"]
         self.assertIn("II. 사업의 내용", d["new_sections"])
 
+    def test_reits(self):
+        code, body, _ = http_get(self.base, "/api/v1/reits")
+        self.assertEqual(code, 200)
+        self.assertGreaterEqual(json.loads(body)["count"], 8)
+        code, body, _ = http_get(self.base, "/api/v1/reits?sector=" + quote("물류"))
+        self.assertTrue(all(r["sector"] == "물류" for r in json.loads(body)["reits"]))
+
+    def test_reit_detail_with_bonds(self):
+        code, body, _ = http_get(self.base, "/api/v1/reit/330590")
+        self.assertEqual(code, 200)
+        d = json.loads(body)
+        self.assertEqual(d["name"], "롯데리츠")
+        self.assertIsInstance(d["portfolio"], list)
+        self.assertTrue(any(b["isin"] == "KR6035651G47" for b in d["bonds"]))
+        self.assertEqual(http_get(self.base, "/api/v1/reit/000000")[0], 404)
+
+    def test_bonds(self):
+        code, body, _ = http_get(self.base, "/api/v1/bonds")
+        self.assertEqual(code, 200)
+        self.assertGreaterEqual(json.loads(body)["count"], 5)
+        code, body, _ = http_get(self.base, "/api/v1/bond/KR6035651G47")
+        self.assertEqual(code, 200)
+        self.assertEqual(json.loads(body)["issuer"], "롯데리츠")
+        self.assertEqual(http_get(self.base, "/api/v1/bond/XX")[0], 404)
+
     def test_404(self):
         code, _, _ = http_get(self.base, "/api/v1/company/ZZZ")
         self.assertEqual(code, 404)

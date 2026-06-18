@@ -94,6 +94,58 @@ CREATE TABLE IF NOT EXISTS ingestion_jobs (
 );
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON ingestion_jobs(status);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_unique ON ingestion_jobs(job_type, ref);
+
+-- 채권(ISIN 단위) — GoInsider 스타일 채권 상세/검색용
+CREATE TABLE IF NOT EXISTS bonds (
+  isin            TEXT PRIMARY KEY,
+  bond_name       TEXT,
+  issuer          TEXT,
+  issuer_code     TEXT,         -- 발행사 종목코드(있으면 공시렌즈 회사와 연결)
+  bond_type       TEXT,         -- 국고채/회사채/금융채/특수채/지방채 등
+  coupon_rate     TEXT,         -- 표면금리(%)
+  interest_type   TEXT,         -- 고정/변동
+  coupon_freq     TEXT,         -- 이자지급주기(3개월/6개월/만기일시 등)
+  issue_date      TEXT,
+  maturity_date   TEXT,
+  issue_amount    TEXT,         -- 발행액
+  outstanding     TEXT,         -- 잔존액
+  seniority       TEXT,         -- 선순위/후순위
+  guaranteed      TEXT,         -- 보증/무보증
+  credit_rating   TEXT,         -- 신용등급(AAA~)
+  listed          TEXT,         -- 상장/비상장
+  summary         TEXT,         -- AI 요약(참고)
+  key_points      TEXT,         -- JSON 배열 문자열
+  source_url      TEXT,
+  updated_at      TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_bonds_issuer   ON bonds(issuer);
+CREATE INDEX IF NOT EXISTS idx_bonds_maturity ON bonds(maturity_date);
+CREATE INDEX IF NOT EXISTS idx_bonds_rating   ON bonds(credit_rating);
+CREATE INDEX IF NOT EXISTS idx_bonds_type     ON bonds(bond_type);
+
+-- 상장리츠(REIT) — 메인 정보 기둥 (GoInsider급 상세)
+CREATE TABLE IF NOT EXISTS reits (
+  ticker          TEXT PRIMARY KEY,   -- 종목코드(실제값)
+  name            TEXT,               -- 종목명(실제값)
+  sector          TEXT,               -- 오피스/리테일/물류/주거/복합/인프라/데이터센터 등
+  market          TEXT,
+  price           TEXT,               -- 주가(예시 샘플)
+  market_cap      TEXT,               -- 시가총액
+  dividend_yield  TEXT,               -- 배당수익률(%)
+  dividend_freq   TEXT,               -- 배당주기(반기/분기)
+  nav_ratio       TEXT,               -- 주가/NAV 배율
+  amc             TEXT,               -- 자산관리회사(운용사)
+  listing_date    TEXT,
+  credit_rating   TEXT,
+  portfolio       TEXT,               -- JSON 배열(주요 보유자산)
+  summary         TEXT,               -- AI 요약(참고)
+  key_points      TEXT,               -- JSON 배열
+  corp_code       TEXT,               -- DART 연결용(있으면)
+  homepage        TEXT,
+  updated_at      TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_reits_sector ON reits(sector);
+CREATE INDEX IF NOT EXISTS idx_reits_name   ON reits(name);
 """
 
 
@@ -297,6 +349,143 @@ def job_counts(con):
     return {r["status"]: r["n"] for r in rows}
 
 
+# ── 채권 ─────────────────────────────────────────────────────────────────────
+import json as _json
+
+_BOND_COLS = ["isin", "bond_name", "issuer", "issuer_code", "bond_type", "coupon_rate",
+              "interest_type", "coupon_freq", "issue_date", "maturity_date", "issue_amount",
+              "outstanding", "seniority", "guaranteed", "credit_rating", "listed",
+              "summary", "key_points", "source_url"]
+
+
+def upsert_bond(con, b):
+    """제공된 컬럼만 INSERT/UPDATE 한다(부분 업데이트가 기존 값을 지우지 않음)."""
+    vals = dict(b)
+    kp = vals.get("key_points")
+    if isinstance(kp, (list, dict)):
+        vals["key_points"] = _json.dumps(kp, ensure_ascii=False)
+    cols = [c for c in _BOND_COLS if c in vals]
+    if "isin" not in cols:
+        raise ValueError("upsert_bond: isin 필요")
+    set_parts = [f"{c}=excluded.{c}" for c in cols if c != "isin"] + ["updated_at=datetime('now')"]
+    con.execute(
+        f"INSERT INTO bonds ({','.join(cols)}) VALUES ({','.join('?' * len(cols))}) "
+        f"ON CONFLICT(isin) DO UPDATE SET {','.join(set_parts)}",
+        [vals[c] for c in cols],
+    )
+    con.commit()
+
+
+def _bond_to_dict(r):
+    d = dict(r)
+    if d.get("key_points"):
+        try:
+            d["key_points"] = _json.loads(d["key_points"])
+        except Exception:
+            d["key_points"] = []
+    else:
+        d["key_points"] = []
+    return d
+
+
+def get_bond(con, isin):
+    r = con.execute("SELECT * FROM bonds WHERE isin = ?", (isin,)).fetchone()
+    return _bond_to_dict(r) if r else None
+
+
+def list_bonds(con, limit=50):
+    rows = con.execute("SELECT * FROM bonds ORDER BY maturity_date LIMIT ?", (limit,)).fetchall()
+    return [_bond_to_dict(r) for r in rows]
+
+
+def search_bonds(con, query, limit=50):
+    terms = [t for t in (query or "").strip().split() if t]
+    where, params = [], []
+    for t in terms:
+        where.append("(isin LIKE ? OR bond_name LIKE ? OR issuer LIKE ? OR credit_rating LIKE ?)")
+        like = "%" + t + "%"
+        params += [like, like, like, like]
+    sql = "SELECT * FROM bonds " + ("WHERE " + " AND ".join(where) + " " if where else "") + \
+          "ORDER BY maturity_date LIMIT ?"
+    rows = con.execute(sql, params + [limit]).fetchall()
+    return [_bond_to_dict(r) for r in rows]
+
+
+def bonds_count(con):
+    return con.execute("SELECT COUNT(*) FROM bonds").fetchone()[0]
+
+
+def bonds_by_issuer_code(con, issuer_code):
+    rows = con.execute("SELECT * FROM bonds WHERE issuer_code = ? ORDER BY maturity_date", (issuer_code,)).fetchall()
+    return [_bond_to_dict(r) for r in rows]
+
+
+# ── 상장리츠(REIT) ───────────────────────────────────────────────────────────
+_REIT_COLS = ["ticker", "name", "sector", "market", "price", "market_cap", "dividend_yield",
+              "dividend_freq", "nav_ratio", "amc", "listing_date", "credit_rating",
+              "portfolio", "summary", "key_points", "corp_code", "homepage"]
+
+
+def upsert_reit(con, r):
+    vals = dict(r)
+    for jf in ("portfolio", "key_points"):
+        if isinstance(vals.get(jf), (list, dict)):
+            vals[jf] = _json.dumps(vals[jf], ensure_ascii=False)
+    cols = [c for c in _REIT_COLS if c in vals]
+    if "ticker" not in cols:
+        raise ValueError("upsert_reit: ticker 필요")
+    set_parts = [f"{c}=excluded.{c}" for c in cols if c != "ticker"] + ["updated_at=datetime('now')"]
+    con.execute(
+        f"INSERT INTO reits ({','.join(cols)}) VALUES ({','.join('?' * len(cols))}) "
+        f"ON CONFLICT(ticker) DO UPDATE SET {','.join(set_parts)}",
+        [vals[c] for c in cols],
+    )
+    con.commit()
+
+
+def _reit_to_dict(r):
+    d = dict(r)
+    for jf in ("portfolio", "key_points"):
+        if d.get(jf):
+            try:
+                d[jf] = _json.loads(d[jf])
+            except Exception:
+                d[jf] = []
+        else:
+            d[jf] = []
+    return d
+
+
+def get_reit(con, ticker):
+    r = con.execute("SELECT * FROM reits WHERE ticker = ?", (ticker,)).fetchone()
+    return _reit_to_dict(r) if r else None
+
+
+def list_reits(con, limit=100):
+    rows = con.execute("SELECT * FROM reits ORDER BY name LIMIT ?", (limit,)).fetchall()
+    return [_reit_to_dict(r) for r in rows]
+
+
+def search_reits(con, query, sector=None, limit=100):
+    terms = [t for t in (query or "").strip().split() if t]
+    where, params = [], []
+    if sector:
+        where.append("sector = ?")
+        params.append(sector)
+    for t in terms:
+        where.append("(name LIKE ? OR ticker LIKE ? OR sector LIKE ? OR amc LIKE ?)")
+        like = "%" + t + "%"
+        params += [like, like, like, like]
+    sql = "SELECT * FROM reits " + ("WHERE " + " AND ".join(where) + " " if where else "") + \
+          "ORDER BY name LIMIT ?"
+    rows = con.execute(sql, params + [limit]).fetchall()
+    return [_reit_to_dict(r) for r in rows]
+
+
+def reits_count(con):
+    return con.execute("SELECT COUNT(*) FROM reits").fetchone()[0]
+
+
 # ── 자체 점검 ────────────────────────────────────────────────────────────────
 def run_selftest():
     print("🔧 db.py 자체 점검 (in-memory SQLite)")
@@ -358,6 +547,31 @@ def run_selftest():
         print("  ✅ financial_facts 저장 정상")
     else:
         print("  ❌ financial_facts 이상"); ok = False
+
+    # 채권
+    upsert_bond(con, {"isin": "KR6035651G47", "bond_name": "샘플전자 12-1", "issuer": "샘플전자",
+                      "bond_type": "회사채", "coupon_rate": "4.20", "credit_rating": "AA+",
+                      "maturity_date": "2027-03-15", "key_points": ["무보증", "선순위"]})
+    upsert_bond(con, {"isin": "KR6035651G47", "bond_name": "샘플전자 12-1", "issuer": "샘플전자",
+                      "credit_rating": "AA+"})  # 중복 → 갱신
+    b = get_bond(con, "KR6035651G47")
+    found = search_bonds(con, "샘플전자")
+    if bonds_count(con) == 1 and b and b["key_points"] == ["무보증", "선순위"] and found:
+        print("  ✅ 채권 업서트/조회/검색 정상:", b["bond_name"], b["credit_rating"])
+    else:
+        print("  ❌ 채권 이상:", b); ok = False
+
+    # 리츠
+    upsert_reit(con, {"ticker": "330590", "name": "롯데리츠", "sector": "리테일", "market": "KOSPI",
+                      "dividend_yield": "6.5", "portfolio": ["롯데백화점", "롯데마트"],
+                      "key_points": ["리테일 자산 중심", "반기 배당"]})
+    upsert_reit(con, {"ticker": "330590", "name": "롯데리츠", "dividend_yield": "6.7"})  # 부분 갱신
+    rt = get_reit(con, "330590")
+    rs = search_reits(con, "리츠", sector="리테일")
+    if reits_count(con) == 1 and rt and rt["dividend_yield"] == "6.7" and rt["portfolio"] == ["롯데백화점", "롯데마트"] and rs:
+        print("  ✅ 리츠 업서트(부분갱신)/조회/섹터검색 정상:", rt["name"], rt["sector"])
+    else:
+        print("  ❌ 리츠 이상:", rt); ok = False
 
     print("\n🎉 db.py 점검 통과!" if ok else "\n점검 실패.")
     if not ok:

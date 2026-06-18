@@ -97,6 +97,38 @@ class TestDiff(unittest.TestCase):
         self.assertGreater(kd.get("PF", 0), 0)
 
 
+class TestReitsAndBonds(unittest.TestCase):
+    def setUp(self):
+        self.con = fixtures.seed()
+
+    def test_reits_loaded(self):
+        self.assertGreaterEqual(db.reits_count(self.con), 8)
+        lotte = db.get_reit(self.con, "330590")
+        self.assertEqual(lotte["name"], "롯데리츠")
+        self.assertIsInstance(lotte["portfolio"], list)
+        self.assertTrue(lotte["portfolio"])
+        self.assertIsInstance(lotte["key_points"], list)
+
+    def test_reit_sector_search(self):
+        res = db.search_reits(self.con, "", sector="물류")
+        self.assertTrue(res)
+        self.assertTrue(all(r["sector"] == "물류" for r in res))
+
+    def test_reit_text_search(self):
+        res = db.search_reits(self.con, "신한")
+        self.assertTrue(any("신한" in r["name"] for r in res))
+
+    def test_bonds_loaded_and_issuer_link(self):
+        self.assertGreaterEqual(db.bonds_count(self.con), 5)
+        b = db.get_bond(self.con, "KR6035651G47")
+        self.assertEqual(b["issuer_code"], "330590")  # 롯데리츠
+        mine = db.bonds_by_issuer_code(self.con, "330590")
+        self.assertTrue(any(x["isin"] == "KR6035651G47" for x in mine))
+
+    def test_bond_search(self):
+        self.assertTrue(db.search_bonds(self.con, "SK리츠"))
+
+
 class TestFinancials(unittest.TestCase):
     def test_parse(self):
         facts = financials.parse_financials("C", "005930", "2025", financials.SELFTEST_RESPONSE)
