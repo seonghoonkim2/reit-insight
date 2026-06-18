@@ -159,6 +159,9 @@ def run():
         try:
             integration, basic = fetch_naver(code)
             r = parse_naver(code, integration, basic, meta)
+            print(f"  → 주가 {r.get('price', '-')} · 시총 {r.get('market_cap', '-')} · "
+                  f"배당 {r.get('dividend_yield', '-')}% · 52주 {r.get('week52_high', '-')}/{r.get('week52_low', '-')} · "
+                  f"외국인 {r.get('foreign_ratio', '-')}")
         except Exception as e:
             print(f"  실패: {e} — 메타만 저장")
             r = dict(meta); r.update({"ticker": code, "summary": "", "key_points": []})
