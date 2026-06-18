@@ -323,7 +323,6 @@ def build(base_url=""):
             ("예상 배당월", " · ".join(f"{m}월" for m in _pay_months(r))),
             ("주가/NAV", r.get("nav_ratio")),
             ("신용등급", r.get("credit_rating")),
-            ("외국인 소진율", r.get("foreign_ratio")),
             ("상장일", r.get("listing_date")),
             ("자산관리회사(AMC)", r.get("amc")),
         ]) + "</div>"

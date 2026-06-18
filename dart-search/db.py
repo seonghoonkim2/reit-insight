@@ -145,7 +145,6 @@ CREATE TABLE IF NOT EXISTS reits (
   pay_months      TEXT,               -- JSON 배열(예상 배당월)
   week52_high     TEXT,               -- 52주 최고(네이버)
   week52_low      TEXT,               -- 52주 최저(네이버)
-  foreign_ratio   TEXT,               -- 외국인 소진율(네이버)
   updated_at      TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_reits_sector ON reits(sector);
@@ -428,7 +427,7 @@ def bonds_by_issuer_code(con, issuer_code):
 _REIT_COLS = ["ticker", "name", "sector", "market", "price", "market_cap", "dividend_yield",
               "dividend_freq", "nav_ratio", "amc", "listing_date", "credit_rating",
               "portfolio", "summary", "key_points", "corp_code", "homepage",
-              "pay_months", "week52_high", "week52_low", "foreign_ratio"]
+              "pay_months", "week52_high", "week52_low"]
 
 
 def upsert_reit(con, r):

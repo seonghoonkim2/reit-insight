@@ -11,18 +11,17 @@ class TestCollectReits(unittest.TestCase):
         self.assertEqual(r["market_cap"], "1조 2,345억")
         self.assertEqual(r["dividend_yield"], "6.70")
         self.assertEqual(r["market"], "KOSPI")
-        # 네이버에서 추가로 뽑는 실데이터
+        # 네이버에서 추가로 뽑는 실데이터(52주 최고/최저)
         self.assertEqual(r["week52_high"], "3,800")
         self.assertEqual(r["week52_low"], "2,900")
-        self.assertEqual(r["foreign_ratio"], "12.3%")
         # 정적 메타가 합쳐졌는지
         self.assertEqual(r["sector"], "리테일")
         self.assertIn("롯데백화점 강남점", r["portfolio"])
 
     def test_optional_naver_fields_absent(self):
-        # totalInfos 가 비어도 52주/외국인 키는 없어야(렌더가 건너뜀)
+        # totalInfos 가 비어도 52주 키는 없어야(렌더가 건너뜀)
         r = cr.parse_naver("330590", {"stockName": "X"}, {}, cr.REIT_META["330590"])
-        for k in ("week52_high", "week52_low", "foreign_ratio"):
+        for k in ("week52_high", "week52_low"):
             self.assertNotIn(k, r)
 
     def test_parse_empty_safe(self):

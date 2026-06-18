@@ -54,7 +54,6 @@ export default async function ReitPage({ params }: { params: { ticker: string } 
           <Row k="예상 배당월" v={payMonths(r).map((m) => `${m}월`).join(" · ") || undefined} />
           <Row k="주가/NAV" v={r.nav_ratio} />
           <Row k="신용등급" v={r.credit_rating} />
-          <Row k="외국인 소진율" v={r.foreign_ratio} />
           <Row k="상장일" v={r.listing_date} />
           <Row k="자산관리회사(AMC)" v={r.amc} />
         </tbody></table>

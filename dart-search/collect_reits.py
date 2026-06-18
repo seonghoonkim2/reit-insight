@@ -111,7 +111,6 @@ def parse_naver(code, integration, basic, meta):
     dy = _str_field(_from_total(infos, "배당수익률", "dividendyield"))
     high52 = _str_field(_from_total(infos, "52주최고", "52주 최고", "highprice52", "highvalue52"))
     low52 = _str_field(_from_total(infos, "52주최저", "52주 최저", "lowprice52", "lowvalue52"))
-    foreign = _str_field(_from_total(infos, "외국인소진율", "외국인", "foreignratio", "foreignfraction"))
     market = (_str_field(integration.get("stockExchangeType"))
               or _str_field(basic.get("stockExchangeType")) or meta.get("market") or "KOSPI")
 
@@ -128,8 +127,6 @@ def parse_naver(code, integration, basic, meta):
         out["week52_high"] = high52
     if low52:
         out["week52_low"] = low52
-    if foreign:
-        out["foreign_ratio"] = foreign
     return out
 
 
@@ -160,8 +157,7 @@ def run():
             integration, basic = fetch_naver(code)
             r = parse_naver(code, integration, basic, meta)
             print(f"  → 주가 {r.get('price', '-')} · 시총 {r.get('market_cap', '-')} · "
-                  f"배당 {r.get('dividend_yield', '-')}% · 52주 {r.get('week52_high', '-')}/{r.get('week52_low', '-')} · "
-                  f"외국인 {r.get('foreign_ratio', '-')}")
+                  f"배당 {r.get('dividend_yield', '-')}% · 52주 {r.get('week52_high', '-')}/{r.get('week52_low', '-')}")
         except Exception as e:
             print(f"  실패: {e} — 메타만 저장")
             r = dict(meta); r.update({"ticker": code, "summary": "", "key_points": []})
@@ -182,7 +178,6 @@ SAMPLE_INTEGRATION = {
         {"code": "per", "key": "PER", "value": "15.2배"},
         {"code": "highPrice52Week", "key": "52주최고", "value": "3,800"},
         {"code": "lowPrice52Week", "key": "52주최저", "value": "2,900"},
-        {"code": "foreignRatio", "key": "외국인소진율", "value": "12.3%"},
     ],
 }
 SAMPLE_BASIC = {"closePrice": "3,250", "stockName": "롯데리츠"}
@@ -199,7 +194,6 @@ def run_selftest():
         ("dividend_yield", r.get("dividend_yield") == "6.70"),
         ("week52_high", r.get("week52_high") == "3,800"),
         ("week52_low", r.get("week52_low") == "2,900"),
-        ("foreign_ratio", r.get("foreign_ratio") == "12.3%"),
         ("market", r.get("market") == "KOSPI"),
         ("정적메타(섹터)", r.get("sector") == "리테일"),
         ("정적메타(포트폴리오)", isinstance(r.get("portfolio"), list) and r["portfolio"]),

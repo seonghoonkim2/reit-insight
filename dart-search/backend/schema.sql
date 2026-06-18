@@ -117,7 +117,6 @@ CREATE TABLE IF NOT EXISTS reits (
   pay_months      JSONB,
   week52_high     TEXT,
   week52_low      TEXT,
-  foreign_ratio   TEXT,
   updated_at      TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_reits_sector ON reits(sector);

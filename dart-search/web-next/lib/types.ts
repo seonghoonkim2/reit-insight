@@ -49,7 +49,6 @@ export interface Reit {
   pay_months?: number[];
   week52_high?: string;
   week52_low?: string;
-  foreign_ratio?: string;
   bonds?: Bond[];
 }
 
