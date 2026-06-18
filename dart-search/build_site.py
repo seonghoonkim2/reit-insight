@@ -64,6 +64,36 @@ def esc(s):
     return html.escape(str(s or ""))
 
 
+def _load_js_array(filename, var):
+    for path in [os.path.join(HERE, "data", filename.replace("-demo.js", ".json")),
+                 os.path.join(HERE, "web", filename)]:
+        if os.path.exists(path):
+            txt = open(path, encoding="utf-8").read()
+            m = re.search(re.escape(var) + r"\s*=\s*(\[.*\]);", txt, re.S)
+            if m:
+                return json.loads(m.group(1))
+            try:
+                return json.loads(txt)  # .json 파일이면
+            except Exception:
+                pass
+    return []
+
+
+def load_reits_bonds():
+    return (_load_js_array("reits-demo.js", "window.__REITS__"),
+            _load_js_array("bonds-demo.js", "window.__BONDS__"))
+
+
+def _kv(pairs):
+    rows = "".join(f"<tr><th style='text-align:left;color:#6b7280;padding:2px 12px 2px 0'>{esc(k)}</th><td>{esc(v)}</td></tr>"
+                   for k, v in pairs if v)
+    return f"<table class='km'>{rows}</table>"
+
+
+def _points(items):
+    return "<ul>" + "".join(f"<li>{esc(p)}</li>" for p in (items or [])) + "</ul>" if items else ""
+
+
 def load_reports():
     if os.path.exists(DATA_JSON):
         with open(DATA_JSON, "r", encoding="utf-8") as f:
@@ -247,16 +277,99 @@ def build(base_url=""):
         write(f"topic/{slug}.html", page(title, body, desc, _abs(base_url, f"topic/{slug}.html")))
         urls.append(f"topic/{slug}.html")
 
-    # ── 홈 ──
-    body = "<h1>공시렌즈 — DART 사업보고서 전문 검색</h1>"
-    body += "<p class='kv'>DART 사업보고서를 회사별·연도별·섹션별로 검색하고 비교하는 공시 리서치 검색엔진.</p>"
-    body += "<h2>인기 키워드</h2><div>" + "".join(f"<a class='chip' href='topic/{_slug(k)}.html'>{esc(k)}</a>" for k in topics) + "</div>"
-    body += "<h2>회사</h2><div class='card'>"
-    for code, co in sorted(by_code.items(), key=lambda x: x[1]["name"]):
-        body += f"<a class='row' href='company/{esc(code)}.html'>{esc(co['name'])}<div class='kv'>{esc(co['stock'] or '-')} · 보고서 {len(co['reports'])}건</div></a>"
+    # ── 상장리츠(메인) / 리츠 발행 채권 ──
+    reits, bonds = load_reits_bonds()
+    bonds_by_issuer = {}
+    for b in bonds:
+        bonds_by_issuer.setdefault(b.get("issuer_code"), []).append(b)
+    sectors = sorted({r.get("sector") for r in reits if r.get("sector")})
+
+    def reit_row(r):
+        return (f"<a class='row' href='../reit/{esc(r['ticker'])}.html'>{esc(r['name'])} "
+                f"<span class='kv'>[{esc(r.get('sector'))}]</span><div class='kv'>{esc(r['ticker'])} · "
+                f"배당수익률 {esc(r.get('dividend_yield'))}% · {esc(r.get('dividend_freq'))} 배당 · NAV {esc(r.get('nav_ratio'))}</div></a>")
+
+    def bond_row(b):
+        return (f"<a class='row' href='../bond/{esc(b['isin'])}.html'>{esc(b['bond_name'])} "
+                f"{_badge(b.get('credit_rating'))}<div class='kv'>{esc(b.get('issuer'))} · 표면 {esc(b.get('coupon_rate'))} · 만기 {esc(b.get('maturity_date'))}</div></a>")
+
+    for r in reits:
+        body = "<div class='crumb'><a href='../index.html'>리츠인사이트</a> › <a href='../reits.html'>상장리츠</a></div>"
+        body += f"<h1>{esc(r['name'])} <span class='kv'>[{esc(r.get('sector'))}]</span></h1>"
+        body += f"<div class='kv'>종목코드 {esc(r['ticker'])}" + (f" · {esc(r.get('market'))}" if r.get("market") else "") + \
+                (f" · <a href='{esc(r.get('homepage'))}' rel='noopener'>홈페이지</a>" if r.get("homepage") else "") + "</div>"
+        body += "<h2>핵심 지표 (숫자는 예시)</h2><div class='vbox'>" + _kv([
+            ("주가", r.get("price")), ("시가총액", r.get("market_cap")),
+            ("배당수익률", (r.get("dividend_yield") + "%") if r.get("dividend_yield") else ""),
+            ("배당주기", r.get("dividend_freq")), ("주가/NAV", r.get("nav_ratio")),
+            ("신용등급", r.get("credit_rating")), ("상장일", r.get("listing_date")),
+            ("자산관리회사(AMC)", r.get("amc")),
+        ]) + "</div>"
+        if r.get("summary"):
+            body += f"<h2>AI 요약 (참고)</h2><div class='vbox'>{esc(r['summary'])}{_points(r.get('key_points'))}</div>"
+        if r.get("portfolio"):
+            body += "<h2>주요 보유자산</h2><div class='card'>" + "".join(f"<div class='row'>{esc(p)}</div>" for p in r["portfolio"]) + "</div>"
+        mine = bonds_by_issuer.get(r["ticker"], [])
+        if mine:
+            body += "<h2>이 리츠가 발행한 채권</h2><div class='card'>" + "".join(bond_row(b) for b in mine) + "</div>"
+        title = f"{r['name']} ({r['ticker']}) 배당·NAV·포트폴리오 | 리츠인사이트"
+        desc = f"{r['name']}의 배당수익률·NAV·보유자산·신용등급과 AI 요약, 발행 채권 정보."
+        canon = _abs(base_url, f"reit/{r['ticker']}.html")
+        jsonld = [{"@context": "https://schema.org", "@type": "Organization", "name": r["name"],
+                   "tickerSymbol": r["ticker"], **({"url": canon} if canon else {})},
+                  _breadcrumb([("리츠인사이트", _abs(base_url, "index.html")), ("상장리츠", _abs(base_url, "reits.html")), (r["name"], canon)])]
+        write(f"reit/{r['ticker']}.html", page(title, body, desc, canon, jsonld, "profile"))
+        urls.append(f"reit/{r['ticker']}.html")
+
+    for b in bonds:
+        body = "<div class='crumb'><a href='../index.html'>리츠인사이트</a> › <a href='../bonds.html'>리츠 발행 채권</a></div>"
+        body += f"<h1>{esc(b['bond_name'])} {_badge(b.get('credit_rating'))}</h1>"
+        issuer = (f"<a href='../reit/{esc(b['issuer_code'])}.html'>{esc(b.get('issuer'))}</a>"
+                  if b.get("issuer_code") else esc(b.get("issuer")))
+        body += f"<div class='kv'>ISIN {esc(b['isin'])} · 발행 {issuer}</div>"
+        body += "<h2>발행 정보 (숫자는 예시)</h2><div class='vbox'>" + _kv([
+            ("채권 종류", b.get("bond_type")), ("표면금리", b.get("coupon_rate")), ("금리 유형", b.get("interest_type")),
+            ("이자지급주기", b.get("coupon_freq")), ("발행일", b.get("issue_date")), ("만기일", b.get("maturity_date")),
+            ("발행액", b.get("issue_amount")), ("잔존액", b.get("outstanding")),
+            ("변제순위", b.get("seniority")), ("보증여부", b.get("guaranteed")),
+            ("신용등급", b.get("credit_rating")), ("상장여부", b.get("listed")),
+        ]) + "</div>"
+        if b.get("summary"):
+            body += f"<h2>AI 요약 (참고)</h2><div class='vbox'>{esc(b['summary'])}{_points(b.get('key_points'))}</div>"
+        title = f"{b['bond_name']} ({b['isin']}) | 리츠인사이트"
+        desc = f"{b.get('issuer')} 발행 채권 — 표면금리·만기·신용등급·조건과 AI 요약."
+        canon = _abs(base_url, f"bond/{b['isin']}.html")
+        jsonld = [{"@context": "https://schema.org", "@type": "FinancialProduct", "name": b["bond_name"],
+                   "category": b.get("bond_type"), **({"url": canon} if canon else {})}]
+        write(f"bond/{b['isin']}.html", page(title, body, desc, canon, jsonld, "product"))
+        urls.append(f"bond/{b['isin']}.html")
+
+    # 리츠/채권 인덱스
+    rbody = "<div class='crumb'><a href='index.html'>리츠인사이트</a> › 상장리츠</div><h1>상장리츠 (REITs)</h1>"
+    rbody += "<div>" + "".join(f"<span class='chip'>{esc(s)}</span>" for s in sectors) + "</div>"
+    rbody += "<div class='card'>" + "".join(reit_row(r).replace("../reit/", "reit/") for r in sorted(reits, key=lambda x: x["name"])) + "</div>"
+    write("reits.html", page("상장리츠(REITs) | 리츠인사이트", rbody, "한국 상장리츠를 섹터별로 검색·비교.", _abs(base_url, "reits.html")))
+    urls.append("reits.html")
+
+    bbody = "<div class='crumb'><a href='index.html'>리츠인사이트</a> › 리츠 발행 채권</div><h1>리츠 발행 채권</h1>"
+    bbody += "<div class='card'>" + "".join(bond_row(b).replace("../bond/", "bond/") for b in bonds) + "</div>"
+    write("bonds.html", page("리츠 발행 채권 | 리츠인사이트", bbody, "상장리츠가 발행한 채권을 ISIN별로 정리.", _abs(base_url, "bonds.html")))
+    urls.append("bonds.html")
+
+    # ── 홈 (리츠 중심) ──
+    body = "<h1>리츠인사이트 — 상장리츠(REITs) 정보</h1>"
+    body += "<p class='kv'>상장리츠를 핵심지표·배당·포트폴리오·AI 요약으로. 공시·발행 채권까지 연결. (숫자는 예시)</p>"
+    body += "<h2>상장리츠 <a style='font-size:13px' href='reits.html'>전체 →</a></h2><div class='card'>"
+    for r in sorted(reits, key=lambda x: x["name"]):
+        body += reit_row(r).replace("../reit/", "reit/")
     body += "</div>"
-    write("index.html", page("공시렌즈 | DART 사업보고서 전문 검색", body,
-                             "DART 사업보고서를 회사별·연도별·섹션별로 검색하고 비교하는 공시 리서치 검색엔진",
+    body += "<h2>리츠 발행 채권 <a style='font-size:13px' href='bonds.html'>전체 →</a></h2><div class='card'>"
+    for b in bonds[:6]:
+        body += bond_row(b).replace("../bond/", "bond/")
+    body += "</div>"
+    body += "<h2>공시(DART) 검색</h2><div>" + "".join(f"<a class='chip' href='topic/{_slug(k)}.html'>{esc(k)}</a>" for k in topics) + "</div>"
+    write("index.html", page("리츠인사이트 | 상장리츠(REITs) 정보·배당·공시·발행채권", body,
+                             "한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로. 공시 전문검색과 발행 채권까지.",
                              _abs(base_url, "index.html")))
     urls.insert(0, "index.html")
 
@@ -281,6 +394,13 @@ def _badges(r):
     if r.get("is_amended"):
         b += f"<span class='badge amend'>{esc(r.get('amendment_type') or '정정')}</span>"
     return b
+
+
+def _badge(rating):
+    if not rating:
+        return ""
+    cls = "latest" if (str(rating).startswith("A") or "국채" in str(rating)) else ("amend" if str(rating).startswith("B") and not str(rating).startswith("BBB") else "")
+    return f"<span class='badge {cls}'>{esc(rating)}</span>"
 
 
 def _slug(kw):

@@ -365,7 +365,7 @@
       qEl.value = route.page === "search" ? (route.params.q || "") : "";
       var fn = { home: renderHome, search: renderSearch, company: renderCompany, filing: renderFiling,
                  topic: renderTopic, reits: renderReits, reit: renderReit,
-                 bonds: renderBonds, bond: renderBond }[route.page] || renderHome;
+                 bonds: renderBonds, bond: renderBond, compare: renderCompare, tools: renderTools }[route.page] || renderHome;
       fn(route);
       mountAds();
       window.scrollTo(0, 0);
@@ -399,6 +399,7 @@
         "<h1>상장리츠 인사이트</h1>" +
         "<p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로 한눈에. 공시·발행 채권까지 연결.</p></div>";
 
+      html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
       html += '<h2 class="sec">상장리츠 <a style="font-size:13px;font-weight:400" href="#/reits">전체 보기 →</a></h2>';
       html += '<div class="chips"><a class="chip" href="#/reits">전체</a>';
       SECTORS.forEach(function (s) { html += '<a class="chip" href="#/reits?sector=' + encodeURIComponent(s) + '">' + esc(s) + "</a>"; });
@@ -835,6 +836,56 @@
         html += '<h2 class="sec">발행 리츠</h2><div class="card">' + reitRow(reit) + "</div>";
       }
       appEl.innerHTML = html;
+    }
+
+    // ── 리츠 비교 (핵심지표 한 표) ──
+    function renderCompare(route) {
+      var html = '<div class="crumb"><a href="#/">홈</a> › 리츠 비교</div>';
+      html += '<h1 class="page">상장리츠 비교 <span style="font-size:12px;color:var(--muted)">(숫자는 예시)</span></h1>';
+      if (!REITS.length) { appEl.innerHTML = html + '<div class="empty">리츠 데이터가 없습니다.</div>'; return; }
+      var cols = [["리츠", function (r) { return '<a href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a>"; }],
+        ["섹터", function (r) { return esc(r.sector); }],
+        ["배당수익률", function (r) { return esc(r.dividend_yield) + "%"; }],
+        ["배당주기", function (r) { return esc(r.dividend_freq); }],
+        ["주가/NAV", function (r) { return esc(r.nav_ratio); }],
+        ["신용등급", function (r) { return ratingBadge(r.credit_rating); }],
+        ["운용사", function (r) { return esc(r.amc); }],
+        ["상장일", function (r) { return esc(r.listing_date); }]];
+      html += '<div style="overflow-x:auto"><table class="stbl" style="min-width:720px">';
+      html += "<tr>" + cols.map(function (c) { return "<th style='text-align:left'>" + esc(c[0]) + "</th>"; }).join("") + "</tr>";
+      REITS.slice().sort(function (a, b) { return parseFloat(b.dividend_yield) - parseFloat(a.dividend_yield); }).forEach(function (r) {
+        html += "<tr>" + cols.map(function (c) { return "<td style='text-align:left'>" + c[1](r) + "</td>"; }).join("") + "</tr>";
+      });
+      html += "</table></div>";
+      html += '<div class="hint">배당수익률 높은 순으로 정렬. 숫자는 예시이며 투자 권유가 아닙니다.</div>';
+      appEl.innerHTML = html;
+    }
+
+    // ── 금융 도구: 세후 배당 계산기 ──
+    function renderTools(route) {
+      var html = '<div class="crumb"><a href="#/">홈</a> › 금융 도구</div>';
+      html += '<h1 class="page">세후 배당 계산기</h1>';
+      html += '<div class="vbox" style="max-width:520px">' +
+        '<table class="km-table"><tr><th style="text-align:left">투자금액(원)</th><td><input id="tAmt" type="number" value="10000000" style="width:160px;padding:6px;border:1px solid var(--border);border-radius:6px"></td></tr>' +
+        '<tr><th style="text-align:left">연 배당수익률(%)</th><td><input id="tYield" type="number" value="6.5" step="0.1" style="width:120px;padding:6px;border:1px solid var(--border);border-radius:6px"></td></tr>' +
+        '<tr><th style="text-align:left">배당소득세율(%)</th><td><input id="tTax" type="number" value="15.4" step="0.1" style="width:120px;padding:6px;border:1px solid var(--border);border-radius:6px"></td></tr></table>' +
+        '<div id="tOut" style="margin-top:12px;font-size:14px"></div>' +
+        '<div class="hint" style="margin-top:8px">분리과세(15.4%) 가정 단순 계산. 종합과세·건보료 등은 미반영. 참고용이며 투자·세무 자문이 아닙니다.</div></div>';
+      appEl.innerHTML = html;
+      function fmt(n) { return (Math.round(n)).toLocaleString("ko-KR"); }
+      function calc() {
+        var amt = parseFloat(document.getElementById("tAmt").value) || 0;
+        var y = (parseFloat(document.getElementById("tYield").value) || 0) / 100;
+        var tax = (parseFloat(document.getElementById("tTax").value) || 0) / 100;
+        var gross = amt * y, net = gross * (1 - tax);
+        document.getElementById("tOut").innerHTML =
+          "연 세전 배당금: <b>" + fmt(gross) + "원</b><br>" +
+          "세금(" + (tax * 100).toFixed(1) + "%): " + fmt(gross * tax) + "원<br>" +
+          "연 <b>세후</b> 배당금: <b style='color:var(--accent)'>" + fmt(net) + "원</b> (월 환산 " + fmt(net / 12) + "원)<br>" +
+          "세후 배당수익률: <b>" + (y * (1 - tax) * 100).toFixed(2) + "%</b>";
+      }
+      ["tAmt", "tYield", "tTax"].forEach(function (id) { document.getElementById(id).addEventListener("input", calc); });
+      calc();
     }
 
     // ── 검색창 + 라우팅 연결 ──
