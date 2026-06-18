@@ -59,13 +59,15 @@ def load_reits_bonds(con):
         cur.execute(
             "INSERT INTO reits (ticker, name, sector, market, price, market_cap, dividend_yield, "
             "dividend_freq, nav_ratio, amc, listing_date, credit_rating, portfolio, summary, key_points, "
-            "corp_code, homepage) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+            "corp_code, homepage, pay_months) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
             "ON CONFLICT (ticker) DO UPDATE SET name=EXCLUDED.name, dividend_yield=EXCLUDED.dividend_yield, "
-            "portfolio=EXCLUDED.portfolio, summary=EXCLUDED.summary, key_points=EXCLUDED.key_points",
+            "portfolio=EXCLUDED.portfolio, summary=EXCLUDED.summary, key_points=EXCLUDED.key_points, "
+            "pay_months=EXCLUDED.pay_months",
             (r.get("ticker"), r.get("name"), r.get("sector"), r.get("market"), r.get("price"),
              r.get("market_cap"), r.get("dividend_yield"), r.get("dividend_freq"), r.get("nav_ratio"),
              r.get("amc"), r.get("listing_date"), r.get("credit_rating"), Json(r.get("portfolio") or []),
-             r.get("summary"), Json(r.get("key_points") or []), r.get("corp_code"), r.get("homepage")))
+             r.get("summary"), Json(r.get("key_points") or []), r.get("corp_code"), r.get("homepage"),
+             Json(r.get("pay_months") or [])))
     bonds = load_js_array("window.__BONDS__")
     for b in bonds:
         cur.execute(

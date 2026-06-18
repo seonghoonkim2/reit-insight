@@ -25,6 +25,7 @@ export default async function Home() {
       <div className="chips" style={{ margin: "6px 0 14px" }}>
         <Link className="chip" href="/reits">리츠 목록</Link>
         <Link className="chip" href="/compare">리츠 비교</Link>
+        <Link className="chip" href="/calendar">배당 캘린더</Link>
         <Link className="chip" href="/bonds">리츠 발행 채권</Link>
         <Link className="chip" href="/tools">배당 계산기</Link>
       </div>

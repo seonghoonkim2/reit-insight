@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getReit, jsonLd, SITE_URL } from "@/lib/api";
+import { getReit, jsonLd, payMonths, SITE_URL } from "@/lib/api";
 
 export const revalidate = 300;
 
@@ -49,7 +49,9 @@ export default async function ReitPage({ params }: { params: { ticker: string } 
         <table className="kvt"><tbody>
           <Row k="주가" v={r.price} /><Row k="시가총액" v={r.market_cap} />
           <Row k="배당수익률" v={r.dividend_yield ? `${r.dividend_yield}%` : undefined} />
-          <Row k="배당주기" v={r.dividend_freq} /><Row k="주가/NAV" v={r.nav_ratio} />
+          <Row k="배당주기" v={r.dividend_freq} />
+          <Row k="예상 배당월" v={payMonths(r).map((m) => `${m}월`).join(" · ") || undefined} />
+          <Row k="주가/NAV" v={r.nav_ratio} />
           <Row k="신용등급" v={r.credit_rating} /><Row k="상장일" v={r.listing_date} />
           <Row k="자산관리회사(AMC)" v={r.amc} />
         </tbody></table>

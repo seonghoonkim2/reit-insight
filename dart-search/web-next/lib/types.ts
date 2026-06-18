@@ -46,6 +46,7 @@ export interface Reit {
   key_points?: string[];
   corp_code?: string;
   homepage?: string;
+  pay_months?: number[];
   bonds?: Bond[];
 }
 
