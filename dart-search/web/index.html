@@ -160,6 +160,25 @@
 
     var POPULAR = ["우발부채", "PF", "배당정책", "재고자산", "계속기업 불확실성", "소송", "특수관계자 거래", "영업권 손상"];
 
+    // 섹터별 입문 설명(일반적·교육용 — 종목별 추정이 아님)
+    var SECTOR_INFO = {
+      "리테일": "백화점·마트·아울렛 등 상업시설에서 임대료를 받는 리츠입니다. 소비 경기, 점포 임대 조건, 책임임대(임차인이 공실 위험을 떠안는 구조) 여부가 수익 안정성을 좌우합니다.",
+      "오피스": "도심·업무지구의 사무용 빌딩을 보유해 임대료를 받습니다. 공실률, 임대료 상승률, 우량 임차인 비중, 금리가 핵심 변수입니다.",
+      "물류": "물류센터(창고)를 임대하는 리츠입니다. 이커머스 성장과 함께 수요가 늘지만, 신규 공급 과잉과 공실이 리스크입니다.",
+      "인프라": "주유소·물류 등 생활·산업 인프라 자산에서 장기 임대수익을 얻습니다. 장기 계약 기반의 안정성이 특징이며, 자산 재계약·에너지 전환 추세가 변수입니다.",
+      "해외오피스": "해외에 있는 오피스를 보유하는 리츠로, 임대수익과 함께 환율·현지 임대차·해외 금리에 노출됩니다.",
+      "복합": "여러 유형의 부동산을 함께 담아 특정 자산군의 부진을 다른 자산이 보완하도록 설계된 리츠입니다.",
+      "복합/인프라": "오피스·주유소·인프라 등 여러 유형의 자산을 함께 담아 변동성을 분산하는 리츠입니다.",
+      "복합(호텔/리테일)": "호텔과 리테일을 함께 담은 복합형으로, 관광·소비 회복 시 수혜가 가능하나 호텔 운영 변동성이 리테일보다 큰 편입니다."
+    };
+    function sectorInfo(sec) {
+      if (!sec) return "";
+      if (SECTOR_INFO[sec]) return SECTOR_INFO[sec];
+      var keys = Object.keys(SECTOR_INFO);
+      for (var i = 0; i < keys.length; i++) { if (sec.indexOf(keys[i]) >= 0) return SECTOR_INFO[keys[i]]; }
+      return "";
+    }
+
     // ── 인덱스 만들기 ──
     var byCode = {};      // corp_code → {info, reports[]}
     var byRcept = {};     // rcept_no → report
@@ -793,6 +812,14 @@
         ]) + "</div>";
 
       html += insightBox(r.summary, r.key_points);
+
+      var sinfo = sectorInfo(r.sector);
+      if (sinfo) {
+        html += '<div class="vbox" style="margin-top:12px"><h3 style="margin:0 0 6px">📚 ' + esc(r.sector) +
+          ' 리츠란? <span style="font-size:11px;color:var(--muted);font-weight:400">(섹터 일반 설명)</span></h3><p style="margin:0">' +
+          esc(sinfo) + "</p></div>";
+      }
+
       html += adSlot("reit", { contentQualityScore: 80 });
 
       if (r.portfolio && r.portfolio.length) {

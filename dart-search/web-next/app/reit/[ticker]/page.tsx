@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getReit, jsonLd, payMonths, SITE_URL } from "@/lib/api";
+import { sectorInfo } from "@/lib/sectors";
 
 export const revalidate = 300;
 
@@ -68,6 +69,13 @@ export default async function ReitPage({ params }: { params: { ticker: string } 
           ) : <p>준비 중</p>}
         </div>
       </div>
+
+      {sectorInfo(r.sector) && (
+        <div className="vbox" style={{ marginTop: 12 }}>
+          <h3 style={{ margin: "0 0 6px" }}>📚 {r.sector} 리츠란? <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 400 }}>(섹터 일반 설명)</span></h3>
+          <p style={{ margin: 0 }}>{sectorInfo(r.sector)}</p>
+        </div>
+      )}
 
       <div className="ad">광고 영역 (운영 시 AdSense)</div>
 
