@@ -59,6 +59,14 @@
   .list-row:last-child { border-bottom:0; }
   .list-row .t { font-weight:600; }
   .list-row .m { font-size:12px; color:var(--muted); }
+  .row-flex { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .yield { font-size:15px; font-weight:700; color:var(--accent); white-space:nowrap; }
+  .yield small { display:block; font-size:10px; font-weight:500; color:var(--muted); text-align:right; }
+  /* 홈 통계 스트립 */
+  .statgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:8px 0 16px; }
+  .statbox { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 10px; text-align:center; box-shadow:var(--shadow); }
+  .statbox .n { font-size:20px; font-weight:700; color:var(--primary); }
+  .statbox .l { font-size:12px; color:var(--muted); margin-top:2px; }
 
   /* 검색 결과 */
   .filters { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0; }
@@ -111,7 +119,7 @@
   .empty { text-align:center; color:var(--muted); padding:48px 0; }
   footer { color:var(--muted); font-size:12px; text-align:center; margin-top:40px;
     border-top:1px solid var(--border); padding-top:16px; }
-  @media (max-width:640px){ .grid2,.vadd{ grid-template-columns:1fr; } .brand small{ display:none; } }
+  @media (max-width:640px){ .grid2,.vadd{ grid-template-columns:1fr; } .brand small{ display:none; } .statgrid{ grid-template-columns:repeat(2,1fr); } }
 </style>
 </head>
 <body>
@@ -510,9 +518,10 @@
       refresh();
     }
     function reitRow(r) {
-      return '<a class="list-row" href="' + reitUrl(r.ticker) + '"><div class="t">' + esc(r.name) +
-        ' <span class="tag">' + esc(r.sector) + "</span></div><div class=\"m\">" +
-        esc(r.ticker) + " · 배당수익률 " + esc(r.dividend_yield) + "% · " + esc(r.dividend_freq) + " 배당 · NAV " + esc(r.nav_ratio) + "</div></a>";
+      var y = r.dividend_yield ? '<div class="yield">' + esc(r.dividend_yield) + "%<small>배당수익률</small></div>" : "";
+      return '<a class="list-row" href="' + reitUrl(r.ticker) + '"><div class="row-flex"><div><div class="t">' + esc(r.name) +
+        ' <span class="tag">' + esc(r.sector) + '</span></div><div class="m">' +
+        esc(r.ticker) + " · " + esc(r.dividend_freq) + " 배당 · NAV " + esc(r.nav_ratio) + "</div></div>" + y + "</div></a>";
     }
     function bondRow(b) {
       return '<a class="list-row" href="' + bondUrl(b.isin) + '"><div class="t">' + esc(b.bond_name) + ratingBadge(b.credit_rating) +
@@ -526,6 +535,16 @@
         "<p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로 한눈에. 공시·발행 채권까지 연결.</p></div>";
 
       html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/calendar">배당 캘린더</a><a class="chip" href="#/favorites">★ 관심 리츠</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
+
+      // 통계 스트립 (데이터 기반)
+      var ys = REITS.map(function (r) { return parseFloat(r.dividend_yield); }).filter(function (x) { return !isNaN(x); }).sort(function (a, b) { return a - b; });
+      var medY = ys.length ? (ys.length % 2 ? ys[(ys.length - 1) / 2] : (ys[ys.length / 2 - 1] + ys[ys.length / 2]) / 2).toFixed(1) : "-";
+      html += '<div class="statgrid">' +
+        '<div class="statbox"><div class="n">' + REITS.length + '</div><div class="l">상장리츠</div></div>' +
+        '<div class="statbox"><div class="n">' + SECTORS.length + '</div><div class="l">섹터</div></div>' +
+        '<div class="statbox"><div class="n">' + BONDS.length + '</div><div class="l">발행 채권</div></div>' +
+        '<div class="statbox"><div class="n">' + medY + '%</div><div class="l">배당수익률 중앙값</div></div>' +
+        "</div>";
       var curM = new Date().getMonth() + 1;
       var payNow = REITS.filter(function (r) { return payMonths(r).indexOf(curM) >= 0; });
       if (payNow.length) {
