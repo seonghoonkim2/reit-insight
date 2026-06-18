@@ -22,6 +22,13 @@ export default async function Home() {
         <p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로. 공시·발행 채권까지 연결.</p>
       </section>
 
+      <div className="chips" style={{ margin: "6px 0 14px" }}>
+        <Link className="chip" href="/reits">리츠 목록</Link>
+        <Link className="chip" href="/compare">리츠 비교</Link>
+        <Link className="chip" href="/bonds">리츠 발행 채권</Link>
+        <Link className="chip" href="/tools">배당 계산기</Link>
+      </div>
+
       <h2 className="sec">상장리츠 <Link style={{ fontSize: 13, fontWeight: 400 }} href="/reits">전체 보기 →</Link></h2>
       <div className="chips">
         <Link className="chip" href="/reits">전체</Link>

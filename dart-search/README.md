@@ -10,7 +10,12 @@
 > ⚠️ 종목명·종목코드는 실제, **지표·신용등급·채권 숫자는 예시 샘플**. AI 요약 포함 정보 제공 목적이며 투자 권유가 아닙니다.
 
 화면(해시 라우팅): 홈 · `#/reits`(리츠 목록·섹터필터·검색) · `#/reit/<종목코드>`(리츠 상세) ·
-`#/bonds`(리츠 발행 채권) · `#/bond/<ISIN>`(채권 상세) · `#/search?q=`(공시 검색) · `#/filing/<접수번호>` 등
+`#/compare`(리츠 비교) · `#/tools`(세후 배당 계산기) · `#/bonds`(리츠 발행 채권) · `#/bond/<ISIN>`(채권 상세) ·
+`#/search?q=`(공시 검색) · `#/filing/<접수번호>` 등
+
+- **SEO 정적 페이지**: `python3 build_site.py` → `dist/`에 리츠/채권/회사/보고서 + sitemap 생성
+- **리츠 AI 요약**: `python3 summarize_reits.py`(키 필요) / `--dry-run`(키 없이 점검)
+- **금융 도구·비교**: SPA `#/tools`·`#/compare`, Next `/tools`·`/compare`
 
 > 📐 전체 설계(포지셔닝·아키텍처·DB 스키마·SEO·수익화·요금제)는 **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** 참고.
 
