@@ -1,0 +1,67 @@
+# 상장리츠 실데이터 수집 — 네이버 금융 기준 (API 키 불필요!)
+# 준비(한 번): Settings → Pages → Source = "GitHub Actions"
+#   (AI 요약까지 원하면 Secrets 에 ANTHROPIC_API_KEY 추가 — 선택)
+# 실행: Actions 탭 → "Collect REIT data (Naver)" → Run workflow
+# 결과: 네이버 기준 주가·시총·배당수익률로 web/reits.js 생성 → GitHub Pages 배포
+
+name: Collect REIT data (Naver)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 0 * * *"   # 매일 09:30 KST(00:30 UTC) 자동 갱신
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: collect-reits
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    defaults:
+      run:
+        working-directory: dart-search
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 네이버 금융에서 리츠 수집 (키 불필요)
+        run: python collect_reits.py
+
+      - name: 리츠 AI 요약 (ANTHROPIC_API_KEY 있을 때만)
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: |
+          pip install anthropic
+          python summarize_reits.py
+
+      - name: SEO 정적 페이지 생성
+        run: python build_site.py
+
+      - name: 데이터 아티팩트 (reits.json)
+        uses: actions/upload-artifact@v4
+        with:
+          name: reit-data
+          path: |
+            dart-search/data/reits.json
+            dart-search/web/reits.js
+
+      - name: Pages 아티팩트 (실데이터 SPA)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dart-search/web
+
+      - name: GitHub Pages 배포
+        id: deploy
+        uses: actions/deploy-pages@v4

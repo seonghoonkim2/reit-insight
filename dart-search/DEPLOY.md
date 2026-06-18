@@ -8,7 +8,18 @@
 
 ---
 
-## A. 실데이터 1회 수집 (가장 쉬움 — 로컬 PC 불필요)
+## A0. 상장리츠 실데이터 (네이버 금융 기준 — **API 키 불필요**, 가장 쉬움) ⭐
+메인인 **상장리츠**는 네이버 금융 공개 데이터라 키가 필요 없습니다.
+1. **Settings → Pages → Source = "GitHub Actions"** (한 번만)
+2. (선택) AI 요약까지 원하면 Secrets 에 `ANTHROPIC_API_KEY` 추가
+3. **Actions → "Collect REIT data (Naver)" → Run workflow**
+
+→ 네이버 기준 **주가·시가총액·배당수익률**로 `web/reits.js` 생성 → Pages 에 실데이터 사이트 배포.
+매일 09:30(KST) 자동 갱신됩니다. (로컬: `cd dart-search && python3 collect_reits.py`)
+
+---
+
+## A. (공시) DART 사업보고서 실데이터 — OpenDART 키 필요
 GitHub 러너가 OpenDART에서 실제로 수집해 **GitHub Pages에 실데이터 사이트**를 띄웁니다.
 
 1. 저장소 **Settings → Secrets and variables → Actions → New repository secret**
