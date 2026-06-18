@@ -16,6 +16,7 @@ import json
 import time
 
 import psycopg
+from psycopg.types.json import Json
 from opensearchpy import OpenSearch, helpers
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://gongsi:gongsi@postgres:5432/gongsilens")
@@ -36,6 +37,52 @@ def load_reports():
         if m:
             return json.loads(m.group(1)).get("reports", []), demo
     return [], None
+
+
+def load_js_array(var):
+    """이미지/마운트에서 reits-demo.js / bonds-demo.js 의 배열을 읽는다."""
+    base = os.path.dirname(os.path.abspath(__file__))
+    fname = {"window.__REITS__": "reits-demo.js", "window.__BONDS__": "bonds-demo.js"}[var]
+    for path in [os.path.join("/data", fname), os.path.join(base, fname)]:
+        if os.path.exists(path):
+            txt = open(path, encoding="utf-8").read()
+            m = re.search(re.escape(var) + r"\s*=\s*(\[.*\]);", txt, re.S)
+            if m:
+                return json.loads(m.group(1))
+    return []
+
+
+def load_reits_bonds(con):
+    cur = con.cursor()
+    reits = load_js_array("window.__REITS__")
+    for r in reits:
+        cur.execute(
+            "INSERT INTO reits (ticker, name, sector, market, price, market_cap, dividend_yield, "
+            "dividend_freq, nav_ratio, amc, listing_date, credit_rating, portfolio, summary, key_points, "
+            "corp_code, homepage) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+            "ON CONFLICT (ticker) DO UPDATE SET name=EXCLUDED.name, dividend_yield=EXCLUDED.dividend_yield, "
+            "portfolio=EXCLUDED.portfolio, summary=EXCLUDED.summary, key_points=EXCLUDED.key_points",
+            (r.get("ticker"), r.get("name"), r.get("sector"), r.get("market"), r.get("price"),
+             r.get("market_cap"), r.get("dividend_yield"), r.get("dividend_freq"), r.get("nav_ratio"),
+             r.get("amc"), r.get("listing_date"), r.get("credit_rating"), Json(r.get("portfolio") or []),
+             r.get("summary"), Json(r.get("key_points") or []), r.get("corp_code"), r.get("homepage")))
+    bonds = load_js_array("window.__BONDS__")
+    for b in bonds:
+        cur.execute(
+            "INSERT INTO bonds (isin, bond_name, issuer, issuer_code, bond_type, coupon_rate, interest_type, "
+            "coupon_freq, issue_date, maturity_date, issue_amount, outstanding, seniority, guaranteed, "
+            "credit_rating, listed, summary, key_points, source_url) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+            "ON CONFLICT (isin) DO UPDATE SET bond_name=EXCLUDED.bond_name, summary=EXCLUDED.summary, "
+            "key_points=EXCLUDED.key_points",
+            (b.get("isin"), b.get("bond_name"), b.get("issuer"), b.get("issuer_code"), b.get("bond_type"),
+             b.get("coupon_rate"), b.get("interest_type"), b.get("coupon_freq"), b.get("issue_date"),
+             b.get("maturity_date"), b.get("issue_amount"), b.get("outstanding"), b.get("seniority"),
+             b.get("guaranteed"), b.get("credit_rating"), b.get("listed"), b.get("summary"),
+             Json(b.get("key_points") or []), b.get("source_url")))
+    con.commit()
+    cur.close()
+    return len(reits), len(bonds)
 
 
 def split_chunks(text):
@@ -122,12 +169,14 @@ def main():
                     },
                 })
     con.commit()
-    cur.close(); con.close()
+    cur.close()
+    n_reits, n_bonds = load_reits_bonds(con)  # 리츠/채권 적재
+    con.close()
 
     if actions:
         helpers.bulk(os_client, actions)
         os_client.indices.refresh(OPENSEARCH_INDEX)
-    print(f"✅ 적재 완료: Postgres + OpenSearch 문단 {len(actions)}개 색인")
+    print(f"✅ 적재 완료: 리츠 {n_reits} · 채권 {n_bonds} · 공시 문단 {len(actions)}개(OpenSearch)")
 
 
 if __name__ == "__main__":

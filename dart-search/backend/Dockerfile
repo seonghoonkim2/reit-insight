@@ -10,6 +10,8 @@ COPY backend/app /app/app
 COPY backend/load.py /app/load.py
 COPY backend/opensearch /app/opensearch
 COPY web/demo-data.js /app/demo-data.js
+COPY web/reits-demo.js /app/reits-demo.js
+COPY web/bonds-demo.js /app/bonds-demo.js
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

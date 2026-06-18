@@ -47,6 +47,12 @@ h2.sec { font-size:16px; margin:22px 0 10px; color:var(--primary); }
 .tag { font-size:11px; background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:1px 7px; border-radius:6px; margin-right:6px; }
 mark { background:var(--hit); padding:0 2px; border-radius:3px; }
 .vbox { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; margin:10px 0; }
+.kvt { width:100%; border-collapse:collapse; font-size:14px; }
+.kvt th { text-align:left; color:var(--muted); font-weight:500; padding:4px 12px 4px 0; white-space:nowrap; vertical-align:top; }
+.kvt td { padding:4px 0; }
+.points { margin:6px 0 0; padding-left:18px; font-size:14px; }
+.grid-kv { display:grid; grid-template-columns:1fr 1fr; gap:0 24px; }
+@media (max-width:640px){ .grid-kv{ grid-template-columns:1fr; } }
 .section { border-top:1px solid var(--border); padding:14px 0; }
 .section h3 { margin:0 0 4px; font-size:15px; color:var(--primary); }
 .section .spath { font-size:11px; color:var(--muted); }

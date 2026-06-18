@@ -94,3 +94,52 @@ CREATE TABLE IF NOT EXISTS ingestion_jobs (
   UNIQUE (job_type, ref)
 );
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON ingestion_jobs(status);
+
+-- 상장리츠(REIT)
+CREATE TABLE IF NOT EXISTS reits (
+  ticker          VARCHAR(6) PRIMARY KEY,
+  name            TEXT,
+  sector          TEXT,
+  market          TEXT,
+  price           TEXT,
+  market_cap      TEXT,
+  dividend_yield  TEXT,
+  dividend_freq   TEXT,
+  nav_ratio       TEXT,
+  amc             TEXT,
+  listing_date    TEXT,
+  credit_rating   TEXT,
+  portfolio       JSONB,
+  summary         TEXT,
+  key_points      JSONB,
+  corp_code       VARCHAR(8),
+  homepage        TEXT,
+  updated_at      TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_reits_sector ON reits(sector);
+
+-- 리츠 발행 채권
+CREATE TABLE IF NOT EXISTS bonds (
+  isin            VARCHAR(20) PRIMARY KEY,
+  bond_name       TEXT,
+  issuer          TEXT,
+  issuer_code     VARCHAR(6),
+  bond_type       TEXT,
+  coupon_rate     TEXT,
+  interest_type   TEXT,
+  coupon_freq     TEXT,
+  issue_date      TEXT,
+  maturity_date   TEXT,
+  issue_amount    TEXT,
+  outstanding     TEXT,
+  seniority       TEXT,
+  guaranteed      TEXT,
+  credit_rating   TEXT,
+  listed          TEXT,
+  summary         TEXT,
+  key_points      JSONB,
+  source_url      TEXT,
+  updated_at      TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_bonds_issuer_code ON bonds(issuer_code);
+CREATE INDEX IF NOT EXISTS idx_bonds_maturity ON bonds(maturity_date);

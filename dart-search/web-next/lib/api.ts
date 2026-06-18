@@ -1,4 +1,4 @@
-import type { Company, FilingMeta, Section, SearchHit, Version, DiffResult } from "./types";
+import type { Company, FilingMeta, Section, SearchHit, Version, DiffResult, Reit, Bond } from "./types";
 
 // 서버 컴포넌트는 런타임 env(API_BASE)를, 클라이언트는 빌드시 NEXT_PUBLIC_* 를 사용.
 const BASE = process.env.API_BASE || process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
@@ -64,6 +64,28 @@ export function getDiff(
   b: string
 ): Promise<{ a: string; b: string; a_meta: FilingMeta; b_meta: FilingMeta; diff: DiffResult } | null> {
   return apiGet(`/api/v1/diff?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);
+}
+
+export function getReits(
+  opts: { q?: string; sector?: string } = {}
+): Promise<{ count: number; reits: Reit[] } | null> {
+  const p = new URLSearchParams();
+  if (opts.q) p.set("q", opts.q);
+  if (opts.sector) p.set("sector", opts.sector);
+  const qs = p.toString();
+  return apiGet(`/api/v1/reits${qs ? "?" + qs : ""}`);
+}
+
+export function getReit(ticker: string): Promise<Reit | null> {
+  return apiGet(`/api/v1/reit/${encodeURIComponent(ticker)}`);
+}
+
+export function getBonds(opts: { q?: string } = {}): Promise<{ count: number; bonds: Bond[] } | null> {
+  return apiGet(`/api/v1/bonds${opts.q ? "?q=" + encodeURIComponent(opts.q) : ""}`);
+}
+
+export function getBond(isin: string): Promise<Bond | null> {
+  return apiGet(`/api/v1/bond/${encodeURIComponent(isin)}`);
 }
 
 export const POPULAR = [
