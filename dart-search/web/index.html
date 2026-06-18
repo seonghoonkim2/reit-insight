@@ -420,6 +420,13 @@
         "<p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로 한눈에. 공시·발행 채권까지 연결.</p></div>";
 
       html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/calendar">배당 캘린더</a><a class="chip" href="#/favorites">★ 관심 리츠</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
+      var curM = new Date().getMonth() + 1;
+      var payNow = REITS.filter(function (r) { return payMonths(r).indexOf(curM) >= 0; });
+      if (payNow.length) {
+        html += '<div class="hint" style="margin:0 0 12px">📅 이번 달(' + curM + '월) 배당 예상: ' +
+          payNow.slice(0, 6).map(function (r) { return '<a href="' + reitUrl(r.ticker) + '">' + esc(r.name) + "</a>"; }).join(", ") +
+          (payNow.length > 6 ? " 외 " + (payNow.length - 6) + "개" : "") + ' · <a href="#/calendar">배당 캘린더 →</a></div>';
+      }
       html += '<h2 class="sec">상장리츠 <a style="font-size:13px;font-weight:400" href="#/reits">전체 보기 →</a></h2>';
       html += '<div class="chips"><a class="chip" href="#/reits">전체</a>';
       SECTORS.forEach(function (s) { html += '<a class="chip" href="#/reits?sector=' + encodeURIComponent(s) + '">' + esc(s) + "</a>"; });
@@ -890,6 +897,7 @@
         ["섹터", function (r) { return esc(r.sector); }],
         ["배당수익률", function (r) { return esc(r.dividend_yield) + "%"; }],
         ["배당주기", function (r) { return esc(r.dividend_freq); }],
+        ["예상 배당월", function (r) { return esc(payMonths(r).map(function (m) { return m + "월"; }).join("·") || "-"); }],
         ["주가/NAV", function (r) { return esc(r.nav_ratio); }],
         ["신용등급", function (r) { return ratingBadge(r.credit_rating); }],
         ["운용사", function (r) { return esc(r.amc); }],
