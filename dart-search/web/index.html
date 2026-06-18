@@ -366,7 +366,7 @@
       var fn = { home: renderHome, search: renderSearch, company: renderCompany, filing: renderFiling,
                  topic: renderTopic, reits: renderReits, reit: renderReit,
                  bonds: renderBonds, bond: renderBond, compare: renderCompare, tools: renderTools,
-                 calendar: renderCalendar }[route.page] || renderHome;
+                 calendar: renderCalendar, favorites: renderFavorites }[route.page] || renderHome;
       fn(route);
       mountAds();
       window.scrollTo(0, 0);
@@ -384,6 +384,16 @@
     }
     function reitUrl(t) { return "#/reit/" + encodeURIComponent(t); }
     function bondUrl(i) { return "#/bond/" + encodeURIComponent(i); }
+    // 관심 리츠(즐겨찾기) — 이 브라우저(localStorage)에만 저장
+    function getFavs() { try { return JSON.parse(localStorage.getItem("reit_favs") || "[]"); } catch (e) { return []; } }
+    function isFav(t) { return getFavs().indexOf(t) >= 0; }
+    function toggleFav(t) {
+      var f = getFavs(); var i = f.indexOf(t);
+      if (i >= 0) f.splice(i, 1); else f.push(t);
+      try { localStorage.setItem("reit_favs", JSON.stringify(f)); } catch (e) { }
+      return i < 0;
+    }
+
     // 배당 지급(예상)월: 큐레이션된 pay_months 우선, 없으면 배당주기로 추정
     function payMonths(r) {
       if (r && r.pay_months && r.pay_months.length) return r.pay_months.slice();
@@ -409,7 +419,7 @@
         "<h1>상장리츠 인사이트</h1>" +
         "<p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로 한눈에. 공시·발행 채권까지 연결.</p></div>";
 
-      html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/calendar">배당 캘린더</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
+      html += '<div class="chips" style="margin:6px 0 14px"><a class="chip" href="#/reits">리츠 목록</a><a class="chip" href="#/compare">리츠 비교</a><a class="chip" href="#/calendar">배당 캘린더</a><a class="chip" href="#/favorites">★ 관심 리츠</a><a class="chip" href="#/bonds">리츠 발행 채권</a><a class="chip" href="#/tools">배당 계산기</a></div>';
       html += '<h2 class="sec">상장리츠 <a style="font-size:13px;font-weight:400" href="#/reits">전체 보기 →</a></h2>';
       html += '<div class="chips"><a class="chip" href="#/reits">전체</a>';
       SECTORS.forEach(function (s) { html += '<a class="chip" href="#/reits?sector=' + encodeURIComponent(s) + '">' + esc(s) + "</a>"; });
@@ -762,6 +772,8 @@
       html += '<h1 class="page">' + esc(r.name) + ' <span class="tag">' + esc(r.sector) + "</span>" + ratingBadge(r.credit_rating) + "</h1>";
       html += '<div class="kv">종목코드 ' + esc(r.ticker) + (r.market ? " · " + esc(r.market) : "") +
         (r.homepage ? ' · <a href="' + escAttr(r.homepage) + '" target="_blank" rel="noopener">홈페이지 ↗</a>' : "") + "</div>";
+      html += '<div style="margin:8px 0 4px"><button id="favBtn" type="button" class="chip" style="cursor:pointer">' +
+        (isFav(r.ticker) ? "★ 관심 해제" : "☆ 관심 추가") + "</button></div>";
 
       html += '<h2 class="sec">핵심 지표 <span style="font-size:12px;color:var(--muted)">(숫자는 예시)</span></h2><div class="vbox">' +
         kvTable([
@@ -792,6 +804,26 @@
       // 관련 공시
       html += '<h2 class="sec">관련 공시(DART)</h2><div class="card"><a class="list-row" href="#/search?q=' + encodeURIComponent(r.name) +
         '"><div class="t">"' + esc(r.name) + '" 사업보고서 문단 검색 →</div><div class="m">공시렌즈(DART 전문검색)로 연결</div></a></div>';
+      appEl.innerHTML = html;
+      var fb = document.getElementById("favBtn");
+      if (fb) fb.addEventListener("click", function () { toggleFav(r.ticker); render(); });
+    }
+
+    // ── 관심 리츠(즐겨찾기) 목록 ──
+    function renderFavorites(route) {
+      var favs = getFavs();
+      var list = REITS.filter(function (r) { return favs.indexOf(r.ticker) >= 0; });
+      var html = '<div class="crumb"><a href="#/">홈</a> › 관심 리츠</div>';
+      html += '<h1 class="page">★ 관심 리츠</h1>';
+      html += '<div class="kv">별표(★)로 저장한 리츠입니다. 이 브라우저에만 저장됩니다(localStorage · 기기/브라우저 간 공유 안 됨).</div>';
+      if (!list.length) {
+        html += '<div class="empty">아직 관심 리츠가 없습니다.<br/>리츠 상세 페이지에서 <b>☆ 관심 추가</b>를 눌러보세요. · <a href="#/reits">리츠 목록 보기</a></div>';
+        appEl.innerHTML = html; return;
+      }
+      html += '<div class="stat">총 <b>' + list.length + "</b>개</div>";
+      html += '<div class="card">';
+      list.forEach(function (r) { html += reitRow(r); });
+      html += "</div>";
       appEl.innerHTML = html;
     }
 
