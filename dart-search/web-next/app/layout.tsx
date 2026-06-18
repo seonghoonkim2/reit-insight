@@ -8,9 +8,9 @@ import { SITE_URL } from "@/lib/api";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "공시렌즈 | DART 사업보고서 전문 검색", template: "%s | 공시렌즈" },
-  description: "DART 사업보고서를 회사별·연도별·섹션별로 검색하고 비교하는 공시 리서치 검색엔진",
-  openGraph: { siteName: "공시렌즈", type: "website" },
+  title: { default: "리츠인사이트 | 상장리츠(REITs) 정보·배당·공시·발행채권", template: "%s | 리츠인사이트" },
+  description: "한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로. 공시 전문검색과 리츠 발행 채권까지.",
+  openGraph: { siteName: "리츠인사이트", type: "website" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <header className="top">
           <div className="topbar">
-            <Link className="brand" href="/">🔎 공시렌즈<small>DART 사업보고서 검색</small></Link>
+            <Link className="brand" href="/">🏢 리츠인사이트<small>상장리츠 · 공시 · 채권</small></Link>
             <Suspense>
               <SearchBar />
             </Suspense>

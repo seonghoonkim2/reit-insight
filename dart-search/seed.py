@@ -21,7 +21,18 @@ import db
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_JSON = os.path.join(HERE, "data", "reports.json")
 DEMO_JS = os.path.join(HERE, "web", "demo-data.js")
+REITS_JS = os.path.join(HERE, "web", "reits-demo.js")
+BONDS_JS = os.path.join(HERE, "web", "bonds-demo.js")
 DB_PATH = os.path.join(HERE, "data", "gongsilens.db")
+
+
+def _load_js_array(path, var):
+    if not os.path.exists(path):
+        return []
+    with open(path, "r", encoding="utf-8") as f:
+        txt = f.read()
+    m = re.search(re.escape(var) + r"\s*=\s*(\[.*\]);", txt, re.S)
+    return json.loads(m.group(1)) if m else []
 
 
 def load_reports():
@@ -47,12 +58,14 @@ def main():
     db.init_schema(con)
     for r in reports:
         db.save_report(con, r)
-    n_c = con.execute("SELECT COUNT(*) FROM companies").fetchone()[0]
+    for rt in _load_js_array(REITS_JS, "window.__REITS__"):
+        db.upsert_reit(con, rt)
+    for b in _load_js_array(BONDS_JS, "window.__BONDS__"):
+        db.upsert_bond(con, b)
     n_f = con.execute("SELECT COUNT(*) FROM filings").fetchone()[0]
-    n_s = con.execute("SELECT COUNT(*) FROM filing_sections").fetchone()[0]
     print(f"✅ 시드 완료 ({src}) → {DB_PATH}")
-    print(f"   회사 {n_c} · 보고서 {n_f} · 섹션 {n_s} · FTS={'on' if db.fts_enabled(con) else 'off'}")
-    print("   다음:  python3 search.py 우발부채    |    python3 api.py  (그 뒤 http://127.0.0.1:8765)")
+    print(f"   리츠 {db.reits_count(con)} · 채권 {db.bonds_count(con)} · 보고서 {n_f} · FTS={'on' if db.fts_enabled(con) else 'off'}")
+    print("   다음:  python3 api.py  (http://127.0.0.1:8765/api/v1/reits)")
 
 
 if __name__ == "__main__":

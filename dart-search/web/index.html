@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>공시렌즈 | DART 사업보고서 전문 검색</title>
-<meta name="description" content="DART 사업보고서를 회사별·연도별·섹션별로 검색하고 비교하는 공시 리서치 검색엔진" />
+<title>리츠인사이트 | 상장리츠(REITs) 정보·배당·공시·발행채권</title>
+<meta name="description" content="한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로. 사업보고서 공시 전문검색과 리츠 발행 채권 정보까지." />
 <!-- 실제 AdSense 사용 시 주석 해제하고 ca-pub-XXXX 를 본인 게시자 ID로 교체 + 아래 스크립트의 ADSENSE_CLIENT 설정
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX" crossorigin="anonymous"></script>
 -->
@@ -117,9 +117,9 @@
 <body>
   <header class="top">
     <div class="topbar">
-      <a class="brand" href="#/"><span class="logo">🔎</span>공시렌즈<small>DART 사업보고서 검색</small></a>
+      <a class="brand" href="#/"><span class="logo">🏢</span>리츠인사이트<small>상장리츠 · 공시 · 채권</small></a>
       <form class="search" id="searchForm">
-        <input id="q" type="text" placeholder="회사명·키워드로 검색 (예: 삼성전자 우발부채, PF, 배당)" autocomplete="off" />
+        <input id="q" type="text" placeholder="공시(사업보고서) 키워드 검색 (예: 배당, 우발부채) · 리츠는 상단 메뉴/홈에서" autocomplete="off" />
         <button type="submit">검색</button>
       </form>
     </div>
@@ -129,17 +129,34 @@
     <div id="banner"></div>
     <div id="app"></div>
     <footer>
-      ⚠️ 본 서비스는 금융감독원 전자공시시스템(DART)의 <b>공식 서비스가 아닙니다</b>.
-      공시 원문 출처: DART · 정보 제공 목적이며 투자 권유가 아닙니다.
+      ⚠️ 비공식 서비스입니다(금융감독원 DART와 무관). 공시 원문 출처: DART.
+      리츠 지표·신용등급·채권 정보 등 숫자는 예시일 수 있으며, AI 요약 포함 모든 정보는
+      참고용일 뿐 <b>투자 권유가 아닙니다</b>.
     </footer>
   </div>
 
   <script src="demo-data.js"></script>
   <script src="data.js" onerror="window.__NO_REAL_DATA__=true"></script>
+  <!-- 상장리츠(메인) + 리츠 발행 채권: 데모 → 실데이터(reits.js/bonds.js)가 있으면 덮어씀 -->
+  <script src="reits-demo.js"></script>
+  <script src="reits.js" onerror="window.__NO_REITS__=true"></script>
+  <script src="bonds-demo.js"></script>
+  <script src="bonds.js" onerror="window.__NO_BONDS__=true"></script>
   <script>
   (function () {
     var DATA = window.__DART_DATA__ || { reports: [], is_demo: true };
     var reports = (DATA.reports || []).slice();
+
+    // 상장리츠(메인)
+    var REITS = (window.__REITS__ || []).slice();
+    var reitByTicker = {};
+    REITS.forEach(function (x) { reitByTicker[x.ticker] = x; });
+    var SECTORS = (function () { var s = {}; REITS.forEach(function (r) { if (r.sector) s[r.sector] = 1; }); return Object.keys(s); })();
+
+    // 리츠 발행 채권(별도 페이지)
+    var BONDS = (window.__BONDS__ || []).slice();
+    var bondByIsin = {};
+    BONDS.forEach(function (b) { bondByIsin[b.isin] = b; });
 
     var POPULAR = ["우발부채", "PF", "배당정책", "재고자산", "계속기업 불확실성", "소송", "특수관계자 거래", "영업권 손상"];
 
@@ -340,46 +357,72 @@
       } else if (DATA.generated_at) {
         bannerEl.innerHTML = '<div class="hint">마지막 수집: ' + esc(DATA.generated_at) + " · 보고서 " + reports.length + "건</div>";
       }
-      if (reports.length === 0) {
-        appEl.innerHTML = '<div class="empty">아직 수집된 보고서가 없습니다.<br/>collect.py 로 데이터를 만들어 주세요.</div>';
+      if (REITS.length === 0 && reports.length === 0) {
+        appEl.innerHTML = '<div class="empty">아직 데이터가 없습니다.<br/>collect.py / collect_reits.py 로 데이터를 만들어 주세요.</div>';
         return;
       }
       var route = parseHash();
       qEl.value = route.page === "search" ? (route.params.q || "") : "";
-      var fn = { home: renderHome, search: renderSearch, company: renderCompany, filing: renderFiling, topic: renderTopic }[route.page] || renderHome;
+      var fn = { home: renderHome, search: renderSearch, company: renderCompany, filing: renderFiling,
+                 topic: renderTopic, reits: renderReits, reit: renderReit,
+                 bonds: renderBonds, bond: renderBond }[route.page] || renderHome;
       fn(route);
       mountAds();
       window.scrollTo(0, 0);
     }
 
-    // ── 홈 ──
-    function renderHome() {
-      var recent = reports.filter(function (r) { return r.is_latest_version !== false; })
-        .sort(function (a, b) { return (b.rcept_dt || "").localeCompare(a.rcept_dt || ""); }).slice(0, 8);
-      var html = '<div class="hero">' +
-        "<h1>기업 사업보고서 전문 검색</h1>" +
-        "<p>DART 사업보고서를 회사별·연도별·섹션별로 빠르게 찾으세요.</p></div>";
+    // ── 리츠/채권 공용 헬퍼 ──
+    function ratingBadge(rating) {
+      if (!rating) return "";
+      var r = String(rating);
+      var cls = "amend";
+      if (/^A{2,}/.test(r) || r.indexOf("국채") >= 0) cls = "latest";       // AAA/AA → 초록
+      else if (/^A/.test(r)) cls = "latest";
+      else if (/^BBB/.test(r)) cls = "";
+      return '<span class="badge ' + cls + '">' + esc(r) + "</span>";
+    }
+    function reitUrl(t) { return "#/reit/" + encodeURIComponent(t); }
+    function bondUrl(i) { return "#/bond/" + encodeURIComponent(i); }
+    function reitRow(r) {
+      return '<a class="list-row" href="' + reitUrl(r.ticker) + '"><div class="t">' + esc(r.name) +
+        ' <span class="tag">' + esc(r.sector) + "</span></div><div class=\"m\">" +
+        esc(r.ticker) + " · 배당수익률 " + esc(r.dividend_yield) + "% · " + esc(r.dividend_freq) + " 배당 · NAV " + esc(r.nav_ratio) + "</div></a>";
+    }
+    function bondRow(b) {
+      return '<a class="list-row" href="' + bondUrl(b.isin) + '"><div class="t">' + esc(b.bond_name) + ratingBadge(b.credit_rating) +
+        '</div><div class="m">' + esc(b.issuer) + " · 표면 " + esc(b.coupon_rate) + " · 만기 " + esc(b.maturity_date) + "</div></a>";
+    }
 
-      html += '<h2 class="sec">인기 검색어</h2><div class="chips">';
-      POPULAR.forEach(function (k) { html += '<a class="chip" href="' + topicUrl(k) + '">' + esc(k) + "</a>"; });
+    // ── 홈 (리츠 중심) ──
+    function renderHome() {
+      var html = '<div class="hero">' +
+        "<h1>상장리츠 인사이트</h1>" +
+        "<p>한국 상장리츠(REITs)를 핵심지표·배당·포트폴리오·AI 요약으로 한눈에. 공시·발행 채권까지 연결.</p></div>";
+
+      html += '<h2 class="sec">상장리츠 <a style="font-size:13px;font-weight:400" href="#/reits">전체 보기 →</a></h2>';
+      html += '<div class="chips"><a class="chip" href="#/reits">전체</a>';
+      SECTORS.forEach(function (s) { html += '<a class="chip" href="#/reits?sector=' + encodeURIComponent(s) + '">' + esc(s) + "</a>"; });
       html += "</div>";
 
       html += adSlot("home", { contentQualityScore: 80 });
 
+      html += '<div class="card">';
+      REITS.forEach(function (r) { html += reitRow(r); });
+      html += "</div>";
+
       html += '<div class="grid2">';
-      html += '<div><h2 class="sec">최근 업데이트</h2><div class="card">';
-      recent.forEach(function (r) {
-        html += '<a class="list-row" href="' + reportUrl(r) + '"><div class="t">' + esc(r.corp_name) + " " + esc(r.year) + " 사업보고서" + badges(r) +
-          '</div><div class="m">접수일 ' + esc(r.rcept_dt) + " · 종목 " + esc(r.stock_code || "-") + "</div></a>";
-      });
+      html += '<div><h2 class="sec">리츠 발행 채권 <a style="font-size:12px;font-weight:400" href="#/bonds">전체 →</a></h2><div class="card">';
+      BONDS.slice(0, 6).forEach(function (b) { html += bondRow(b); });
+      if (!BONDS.length) html += '<div class="list-row"><div class="m">데이터 없음</div></div>';
       html += "</div></div>";
 
-      html += '<div><h2 class="sec">회사 바로가기</h2><div class="card">';
-      Object.keys(byCode).slice(0, 12).forEach(function (c) {
-        var co = byCode[c];
-        html += '<a class="list-row" href="' + companyUrl(c) + '"><div class="t">' + esc(co.corp_name) +
-          '</div><div class="m">' + esc(co.stock_code || "-") + " · 보고서 " + co.reports.length + "건</div></a>";
-      });
+      html += '<div><h2 class="sec">공시 검색 (DART 사업보고서)</h2><div class="card">';
+      html += '<div class="list-row"><div class="t">키워드로 사업보고서 문단 검색</div><div class="m">상단 검색창 또는 예: <a href="#/search?q=배당">배당</a> · <a href="#/search?q=우발부채">우발부채</a></div></div>';
+      reports.filter(function (r) { return r.is_latest_version !== false; })
+        .sort(function (a, b) { return (b.rcept_dt || "").localeCompare(a.rcept_dt || ""); }).slice(0, 4)
+        .forEach(function (r) {
+          html += '<a class="list-row" href="' + reportUrl(r) + '"><div class="t">' + esc(r.corp_name) + " " + esc(r.year) + " 사업보고서</div><div class=\"m\">접수일 " + esc(r.rcept_dt) + "</div></a>";
+        });
       html += "</div></div></div>";
       appEl.innerHTML = html;
     }
@@ -648,6 +691,149 @@
           '<div class="snip">' + highlight(snippet(c.text, [low]), [low]) + "</div>" +
           '<div class="act"><a href="' + reportUrl(c.r) + "?q=" + encodeURIComponent(kw) + "&sec=" + encodeURIComponent(c.si) + '">보고서에서 보기 →</a></div></div>';
       });
+      appEl.innerHTML = html;
+    }
+
+    // ── 공용: 키-값 표 ──
+    function kvTable(pairs) {
+      var h = '<table class="km-table">';
+      pairs.forEach(function (p) {
+        if (p[1] == null || p[1] === "") return;
+        h += '<tr><th style="white-space:nowrap">' + esc(p[0]) + '</th><td style="text-align:left">' + esc(p[1]) + "</td></tr>";
+      });
+      return h + "</table>";
+    }
+    function insightBox(summary, keyPoints) {
+      var kp = (keyPoints && keyPoints.length)
+        ? '<ul class="km-points">' + keyPoints.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul>" : "";
+      return '<div class="vadd"><div class="vbox"><h3>🤖 AI 요약 (참고)</h3><p>' +
+        (summary ? esc(summary) : "준비 중") + "</p></div>" +
+        '<div class="vbox"><h3>📌 핵심 포인트</h3>' + (kp || "<p>준비 중</p>") + "</div></div>";
+    }
+
+    // ── 리츠 목록/검색 ──
+    function renderReits(route) {
+      var q = route.params.q || "";
+      var sector = route.params.sector || "";
+      var ql = q.toLowerCase();
+      var list = REITS.filter(function (r) {
+        if (sector && r.sector !== sector) return false;
+        if (!ql) return true;
+        return ((r.name || "") + " " + (r.ticker || "") + " " + (r.sector || "") + " " + (r.amc || "")).toLowerCase().indexOf(ql) >= 0;
+      });
+      var html = '<div class="crumb"><a href="#/">홈</a> › 상장리츠</div>';
+      html += '<h1 class="page">상장리츠 (REITs)</h1>';
+      html += '<div class="inbox"><input id="reitQ" type="text" placeholder="리츠명·운용사로 검색 (예: 물류, 신한)" value="' + escAttr(q) + '" /></div>';
+      html += '<div class="filters"><a class="' + (!sector ? "on" : "") + '" href="#/reits' + (q ? "?q=" + encodeURIComponent(q) : "") + '">전체</a>';
+      SECTORS.forEach(function (s) {
+        var u = "#/reits?sector=" + encodeURIComponent(s) + (q ? "&q=" + encodeURIComponent(q) : "");
+        html += '<a class="' + (sector === s ? "on" : "") + '" href="' + u + '">' + esc(s) + "</a>";
+      });
+      html += "</div>";
+      html += '<div class="stat">총 <b>' + list.length + "</b>개 리츠</div>";
+      html += adSlot("reits", { resultCount: list.length, contentQualityScore: 75 });
+      html += '<div class="card">';
+      list.forEach(function (r) { html += reitRow(r); });
+      if (!list.length) html += '<div class="list-row"><div class="m">일치하는 리츠가 없습니다.</div></div>';
+      html += "</div>";
+      appEl.innerHTML = html;
+      var inp = document.getElementById("reitQ");
+      if (inp) inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") location.hash = "#/reits?" + (sector ? "sector=" + encodeURIComponent(sector) + "&" : "") + "q=" + encodeURIComponent(inp.value.trim());
+      });
+    }
+
+    // ── 리츠 상세 (GoInsider급) ──
+    function renderReit(route) {
+      var r = reitByTicker[route.id];
+      if (!r) { appEl.innerHTML = '<div class="empty">리츠를 찾을 수 없습니다.</div>'; return; }
+      var html = '<div class="crumb"><a href="#/">홈</a> › <a href="#/reits">상장리츠</a> › ' + esc(r.sector) + "</div>";
+      html += '<h1 class="page">' + esc(r.name) + ' <span class="tag">' + esc(r.sector) + "</span>" + ratingBadge(r.credit_rating) + "</h1>";
+      html += '<div class="kv">종목코드 ' + esc(r.ticker) + (r.market ? " · " + esc(r.market) : "") +
+        (r.homepage ? ' · <a href="' + escAttr(r.homepage) + '" target="_blank" rel="noopener">홈페이지 ↗</a>' : "") + "</div>";
+
+      html += '<h2 class="sec">핵심 지표 <span style="font-size:12px;color:var(--muted)">(숫자는 예시)</span></h2><div class="vbox">' +
+        kvTable([
+          ["주가", r.price], ["시가총액", r.market_cap],
+          ["배당수익률", r.dividend_yield ? r.dividend_yield + "%" : ""], ["배당주기", r.dividend_freq],
+          ["주가/NAV", r.nav_ratio], ["신용등급", r.credit_rating],
+          ["상장일", r.listing_date], ["자산관리회사(AMC)", r.amc],
+        ]) + "</div>";
+
+      html += insightBox(r.summary, r.key_points);
+      html += adSlot("reit", { contentQualityScore: 80 });
+
+      if (r.portfolio && r.portfolio.length) {
+        html += '<h2 class="sec">주요 보유자산</h2><div class="card">';
+        r.portfolio.forEach(function (p) { html += '<div class="list-row"><div class="t">' + esc(p) + "</div></div>"; });
+        html += "</div>";
+      }
+
+      // 발행 채권
+      var myBonds = BONDS.filter(function (b) { return b.issuer_code === r.ticker; });
+      if (myBonds.length) {
+        html += '<h2 class="sec">이 리츠가 발행한 채권 <a style="font-size:12px;font-weight:400" href="#/bonds?q=' + encodeURIComponent(r.name) + '">전체 →</a></h2><div class="card">';
+        myBonds.forEach(function (b) { html += bondRow(b); });
+        html += "</div>";
+      }
+
+      // 관련 공시
+      html += '<h2 class="sec">관련 공시(DART)</h2><div class="card"><a class="list-row" href="#/search?q=' + encodeURIComponent(r.name) +
+        '"><div class="t">"' + esc(r.name) + '" 사업보고서 문단 검색 →</div><div class="m">공시렌즈(DART 전문검색)로 연결</div></a></div>';
+      appEl.innerHTML = html;
+    }
+
+    // ── 리츠 발행 채권 목록/검색 ──
+    function renderBonds(route) {
+      var q = route.params.q || "";
+      var ql = q.toLowerCase();
+      var list = BONDS.filter(function (b) {
+        if (!ql) return true;
+        return ((b.bond_name || "") + " " + (b.issuer || "") + " " + (b.isin || "") + " " + (b.credit_rating || "")).toLowerCase().indexOf(ql) >= 0;
+      });
+      var html = '<div class="crumb"><a href="#/">홈</a> › 리츠 발행 채권</div>';
+      html += '<h1 class="page">리츠 발행 채권</h1>';
+      html += '<div class="kv">상장리츠가 발행한 채권을 ISIN별로 정리했습니다. (숫자는 예시)</div>';
+      html += '<div class="inbox"><input id="bondQ" type="text" placeholder="채권명·발행 리츠·ISIN·등급으로 검색" value="' + escAttr(q) + '" /></div>';
+      html += '<div class="stat">총 <b>' + list.length + "</b>건</div>";
+      html += adSlot("bonds", { resultCount: list.length, contentQualityScore: 72 });
+      html += '<div class="card">';
+      list.forEach(function (b) { html += bondRow(b); });
+      if (!list.length) html += '<div class="list-row"><div class="m">일치하는 채권이 없습니다.</div></div>';
+      html += "</div>";
+      appEl.innerHTML = html;
+      var inp = document.getElementById("bondQ");
+      if (inp) inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") location.hash = "#/bonds?q=" + encodeURIComponent(inp.value.trim());
+      });
+    }
+
+    // ── 채권 상세 (GoInsider급) ──
+    function renderBond(route) {
+      var b = bondByIsin[route.id];
+      if (!b) { appEl.innerHTML = '<div class="empty">채권을 찾을 수 없습니다.</div>'; return; }
+      var reit = reitByTicker[b.issuer_code];
+      var html = '<div class="crumb"><a href="#/">홈</a> › <a href="#/bonds">리츠 발행 채권</a></div>';
+      html += '<h1 class="page">' + esc(b.bond_name) + ratingBadge(b.credit_rating) + "</h1>";
+      html += '<div class="kv">ISIN ' + esc(b.isin) + " · 발행 " +
+        (reit ? '<a href="' + reitUrl(reit.ticker) + '">' + esc(b.issuer) + "</a>" : esc(b.issuer)) +
+        (b.source_url ? ' · <a href="' + escAttr(b.source_url) + '" target="_blank" rel="noopener">출처 ↗</a>' : "") + "</div>";
+
+      html += '<h2 class="sec">발행 정보 <span style="font-size:12px;color:var(--muted)">(숫자는 예시)</span></h2><div class="vbox">' +
+        kvTable([
+          ["채권 종류", b.bond_type], ["표면금리", b.coupon_rate], ["금리 유형", b.interest_type],
+          ["이자지급주기", b.coupon_freq], ["발행일", b.issue_date], ["만기일", b.maturity_date],
+          ["발행액", b.issue_amount], ["잔존액", b.outstanding],
+          ["변제순위", b.seniority], ["보증여부", b.guaranteed],
+          ["신용등급", b.credit_rating], ["상장여부", b.listed],
+        ]) + "</div>";
+
+      html += insightBox(b.summary, b.key_points);
+      html += adSlot("bond", { contentQualityScore: 78 });
+
+      if (reit) {
+        html += '<h2 class="sec">발행 리츠</h2><div class="card">' + reitRow(reit) + "</div>";
+      }
       appEl.innerHTML = html;
     }
 

@@ -28,6 +28,49 @@ export interface Version {
   is_latest_version?: boolean;
 }
 
+export interface Reit {
+  ticker: string;
+  name: string;
+  sector?: string;
+  market?: string;
+  price?: string;
+  market_cap?: string;
+  dividend_yield?: string;
+  dividend_freq?: string;
+  nav_ratio?: string;
+  amc?: string;
+  listing_date?: string;
+  credit_rating?: string;
+  portfolio?: string[];
+  summary?: string;
+  key_points?: string[];
+  corp_code?: string;
+  homepage?: string;
+  bonds?: Bond[];
+}
+
+export interface Bond {
+  isin: string;
+  bond_name: string;
+  issuer?: string;
+  issuer_code?: string;
+  bond_type?: string;
+  coupon_rate?: string;
+  interest_type?: string;
+  coupon_freq?: string;
+  issue_date?: string;
+  maturity_date?: string;
+  issue_amount?: string;
+  outstanding?: string;
+  seniority?: string;
+  guaranteed?: string;
+  credit_rating?: string;
+  listed?: string;
+  summary?: string;
+  key_points?: string[];
+  source_url?: string;
+}
+
 export interface DiffResult {
   new_sections: string[];
   removed_sections: string[];

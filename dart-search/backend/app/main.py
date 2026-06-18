@@ -56,6 +56,47 @@ def api_search_csv(q: str = "", year: int | None = None, corp_code: str | None =
                     headers={"Content-Disposition": 'attachment; filename="gongsilens_search.csv"'})
 
 
+@app.get("/api/v1/reits")
+def api_reits(q: str = "", sector: str | None = None):
+    where, params = [], []
+    if sector:
+        where.append("sector = %s"); params.append(sector)
+    for t in [x for x in q.split() if x]:
+        where.append("(name ILIKE %s OR ticker ILIKE %s OR sector ILIKE %s OR amc ILIKE %s)")
+        like = "%" + t + "%"; params += [like, like, like, like]
+    sql = "SELECT * FROM reits " + ("WHERE " + " AND ".join(where) + " " if where else "") + "ORDER BY name"
+    rows = db.query(sql, params)
+    return {"count": len(rows), "reits": rows}
+
+
+@app.get("/api/v1/reit/{ticker}")
+def api_reit(ticker: str):
+    r = db.query_one("SELECT * FROM reits WHERE ticker=%s", [ticker])
+    if not r:
+        raise HTTPException(404, "reit_not_found")
+    r["bonds"] = db.query("SELECT * FROM bonds WHERE issuer_code=%s ORDER BY maturity_date", [ticker])
+    return r
+
+
+@app.get("/api/v1/bonds")
+def api_bonds(q: str = ""):
+    where, params = [], []
+    for t in [x for x in q.split() if x]:
+        where.append("(isin ILIKE %s OR bond_name ILIKE %s OR issuer ILIKE %s OR credit_rating ILIKE %s)")
+        like = "%" + t + "%"; params += [like, like, like, like]
+    sql = "SELECT * FROM bonds " + ("WHERE " + " AND ".join(where) + " " if where else "") + "ORDER BY maturity_date"
+    rows = db.query(sql, params)
+    return {"count": len(rows), "bonds": rows}
+
+
+@app.get("/api/v1/bond/{isin}")
+def api_bond(isin: str):
+    b = db.query_one("SELECT * FROM bonds WHERE isin=%s", [isin])
+    if not b:
+        raise HTTPException(404, "bond_not_found")
+    return b
+
+
 @app.get("/api/v1/companies")
 def api_companies():
     rows = db.query("SELECT corp_code, corp_name, stock_code, market FROM companies ORDER BY corp_name")

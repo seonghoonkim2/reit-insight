@@ -131,6 +131,30 @@ class Handler(BaseHTTPRequestHandler):
                 res = search.search(con, q, limit=1000, year=year, corp_code=corp, sort=sort)
                 return self._send_csv(res, filename="gongsilens_search.csv")
 
+            # ── 상장리츠 ──
+            if parts[:3] == ["api", "v1", "reits"] and len(parts) == 3:
+                q = (qs.get("q") or [""])[0]
+                sector = (qs.get("sector") or [None])[0]
+                rows = db.search_reits(con, q, sector=sector) if (q or sector) else db.list_reits(con)
+                return self._send(200, {"count": len(rows), "reits": rows})
+
+            if parts[:3] == ["api", "v1", "reit"] and len(parts) == 4:
+                r = db.get_reit(con, parts[3])
+                if not r:
+                    return self._send(404, {"error": "reit_not_found"})
+                r["bonds"] = db.bonds_by_issuer_code(con, parts[3])  # 이 리츠 발행 채권
+                return self._send(200, r)
+
+            # ── 리츠 발행 채권 ──
+            if parts[:3] == ["api", "v1", "bonds"] and len(parts) == 3:
+                q = (qs.get("q") or [""])[0]
+                rows = db.search_bonds(con, q) if q else db.list_bonds(con)
+                return self._send(200, {"count": len(rows), "bonds": rows})
+
+            if parts[:3] == ["api", "v1", "bond"] and len(parts) == 4:
+                b = db.get_bond(con, parts[3])
+                return self._send(200, b) if b else self._send(404, {"error": "bond_not_found"})
+
             if parts[:3] == ["api", "v1", "companies"] and len(parts) == 3:
                 rows = con.execute("SELECT corp_code, corp_name, stock_code, market FROM companies ORDER BY corp_name").fetchall()
                 return self._send(200, {"count": len(rows), "companies": [dict(r) for r in rows]})
