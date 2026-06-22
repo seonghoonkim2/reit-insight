@@ -1169,6 +1169,9 @@ function commonHtml(){
   return `<div class="fgroup"><div class="fgroup-h"><span class="gl">⑤</span> 공통 설정</div>
    <div class="fields">
      <div class="f"><label>현금흐름 주기</label><select id="c_freq"><option>연간</option><option>반기</option><option>월</option></select></div>
+     <div class="f"><label>대출 상환 만기 <span class="unit">년</span></label><input id="f_maturity" data-k="maturity" data-num="1" data-min="1" data-max="50" inputmode="decimal" placeholder="20" /></div>
+     <div class="f"><label>세무 처리</label><select id="f_taxmode" data-k="taxmode"><option>도관과세(법인세 면제)</option><option>비도관(법인세 적용)</option></select></div>
+     <div class="f"><label>법인세율 <span class="unit">%</span></label><input id="f_taxrate" data-k="taxrate" data-num="1" data-min="0" data-max="50" data-pct="1" inputmode="decimal" placeholder="20" /></div>
    </div>
    <div class="f full" style="margin-top:12px"><label>모델 목적·메모 <span class="unit">선택</span></label><textarea id="f_memo" data-k="memo" placeholder="이 모델로 무엇을 보고 싶은지, 반영할 가정·제약을 적으면 프롬프트에 포함됩니다. 예: 보수적 시나리오 기준, 공실률 10% 가정"></textarea></div>
    <div class="f" style="margin-top:12px"><label>추가 적용 원칙</label><div class="opts" id="optBox"></div></div>
@@ -1325,6 +1328,13 @@ function stackBlock(mode){
 function taxBlock(){
   const d=DEALS[cur];
   if(!d.tax) return "";
+  var _tm=(state['taxmode']||'').trim();
+  if(_tm.indexOf('비도관')>=0){ var _tr=(state['taxrate']||'20').trim(); return `[세무 — 비도관(법인세 적용)]
+- 일반 법인을 가정하고 법인세율 ${_tr}%를 적용한다.
+- 감가상각: 매입가를 토지·건물로 안분(건물분 비율은 합리적으로 가정)하고 건물분만 정액법으로 상각한다. 내용연수는 합리적으로 가정해 Assumptions에 명시한다.
+- 운영기간 과세소득 = NOI − 이자비용 − 감가상각비, 법인세 = max(0, 과세소득 × 세율). 세후 현금흐름을 별도로 전개한다.
+- 매각: 양도차익 = 매각가 − 세무상 장부가(취득원가 − 누적 감가상각)에 법인세를 적용한다.
+- 세전·세후 IRR·Equity Multiple을 모두 산출하고 차이를 설명한다.`; }
   return `[세무 — 도관과세]
 - 위탁관리리츠/부동산펀드 명목회사를 가정한다.
 - 감가상각: 매입가를 토지·건물로 안분(별도 자료가 없으면 건물분을 매입가의 일정 비율로 합리적으로 가정)하고, 건물분만 정액법으로 상각한다. 내용연수는 합리적으로 가정하고 그 값을 Assumptions에 명시한다. 토지는 상각하지 않는다.
@@ -1807,31 +1817,57 @@ function simDcf(){
   var noi1; if(rb){ var rpp=mnum('rentpp'),cpp=mnum('campp'); if(isFinite(rpp)&&isFinite(gfa)) noi1=((rpp+(isFinite(cpp)?cpp:0))*gfa*12/1e6)*(1-(cur==='office'?0.35:0.15)); } else noi1=mnum('noi1');
   if(!isFinite(noi1)) return null;
   var g=isFinite(noig)?noig/100:0;
-  var debt=0, interest=0;
-  ['senior','mezz'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); var rt=parseNum(stackState[id+'_rate']); if(!isFinite(rt)){ var t=TRANCHES.find(function(x){return x.id===id;}); rt=parseNum(t&&t.rate); } if(isFinite(l)){ var amt=l/100*app; debt+=amt; if(isFinite(rt)) interest+=amt*rt/100; } } });
-  var prefAmt=0, prefDiv=0; if(mOn('pref')){ var pl=mLtv('pref'); var pc=parseNum(stackState['pref_coc']); if(!isFinite(pc)){ var tp=TRANCHES.find(function(x){return x.id==='pref';}); pc=parseNum(tp&&tp.rate); } if(isFinite(pl)){ prefAmt=pl/100*app; if(isFinite(pc)) prefDiv=prefAmt*pc/100; } }
-  var equity=uses-debt-prefAmt;
+  var mat=mnum('maturity'); if(!isFinite(mat)||mat<=0) mat=20;
+  var trs=[];
+  ['senior','mezz'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); var rt=parseNum(stackState[id+'_rate']); if(!isFinite(rt)){ var t=TRANCHES.find(function(x){return x.id===id;}); rt=parseNum(t&&t.rate); } var rep=(stackState[id+'_extra']||'만기일시'); if(isFinite(l)){ var amt=l/100*app; trs.push({amt:amt,bal:amt,rate:(isFinite(rt)?rt:0)/100,rep:rep}); } } });
+  var debt0=trs.reduce(function(a,t){return a+t.amt;},0);
+  var prefAmt=0,prefCoc=0; if(mOn('pref')){ var pl=mLtv('pref'); var pc=parseNum(stackState['pref_coc']); if(!isFinite(pc)){ var tp=TRANCHES.find(function(x){return x.id==='pref';}); pc=parseNum(tp&&tp.rate); } if(isFinite(pl)){ prefAmt=pl/100*app; prefCoc=(isFinite(pc)?pc:0)/100; } }
+  var equity=uses-debt0-prefAmt;
+  var tm=(state['taxmode']||'').trim(); var passthru=(tm.indexOf('비도관')<0);
+  var tr_=mnum('taxrate'); var taxrate=(isFinite(tr_)?tr_:20)/100;
+  var dep=passthru?0:price*0.7/40;
   function noi(t){ return noi1*Math.pow(1+g,t-1); }
   var saleGross=noi(hold)*(1+g)/(ec/100), saleNet=saleGross*(1-(isFinite(salefee)?salefee:0)/100);
-  var cf=[-equity], rows=[];
-  for(var t=1;t<=hold;t++){ var n=noi(t); var ecf=n-interest-prefDiv; if(t===hold) ecf+=(saleNet-debt-prefAmt); cf.push(ecf);
-    var dscr=interest>0?n/interest:null; rows.push([t, meok(n), interest>0?meok(interest):'—', meok(ecf), dscr!=null?mfmt(dscr,2)+'x':'—']); }
-  var caveats=['간이 추정 — 연간 현금흐름·만기일시(이자만) 가정·도관과세(세금≈0)·공실/CAPEX 미반영. 정밀 모델(월별·세무·약정·검증)은 우측 프롬프트로 Claude in Excel에서 생성하세요.'];
+  var cf=[-equity], rows=[], prefAcc=0;
+  for(var t=1;t<=hold;t++){
+    var n=noi(t), interestT=0, principalT=0;
+    trs.forEach(function(x){ var intr=x.bal*x.rate, prin=0;
+      if(x.rep.indexOf('원리금')>=0 && x.rate>0){ var pmt=x.amt*x.rate/(1-Math.pow(1+x.rate,-mat)); prin=Math.min(pmt-intr, x.bal); }
+      else if(x.rep.indexOf('원금')>=0){ prin=Math.min(x.amt/mat, x.bal); }
+      if(prin<0) prin=0; x.bal-=prin; interestT+=intr; principalT+=prin; });
+    var ds=interestT+principalT;
+    var taxable=n-interestT-dep, tax=passthru?0:Math.max(0,taxable*taxrate);
+    var opCF=n-interestT-principalT-tax;
+    var prefDue=prefAmt*prefCoc+prefAcc, prefPaid=Math.min(Math.max(opCF,0),prefDue); prefAcc=prefDue-prefPaid;
+    var ecf=opCF-prefPaid;
+    var dscr=ds>0?n/ds:null;
+    if(t===hold){
+      var balloon=trs.reduce(function(a,x){return a+x.bal;},0);
+      var book=passthru?0:(price-dep*hold), gtax=passthru?0:Math.max(0,(saleNet-book))*taxrate;
+      var net=saleNet-balloon-gtax;
+      var claim=prefAmt+prefAcc, pex=Math.min(Math.max(net,0),claim); prefAcc=claim-pex;
+      ecf+=(net-pex);
+    }
+    cf.push(ecf);
+    rows.push([t, meok(n), interestT>0?meok(interestT):'—', meok(ecf), dscr!=null?mfmt(dscr,2)+'x':'—']);
+  }
   var levIRR=equity>0?irr(cf):null;
   var totalDist=cf.slice(1).reduce(function(a,b){return a+b;},0);
   var mult=equity>0?totalDist/equity:null;
-  var avgCoC=null; if(equity>0){ var su=0,cn=0; for(var t2=1;t2<hold;t2++){ su+=(noi(t2)-interest-prefDiv)/equity; cn++; } avgCoC=cn?su/cn:((noi(1)-interest-prefDiv)/equity); }
+  var avgCoC=null; if(equity>0){ var su=0,cn=0; for(var t2=1;t2<hold;t2++){ su+=cf[t2]/equity; cn++; } avgCoC=cn?su/cn:(cf[1]/equity); }
   var ucf=[-uses]; for(var t3=1;t3<=hold;t3++){ var v=noi(t3); if(t3===hold) v+=saleNet; ucf.push(v); } var unlev=irr(ucf);
-  if(equity<=0) caveats.unshift('자기자본이 0 이하 — 대출+우선주가 총취득원가를 초과합니다. 비중을 확인하세요.');
+  var cav=['간이 추정 — 연간 현금흐름·'+(passthru?'도관과세(세금≈0)':('법인세 '+mfmt(taxrate*100,0)+'%·건물분70%/내용연수40년 가정'))+'·공실/CAPEX 미반영. 정밀 모델은 우측 프롬프트로 Claude in Excel.'];
+  if(equity<=0) cav.unshift('자기자본이 0 이하 — 대출+우선주가 총취득원가를 초과합니다.');
+  if(prefAmt>0) cav.push('우선주 워터폴: 우선배당(누적) 후 보통주 잔여, 청산 시 우선주 원금 우선 반영.');
   var kpis=[
-    {l:'레버드 IRR', v:(levIRR!=null?(mfmt(levIRR*100,1)+'%'):'계산 불가'), big:true, tone:(levIRR!=null?(levIRR>=0.08?'good':(levIRR<0.04?'warn':'')):'warn')},
-    {l:'Equity Multiple', v:(mult!=null?(mfmt(mult,2)+'x'):'—'), big:true},
-    {l:'평균 배당수익률', v:(avgCoC!=null?(mfmt(avgCoC*100,2)+'%'):'—'), big:true},
-    {l:'언레버드 IRR', v:(unlev!=null?(mfmt(unlev*100,1)+'%'):'—')},
+    {l:'레버드 IRR'+(passthru?'':'(세후)'), v:(levIRR!=null?mfmt(levIRR*100,1)+'%':'계산 불가'), big:true, tone:(levIRR!=null?(levIRR>=0.08?'good':(levIRR<0.04?'warn':'')):'warn')},
+    {l:'Equity Multiple', v:(mult!=null?mfmt(mult,2)+'x':'—'), big:true},
+    {l:'평균 배당수익률', v:(avgCoC!=null?mfmt(avgCoC*100,2)+'%':'—'), big:true},
+    {l:'언레버드 IRR', v:(unlev!=null?mfmt(unlev*100,1)+'%':'—')},
     {l:'자기자본', v:meok(equity)},
     {l:'순매각가', v:meok(saleNet)}
   ];
-  return {type:'kpi', kpis:kpis, table:{head:['연차','NOI','이자','자기자본CF','DSCR'], rows:rows}, caveats:caveats};
+  return {type:'kpi', kpis:kpis, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows}, caveats:cav};
 }
 
 function simRefi(){
@@ -1877,7 +1913,37 @@ function simReit(){
   return {type:'kpi', kpis:kpis, table:null, caveats:['간이 추정 — 분배가능 ≈ NOI−이자−보수(감가상각 add-back 등 단순화)·도관과세.'+(drAssumed?' 차입금리 미입력 → 4.5% 가정.':'')+' 정밀 산정은 Claude in Excel.']};
 }
 
-function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='refi') return simRefi(); if(cur==='reit') return simReit(); return null; }
+function simDev(){
+  var tpc=mnum('tpc'),gfa=mnum('gfa'),consp=mnum('consperiod'),absorb=mnum('absorb'),ec=mnum('exitcap');
+  var sp=parseNum((state['saleprice']||'').replace(/[^0-9.]/g,''));
+  var mode=(state['exitmode']||'').trim();
+  if(!isFinite(tpc)||tpc<=0) return null;
+  var debt=0,prefAmt=0;
+  ['senior','mezz'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); if(isFinite(l)) debt+=l/100*tpc; } });
+  if(mOn('pref')){ var pl=mLtv('pref'); if(isFinite(pl)) prefAmt=pl/100*tpc; }
+  var equity=tpc-debt-prefAmt;
+  var revenue=NaN, basis='';
+  if(isFinite(sp)&&isFinite(gfa)){
+    if(mode.indexOf('Cap')>=0||mode.indexOf('보유')>=0){ var noi=sp*1e4*gfa/1e6; if(isFinite(ec)&&ec>0){ revenue=noi/(ec/100); basis='준공후 매각가'; } }
+    else { revenue=sp*1e4*gfa/1e6; basis='분양수입'; }
+  }
+  if(!isFinite(revenue)) return null;
+  var profit=revenue-tpc, margin=profit/tpc*100, roe=equity>0?profit/equity*100:NaN;
+  var years=((isFinite(consp)?consp:24)+(isFinite(absorb)?absorb:0)/2)/12; if(years<=0) years=1;
+  var proceeds=revenue-debt-prefAmt;
+  var sIRR=(equity>0&&proceeds>0)?(Math.pow(proceeds/equity,1/years)-1):null;
+  var kpis=[
+    {l:'사업이익률', v:isFinite(margin)?mfmt(margin,1)+'%':'—', big:true, tone:isFinite(margin)?(margin>=15?'good':(margin<5?'warn':'')):''},
+    {l:'자기자본수익률(총)', v:isFinite(roe)?mfmt(roe,1)+'%':'—', big:true},
+    {l:'간이 IRR(연환산)', v:sIRR!=null?mfmt(sIRR*100,1)+'%':'—', big:true},
+    {l:'총수입('+basis+')', v:meok(revenue)},
+    {l:'사업이익', v:meok(profit)},
+    {l:'자기자본', v:meok(equity)}
+  ];
+  return {type:'kpi', kpis:kpis, table:null, caveats:['간이 추정 — 분양/매각 단순화·건설기간 자금흐름/건설이자/단계 투입 미반영. 간이 IRR은 (회수÷투입)^(1/사업기간) 단순 환산. 정밀 모델은 Claude in Excel.']};
+}
+
+function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='dev') return simDev(); if(cur==='refi') return simRefi(); if(cur==='reit') return simReit(); return null; }
 
 function renderSim(){
   var card=$('simCard'); if(!card) return;
@@ -1940,7 +2006,7 @@ const EXAMPLES={
    stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.2",mezz_on:false,pref_on:false,common_on:true,common_ltv:"45",common_coc:"12"}},
  logistics:{state:{asset:"이천 물류센터",gfa:"35,000",price:"210,000",acqtax:"4.6",acqfee:"1.5",appraisal:"215,000",noimode:"임대료·관리비로 산출",rentpp:"28,000",campp:"1,700",depmult:"12",noi1:"",noig:"2.5",hold:"5",exitcap:"5.4",salefee:"1.8"},
    stack:{senior_on:true,senior_ltv:"58",senior_rate:"4.5",mezz_on:false,pref_on:false,common_on:true,common_ltv:"42",common_coc:"13"}},
- dev:{state:{asset:"안성 물류 개발",land:"12,000",gfa:"24,000",tpc:"320,000",landcost:"90,000",conscost:"180,000",consperiod:"28",saleopen:"6",absorb:"24",saleprice:"평당 1,150만",exitcap:"5.5"},
+ dev:{state:{asset:"안성 물류 개발",land:"12,000",gfa:"24,000",tpc:"320,000",landcost:"90,000",conscost:"180,000",consperiod:"28",saleopen:"6",absorb:"24",saleprice:"평당 1,650만",exitmode:"분양 완료",exitcap:"5.5"},
    stack:{senior_on:true,senior_ltv:"60",senior_rate:"5.1",mezz_on:true,mezz_ltv:"15",mezz_rate:"8.5",pref_on:false,common_on:true,common_ltv:"25",common_coc:"15"}},
  refi:{state:{asset:"분당 B빌딩",noi:"4,200",appraisal:"85,000",dscrmin:"1.2",oldbal:"46,000",oldrate:"3.6",oldmat:"0.5",prepayfee:"0.5",newfee:"0.3"},
    refi:{a1_ltv:"50",a1_rate:"4.0",a1_mat:"3",a2_ltv:"55",a2_rate:"4.3",a2_mat:"5",a3_ltv:"60",a3_rate:"4.6",a3_mat:"7"}},
