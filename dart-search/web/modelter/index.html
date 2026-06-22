@@ -439,6 +439,25 @@ header{background:rgba(253,252,249,.82)}
 /* 푸터 미션: 세리프 → 모던 */
 .foot-mission{font-family:var(--font); font-weight:700; font-size:19px; letter-spacing:-.02em}
 
+/* 즉시 점검(라이브 지표) */
+.metrics{background:var(--panel); border:1px solid var(--line); border-radius:18px; box-shadow:var(--soft); padding:16px 18px; margin-bottom:14px}
+.mx-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+.mx-t{font-size:14px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px}
+.mx-sub{font-size:11.5px; font-weight:600; color:var(--accent-deep); background:rgba(169,121,43,.12); padding:2px 9px; border-radius:999px}
+.mx-flag{font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:999px; white-space:nowrap}
+.mx-flag.ok{color:var(--green); background:rgba(47,125,87,.13)}
+.mx-flag.bad{color:var(--red); background:rgba(187,70,48,.13)}
+.mx-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 18px}
+@media(max-width:520px){ .mx-grid{grid-template-columns:1fr} }
+.mx-item{display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:7px 0; border-bottom:1px solid var(--line-soft)}
+.mx-l{font-size:12.5px; color:var(--ink-2); display:flex; align-items:center; gap:5px; line-height:1.3}
+.mx-v{font-size:13.5px; font-weight:700; color:var(--ink); font-family:var(--mono); white-space:nowrap; text-align:right}
+.mx-est{font-size:9.5px; font-weight:700; color:var(--accent-deep); background:rgba(169,121,43,.13); padding:1px 5px; border-radius:4px}
+.help.sm{width:13px; height:13px; font-size:9px}
+.mx-warn{margin-top:11px; display:flex; flex-direction:column; gap:6px}
+.mx-w{font-size:12px; line-height:1.45; color:var(--red); background:rgba(187,70,48,.08); border:1px solid rgba(187,70,48,.22); border-radius:9px; padding:7px 10px}
+.mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
+
 /* skip link (키보드 접근성) */
 .skip{position:absolute; left:-9999px; top:0; z-index:200; background:var(--ink); color:var(--panel); padding:10px 16px; border-radius:0 0 10px 0; font-size:14px; font-weight:600; text-decoration:none}
 .skip:focus{left:0}
@@ -582,6 +601,12 @@ header{background:rgba(253,252,249,.82)}
     </div>
 
     <div>
+      <div class="metrics" id="metricsCard" hidden>
+        <div class="mx-head"><span class="mx-t">즉시 점검 <span class="mx-sub">입력값 기반</span></span><span class="mx-flag" id="mxFlag"></span></div>
+        <div class="mx-grid" id="mxGrid"></div>
+        <div class="mx-warn" id="mxWarn"></div>
+        <div class="mx-foot" id="mxFoot"></div>
+      </div>
       <div class="preview-card">
         <div class="pv-head">
           <div class="pv-t">생성될 시트 구조 <span class="pv-count" id="pvCount">—</span></div>
@@ -1069,7 +1094,7 @@ function renderForm(){
     };
     el.addEventListener("input",handler);
     if(el.tagName==="SELECT") el.addEventListener("change",handler);
-    if(el.dataset.num) el.addEventListener("blur",()=>validateField(el));
+    if(el.dataset.num) el.addEventListener("blur",()=>{ validateField(el); formatNumField(el); update(); });
   });
   $("formBody").querySelectorAll("[data-sk]").forEach(el=>{
     el.addEventListener(el.type==="checkbox"?"change":"input",()=>{
@@ -1348,8 +1373,107 @@ function update(){
   $("outMeta").textContent="약 "+t.length.toLocaleString()+"자";
   updateStackSum();
   renderPreview();
+  renderMetrics();
   saveLocal();
 }
+
+/* ---------- 즉시 점검(라이브 지표) ---------- */
+function mnum(k){ return parseNum(state[k]); }
+function mfmt(v,d){ if(!isFinite(v)) return '—'; return Number(v).toLocaleString('en-US',{maximumFractionDigits:(d==null?0:d),minimumFractionDigits:0}); }
+function mpct(v,d){ return isFinite(v)? mfmt(v,(d==null?1:d))+'%':'—'; }
+function meok(v){ if(!isFinite(v)) return '—'; var e=v/100; if(Math.abs(e)>=1) return mfmt(e,(Math.abs(e)>=100?0:1))+'억'; return mfmt(v,0)+'백만'; }
+function mTr(id){ var t=TRANCHES.find(function(x){return x.id===id;}); return t?t.name:id; }
+function mOn(id){ var v=stackState[id+'_on']; if(v!==undefined) return !!v; var t=TRANCHES.find(function(x){return x.id===id;}); return t?!!t.on:false; }
+function mLtv(id){ var s=stackState[id+'_ltv']; var t=TRANCHES.find(function(x){return x.id===id;}); return parseNum((s!==undefined&&s!=='')?s:(t?t.ltv:'')); }
+
+function mAcq(){
+  var rows=[], warns=[];
+  var price=mnum('price'), gfa=mnum('gfa'), app=mnum('appraisal'), acqtax=mnum('acqtax'), acqfee=mnum('acqfee');
+  var uses=NaN;
+  if(isFinite(price)){ var tax=isFinite(acqtax)?acqtax:0, fee=isFinite(acqfee)?acqfee:0; uses=price*(1+(tax+fee)/100); rows.push({l:'총취득원가(Uses)',v:meok(uses),hint:'매입가 + 취득세 + 기타 취득부대비'}); }
+  if(isFinite(price)&&isFinite(gfa)&&gfa>0){ rows.push({l:'평당 매입가',v:mfmt(price*1e6/gfa/1e4,0)+'만원/평'}); }
+  var mode=(state['noimode']||'').trim(); var rentBased=(mode===''||mode.indexOf('임대료')===0);
+  var noi=NaN, est=false;
+  if(rentBased){ var rentpp=mnum('rentpp'), campp=mnum('campp'); if(isFinite(rentpp)&&isFinite(gfa)){ var cam=isFinite(campp)?campp:0; var egi=(rentpp+cam)*gfa*12/1e6; var opex=(cur==='office')?0.35:0.15; noi=egi*(1-opex); est=true; rows.push({l:'추정 NOI(1년차)',v:meok(noi),est:true,hint:'유효총수입에 통상 운영비율('+Math.round(opex*100)+'%)을 가정 차감한 추정치. 실제는 Claude가 정밀 산출.'}); } }
+  else { noi=mnum('noi1'); if(isFinite(noi)) rows.push({l:'NOI(1년차)',v:meok(noi)}); }
+  var entryCap=NaN;
+  if(isFinite(noi)&&isFinite(price)&&price>0){ entryCap=noi/price*100; rows.push({l:(est?'추정 ':'')+'진입 Cap',v:mpct(entryCap,2),est:est}); }
+  var exitcap=mnum('exitcap');
+  if(isFinite(exitcap)){ rows.push({l:'Exit Cap',v:mpct(exitcap,2)}); if(isFinite(entryCap)){ var sp=exitcap-entryCap; rows.push({l:'Cap 스프레드',v:(sp>=0?'+':'')+mfmt(sp,2)+'%p'}); if(sp<-0.001) warns.push('Exit Cap이 진입 Cap보다 낮습니다 — 매각가 상승을 전제한 공격적 가정입니다.'); } }
+  if(isFinite(app)){
+    var debt=0, anyDebt=false;
+    ['senior','mezz'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); if(isFinite(l)){ debt+=l/100*app; anyDebt=true; } } });
+    var pref=0; if(mOn('pref')){ var lp=mLtv('pref'); if(isFinite(lp)) pref=lp/100*app; }
+    if(anyDebt){ var ltv=debt/app*100; rows.push({l:'대출액 (LTV '+mfmt(ltv,0)+'%)',v:meok(debt),hint:'대출 트랜치 비중 × 감정평가액'});
+      if(isFinite(uses)){ var eq=uses-debt-pref; rows.push({l:'자기자본(추정)',v:meok(eq),est:true,hint:'총취득원가 − 대출 − 우선주 (plug)'}); if(eq<0) warns.push('대출+우선주가 총취득원가를 초과 — 자기자본이 음수입니다. 비중을 확인하세요.'); }
+      if(ltv>70) warns.push('LTV '+mfmt(ltv,0)+'% — 대주 한도(통상 60% 내외)를 넘을 수 있습니다.');
+    }
+  }
+  return {rows:rows,warns:warns};
+}
+
+function mRefi(){
+  var rows=[], warns=[];
+  var noi=mnum('noi'), app=mnum('appraisal'), dmin=mnum('dscrmin'), oldbal=mnum('oldbal');
+  if(isFinite(app)) rows.push({l:'감정평가액',v:meok(app)});
+  if(isFinite(noi)) rows.push({l:'현재 NOI',v:meok(noi)});
+  [1,2,3].forEach(function(n){
+    var ltv=parseNum(refiState['a'+n+'_ltv']), rate=parseNum(refiState['a'+n+'_rate']);
+    if(isFinite(ltv)&&isFinite(app)){
+      var loan=ltv/100*app; var parts=['대출 '+meok(loan)]; var icr=NaN;
+      if(isFinite(rate)&&isFinite(noi)&&rate>0){ var intr=loan*rate/100; icr=noi/intr; parts.push('ICR '+mfmt(icr,2)+'x'); }
+      if(isFinite(oldbal)){ var co=loan-oldbal; parts.push((co>=0?'순인출 +':'순상환 ')+meok(Math.abs(co))); }
+      rows.push({l:'대안 '+n+' (LTV '+mfmt(ltv,0)+'%'+(isFinite(rate)?(', '+mfmt(rate,1)+'%'):'')+')', v:parts.join(' · ')});
+      if(isFinite(icr)&&isFinite(dmin)&&icr<dmin) warns.push('대안 '+n+': ICR '+mfmt(icr,2)+'x < 기준 '+mfmt(dmin,2)+'x (이자보상 미달, 원금상환 포함 DSCR은 더 낮음).');
+    }
+  });
+  return {rows:rows,warns:warns,note:'ICR = NOI ÷ 연이자(만기일시 가정). 원리금 상환형 DSCR은 더 낮습니다 — 정밀 산정은 Claude가 수행.'};
+}
+
+function mDev(){
+  var rows=[], warns=[];
+  var tpc=mnum('tpc'), land=mnum('landcost'), cons=mnum('conscost'), gfa=mnum('gfa');
+  if(isFinite(tpc)) rows.push({l:'총사업비',v:meok(tpc)});
+  if(isFinite(cons)&&isFinite(gfa)&&gfa>0) rows.push({l:'평당 공사비',v:mfmt(cons*1e6/gfa/1e4,0)+'만원/평'});
+  if(isFinite(tpc)&&isFinite(land)&&isFinite(cons)){ rows.push({l:'토지+공사 합',v:meok(land+cons)}); var etc=tpc-land-cons; rows.push({l:'기타(금융·부대 등)',v:meok(etc),hint:'총사업비 − 토지비 − 공사비'}); if(etc<0) warns.push('토지비+공사비가 총사업비를 초과합니다 — 항목/총액을 확인하세요.'); }
+  if(isFinite(tpc)){ ['senior','mezz','pref','common'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); if(isFinite(l)) rows.push({l:mTr(id)+' ('+mfmt(l,0)+'%)',v:meok(l/100*tpc)}); } }); }
+  return {rows:rows,warns:warns,note:'개발 자금구조 비중(%)의 분모는 총사업비입니다.'};
+}
+
+function mReit(){
+  var rows=[], warns=[];
+  var aum=mnum('aum'), cap=mnum('avgcap'), ltv=mnum('ltv'), shares=mnum('shares'), price=mnum('price'), fee=mnum('fee');
+  if(isFinite(shares)&&isFinite(price)){ rows.push({l:'시가총액',v:mfmt(shares*1000*price/1e8,0)+'억'}); }
+  var debt=NaN, nav=NaN;
+  if(isFinite(aum)&&isFinite(ltv)){ debt=aum*ltv/100; rows.push({l:'추정 차입금',v:meok(debt)}); nav=aum-debt; rows.push({l:'순자산(NAV 근사)',v:meok(nav),est:true}); }
+  if(isFinite(nav)&&isFinite(shares)&&shares>0){ var navps=nav*1e6/(shares*1000); rows.push({l:'주당 NAV(근사)',v:mfmt(navps,0)+'원',est:true}); if(isFinite(price)){ var pnav=price/navps; rows.push({l:'P/NAV',v:mfmt(pnav,2)+'x',est:true}); if(pnav<0) warns.push('NAV가 음수로 산출됩니다 — AUM·LTV 입력을 확인하세요.'); } }
+  if(isFinite(aum)&&isFinite(cap)) rows.push({l:'추정 NOI(AUM×Cap)',v:meok(aum*cap/100),est:true});
+  if(isFinite(aum)&&isFinite(fee)) rows.push({l:'연 운용보수',v:meok(aum*fee/100)});
+  return {rows:rows,warns:warns,note:'NAV·P/NAV는 부채를 장부가로 단순 가정한 근사치입니다.'};
+}
+
+function computeMetrics(){ if(cur==='office'||cur==='logistics') return mAcq(); if(cur==='refi') return mRefi(); if(cur==='dev') return mDev(); if(cur==='reit') return mReit(); return {rows:[],warns:[]}; }
+
+function renderMetrics(){
+  var card=$('metricsCard'); if(!card) return;
+  var r=computeMetrics();
+  if(!r.rows.length){ card.hidden=true; return; }
+  card.hidden=false;
+  $('mxGrid').innerHTML=r.rows.map(function(x){
+    return '<div class="mx-item"><div class="mx-l">'+esc(x.l)+(x.est?'<span class="mx-est" title="입력값 기반 추정치">추정</span>':'')+(x.hint?('<span class="help sm" tabindex="0">?<span class="tip">'+esc(x.hint)+'</span></span>'):'')+'</div><div class="mx-v">'+esc(x.v)+'</div></div>';
+  }).join('');
+  $('mxWarn').innerHTML=(r.warns&&r.warns.length)?r.warns.map(function(w){return '<div class="mx-w">⚠ '+esc(w)+'</div>';}).join(''):'';
+  var flag=$('mxFlag'); var nw=(r.warns?r.warns.length:0); flag.textContent=nw?(nw+'개 점검 필요'):'이상 없음'; flag.className='mx-flag '+(nw?'bad':'ok');
+  var d=DEALS[cur], total=0, filled=0; d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='select') return; total++; if((state[f.k]||'').trim()!=='') filled++; }); });
+  var empty=total-filled; var comp=(empty>0)?('미입력 '+empty+'개는 합리적 가정으로 처리됩니다.'):'핵심 입력이 모두 채워졌습니다.';
+  $('mxFoot').textContent=(r.note?(r.note+'  ·  '):'')+comp;
+}
+
+/* 숫자 천단위 콤마 자동 정렬(blur 시) */
+function formatNumField(el){ if(!el||!el.dataset.num) return; var raw=(el.value||'').trim(); if(raw===''||/[.,]$/.test(raw)) return; var n=parseNum(raw); if(isNaN(n)||!isFinite(n)) return; var f=n.toLocaleString('en-US',{maximumFractionDigits:6}); if(f!==el.value){ el.value=f; if(el.dataset.k) state[el.dataset.k]=f; } }
+
+/* 단축키: Cmd/Ctrl+Enter = 프롬프트 복사 */
+document.addEventListener('keydown',function(e){ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){ e.preventDefault(); if(typeof copyOut==='function') copyOut(); } });
 
 /* 시트 구조 미리보기 렌더 */
 function renderPreview(){
