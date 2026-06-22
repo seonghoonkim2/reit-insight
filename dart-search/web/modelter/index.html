@@ -458,6 +458,58 @@ header{background:rgba(253,252,249,.82)}
 .mx-w{font-size:12px; line-height:1.45; color:var(--red); background:rgba(187,70,48,.08); border:1px solid rgba(187,70,48,.22); border-radius:9px; padding:7px 10px}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
 
+/* 딜 보관함 */
+.slots-bar{display:flex; align-items:center; gap:8px; padding:10px 20px; border-bottom:1px solid var(--line-soft); flex-wrap:wrap}
+.sl-label{font-size:12px; font-weight:700; color:var(--accent-deep)}
+.sl-sel{font-family:var(--font); font-size:13px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 9px; max-width:190px}
+.sl-btn{font-family:var(--font); font-size:12.5px; font-weight:600; color:var(--ink-2); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer; transition:.16s}
+.sl-btn:hover{border-color:var(--accent); color:var(--accent-deep)}
+
+/* 한 장 요약(인쇄/PDF) */
+#printSummary{display:none}
+@media print{
+  body.psum *{visibility:hidden!important}
+  body.psum #printSummary, body.psum #printSummary *{visibility:visible!important}
+  body.psum{background:#fff}
+  body.psum #printSummary{display:block; position:absolute; left:0; top:0; width:100%; padding:2mm 4mm; color:#111; font-family:var(--font)}
+  #printSummary .ps-head{display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid #1b2230; padding-bottom:6px; margin-bottom:10px}
+  #printSummary .ps-brand{font-weight:700; color:#1b2230; font-size:12pt}
+  #printSummary .ps-date{font-size:9pt; color:#555}
+  #printSummary .ps-title{font-size:17pt; margin:0 0 10px; color:#111}
+  #printSummary .ps-title span{font-size:10pt; font-weight:600; color:#8a6020}
+  #printSummary .ps-cols{display:flex; gap:16px}
+  #printSummary .ps-col{flex:1}
+  #printSummary h2{font-size:11pt; color:#1b2230; border-bottom:1px solid #ccc; padding-bottom:3px; margin:8px 0 6px}
+  #printSummary .ps-tbl{width:100%; border-collapse:collapse; font-size:9.5pt}
+  #printSummary .ps-tbl td{padding:3px 4px; border-bottom:1px solid #eee; vertical-align:top}
+  #printSummary .ps-tbl td:last-child{text-align:right; font-weight:700; white-space:nowrap}
+  #printSummary .ps-col:last-child .ps-tbl td:last-child{font-weight:600; white-space:normal}
+  #printSummary .ps-warn{margin-top:6px; font-size:9pt; color:#9b3a2e}
+  #printSummary .ps-warn ul{margin:3px 0 0 16px}
+  #printSummary .ps-sheets{font-size:9pt; color:#333; line-height:1.55}
+  #printSummary .ps-foot{margin-top:12px; padding-top:6px; border-top:1px solid #ccc; font-size:8pt; color:#666}
+}
+
+/* 시나리오 비교 */
+.scen-tg{font-size:12px; font-weight:600; color:var(--ink-2); display:inline-flex; align-items:center; gap:6px; cursor:pointer}
+.scen-wrap[hidden]{display:none}
+.scen-tbl{width:100%; border-collapse:collapse; margin-top:6px}
+.scen-tbl th{font-size:11px; font-weight:700; color:var(--muted); text-align:center; padding:4px 6px; border-bottom:1px solid var(--line-soft)}
+.scen-tbl th:first-child{text-align:left}
+.scen-tbl td{padding:5px 6px; border-bottom:1px solid var(--line-soft); font-size:12.5px; text-align:center}
+.scen-tbl td.sc-d{color:var(--ink-2); text-align:left}
+.scen-tbl td.sc-b{font-weight:700; color:var(--ink); font-family:var(--mono)}
+.scen-tbl input{width:100%; min-width:54px; font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:5px 6px; text-align:center}
+.scen-note{font-size:12px; color:var(--accent-deep); margin-top:9px; line-height:1.45}
+
+/* 민감도 표 */
+.sens-tbl{width:100%; border-collapse:collapse; margin-top:4px}
+.sens-tbl th,.sens-tbl td{font-size:12px; padding:6px 4px; text-align:center; border-bottom:1px solid var(--line-soft)}
+.sens-tbl th:first-child,.sens-tbl td:first-child{text-align:left; color:var(--ink-2)}
+.sens-tbl th{font-weight:700; color:var(--muted)}
+.sens-tbl td{font-family:var(--mono); font-weight:600; color:var(--ink)}
+.sens-tbl .base{color:var(--accent-deep); background:rgba(169,121,43,.09); font-weight:800; border-radius:4px}
+
 /* 공유 카드 */
 .mx-card-btn{margin-top:12px; width:100%; border:1px solid var(--line); background:var(--bg); color:var(--accent-deep); font-family:var(--font); font-weight:600; font-size:13px; padding:9px 12px; border-radius:10px; cursor:pointer; transition:.16s}
 .mx-card-btn:hover{border-color:var(--accent); background:rgba(169,121,43,.06)}
@@ -614,8 +666,15 @@ header{background:rgba(253,252,249,.82)}
         <div class="ph-actions">
           <button class="ex ghost" id="shareBtn" title="현재 입력값을 링크로 복사"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>공유</button>
           <button class="ex ghost" id="clearBtn" title="입력값 전체 지우기"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/></svg>비우기</button>
+          <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
         </div>
+      </div>
+      <div class="slots-bar">
+        <span class="sl-label">딜 보관함</span>
+        <select id="slotSel" class="sl-sel"><option value="">— 불러오기 —</option></select>
+        <button class="sl-btn" id="slotSave" type="button">현재 저장</button>
+        <button class="sl-btn" id="slotDel" type="button" title="선택 딜 삭제" hidden>삭제</button>
       </div>
       <div class="panel-body" id="formBody"></div>
     </div>
@@ -627,6 +686,11 @@ header{background:rgba(253,252,249,.82)}
         <div class="mx-warn" id="mxWarn"></div>
         <div class="mx-foot" id="mxFoot"></div>
         <button class="mx-card-btn" id="scOpen" type="button">🖼 이 딜 공유 카드 만들기</button>
+      </div>
+      <div class="metrics" id="sensCard" hidden>
+        <div class="mx-head"><span class="mx-t" id="sensTitle">민감도</span><span class="mx-sub">1변수 스윕</span></div>
+        <div id="sensBody"></div>
+        <div class="mx-foot" id="sensNote"></div>
       </div>
       <div class="preview-card">
         <div class="pv-head">
@@ -643,6 +707,7 @@ header{background:rgba(253,252,249,.82)}
           <span class="out-step">3단계 · 복사</span>
           <span class="meta" id="outMeta">약 0자</span>
           <div class="out-act">
+            <button class="obtn" id="pdfBtn" type="button" title="한 장 요약 PDF/인쇄">📄 요약</button>
             <button class="obtn mail-only" id="mailBtn" title="이 프롬프트를 메일로 보내 PC에서 받기"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>메일로</button>
             <button class="obtn" id="dlBtn"><svg viewBox="0 0 24 24"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 2h14v2H5v-2z"/></svg>.md</button>
             <button class="obtn solid" id="copyBtn"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z"/></svg><span id="copyLabel">전체 복사</span></button>
@@ -743,6 +808,7 @@ header{background:rgba(253,252,249,.82)}
   <span>프롬프트 보기</span>
 </button>
 
+<div id="printSummary" aria-hidden="true"></div>
 <div class="sc-overlay" id="scOverlay" hidden>
   <div class="sc-modal">
     <div class="sc-top"><b>공유 카드</b><button class="sc-x" id="scClose" type="button" aria-label="닫기">✕</button></div>
@@ -752,7 +818,8 @@ header{background:rgba(253,252,249,.82)}
       <button class="sc-r" type="button" data-r="sq">정사각 1080×1080 · 카톡/SNS</button>
     </div>
     <div class="sc-actions">
-      <button class="sc-btn solid" id="scDownload" type="button">PNG 다운로드</button>
+      <button class="sc-btn solid" id="scShare" type="button">공유</button>
+      <button class="sc-btn" id="scDownload" type="button">PNG 다운로드</button>
       <button class="sc-btn" id="scCopy" type="button">이미지 복사</button>
       <button class="sc-btn" id="scOg" type="button">og.png로 저장</button>
     </div>
@@ -1118,6 +1185,7 @@ function renderForm(){
   }
   if(d.stack && !isQuick) html+=stackHtml(d.stackMode);
   if(d.refi) html+=refiHtml();
+  if(!isQuick) html+=scenHtml();
   html+=commonHtml();
   $("formBody").innerHTML=html;
 
@@ -1142,6 +1210,8 @@ function renderForm(){
     });
   });
   $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{ refiState[el.dataset.rk]=el.value; update(); }); });
+  $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",()=>{ scenState[el.dataset.scen]=el.value; update(); }); });
+  var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
   ["c_freq"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",update); });
   // model depth segmented control
   const seg=$("depthSeg");
@@ -1330,6 +1400,7 @@ function sheetListFor(){
     if(hasMezz||hasPref){ if(!sheets.includes("Capital_Stack")) sheets.splice(idx>=0?idx+1:1,0,"Capital_Stack"); }
     if(hasPref){ if(!sheets.includes("Waterfall")){ const ec=sheets.indexOf("Equity_Cashflow"); sheets.splice(ec>=0?ec:sheets.length-1,0,"Waterfall"); } }
   }
+  if(typeof scenOn!=='undefined' && scenOn && SCEN_DRIVERS[cur] && !sheets.includes('Scenario_Manager')) sheets.push('Scenario_Manager');
   return sheets;
 }
 
@@ -1358,6 +1429,7 @@ ${depthLine}
   const noiL=noiLogicBlock(); if(noiL) parts.push(noiL);
   if(d.stack && depth!=="quick") parts.push(stackBlock(d.stackMode));
   if(d.refi) parts.push(refiBlock());
+  var _scb=scenarioBlock(); if(_scb) parts.push(_scb);
   parts.push(`[시트 구조 — 다음 순서로 생성]\n${sb}`);
   parts.push(`[각 시트 공통]
 - 시트 상단에 '역할 / 주요 입력 / 주요 출력 / 다음 시트로 넘기는 값'을 4줄로 적는다.
@@ -1411,6 +1483,8 @@ function update(){
   updateStackSum();
   renderPreview();
   renderMetrics();
+  renderSens();
+  renderScenNote();
   saveLocal();
 }
 
@@ -1561,17 +1635,133 @@ function openShareCard(){ var ov=$('scOverlay'); if(!ov) return; ov.hidden=false
 function closeShareCard(){ var ov=$('scOverlay'); if(!ov) return; ov.hidden=true; document.body.style.overflow=''; }
 function scDownload(name){ var cv=$('scCanvas'); if(!cv) return; cv.toBlob(function(b){ var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name||('modelter-card-'+cur+'.png'); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},1500); toast('이미지를 저장했습니다'); }); }
 function scCopy(){ var cv=$('scCanvas'); if(!cv) return; if(!(navigator.clipboard&&window.ClipboardItem)){ toast('이 브라우저는 이미지 복사를 지원하지 않아요 — 다운로드를 이용하세요'); return; } cv.toBlob(function(b){ try{ navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){toast('카드 이미지가 복사되었습니다');}).catch(function(){toast('복사 실패 — 다운로드를 이용하세요');}); }catch(e){ toast('복사 실패 — 다운로드를 이용하세요'); } }); }
+function scShare(){ var cv=$('scCanvas'); if(!cv) return; if(!navigator.share){ toast('이 브라우저는 공유를 지원하지 않아요 — 다운로드/복사를 이용하세요'); return; } cv.toBlob(function(b){ try{ var file=new File([b],'modelter-card.png',{type:'image/png'}); var data={title:'모델터', text:'부동산 재무모델 프롬프트 빌더 — modelter.com'}; if(navigator.canShare && navigator.canShare({files:[file]})){ data.files=[file]; } else { data.url='https://modelter.com'; } navigator.share(data).catch(function(){}); }catch(e){ try{ navigator.share({title:'모델터',url:'https://modelter.com'}); }catch(_){ toast('공유 실패 — 다운로드를 이용하세요'); } } }); }
 function bindShareCard(){
   var o=$('scOpen'); if(o) o.addEventListener('click',openShareCard);
   var c=$('scClose'); if(c) c.addEventListener('click',closeShareCard);
   var ov=$('scOverlay'); if(ov) ov.addEventListener('click',function(e){ if(e.target===ov) closeShareCard(); });
   var dl=$('scDownload'); if(dl) dl.addEventListener('click',function(){ scDownload(); });
   var cp=$('scCopy'); if(cp) cp.addEventListener('click',scCopy);
+  var sh=$('scShare'); if(sh) sh.addEventListener('click',scShare);
   var og=$('scOg'); if(og) og.addEventListener('click',function(){ var prev=scRatio; scRatio='og'; scRender(); scDownload('og.png'); scRatio=prev; scRender(); });
   var rs=$('scRatios'); if(rs) rs.querySelectorAll('.sc-r').forEach(function(b){ b.addEventListener('click',function(){ scRatio=b.dataset.r; rs.querySelectorAll('.sc-r').forEach(function(z){z.classList.toggle('on',z===b);}); scRender(); }); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=$('scOverlay'); if(ov&&!ov.hidden) closeShareCard(); } });
 }
 bindShareCard();
+
+/* ---------- 딜 보관함(다중 저장) ---------- */
+var SLOTS_KEY='mt_slots';
+function loadSlots(){ try{ return JSON.parse(localStorage.getItem(SLOTS_KEY)||'{}')||{}; }catch(e){ return {}; } }
+function saveSlots(o){ try{ localStorage.setItem(SLOTS_KEY,JSON.stringify(o)); }catch(e){} }
+function refreshSlotSel(){ var sel=$('slotSel'); if(!sel) return; var o=loadSlots(); var names=Object.keys(o); var prev=sel.value; sel.innerHTML='<option value="">— 불러오기 ('+names.length+') —</option>'+names.map(function(n){return '<option>'+esc(n)+'</option>';}).join(''); if(names.indexOf(prev)>=0) sel.value=prev; var del=$('slotDel'); if(del) del.hidden=!sel.value; }
+function slotSave(){ var def=((state.asset||'').trim())||DEALS[cur].label; var name=prompt('저장할 딜 이름을 입력하세요', def); if(name===null) return; name=(name||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } var o=loadSlots(); o[name]={c:cur,d:depth,s:state,k:stackState,r:refiState}; saveSlots(o); refreshSlotSel(); var sel=$('slotSel'); if(sel){ sel.value=name; } var del=$('slotDel'); if(del) del.hidden=false; toast(name+' 저장됨'); }
+function slotLoad(name){ var o=loadSlots(); var pp=o[name]; if(!pp) return; if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d; state=pp.s||{}; stackState=pp.k||{}; refiState=pp.r||{}; renderTabs(); renderForm(); restoreInputs(); update(); toast(name+' 불러옴'); }
+function slotDelete(){ var sel=$('slotSel'); if(!sel||!sel.value) return; var name=sel.value; if(!confirm(name+' 을(를) 삭제할까요?')) return; var o=loadSlots(); delete o[name]; saveSlots(o); refreshSlotSel(); toast('삭제됨'); }
+(function(){ var sel=$('slotSel'); if(sel) sel.addEventListener('change',function(){ var del=$('slotDel'); if(del) del.hidden=!sel.value; if(sel.value) slotLoad(sel.value); }); var sv=$('slotSave'); if(sv) sv.addEventListener('click',slotSave); var dl=$('slotDel'); if(dl) dl.addEventListener('click',slotDelete); refreshSlotSel(); })();
+
+/* ---------- 한 장 요약(인쇄/PDF) ---------- */
+function buildPrintSummary(){
+  var d=DEALS[cur]; var title=((state.asset||'').trim())||d.label; var r=computeMetrics();
+  var sheets=(typeof sheetListFor==='function')?sheetListFor():[]; var dp=DEPTHS[depth];
+  var date=new Date().toISOString().slice(0,10);
+  var rowsHtml=(r.rows||[]).map(function(x){return '<tr><td>'+esc(String(x.l))+'</td><td>'+esc(String(x.v))+(x.est?' (추정)':'')+'</td></tr>';}).join('');
+  var warnHtml=(r.warns&&r.warns.length)?('<div class="ps-warn"><b>점검 필요</b><ul>'+r.warns.map(function(w){return '<li>'+esc(w)+'</li>';}).join('')+'</ul></div>'):'';
+  var asRows=''; d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='textarea') return; var v=(state[f.k]||'').trim(); asRows+='<tr><td>'+esc(f.l)+'</td><td>'+(v?(esc(v)+(f.u?(' '+esc(f.u)):'')):'<i>미입력(가정)</i>')+'</td></tr>'; }); });
+  var sheetHtml=sheets.map(function(x,i){return (i+1)+'. '+x;}).join('   ·   ');
+  $('printSummary').innerHTML=
+    '<div class="ps-head"><div class="ps-brand">모델터 · 부동산 재무모델 프롬프트 빌더</div><div class="ps-date">'+date+'</div></div>'+
+    '<h1 class="ps-title">'+esc(title)+' <span>'+esc(d.label)+' · '+esc(dp.label)+' ('+sheets.length+'시트)</span></h1>'+
+    '<div class="ps-cols"><div class="ps-col"><h2>즉시 점검</h2><table class="ps-tbl">'+rowsHtml+'</table>'+warnHtml+'</div>'+
+    '<div class="ps-col"><h2>핵심 가정</h2><table class="ps-tbl">'+asRows+'</table></div></div>'+
+    '<h2>생성될 시트 구조</h2><p class="ps-sheets">'+esc(sheetHtml)+'</p>'+
+    '<div class="ps-foot">modelter.com · 코람코자산신탁 상장리츠팀 김성훈 · 본 요약은 입력값 기반 직접계산·추정치이며 투자 권유가 아닙니다.</div>';
+}
+function printSummary(){ buildPrintSummary(); document.body.classList.add('psum'); window.print(); }
+window.addEventListener('afterprint',function(){ document.body.classList.remove('psum'); });
+(function(){ var pb=$('pdfBtn'); if(pb) pb.addEventListener('click',printSummary); })();
+
+/* ---------- 시나리오 비교 ---------- */
+var scenOn=false, scenState={};
+var SCEN_DRIVERS={
+ office:[{k:'exitcap',l:'Exit Cap',u:'%',up:-0.5,down:0.5},{k:'noig',l:'NOI 성장률',u:'%/년',up:1,down:-1},{k:'srate',l:'선순위 금리',u:'%',up:-0.5,down:0.5}],
+ logistics:[{k:'exitcap',l:'Exit Cap',u:'%',up:-0.5,down:0.5},{k:'noig',l:'NOI 성장률',u:'%/년',up:1,down:-1},{k:'srate',l:'선순위 금리',u:'%',up:-0.5,down:0.5}],
+ dev:[{k:'exitcap',l:'준공후 Cap',u:'%',up:-0.5,down:0.5}],
+ reit:[{k:'avgcap',l:'평균 Cap',u:'%',up:-0.3,down:0.3}]
+};
+function scenBase(k){ if(k==='srate'){ var sv=stackState['senior_rate']; var t=TRANCHES.find(function(x){return x.id==='senior';}); return (sv!==undefined&&sv!=='')?sv:(t?t.rate:''); } return (state[k]||''); }
+function scenDef(scn,d){ var b=parseNum(scenBase(d.k)); if(!isFinite(b)) return ''; return String(Math.round((b+(scn==='up'?d.up:d.down))*100)/100); }
+function scenHtml(){
+  var drv=SCEN_DRIVERS[cur]; if(!drv) return '';
+  var rowsH=drv.map(function(d){
+    var base=String(scenBase(d.k)).trim();
+    return '<tr><td class="sc-d">'+d.l+' <span class="unit">'+d.u+'</span></td><td class="sc-b">'+(base||'—')+'</td>'+
+      '<td><input data-scen="up_'+d.k+'" inputmode="decimal" placeholder="'+scenDef('up',d)+'"></td>'+
+      '<td><input data-scen="down_'+d.k+'" inputmode="decimal" placeholder="'+scenDef('down',d)+'"></td></tr>';
+  }).join('');
+  return '<div class="fgroup"><div class="fgroup-h"><span class="gh-left"><span class="gl">S</span> 시나리오 비교</span>'+
+    '<label class="scen-tg"><input type="checkbox" id="scenOn" '+(scenOn?'checked':'')+'> 사용</label></div>'+
+    '<div class="scen-wrap"'+(scenOn?'':' hidden')+'><table class="scen-tbl"><thead><tr><th>드라이버</th><th>기준</th><th>상승</th><th>하락</th></tr></thead><tbody>'+rowsH+'</tbody></table>'+
+    '<div class="scen-note" id="scenNote"></div></div></div>';
+}
+function scenarioBlock(){
+  var drv=SCEN_DRIVERS[cur]; if(!scenOn||!drv) return '';
+  function val(scn,d){ if(scn==='base'){ var b=String(scenBase(d.k)).trim(); return b||'[기준값]'; } var v=(scenState[scn+'_'+d.k]||'').trim(); if(v) return v; var dd=scenDef(scn,d); return dd||'[?]'; }
+  function line(scn,label){ return '- '+label+': '+drv.map(function(d){ return d.l+' '+val(scn,d)+d.u.replace('/년',''); }).join(', '); }
+  return '[시나리오 — Scenario_Manager 시트에서 비교]\n'+line('base','기준(Base)')+'\n'+line('up','상승(Upside)')+'\n'+line('down','하락(Downside)')+
+    '\n- 위 드라이버만 바꾼 세 시나리오의 IRR·Equity Multiple·핵심 지표를 한 표로 비교하고, 입력 한 셀로 케이스를 전환할 수 있게 구성한다. 나머지 가정은 동일하게 둔다.';
+}
+function renderScenNote(){
+  var el=$('scenNote'); if(!el) return;
+  if(!scenOn||!(cur==='office'||cur==='logistics')){ el.textContent=''; return; }
+  var gfa=parseNum(state.gfa), hold=parseNum(state.hold);
+  var mode=(state['noimode']||'').trim(); var rb=(mode===''||mode.indexOf('임대료')===0);
+  var noi1; if(rb){ var rpp=parseNum(state.rentpp),cpp=parseNum(state.campp); if(isFinite(rpp)&&isFinite(gfa)) noi1=((rpp+(isFinite(cpp)?cpp:0))*gfa*12/1e6)*(1-(cur==='office'?0.35:0.15)); } else noi1=parseNum(state.noi1);
+  if(!isFinite(noi1)||!isFinite(hold)){ el.textContent='추정 매각가 비교: 매입가·임대료/NOI·보유기간 입력 시 표시'; return; }
+  function gv(scn,k){ if(scn==='base') return parseNum(scenBase(k)); var v=parseNum(scenState[scn+'_'+k]); if(isFinite(v)) return v; var d=SCEN_DRIVERS[cur].find(function(z){return z.k===k;}); return d?parseNum(scenDef(scn,d)):NaN; }
+  function sale(scn){ var ec=gv(scn,'exitcap'), g=gv(scn,'noig'); if(!isFinite(ec)||ec<=0) return NaN; var gg=isFinite(g)?g/100:0; return (noi1*Math.pow(1+gg,hold))/(ec/100); }
+  function ek(v){ return isFinite(v)?(mfmt(v/100,0)+'억'):'—'; }
+  el.innerHTML='추정 매각가 — 기준 '+ek(sale('base'))+' · 상승 '+ek(sale('up'))+' · 하락 '+ek(sale('down'))+' <span class="mx-est">추정</span>';
+}
+
+/* ---------- 민감도(1변수 스윕) ---------- */
+function sensData(){
+  if(cur==='office'||cur==='logistics'){
+    var gfa=parseNum(state.gfa),hold=parseNum(state.hold),ec=parseNum(state.exitcap),g=parseNum(state.noig);
+    var mode=(state['noimode']||'').trim(); var rb=(mode===''||mode.indexOf('임대료')===0);
+    var noi1; if(rb){ var rpp=parseNum(state.rentpp),cpp=parseNum(state.campp); if(isFinite(rpp)&&isFinite(gfa)) noi1=((rpp+(isFinite(cpp)?cpp:0))*gfa*12/1e6)*(1-(cur==='office'?0.35:0.15)); } else noi1=parseNum(state.noi1);
+    if(!isFinite(noi1)||!isFinite(hold)||!isFinite(ec)) return null;
+    var gg=isFinite(g)?g/100:0; var fwd=noi1*Math.pow(1+gg,hold);
+    var steps=[-1,-0.5,0,0.5,1].map(function(dx){ var cap=ec+dx; var sale=cap>0?fwd/(cap/100):NaN; return {label:mfmt(cap,1)+'%', out:isFinite(sale)?mfmt(sale/100,0)+'억':'—', base:dx===0}; });
+    return {title:'Exit Cap 민감도', driver:'Exit Cap', outLabel:'추정 매각가', steps:steps, note:'매각가 = 보유 마지막해 forward NOI ÷ Exit Cap (입력값 기반 추정).'};
+  }
+  if(cur==='refi'){
+    var noi=parseNum(state.noi),app=parseNum(state.appraisal),dmin=parseNum(state.dscrmin);
+    var baseRate=parseNum(state.oldrate); if(!isFinite(baseRate)) baseRate=parseNum(refiState.a2_rate); if(!isFinite(baseRate)) baseRate=4.3;
+    if(!isFinite(noi)||!isFinite(app)) return null;
+    var loan=0.55*app;
+    var steps=[-1,-0.5,0,0.5,1].map(function(dx){ var rt=baseRate+dx; var icr=rt>0?noi/(loan*rt/100):NaN; return {label:mfmt(rt,1)+'%', out:isFinite(icr)?mfmt(icr,2)+'x':'—', base:dx===0}; });
+    return {title:'금리 민감도 (LTV 55% 가정)', driver:'금리', outLabel:'ICR', steps:steps, note:'ICR=NOI÷연이자(만기일시). 기준선 '+(isFinite(dmin)?(mfmt(dmin,2)+'x'):'—')+' 대비 확인.'};
+  }
+  if(cur==='reit'){
+    var aum=parseNum(state.aum),ltv=parseNum(state.ltv),shares=parseNum(state.shares),price2=parseNum(state.price),cap=parseNum(state.avgcap);
+    if(!isFinite(aum)||!isFinite(ltv)||!isFinite(shares)||!isFinite(price2)||!isFinite(cap)||shares<=0||cap<=0) return null;
+    var debt=aum*ltv/100;
+    var steps=[-0.6,-0.3,0,0.3,0.6].map(function(dx){ var c=cap+dx; if(c<=0) return {label:mfmt(c,1)+'%',out:'—',base:dx===0}; var assetv=aum*cap/c; var nav=assetv-debt; var navps=nav*1e6/(shares*1000); var pnav=navps>0?price2/navps:NaN; return {label:mfmt(c,1)+'%', out:isFinite(pnav)?mfmt(pnav,2)+'x':'—', base:dx===0}; });
+    return {title:'Cap 민감도 → P/NAV', driver:'평균 Cap', outLabel:'P/NAV(근사)', steps:steps, note:'자산가치=AUM×기준Cap÷적용Cap로 재평가한 근사. P/NAV=주가÷주당NAV.'};
+  }
+  return null;
+}
+function renderSens(){
+  var card=$('sensCard'); if(!card) return;
+  var o=sensData();
+  if(!o){ card.hidden=true; return; }
+  card.hidden=false;
+  $('sensTitle').textContent=o.title;
+  var th='<tr><th>'+esc(o.driver)+'</th>'+o.steps.map(function(st){return '<th'+(st.base?' class="base"':'')+'>'+esc(st.label)+'</th>';}).join('')+'</tr>';
+  var tr='<tr><td>'+esc(o.outLabel)+'</td>'+o.steps.map(function(st){return '<td'+(st.base?' class="base"':'')+'>'+esc(st.out)+'</td>';}).join('')+'</tr>';
+  $('sensBody').innerHTML='<table class="sens-tbl">'+th+tr+'</table>';
+  $('sensNote').textContent=o.note||'';
+}
 
 /* 시트 구조 미리보기 렌더 */
 function renderPreview(){
@@ -1620,6 +1810,11 @@ function restoreInputs(){
   });
   Object.entries(refiState).forEach(([k,v])=>{ const f=$("formBody").querySelector(`[data-rk="${k}"]`); if(f) f.value=v; });
 }
+
+function fillStandard(){
+  var d=DEALS[cur], changed=0;
+  d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='textarea'||f.t==='select'||f.k==='asset') return; if(!f.ph) return; if(((state[f.k]||'').trim())===''){ state[f.k]=f.ph; changed++; } }); });
+  renderForm(); restoreInputs(); update(); toast(changed?('빈 칸 '+changed+'개를 표준값으로 채웠습니다'):'이미 모두 채워져 있습니다'); }
 
 function fillExample(){
   const ex=EXAMPLES[cur]; if(!ex) return;
@@ -1697,6 +1892,7 @@ async function sendFeedback(){
 $("copyBtn").addEventListener("click",copyOut);
 $("dlBtn").addEventListener("click",downloadOut);
 $("fillExample").addEventListener("click",fillExample);
+var _fs=$("fillStd"); if(_fs) _fs.addEventListener("click",fillStandard);
 const clearB=$("clearBtn"); if(clearB) clearB.addEventListener("click",clearAll);
 const fbBtn=$("fbSend"); if(fbBtn) fbBtn.addEventListener("click",sendFeedback);
 
@@ -1794,13 +1990,8 @@ initTheme();
 if(!tryRestoreFromURL() && !tryRestoreLocal()) fillExample();
 </script>
 
-<!-- ============================================================
-     배포 시 추가: Cloudflare Web Analytics
-     Cloudflare 대시보드 → Web Analytics → 사이트 추가 후 받은
-     토큰을 아래 TOKEN 자리에 넣고 이 주석을 해제하세요.
-     (개인정보 수집 없는 경량 분석. 쿠키 미사용)
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
-        data-cf-beacon='{"token": "여기에_토큰_붙여넣기"}'></script>
-============================================================ -->
+<!-- Cloudflare Web Analytics: 아래 T 값에 토큰을 넣으면 자동 활성화됩니다.
+     (Cloudflare 대시보드 → Web Analytics → 사이트 추가 후 토큰 복사. 쿠키 없는 경량 분석) -->
+<script>(function(){var T='';if(!T)return;var b=document.createElement('script');b.defer=true;b.src='https://static.cloudflareinsights.com/beacon.min.js';b.setAttribute('data-cf-beacon',JSON.stringify({token:T}));document.head.appendChild(b);})();</script>
 </body>
 </html>
