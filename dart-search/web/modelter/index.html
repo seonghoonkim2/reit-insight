@@ -2306,8 +2306,9 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     return t;
   }
 
-  function buildXlsx(tmpl, overrides){
+  function buildXlsx(tmpl, overrides, extraSheets){
     var t=applyOverrides(tmpl, overrides);
+    if(extraSheets&&extraSheets.length){ var idx=1,z; for(z=0;z<t.sheets.length;z++) if(t.sheets[z].name==='01_Assumptions'){idx=z+1;break;} t.sheets.splice.apply(t.sheets,[idx,0].concat(extraSheets)); }
     var xfList=[], xfMap={};
     var sheetsXml=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
     var stylesXml=buildStyles(xfList);
@@ -2482,10 +2483,38 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     return w;
   }
 
+  function rentRollSheet(){
+    var rs=(typeof window!=='undefined')?window.rrState:null;
+    if(!rs||!rs.leases||!rs.leases.length) return null;
+    var cells=[];
+    cells.push({r:'B1',role:'ti',s:'Rent Roll (업로드 원자료)'});
+    cells.push({r:'B2',role:'st',s:'모델터에 업로드한 렌트롤 · 02_Assumptions의 평당 임대료/관리비·보증금배수가 이 자료에서 도출됩니다'});
+    var hd=['임차인','면적(평)','평당 월임대료','평당 월관리비','보증금','계약만기','잔존(년)'];
+    var cols=['B','C','D','E','F','G','H'];
+    hd.forEach(function(h,i){ cells.push({r:cols[i]+'4',role:'th',s:h}); });
+    var r=5, A=0,R=0,C=0,D=0;
+    rs.leases.forEach(function(l){
+      cells.push({r:'B'+r,role:'lb',s:l.name});
+      cells.push({r:'C'+r,role:'vn',z:'num1',n:Math.round(l.area*10)/10});
+      cells.push({r:'D'+r,role:'vn',z:'num',n:Math.round(l.rentPP)});
+      cells.push({r:'E'+r,role:'vn',z:'num',n:Math.round(l.camPP)});
+      cells.push({r:'F'+r,role:'vn',z:'num',n:Math.round(l.deposit)});
+      cells.push({r:'G'+r,role:'da',s:l.end?(l.end.getFullYear()+'-'+('0'+(l.end.getMonth()+1)).slice(-2)):'—'});
+      cells.push({r:'H'+r,role:'vn',z:'num1',n:l.yrsToExp!=null?Math.round(l.yrsToExp*10)/10:''});
+      A+=l.area; R+=l.area*l.rentPP; C+=l.area*l.camPP; D+=l.deposit; r++;
+    });
+    cells.push({r:'B'+r,role:'lbb',s:'합계 / 가중평균'});
+    cells.push({r:'C'+r,role:'vn',z:'num1',n:Math.round(A*10)/10});
+    cells.push({r:'D'+r,role:'vn',z:'num',n:A?Math.round(R/A):0});
+    cells.push({r:'E'+r,role:'vn',z:'num',n:A?Math.round(C/A):0});
+    cells.push({r:'F'+r,role:'vn',z:'num',n:Math.round(D)});
+    return {name:'01_Rent_Roll', hidden:false, maxcol:8, cells:cells, merges:[], widths:{}};
+  }
   function downloadXlsx(){
     try{
       var ov=assumOverrides();
-      var bytes=XLSXGEN.buildXlsx(XLTMPL, ov);
+      var rr=rentRollSheet();
+      var bytes=XLSXGEN.buildXlsx(XLTMPL, ov, rr?[rr]:null);
       var blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
       var nm=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset).replace(/[\\\/:*?"<>|]/g,'').trim():'매입';
       var fname='모델터_'+(nm||'매입')+'_재무모델.xlsx';
