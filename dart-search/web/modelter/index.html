@@ -2359,6 +2359,83 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     return o;
   }
 
+  // ── 엑셀 모델과 동일한 정밀 계산: 화면 간이결과 = 다운로드 모델 ──
+  function _npv(r,cf){var s=0;for(var t=0;t<cf.length;t++)s+=cf[t]/Math.pow(1+r,t);return s;}
+  function _irr(cf){if(!cf||cf.length<2)return null;var lo=-0.95,hi=1,fl=_npv(lo,cf),fh=_npv(hi,cf),i;
+    for(i=0;i<80&&fl*fh>0&&hi<1000;i++){hi*=1.5;fh=_npv(hi,cf);}
+    if(fl*fh>0)return null;
+    for(i=0;i<200;i++){var m=(lo+hi)/2,v=_npv(m,cf);if(Math.abs(v)<1e-9)return m;if(fl*v<0){hi=m;fh=v;}else{lo=m;fl=v;}}
+    return (lo+hi)/2;}
+  function assumFull(){
+    var as=null,i; for(i=0;i<XLTMPL.sheets.length;i++) if(XLTMPL.sheets[i].name==='01_Assumptions'){as=XLTMPL.sheets[i];break;}
+    var V={};
+    if(as) as.cells.forEach(function(c){ if(c.role==='vi'||c.role==='vt'){ if('n' in c) V[c.r]=c.n; else if('s' in c) V[c.r]=c.s; } });
+    var ov=assumOverrides();
+    Object.keys(ov).forEach(function(kk){ var o=ov[kk]; V[kk]=('n' in o)?o.n:o.s; });
+    return V;
+  }
+  function calcModel(V){
+    function n(k,d){var x=V[k];return (typeof x==='number'&&isFinite(x))?x:d;}
+    var gfa=n('C7',0), ppp=n('C11',0), aprR=n('C13',1.02);
+    var price=ppp*gfa/100, appraisal=price*aprR;
+    var acqtax=price*n('C15',0.046), acqfee=price*n('C16',0.018);
+    var leasable=gfa*n('C8',0.88);
+    var sLtv=n('C45',0.55), sRate=n('C46',0.045);
+    var loan=sLtv*appraisal, finFee=loan*n('C17',0.005);
+    var uses=price+acqtax+acqfee+finFee;
+    var prefAmt=n('C51',0)*uses, prefCoc=n('C52',0.06);
+    var common=uses-loan-prefAmt, equity=prefAmt+common;
+    var rentG=n('C27',0.03),camG=n('C28',0.03),etcG=n('C32',0.02),opG=n('C41',0.02),occ=n('C25',0.95);
+    var rent0=n('C23',0)*leasable*12*occ/1e6, cam0=n('C24',0)*leasable*12*occ/1e6, etc0=n('C31',12000)*gfa*12/1e6;
+    var dmult=n('C26',10), dRate=n('C29',0.03);
+    var pm=n('C34',1000)*gfa*12/1e6,fm=n('C35',6500)*gfa*12/1e6,ut=n('C36',4500)*gfa*12/1e6,rp=n('C37',2500)*gfa*12/1e6,eo=n('C38',1500)*gfa*12/1e6;
+    var taxop=price*n('C39',0.004), ins=price*n('C40',0.0008), capexB=n('C43',8000)*gfa/1e6;
+    var NOI=[],opCF=[],y;
+    for(y=0;y<6;y++){
+      var rent=rent0*Math.pow(1+rentG,y),cam=cam0*Math.pow(1+camG,y),etc=etc0*Math.pow(1+etcG,y);
+      var dep_inc=(rent/12)*dmult*dRate, egi=rent+cam+etc+dep_inc;
+      var og=Math.pow(1+opG,y), opex=(pm+fm+ut+rp+eo)*og+taxop*og+ins*og;
+      NOI.push(egi-opex); if(y<5) opCF.push((egi-opex)-capexB*Math.pow(1+opG,y));
+    }
+    var mat=n('C48',20), repay=(typeof V['C47']==='string')?V['C47']:'만기일시(이자만)';
+    function pmt(r,nn,pv){return r?(r*pv)/(1-Math.pow(1+r,-nn)):pv/nn;}
+    var bal=loan, DS=[],DSCR=[],endBal=[];
+    for(y=0;y<5;y++){
+      var interest=bal*sRate, prin;
+      if(repay.indexOf('만기일시')>=0)prin=0; else if(repay.indexOf('원금균등')>=0)prin=loan/mat; else prin=pmt(sRate,mat,loan)-interest;
+      DS.push(interest+prin);DSCR.push(NOI[y]/(interest+prin)); bal-=prin; endBal.push(bal);
+    }
+    var sale=NOI[5]/n('C58',0.045), netSale=sale-sale*n('C59',0.01);
+    var dist=[];
+    for(y=0;y<5;y++){ var d=opCF[y]-DS[y]; if(y===4) d+=netSale-endBal[4]; dist.push(d); }
+    var commonCF=[];
+    for(y=0;y<5;y++){ var pd=Math.min(dist[y],prefAmt*prefCoc); var pp=(y===4)?Math.min(dist[y]-pd,prefAmt):0; commonCF.push(dist[y]-(pd+pp)); }
+    var IRR=_irr([-equity].concat(dist));
+    var EM=dist.reduce(function(a,b){return a+b;},0)/equity;
+    var coc=(commonCF.slice(0,4).reduce(function(a,b){return a+b;},0)/4)/common;
+    var unlev=_irr([-uses].concat(opCF.slice(0,4)).concat([opCF[4]+netSale]));
+    return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,price:price,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist};
+  }
+  function _fp(x){ return (x==null||!isFinite(x))?'—':(x*100).toFixed(2)+'%'; }
+  function _newSimDcf(){
+    var r=calcModel(assumFull());
+    var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
+    var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
+    var kpis=[
+      {l:'레버드 IRR(세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
+      {l:'Equity Multiple', v:em, big:true},
+      {l:'평균 배당률(CoC)', v:_fp(r.coc), big:true},
+      {l:'언레버드 IRR', v:_fp(r.unlev), big:false},
+      {l:'최소 DSCR', v:ds, big:false},
+      {l:'자기자본', v:mk(r.equity), big:false}
+    ];
+    var rows=[],y;
+    for(y=0;y<5;y++) rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(r.DS[y]), mk(r.dist[y]), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']);
+    return {type:'kpi', kpis:kpis, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
+      caveats:['화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(임대가능면적·세부 운영비·보증금운용·감가·매각 반영).']};
+  }
+  try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
+
   function notes(){
     var s=(typeof state!=='undefined'&&state)?state:{}, k=(typeof stackState!=='undefined'&&stackState)?stackState:{}, w=[];
     var hold=parseN(s['hold']); if(hold!=null && hold!==5) w.push('이 템플릿은 5년 보유 고정 구조라, 보유기간은 5년으로 내려갑니다(입력값 '+hold+'년).');
@@ -2394,7 +2471,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   // 결과 갱신 때마다 버튼 노출 동기화 (renderSim 래핑)
   try{ if(typeof renderSim==='function'){ var _rs=renderSim; renderSim=function(){ var r=_rs.apply(this,arguments); updateXlsxBtn(); return r; }; } }catch(e){}
 
-  function wire(){ var b=$id('xlDownload'); if(b && !b.__wired){ b.__wired=1; b.addEventListener('click',downloadXlsx); } updateXlsxBtn(); }
+  function wire(){ var b=$id('xlDownload'); if(b && !b.__wired){ b.__wired=1; b.addEventListener('click',downloadXlsx); } if(typeof update==='function'){ try{update();}catch(e){} } updateXlsxBtn(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
   window.__downloadXlsx=downloadXlsx;
 })();
