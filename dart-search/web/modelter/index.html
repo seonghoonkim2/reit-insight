@@ -155,7 +155,7 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 /* deal type selector */
 .dealbar{padding:6px 0 18px}
 .deal-tabs{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
-.deal-tab{border:1px solid var(--line); background:var(--panel); cursor:pointer; font-family:var(--font); font-size:14.5px; font-weight:600; color:var(--ink-2); padding:9px 15px; border-radius:11px; transition:.16s; display:inline-flex; align-items:center; gap:7px}
+.deal-tab{border:1px solid var(--line); background:var(--panel); cursor:pointer; font-family:var(--font); font-size:14.5px; font-weight:600; color:var(--ink-2); padding:9px 15px; border-radius:11px; transition:.16s; display:inline-flex; align-items:center; gap:7px; white-space:nowrap}
 .deal-tab:hover{border-color:var(--accent); color:var(--accent-deep)}
 .deal-tab.on{background:var(--ink); color:var(--panel); border-color:var(--ink)}
 .deal-tab .badge-base{font-size:10px; background:var(--accent-solid); color:var(--on-accent); padding:2px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
@@ -166,16 +166,19 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 @media(max-width:920px){ .grid2{grid-template-columns:1fr} }
 
 .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--soft)}
-.panel-head{padding:15px 20px; border-bottom:1px solid var(--line-soft); display:flex; align-items:center; justify-content:space-between; gap:10px}
-.panel-head .t{font-size:14.5px; font-weight:700; letter-spacing:-.01em; display:flex; align-items:center; gap:8px}
-.panel-head .t .dt{font-size:12.5px; font-weight:600; color:var(--accent-deep); background:rgba(169,121,43,.1); padding:3px 9px; border-radius:999px}
-.panel-head .ex{border:1px dashed var(--accent); color:var(--accent-deep); background:transparent; cursor:pointer; font-family:var(--font); font-size:13.5px; font-weight:600; padding:6px 11px; border-radius:8px; transition:.18s}
+.panel-head{padding:15px 20px; border-bottom:1px solid var(--line-soft); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.panel-head .t{font-size:14.5px; font-weight:700; letter-spacing:-.01em; display:flex; align-items:center; gap:8px; white-space:nowrap; flex:0 0 auto}
+.panel-head .t .dt{font-size:12.5px; font-weight:600; color:var(--accent-deep); background:rgba(169,121,43,.1); padding:3px 9px; border-radius:999px; white-space:nowrap}
+.panel-head .ex{border:1px dashed var(--accent); color:var(--accent-deep); background:transparent; cursor:pointer; font-family:var(--font); font-size:13px; font-weight:600; padding:7px 12px; border-radius:9px; transition:.18s; white-space:nowrap; flex:0 0 auto; line-height:1}
 .panel-head .ex:hover{background:rgba(169,121,43,.07)}
-.ph-actions{display:flex; gap:7px; align-items:center}
+.ph-actions{display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; flex:1 1 auto}
 .panel-head .ex.ghost{border-style:solid; border-color:var(--line); color:var(--ink-3); display:inline-flex; align-items:center; gap:5px}
-.panel-head .ex.ghost svg{width:13px; height:13px; fill:currentColor}
+.panel-head .ex.ghost svg{width:14px; height:14px; fill:currentColor}
 .panel-head .ex.ghost:hover{border-color:var(--accent); color:var(--accent-deep); background:rgba(169,121,43,.05)}
-@media(max-width:480px){ .panel-head{flex-wrap:wrap} .panel-head .ex{font-size:12.5px; padding:5px 9px} }
+.panel-head .ex.ico{padding:0; width:34px; height:34px; justify-content:center; gap:0}
+.panel-head .ex.primary{border:1px solid var(--accent-solid); background:var(--accent-solid); color:var(--on-accent); box-shadow:0 1px 3px rgba(143,98,32,.25)}
+.panel-head .ex.primary:hover{background:var(--accent-solid); filter:brightness(1.07)}
+@media(max-width:480px){ .panel-head .ex{font-size:12.5px; padding:6px 10px} .ph-actions{width:100%; justify-content:flex-start} }
 .panel-body{padding:6px 20px 20px}
 
 /* field groups */
@@ -528,7 +531,7 @@ header{background:rgba(253,252,249,.82)}
 .sim-tbl{margin-top:8px}
 .sim-tbl th,.sim-tbl td{font-size:11.5px; padding:5px 4px}
 .sim-cav{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.5; border-top:1px dashed var(--line-soft); padding-top:9px}
-.xl-dl{display:block; width:100%; margin-top:13px; padding:12px 14px; border:none; border-radius:12px; background:var(--accent-solid); color:var(--on-accent); font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer; letter-spacing:-.01em; transition:filter .15s, transform .05s}
+.xl-dl{display:block; width:100%; margin-top:14px; padding:14px 16px; border:none; border-radius:12px; background:var(--accent-solid); color:var(--on-accent); font-family:inherit; font-size:14.5px; font-weight:700; cursor:pointer; letter-spacing:-.01em; transition:filter .15s, transform .05s; box-shadow:0 4px 14px rgba(143,98,32,.32)}
 .xl-dl:hover{filter:brightness(1.07)}
 .xl-dl:active{transform:translateY(1px)}
 .xl-dl .xl-ext{opacity:.78; font-weight:600}
@@ -579,6 +582,7 @@ header{background:rgba(253,252,249,.82)}
 .rr-chip.on{border-color:var(--accent);color:var(--accent-deep);background:rgba(169,121,43,.06)}
 .rr-note{font-size:11px;color:var(--muted);margin-top:6px}
 .rr-actions{margin-top:14px}
+.rr-link{background:none;border:none;color:var(--accent-deep);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 4px;font-family:inherit;margin-left:auto}
 </style>
 </head>
 <body>
@@ -692,11 +696,11 @@ header{background:rgba(253,252,249,.82)}
       <div class="panel-head">
         <div class="t">가정값 입력 <span class="dt" id="dtLabel">오피스 매입</span></div>
         <div class="ph-actions">
-          <button class="ex ghost" id="shareBtn" title="현재 입력값을 링크로 복사"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>공유</button>
-          <button class="ex ghost" id="clearBtn" title="입력값 전체 지우기"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/></svg>비우기</button>
+          <button class="ex ghost ico" id="shareBtn" title="현재 입력값을 링크로 복사" aria-label="공유"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></button>
+          <button class="ex ghost ico" id="clearBtn" title="입력값 전체 지우기" aria-label="비우기"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/></svg></button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
-          <button class="ex" id="rrOpen" type="button" hidden>📋 렌트롤</button>
+          <button class="ex primary" id="rrOpen" type="button" hidden>📋 렌트롤 업로드</button>
         </div>
       </div>
       <div class="slots-bar">
@@ -849,7 +853,7 @@ header{background:rgba(253,252,249,.82)}
     <div class="rr-top"><b>📋 렌트롤로 모델 채우기</b><button class="rr-x" id="rrClose" type="button" aria-label="닫기">✕</button></div>
     <p class="rr-help">엑셀에서 렌트롤 범위를 복사해 붙여넣거나 <b>.xlsx/.csv</b> 파일을 올리세요. 임차인·면적·임대료·관리비·보증금·만기 열을 자동 인식합니다. <b>전 과정 브라우저 안에서만 처리되어 서버로 전송되지 않습니다.</b></p>
     <textarea id="rrPaste" placeholder="여기에 렌트롤을 붙여넣기 (엑셀에서 범위 복사 → 붙여넣기)"></textarea>
-    <div class="rr-row"><label class="rr-file">📁 파일 선택<input type="file" id="rrFile" accept=".xlsx,.csv" hidden /></label><button class="rr-btn" id="rrParse" type="button">붙여넣기 분석</button></div>
+    <div class="rr-row"><label class="rr-file">📁 파일 선택 (.xlsx/.csv)<input type="file" id="rrFile" accept=".xlsx,.csv" hidden /></label><button class="rr-btn" id="rrParse" type="button">붙여넣기 분석 →</button><button class="rr-link" id="rrSample" type="button">📥 샘플 양식 받기</button></div>
     <div id="rrResult" hidden>
       <div class="rr-summary" id="rrSummary"></div>
       <div class="rr-map" id="rrMap"></div>
@@ -2944,6 +2948,16 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       else { fr.onload=function(){ processGrid(RENTROLL.parseDelimited(fr.result)); }; fr.readAsText(f); }
     });
     var ap=$id('rrApply'); if(ap) ap.addEventListener('click',applyRR);
+    var sp=$id('rrSample'); if(sp) sp.addEventListener('click',downloadSample);
+  }
+  function downloadSample(){
+    var csv='강남 A타워 Rent Roll (기준일 2026-06-30)\n'+
+      '임차인,전용면적(평),보증금(원),월임대료(원),월관리비(원),계약시작,계약만기\n'+
+      '(주)알파테크,1200,1440000000,120000000,42000000,2022-03-01,2027-02-28\n'+
+      '베타인더스트리,800,960000000,80000000,28000000,2021-07-01,2026-06-30\n'+
+      '감마㈜,1500,1800000000,150000000,52500000,2023-01-01,2028-12-31\n'+
+      '델타솔루션,600,720000000,60000000,21000000,2024-05-01,2029-04-30\n';
+    try{ var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='렌트롤_샘플양식.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500); toastMsg('샘플 양식을 받았습니다 — 형식 참고용'); }catch(e){}
   }
   function toggleRRBtn(){ var b=$id('rrOpen'); if(!b) return; var ok=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics'); b.hidden=!ok; }
   try{ if(typeof renderSim==='function'){ var _r=renderSim; renderSim=function(){ var x=_r.apply(this,arguments); toggleRRBtn(); return x; }; } }catch(e){}
