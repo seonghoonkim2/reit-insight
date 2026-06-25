@@ -533,25 +533,6 @@ header{background:rgba(253,252,249,.82)}
 .xl-dl:active{transform:translateY(1px)}
 .xl-dl .xl-ext{opacity:.78; font-weight:600}
 
-/* 공유 카드 */
-.mx-card-btn{margin-top:12px; width:100%; border:1px solid var(--line); background:var(--bg); color:var(--accent-deep); font-family:var(--font); font-weight:600; font-size:13px; padding:9px 12px; border-radius:10px; cursor:pointer; transition:.16s}
-.mx-card-btn:hover{border-color:var(--accent); background:rgba(169,121,43,.06)}
-.sc-overlay{position:fixed; inset:0; z-index:210; background:rgba(15,18,23,.62); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:18px}
-.sc-overlay[hidden]{display:none}
-.sc-modal{background:var(--panel); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); width:min(700px,100%); max-height:92vh; overflow:auto; padding:18px}
-.sc-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
-.sc-top b{font-size:15px; color:var(--ink)}
-.sc-x{border:none; background:none; font-size:18px; color:var(--muted); cursor:pointer; line-height:1; padding:2px 6px}
-.sc-canvas-wrap{background:var(--bg); border:1px solid var(--line-soft); border-radius:12px; padding:10px; display:flex; justify-content:center}
-.sc-canvas-wrap canvas{max-width:100%; height:auto; border-radius:8px; box-shadow:var(--soft)}
-.sc-ratios{display:flex; gap:8px; margin:12px 0; flex-wrap:wrap}
-.sc-r{flex:1; min-width:170px; border:1px solid var(--line); background:var(--bg); color:var(--ink-2); font-family:var(--font); font-size:12.5px; font-weight:600; padding:9px 10px; border-radius:9px; cursor:pointer; transition:.16s}
-.sc-r.on{background:var(--accent-solid); color:var(--on-accent); border-color:var(--accent-solid)}
-.sc-actions{display:flex; gap:8px; flex-wrap:wrap}
-.sc-btn{flex:1; min-width:120px; display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-family:var(--font); font-weight:600; font-size:13.5px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:.16s}
-.sc-btn:hover{border-color:var(--accent)}
-.sc-btn.solid{background:var(--accent-solid); color:var(--on-accent); border-color:var(--accent-solid)}
-.sc-note{font-size:11.5px; color:var(--muted); margin-top:10px; line-height:1.5}
 
 /* skip link (키보드 접근성) */
 .skip{position:absolute; left:-9999px; top:0; z-index:200; background:var(--ink); color:var(--panel); padding:10px 16px; border-radius:0 0 10px 0; font-size:14px; font-weight:600; text-decoration:none}
@@ -715,7 +696,6 @@ header{background:rgba(253,252,249,.82)}
         <div class="mx-grid" id="mxGrid"></div>
         <div class="mx-warn" id="mxWarn"></div>
         <div class="mx-foot" id="mxFoot"></div>
-        <button class="mx-card-btn" id="scOpen" type="button">🖼 이 딜 공유 카드 만들기</button>
       </div>
       <div class="metrics" id="sensCard" hidden>
         <div class="mx-head"><span class="mx-t" id="sensTitle">민감도</span><span class="mx-sub">1변수 스윕</span></div>
@@ -839,23 +819,6 @@ header{background:rgba(253,252,249,.82)}
 </button>
 
 <div id="printSummary" aria-hidden="true"></div>
-<div class="sc-overlay" id="scOverlay" hidden>
-  <div class="sc-modal">
-    <div class="sc-top"><b>공유 카드</b><button class="sc-x" id="scClose" type="button" aria-label="닫기">✕</button></div>
-    <div class="sc-canvas-wrap"><canvas id="scCanvas" width="1200" height="630" aria-label="공유 카드 미리보기"></canvas></div>
-    <div class="sc-ratios" id="scRatios">
-      <button class="sc-r on" type="button" data-r="og">가로형 1200×630 · 링크/OG</button>
-      <button class="sc-r" type="button" data-r="sq">정사각 1080×1080 · 카톡/SNS</button>
-    </div>
-    <div class="sc-actions">
-      <button class="sc-btn solid" id="scShare" type="button">공유</button>
-      <button class="sc-btn" id="scDownload" type="button">PNG 다운로드</button>
-      <button class="sc-btn" id="scCopy" type="button">이미지 복사</button>
-      <button class="sc-btn" id="scOg" type="button">og.png로 저장</button>
-    </div>
-    <p class="sc-note">‘og.png로 저장’은 1200×630으로 내려받아요. 사이트 루트에 <b>og.png</b>로 올리면 카카오톡·링크 미리보기 이미지가 새 디자인으로 바뀝니다.</p>
-  </div>
-</div>
 <div class="toast" id="toast" role="status" aria-live="polite">복사되었습니다</div>
 
 <script>
@@ -1628,68 +1591,6 @@ function formatNumField(el){ if(!el||!el.dataset.num) return; var raw=(el.value|
 /* 단축키: Cmd/Ctrl+Enter = 프롬프트 복사 */
 document.addEventListener('keydown',function(e){ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){ e.preventDefault(); if(typeof copyOut==='function') copyOut(); } });
 
-/* ---------- 공유 카드 (Canvas) ---------- */
-function scRound(x,X,Y,W,H,r){ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+W,Y,X+W,Y+H,r); x.arcTo(X+W,Y+H,X,Y+H,r); x.arcTo(X,Y+H,X,Y,r); x.arcTo(X,Y,X+W,Y,r); x.closePath(); }
-function scLogo(x,X,Y,S){
-  var g=x.createLinearGradient(X,Y,X+S,Y+S); g.addColorStop(0,'#b9842f'); g.addColorStop(1,'#8a5f20');
-  scRound(x,X,Y,S,S,S*0.27); x.fillStyle=g; x.fill();
-  x.fillStyle='#fbf6ec'; var u=S/32;
-  [[8.5,17.5,3.4,6],[14.3,14,3.4,9.5],[20.1,10.5,3.4,13],[7.5,24.2,17,1.7]].forEach(function(b){ scRound(x,X+b[0]*u,Y+b[1]*u,b[2]*u,b[3]*u,Math.min(b[2],b[3])*u*0.32); x.fill(); });
-}
-function scClamp(x,t,maxw){ t=String(t); if(x.measureText(t).width<=maxw) return t; var z=t; while(z.length>1 && x.measureText(z+'…').width>maxw) z=z.slice(0,-1); return z+'…'; }
-function drawShareCard(cv,W,H){
-  cv.width=W; cv.height=H; var x=cv.getContext('2d'); var pad=Math.round(W*0.058);
-  var g=x.createLinearGradient(0,0,W*0.45,H); g.addColorStop(0,'#222c3d'); g.addColorStop(1,'#161d27'); x.fillStyle=g; x.fillRect(0,0,W,H);
-  x.fillStyle='#cda557'; x.fillRect(0,0,W,Math.max(4,Math.round(H*0.012)));
-  x.save(); x.globalAlpha=0.05; x.fillStyle='#cda557'; x.textAlign='right'; x.textBaseline='alphabetic'; x.font='700 '+Math.round(H*0.95)+'px Pretendard, sans-serif'; x.fillText('터', W+W*0.03, H+H*0.16); x.restore();
-  x.textAlign='left'; x.textBaseline='alphabetic';
-  var ls=Math.round(H*0.118); scLogo(x,pad,pad,ls);
-  x.fillStyle='#f3efe6'; x.font='700 '+Math.round(ls*0.66)+'px Pretendard, sans-serif'; x.fillText('모델터', pad+ls+ls*0.42, pad+ls*0.5);
-  x.fillStyle='#98a1ad'; x.font='500 '+Math.round(ls*0.3)+'px Pretendard, sans-serif'; x.fillText('부동산 재무모델 프롬프트 빌더 · for Claude in Excel', pad+ls+ls*0.42, pad+ls*0.92);
-  var d=DEALS[cur]; var title=((state.asset||'').trim())||d.label;
-  var ty=pad+ls+Math.round(H*0.12);
-  x.font='700 '+Math.round(H*0.032)+'px Pretendard, sans-serif';
-  var chip=d.label, cw=x.measureText(chip).width, chPadX=Math.round(H*0.024), chH=Math.round(H*0.058);
-  scRound(x,pad,ty-chH+Math.round(H*0.012),cw+chPadX*2,chH,chH/2); x.fillStyle='rgba(205,165,87,.16)'; x.fill();
-  x.fillStyle='#d9b877'; x.fillText(chip, pad+chPadX, ty-Math.round(H*0.004));
-  var titY=ty+Math.round(H*0.105);
-  x.fillStyle='#f6f2e9'; x.font='700 '+Math.round(H*0.082)+'px Pretendard, sans-serif'; x.fillText(scClamp(x,title,W-pad*2), pad, titY);
-  var r=computeMetrics(); var rows=(r.rows||[]).slice(0,4);
-  var gy0=titY+Math.round(H*0.05), colW=(W-pad*2)/2, rowH=Math.min(Math.round((H*0.86-gy0)/2), Math.round(H*0.135));
-  rows.forEach(function(m,i){
-    var cx=pad+(i%2)*colW, cy=gy0+Math.floor(i/2)*rowH;
-    x.fillStyle='#9aa3b0'; x.font='600 '+Math.round(H*0.03)+'px Pretendard, sans-serif';
-    x.fillText(scClamp(x,String(m.l).replace('추정 ','')+(m.est?'  (추정)':''),colW-24), cx, cy+Math.round(H*0.03));
-    x.fillStyle='#f3efe6'; x.font='700 '+Math.round(H*0.058)+'px Pretendard, sans-serif';
-    x.fillText(scClamp(x,m.v,colW-24), cx, cy+Math.round(H*0.1));
-  });
-  var fy=H-Math.round(H*0.062);
-  x.strokeStyle='rgba(205,165,87,.35)'; x.lineWidth=Math.max(1,Math.round(H*0.0028)); x.beginPath(); x.moveTo(pad,fy-Math.round(H*0.032)); x.lineTo(W-pad,fy-Math.round(H*0.032)); x.stroke();
-  x.fillStyle='#cda557'; x.font='700 '+Math.round(H*0.03)+'px Pretendard, sans-serif'; x.textAlign='left'; x.fillText('modelter.com', pad, fy);
-  var dp=(typeof DEPTHS!=='undefined'&&DEPTHS[depth])?DEPTHS[depth].label:''; var ns=(typeof sheetListFor==='function')?sheetListFor().length:'';
-  x.fillStyle='#8b94a0'; x.font='500 '+Math.round(H*0.027)+'px Pretendard, sans-serif'; x.textAlign='right';
-  x.fillText('코람코자산신탁 상장리츠팀 김성훈  ·  '+dp+' '+ns+'시트', W-pad, fy);
-}
-var scRatio='og';
-function scDims(){ return scRatio==='sq'?[1080,1080]:[1200,630]; }
-function scRender(){ var cv=$('scCanvas'); if(!cv) return; var d=scDims(); drawShareCard(cv,d[0],d[1]); }
-function openShareCard(){ var ov=$('scOverlay'); if(!ov) return; ov.hidden=false; document.body.style.overflow='hidden'; var ready=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve(); ready.then(scRender); setTimeout(scRender,60); }
-function closeShareCard(){ var ov=$('scOverlay'); if(!ov) return; ov.hidden=true; document.body.style.overflow=''; }
-function scDownload(name){ var cv=$('scCanvas'); if(!cv) return; cv.toBlob(function(b){ var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name||('modelter-card-'+cur+'.png'); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},1500); toast('이미지를 저장했습니다'); }); }
-function scCopy(){ var cv=$('scCanvas'); if(!cv) return; if(!(navigator.clipboard&&window.ClipboardItem)){ toast('이 브라우저는 이미지 복사를 지원하지 않아요 — 다운로드를 이용하세요'); return; } cv.toBlob(function(b){ try{ navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){toast('카드 이미지가 복사되었습니다');}).catch(function(){toast('복사 실패 — 다운로드를 이용하세요');}); }catch(e){ toast('복사 실패 — 다운로드를 이용하세요'); } }); }
-function scShare(){ var cv=$('scCanvas'); if(!cv) return; if(!navigator.share){ toast('이 브라우저는 공유를 지원하지 않아요 — 다운로드/복사를 이용하세요'); return; } cv.toBlob(function(b){ try{ var file=new File([b],'modelter-card.png',{type:'image/png'}); var data={title:'모델터', text:'부동산 재무모델 프롬프트 빌더 — modelter.com'}; if(navigator.canShare && navigator.canShare({files:[file]})){ data.files=[file]; } else { data.url='https://modelter.com'; } navigator.share(data).catch(function(){}); }catch(e){ try{ navigator.share({title:'모델터',url:'https://modelter.com'}); }catch(_){ toast('공유 실패 — 다운로드를 이용하세요'); } } }); }
-function bindShareCard(){
-  var o=$('scOpen'); if(o) o.addEventListener('click',openShareCard);
-  var c=$('scClose'); if(c) c.addEventListener('click',closeShareCard);
-  var ov=$('scOverlay'); if(ov) ov.addEventListener('click',function(e){ if(e.target===ov) closeShareCard(); });
-  var dl=$('scDownload'); if(dl) dl.addEventListener('click',function(){ scDownload(); });
-  var cp=$('scCopy'); if(cp) cp.addEventListener('click',scCopy);
-  var sh=$('scShare'); if(sh) sh.addEventListener('click',scShare);
-  var og=$('scOg'); if(og) og.addEventListener('click',function(){ var prev=scRatio; scRatio='og'; scRender(); scDownload('og.png'); scRatio=prev; scRender(); });
-  var rs=$('scRatios'); if(rs) rs.querySelectorAll('.sc-r').forEach(function(b){ b.addEventListener('click',function(){ scRatio=b.dataset.r; rs.querySelectorAll('.sc-r').forEach(function(z){z.classList.toggle('on',z===b);}); scRender(); }); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var ov=$('scOverlay'); if(ov&&!ov.hidden) closeShareCard(); } });
-}
-bindShareCard();
 
 /* ---------- 딜 보관함(다중 저장) ---------- */
 var SLOTS_KEY='mt_slots';
