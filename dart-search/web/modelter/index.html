@@ -2950,14 +2950,47 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     var ap=$id('rrApply'); if(ap) ap.addEventListener('click',applyRR);
     var sp=$id('rrSample'); if(sp) sp.addEventListener('click',downloadSample);
   }
+  function sampleSheet(){
+    var rows=[
+      ['(주)알파테크',1200,1440000000,120000000,42000000,'2022-03','2027-02'],
+      ['베타인더스트리',800,960000000,80000000,28000000,'2021-07','2026-06'],
+      ['감마㈜',1500,1800000000,150000000,52500000,'2023-01','2028-12'],
+      ['델타솔루션',600,720000000,60000000,21000000,'2024-05','2029-04'],
+      ['이프시론바이오',900,1080000000,90000000,31500000,'2023-09','2028-08']
+    ];
+    var cells=[],cols=['B','C','D','E','F','G','H'];
+    cells.push({r:'B1',role:'ti',s:'렌트롤 샘플 양식 (Rent Roll Template)'});
+    cells.push({r:'B2',role:'st',s:'이 형식으로 작성해 모델터 ‘렌트롤 업로드’에 붙여넣거나 .xlsx/.csv로 올리세요 · 면적은 평 또는 ㎡, 금액은 원 단위'});
+    var hd=['임차인','전용면적(평)','보증금(원)','월임대료(원)','월관리비(원)','계약시작','계약만기'];
+    hd.forEach(function(h,i){ cells.push({r:cols[i]+'4',role:'th',s:h}); });
+    var r=5,A=0,DEP=0,RE=0,CA=0;
+    rows.forEach(function(row){
+      cells.push({r:'B'+r,role:'lb',s:row[0]});
+      cells.push({r:'C'+r,role:'vn',z:'num1',n:row[1]});
+      cells.push({r:'D'+r,role:'vn',z:'num',n:row[2]});
+      cells.push({r:'E'+r,role:'vn',z:'num',n:row[3]});
+      cells.push({r:'F'+r,role:'vn',z:'num',n:row[4]});
+      cells.push({r:'G'+r,role:'da',s:row[5]});
+      cells.push({r:'H'+r,role:'da',s:row[6]});
+      A+=row[1];DEP+=row[2];RE+=row[3];CA+=row[4];r++;
+    });
+    cells.push({r:'B'+r,role:'lbb',s:'합계'});
+    cells.push({r:'C'+r,role:'vn',z:'num1',n:A});
+    cells.push({r:'D'+r,role:'vn',z:'num',n:DEP});
+    cells.push({r:'E'+r,role:'vn',z:'num',n:RE});
+    cells.push({r:'F'+r,role:'vn',z:'num',n:CA});
+    r+=2;
+    cells.push({r:'B'+r,role:'nw',s:'※ 헤더명은 달라도 됩니다 — 모델터가 임차인·면적·임대료·관리비·보증금·만기 열을 자동으로 인식합니다.'});
+    return {name:'Rent_Roll', hidden:false, maxcol:8, cells:cells, merges:[], widths:{}};
+  }
   function downloadSample(){
-    var csv='강남 A타워 Rent Roll (기준일 2026-06-30)\n'+
-      '임차인,전용면적(평),보증금(원),월임대료(원),월관리비(원),계약시작,계약만기\n'+
-      '(주)알파테크,1200,1440000000,120000000,42000000,2022-03-01,2027-02-28\n'+
-      '베타인더스트리,800,960000000,80000000,28000000,2021-07-01,2026-06-30\n'+
-      '감마㈜,1500,1800000000,150000000,52500000,2023-01-01,2028-12-31\n'+
-      '델타솔루션,600,720000000,60000000,21000000,2024-05-01,2029-04-30\n';
-    try{ var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='렌트롤_샘플양식.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500); toastMsg('샘플 양식을 받았습니다 — 형식 참고용'); }catch(e){}
+    try{
+      var bytes=XLSXGEN.buildXlsx({sheets:[sampleSheet()]}, null, null);
+      var blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='렌트롤_샘플양식.xlsx';
+      document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);
+      toastMsg('샘플 양식(.xlsx)을 받았습니다 — 모델 디자인 톤 적용');
+    }catch(e){ toastMsg('샘플 생성 오류: '+e.message); }
   }
   function toggleRRBtn(){ var b=$id('rrOpen'); if(!b) return; var ok=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics'); b.hidden=!ok; }
   try{ if(typeof renderSim==='function'){ var _r=renderSim; renderSim=function(){ var x=_r.apply(this,arguments); toggleRRBtn(); return x; }; } }catch(e){}
