@@ -583,6 +583,16 @@ header{background:rgba(253,252,249,.82)}
 .rr-note{font-size:11px;color:var(--muted);margin-top:6px}
 .rr-actions{margin-top:14px}
 .rr-link{background:none;border:none;color:var(--accent-deep);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 4px;font-family:inherit;margin-left:auto}
+/* ── UX: 접근성 포커스 · 줄바꿈 방지 · 터치타깃 ── */
+button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:8px}
+.obtn,.out-step,.out-head .badge,.sl-btn,.depth-opt b,.mx-flag,.badge{white-space:nowrap}
+.f-lab{display:flex; align-items:center; gap:5px}
+.f label{cursor:pointer}
+@media(max-width:520px){
+  .ex,.obtn,.sl-btn{min-height:40px}
+  .deal-tab{min-height:42px}
+  .f input,.f select{min-height:42px}
+}
 </style>
 </head>
 <body>
@@ -1122,7 +1132,7 @@ function fieldHtml(f){
     input=`<input id="${id}" data-k="${f.k}" ${it} ${vattr} placeholder="${f.ph||''}" />`;
   }
   const err=f.t==="num"?`<span class="err" id="err_${f.k}"></span>`:"";
-  return `<div class="f ${f.full?'full':''}" data-field="${f.k}"><label>${f.l} ${unit}${help}</label>${input}${err}</div>`;
+  return `<div class="f ${f.full?'full':''}" data-field="${f.k}"><div class="f-lab"><label for="${id}">${f.l} ${unit}</label>${help}</div>${input}${err}</div>`;
 }
 
 function stackHtml(mode){
