@@ -549,7 +549,7 @@ header{background:rgba(253,252,249,.82)}
 
 /* 인쇄: 종이에 깔끔하게 나오도록 프롬프트 위주로 */
 @media print{
-  header,.maker-row,.intro .flow,.outs,.intro-cta,.jump-fab,.toast,.feedback,.onboard,.refbar,.skip,.theme-btn,.out-act,.out-hint{display:none!important}
+  header,.announce,.wn-overlay,.maker-row,.intro .flow,.outs,.intro-cta,.jump-fab,.toast,.feedback,.onboard,.refbar,.skip,.theme-btn,.out-act,.out-hint{display:none!important}
   body{background:#fff; color:#000}
   .out-panel{position:static; background:#fff; border:1px solid #ccc; box-shadow:none}
   .out-head{border-color:#ddd}
@@ -727,6 +727,34 @@ html,body{overflow-x:hidden}
   .trn-row{grid-template-columns:1.2fr .8fr 1fr 1fr; row-gap:4px}
   .trn-amt{display:none}
 }
+
+/* 업그레이드 공지 배너 + What's new 모달 */
+.announce{background:linear-gradient(90deg,rgba(143,98,32,.11),rgba(143,98,32,.035)); border-bottom:1px solid var(--line-soft)}
+.announce-in{display:flex; align-items:center; gap:12px; padding:9px 0}
+.ann-badge{flex:0 0 auto; font-size:10.5px; font-weight:800; letter-spacing:.06em; color:var(--on-accent); background:var(--accent-solid); padding:3px 8px; border-radius:6px; box-shadow:0 1px 3px rgba(143,98,32,.3)}
+.ann-msg{flex:1 1 auto; font-size:13px; color:var(--ink-2); line-height:1.4; min-width:0}
+.ann-msg b{color:var(--ink); font-weight:800}
+.ann-more{flex:0 0 auto; border:1px solid var(--accent); background:transparent; color:var(--accent-deep); font-family:var(--font); font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap; transition:.15s}
+.ann-more:hover{background:rgba(169,121,43,.08)}
+.ann-x{flex:0 0 auto; border:none; background:transparent; color:var(--muted); font-size:20px; line-height:1; cursor:pointer; padding:0 6px; border-radius:6px}
+.ann-x:hover{color:var(--ink)}
+@media(max-width:600px){ .ann-msg{font-size:12px} .ann-more{padding:6px 9px; font-size:11.5px} .announce-in{gap:8px; padding:8px 0} }
+
+.wn-overlay{position:fixed; inset:0; background:rgba(20,14,4,.5); backdrop-filter:blur(2px); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px}
+.wn-modal{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:18px; max-width:480px; width:100%; padding:26px 24px 22px; box-shadow:0 20px 60px rgba(0,0,0,.32); max-height:90vh; overflow:auto}
+.wn-x{position:absolute; top:13px; right:13px; border:none; background:transparent; font-size:22px; color:var(--muted); cursor:pointer; line-height:1; padding:4px 8px; border-radius:8px}
+.wn-x:hover{color:var(--ink); background:rgba(0,0,0,.05)}
+.wn-eyebrow{font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-deep)}
+.wn-modal h3{font-size:20px; font-weight:800; color:var(--ink); margin:6px 0 8px; letter-spacing:-.01em}
+.wn-lead{font-size:13.5px; color:var(--ink-2); line-height:1.55; margin:0 0 17px}
+.wn-list{list-style:none; padding:0; margin:0 0 18px; display:flex; flex-direction:column; gap:12px}
+.wn-list li{display:flex; gap:12px; align-items:flex-start}
+.wn-ic{flex:0 0 auto; width:34px; height:34px; border-radius:9px; background:var(--bg); border:1px solid var(--line-soft); display:flex; align-items:center; justify-content:center; font-size:17px}
+.wn-list li>div{display:flex; flex-direction:column; gap:2px}
+.wn-list li b{font-size:14px; font-weight:800; color:var(--ink)}
+.wn-list li>div span{font-size:12.5px; color:var(--ink-2); line-height:1.45}
+.wn-cta{display:block; width:100%; border:none; border-radius:11px; background:var(--accent-solid); color:var(--on-accent); font-family:var(--font); font-size:14.5px; font-weight:700; padding:13px; cursor:pointer; box-shadow:0 4px 14px rgba(143,98,32,.3); transition:.15s}
+.wn-cta:hover{filter:brightness(1.07)}
 </style>
 </head>
 <body>
@@ -751,6 +779,31 @@ html,body{overflow-x:hidden}
     </div>
   </div>
 </header>
+
+<div class="announce" id="announce" hidden>
+  <div class="wrap announce-in">
+    <span class="ann-badge">NEW</span>
+    <span class="ann-msg"><b>모델터가 새로워졌습니다</b> — 이제 이 화면 안에서 재무모델이 바로 돌아가고, 수식이 살아있는 Excel로 받습니다.</span>
+    <button class="ann-more" id="annMore" type="button">무엇이 바뀌었나 →</button>
+    <button class="ann-x" id="annClose" type="button" aria-label="공지 닫기">×</button>
+  </div>
+</div>
+
+<div class="wn-overlay" id="wnOverlay" hidden>
+  <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
+    <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
+    <div class="wn-eyebrow">What's new · v2</div>
+    <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
+    <p class="wn-lead">예전엔 AI에게 줄 ‘지시문(프롬프트)’만 만들었다면, 이제는 이 화면 안에서 진짜 재무모델이 돌아갑니다.</p>
+    <ul class="wn-list">
+      <li><span class="wn-ic">⚡</span><div><b>화면 안 실시간 모델</b><span>가정을 바꾸면 IRR·멀티플이 그 자리에서 살아 움직입니다.</span></div></li>
+      <li><span class="wn-ic">📋</span><div><b>렌트롤 업로드</b><span>임차인 목록을 올리면 현 계약·공실·만기까지 임차인별로 정밀 반영됩니다.</span></div></li>
+      <li><span class="wn-ic">🏛️</span><div><b>우선주·보통주 분리</b><span>자본 트랜치별 비중·IRR·배당률을 각각 보여줍니다.</span></div></li>
+      <li><span class="wn-ic">⬇️</span><div><b>수식 살아있는 Excel</b><span>화면 수치와 동일한 13시트 모델을 그 자리에서 .xlsx로 받습니다.</span></div></li>
+    </ul>
+    <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
+  </div>
+</div>
 
 <section class="intro" id="top">
   <div class="wrap">
@@ -3426,6 +3479,24 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', wrap);
     else setTimeout(wrap, 0);
   }
+})();
+
+/* ── 업그레이드 공지 배너 + What's new 모달 ── */
+(function(){
+  var KEY='mt_whatsnew_v2';   // 다음 대규모 업데이트 때 버전을 올리면 다시 노출됨
+  var bar=document.getElementById('announce'), ov=document.getElementById('wnOverlay');
+  if(!bar) return;
+  var dismissed=false; try{ dismissed=localStorage.getItem(KEY)==='1'; }catch(e){}
+  if(!dismissed) bar.hidden=false;
+  function dismiss(){ bar.hidden=true; try{ localStorage.setItem(KEY,'1'); }catch(e){} }
+  function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow='hidden'; } dismiss(); }
+  function closeWN(){ if(ov){ ov.hidden=true; document.body.style.overflow=''; } }
+  var more=document.getElementById('annMore'); if(more) more.addEventListener('click',openWN);
+  var ax=document.getElementById('annClose'); if(ax) ax.addEventListener('click',dismiss);
+  var wx=document.getElementById('wnClose'); if(wx) wx.addEventListener('click',closeWN);
+  if(ov) ov.addEventListener('click',function(e){ if(e.target===ov) closeWN(); });
+  var cta=document.getElementById('wnCta'); if(cta) cta.addEventListener('click',function(){ closeWN(); var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth'}); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&ov&&!ov.hidden) closeWN(); });
 })();
 
 </script>
