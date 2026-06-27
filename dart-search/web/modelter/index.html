@@ -632,6 +632,27 @@ html,body{overflow-x:hidden}
 .uc-head{display:flex; align-items:center; gap:9px; margin-bottom:7px; flex-wrap:wrap}
 .uc-head .uc-tag{margin-bottom:0}
 .uc-head .uc-t{margin-bottom:0}
+
+/* 가정 변경 → 결과 실시간 강조 (라이브 업데이트) */
+.sim-kpi{transition:box-shadow .35s ease, transform .2s ease, background-color .45s ease, border-color .45s ease}
+.sk-v,.mx-v{transition:color .35s ease}
+.sim-kpi.changed{position:relative; z-index:1}
+@keyframes kpiPop{0%{transform:scale(1)} 32%{transform:scale(1.055)} 100%{transform:scale(1)}}
+@keyframes kpiGlow{0%{box-shadow:0 0 0 0 rgba(143,98,32,0)} 26%{box-shadow:0 0 0 4px rgba(143,98,32,.20)} 100%{box-shadow:0 0 0 0 rgba(143,98,32,0)}}
+.sim-kpi.changed{animation:kpiPop .55s cubic-bezier(.34,1.56,.64,1), kpiGlow .85s ease-out}
+.sim-kpi.up{background-color:rgba(47,125,87,.11); border-color:rgba(47,125,87,.5)}
+.sim-kpi.up .sk-v{color:var(--green)}
+.sim-kpi.down{background-color:rgba(179,71,48,.10); border-color:rgba(179,71,48,.46)}
+.sim-kpi.down .sk-v{color:var(--red)}
+@keyframes valFlash{0%{color:var(--accent-deep); text-shadow:0 0 10px rgba(143,98,32,.35)} 100%{}}
+.mx-v.changed{animation:valFlash .8s ease-out}
+.mx-item.changed .mx-l::after{content:""; display:inline-block; width:5px; height:5px; margin-left:5px; border-radius:50%; background:var(--accent); animation:dotFade 1s ease-out forwards}
+@keyframes dotFade{0%{opacity:.9} 100%{opacity:0}}
+@media (prefers-reduced-motion: reduce){
+  .sim-kpi.changed{animation:none}
+  .mx-v.changed{animation:none}
+  .mx-item.changed .mx-l::after{animation:none; opacity:0}
+}
 </style>
 </head>
 <body>
@@ -3165,6 +3186,95 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   try{ if(typeof renderSim==='function'){ var _r=renderSim; renderSim=function(){ var x=_r.apply(this,arguments); toggleRRBtn(); return x; }; } }catch(e){}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ wireRR(); toggleRRBtn(); }); else { wireRR(); toggleRRBtn(); }
   window.__rrOpen=open;
+})();
+
+/* ── 가정 변경 → 결과 실시간 시각 강조 (count-up + 펄스/방향색) ── */
+(function(){
+  var REDUCE = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // "27.91%", "-0.63%", "1.85x", "12,340백만", "2.3억" → 숫자 부분 분해
+  function parts(s){
+    s = String(s);
+    var m = s.match(/-?−?\d[\d,]*(?:\.\d+)?/);
+    if(!m) return null;
+    var raw = m[0];
+    var neg = /^[−-]/.test(raw);
+    var digits = raw.replace(/[−,\-]/g,'');
+    var dec = (digits.split('.')[1]||'').length;
+    var num = parseFloat(digits) * (neg?-1:1);
+    if(!isFinite(num)) return null;
+    return { pre:s.slice(0,m.index), post:s.slice(m.index+raw.length), num:num, dec:dec };
+  }
+  function fmt(n,dec){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
+  function tween(el, a, b, toStr){
+    if(REDUCE){ el.textContent = toStr; return; }
+    var dur = 460, t0 = null;
+    function frame(ts){
+      if(t0==null) t0 = ts;
+      var p = Math.min(1, (ts-t0)/dur);
+      var e = 1 - Math.pow(1-p, 3); // easeOutCubic
+      var cur = a.num + (b.num - a.num) * e;
+      el.textContent = b.pre + (cur<0?'−':'') + fmt(Math.abs(cur), b.dec) + b.post;
+      if(p < 1) requestAnimationFrame(frame); else el.textContent = toStr;
+    }
+    requestAnimationFrame(frame);
+  }
+  function snap(){
+    var m = {};
+    var big = document.querySelectorAll('#simKpis .sim-kpi');
+    for(var i=0;i<big.length;i++){ var l=big[i].querySelector('.sk-l'), v=big[i].querySelector('.sk-v'); if(l&&v) m['B::'+l.textContent] = v.textContent; }
+    var sm = document.querySelectorAll('#simBody .mx-item');
+    for(var j=0;j<sm.length;j++){ var ll=sm[j].querySelector('.mx-l'), vv=sm[j].querySelector('.mx-v'); if(ll&&vv) m['S::'+ll.textContent] = vv.textContent; }
+    return m;
+  }
+  function flash(prev, first){
+    if(first) return; // 첫 렌더는 강조하지 않음
+    // 큰 지표 타일 (수익지표 → 상승=초록·하락=빨강)
+    var big = document.querySelectorAll('#simKpis .sim-kpi');
+    for(var i=0;i<big.length;i++){
+      (function(tile){
+        var l=tile.querySelector('.sk-l'), v=tile.querySelector('.sk-v'); if(!l||!v) return;
+        var oldV = prev['B::'+l.textContent], newV = v.textContent;
+        if(oldV==null || oldV===newV) return;
+        var a = parts(oldV), b = parts(newV);
+        tile.classList.remove('changed','up','down'); void tile.offsetWidth;
+        if(a && b && b.num!==a.num){ tile.classList.add(b.num>a.num?'up':'down'); tween(v, a, b, newV); }
+        tile.classList.add('changed');
+        setTimeout(function(){ tile.classList.remove('changed','up','down'); }, 950);
+      })(big[i]);
+    }
+    // 작은 지표 (중립 강조 + count-up)
+    var sm = document.querySelectorAll('#simBody .mx-item');
+    for(var j=0;j<sm.length;j++){
+      (function(item){
+        var l=item.querySelector('.mx-l'), v=item.querySelector('.mx-v'); if(!l||!v) return;
+        var oldV = prev['S::'+l.textContent], newV = v.textContent;
+        if(oldV==null || oldV===newV) return;
+        var a = parts(oldV), b = parts(newV);
+        v.classList.remove('changed'); item.classList.remove('changed'); void v.offsetWidth;
+        if(a && b && b.num!==a.num) tween(v, a, b, newV);
+        v.classList.add('changed'); item.classList.add('changed');
+        setTimeout(function(){ v.classList.remove('changed'); item.classList.remove('changed'); }, 1000);
+      })(sm[j]);
+    }
+  }
+  function wrap(){
+    if(typeof renderSim!=='function' || renderSim.__live) return false;
+    var orig = renderSim, firstDone = false;
+    var wrapped = function(){
+      var prev = snap();
+      var ret = orig.apply(this, arguments);
+      try{ flash(prev, !firstDone); }catch(e){}
+      firstDone = true;
+      return ret;
+    };
+    wrapped.__live = true;
+    renderSim = wrapped;
+    return true;
+  }
+  if(!wrap()){
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', wrap);
+    else setTimeout(wrap, 0);
+  }
 })();
 
 </script>
