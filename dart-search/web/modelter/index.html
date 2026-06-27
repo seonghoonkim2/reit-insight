@@ -653,6 +653,54 @@ html,body{overflow-x:hidden}
   .mx-v.changed{animation:none}
   .mx-item.changed .mx-l::after{animation:none; opacity:0}
 }
+
+/* 렌트롤 업로드 — 운영수입 섹션 내 진입 블록 */
+.rr-fb{margin-top:6px; padding:12px 13px; border:1px dashed var(--accent); border-radius:11px; background:rgba(169,121,43,.05)}
+.rr-fb.on{border-style:solid; border-color:rgba(47,125,87,.42); background:rgba(47,125,87,.055)}
+.rr-fb-h{font-size:12.5px; font-weight:800; color:var(--accent-deep); display:flex; align-items:center; gap:6px; letter-spacing:0; text-transform:none}
+.rr-fb.on .rr-fb-h{color:var(--green)}
+.rr-fb-ic{font-size:14px; line-height:1}
+.rr-fb-ic.ok{width:17px; height:17px; border-radius:50%; background:var(--green); color:#fff; font-size:11px; display:inline-flex; align-items:center; justify-content:center; font-weight:900}
+.rr-fb-tag{font-size:10px; font-weight:700; color:var(--green); background:rgba(47,125,87,.13); border-radius:5px; padding:2px 6px; margin-left:1px}
+.rr-fb-d{font-size:11.5px; color:var(--ink-2); line-height:1.5; margin:7px 0 10px}
+.rr-fb-stat{display:flex; flex-wrap:wrap; gap:5px 14px; margin:9px 0 3px; font-size:12px; color:var(--ink-2)}
+.rr-fb-stat b{font-family:var(--mono); color:var(--ink); font-weight:700}
+.rr-fb-act{display:flex; align-items:center; gap:11px; flex-wrap:wrap}
+.rr-fb-btn{border:1px solid var(--accent-solid); background:var(--accent-solid); color:var(--on-accent); font-family:var(--font); font-size:13px; font-weight:700; padding:9px 15px; border-radius:9px; cursor:pointer; box-shadow:0 1px 3px rgba(143,98,32,.25); transition:.15s}
+.rr-fb-btn:hover{filter:brightness(1.07)}
+.rr-fb-btn.ghost{background:transparent; color:var(--accent-deep); box-shadow:none}
+.rr-fb-btn.ghost:hover{background:rgba(169,121,43,.07)}
+.rr-fb-link{border:none; background:transparent; color:var(--muted); font-family:var(--font); font-size:12px; font-weight:600; cursor:pointer; text-decoration:underline; text-underline-offset:2px; padding:4px 2px}
+.rr-fb-link:hover{color:var(--accent-deep)}
+
+/* 렌트롤 → 모델 반영 구조 (결과 패널) */
+.rrx{margin:2px 0 12px; padding:13px; border:1px solid rgba(47,125,87,.3); border-radius:12px; background:linear-gradient(180deg,rgba(47,125,87,.06),rgba(47,125,87,.02))}
+.rrx-t{font-size:12px; font-weight:800; color:var(--green); letter-spacing:.01em; margin-bottom:9px; display:flex; align-items:center; gap:6px}
+.rrx-src{font-size:12px; color:var(--ink); background:var(--panel); border:1px solid var(--line-soft); border-radius:8px; padding:7px 10px; font-weight:600}
+.rrx-src b{color:var(--green)}
+.rrx-sub{font-size:11px; color:var(--muted); margin:8px 0 7px; display:flex; align-items:center; gap:5px}
+.rrx-sub::before{content:"▼"; font-size:8px; color:var(--green)}
+.rrx-bk{display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px}
+.rrx-b{border-radius:9px; padding:9px 9px; border:1px solid; line-height:1.32}
+.rrx-b .n{font-weight:800; font-size:11px; display:block; margin-bottom:4px}
+.rrx-b .a{font-family:var(--mono); font-weight:800; font-size:13px; display:block; margin-bottom:4px}
+.rrx-b .d{font-size:10.5px; color:var(--ink-3); display:block}
+.rrx-b1{background:rgba(58,90,120,.09); border-color:rgba(58,90,120,.32)} .rrx-b1 .n,.rrx-b1 .a{color:var(--blue)}
+.rrx-b2{background:rgba(47,125,87,.09); border-color:rgba(47,125,87,.32)} .rrx-b2 .n,.rrx-b2 .a{color:var(--green)}
+.rrx-b3{background:rgba(169,121,43,.1); border-color:rgba(169,121,43,.34)} .rrx-b3 .n,.rrx-b3 .a{color:var(--accent-deep)}
+.rrx-chain{display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:11px; padding-top:10px; border-top:1px dashed var(--line-soft)}
+.rrx-node{background:var(--panel); border:1px solid var(--line-soft); border-radius:7px; padding:6px 9px; font-size:11.5px; font-weight:700; color:var(--ink)}
+.rrx-node.hi{background:var(--accent-solid); color:var(--on-accent); border-color:transparent}
+.rrx-mini{font-size:10.5px; color:var(--muted); font-family:var(--mono)}
+.rrx-ar{color:var(--green); font-weight:900; font-size:13px}
+.rrx-legend{font-size:10.5px; color:var(--muted); margin-top:9px; line-height:1.45}
+.rrx-legend b{color:var(--ink-2)}
+@media(max-width:520px){ .rrx-bk{grid-template-columns:1fr} }
+/* 결과 표의 버킷 열 색상(현계약·공실해소·롤오버) */
+.rr-tbl th:nth-child(3),.rr-tbl td:nth-child(3){color:var(--blue)}
+.rr-tbl th:nth-child(4),.rr-tbl td:nth-child(4){color:var(--green)}
+.rr-tbl th:nth-child(5),.rr-tbl td:nth-child(5){color:var(--accent-deep)}
+.rr-tbl th:nth-child(3),.rr-tbl th:nth-child(4),.rr-tbl th:nth-child(5){font-weight:800}
 </style>
 </head>
 <body>
@@ -757,7 +805,6 @@ html,body{overflow-x:hidden}
           <button class="ex ghost ico" id="clearBtn" title="입력값 전체 지우기" aria-label="비우기"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/></svg></button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
-          <button class="ex primary" id="rrOpen" type="button" hidden>📋 렌트롤 업로드</button>
         </div>
       </div>
       <div class="slots-bar">
@@ -1253,9 +1300,34 @@ function commonHtml(){
   </div>`;
 }
 
+/* 운영수입 섹션 안의 렌트롤 업로드 블록 (반영 상태 표시) */
+function rrFormBlockHtml(){
+  const on = !!(window.rrModel && window.rrModel.on);
+  if(!on){
+    return '<div class="rr-fb" style="grid-column:1/-1">'
+      +'<div class="rr-fb-h"><span class="rr-fb-ic">📋</span>렌트롤로 임차인별 정밀 반영</div>'
+      +'<p class="rr-fb-d">임차인 목록(엑셀·CSV)을 올리면, 아래 평당 단가 대신 <b>임차인별 실제 임대료·관리비·만기</b>로 NOI를 산출합니다. 공실·만기 도래분은 시장 가정으로 채웁니다.</p>'
+      +'<div class="rr-fb-act"><button type="button" class="rr-fb-btn" data-rr-open>📋 렌트롤 업로드</button><button type="button" class="rr-fb-link" data-rr-open>샘플 양식 ↗</button></div>'
+      +'</div>';
+  }
+  const ag = (window.rrState && window.rrState.agg) || {};
+  const cnt = ag.count || (window.rrModel.leases ? window.rrModel.leases.length : 0);
+  let stat = '<span>임차인 <b>'+cnt+'</b></span>';
+  if(isFinite(ag.leasedArea)) stat += '<span>임대 <b>'+Math.round(ag.leasedArea).toLocaleString()+'평</b></span>';
+  if(isFinite(ag.vacancy))    stat += '<span>공실 <b>'+(ag.vacancy*100).toFixed(0)+'%</b></span>';
+  if(isFinite(ag.wAvgRentPP)) stat += '<span>가중평균 <b>'+Math.round(ag.wAvgRentPP).toLocaleString()+'원/평</b></span>';
+  return '<div class="rr-fb on" style="grid-column:1/-1">'
+    +'<div class="rr-fb-h"><span class="rr-fb-ic ok">✓</span>렌트롤 반영 중<span class="rr-fb-tag">임차인별 계산</span></div>'
+    +'<div class="rr-fb-stat">'+stat+'</div>'
+    +'<p class="rr-fb-d">아래 평당 단가는 업로드 렌트롤의 <b>가중평균</b>입니다. 실제 계산은 <b>임차인별</b>로 오른쪽 ‘모델 결과’의 <b>반영 구조</b>에 표시됩니다.</p>'
+    +'<div class="rr-fb-act"><button type="button" class="rr-fb-btn ghost" data-rr-open>다시 업로드</button><button type="button" class="rr-fb-link" data-rr-clear>반영 해제</button></div>'
+    +'</div>';
+}
+
 function renderForm(){
   const d=DEALS[cur];
   const isQuick = depth==="quick";
+  const rrEligible = (cur==="office"||cur==="logistics");
   const quickKeys = QUICK_FIELDS[cur]||[];
   let html=depthHtml();  // 깊이 선택을 폼 최상단에
   if(isQuick){
@@ -1265,7 +1337,8 @@ function renderForm(){
     // QUICK_FIELDS 순서대로 정렬
     allFields.sort((a,b)=>quickKeys.indexOf(a.k)-quickKeys.indexOf(b.k));
     const cols=allFields.some(x=>x.full)?'one':'';
-    html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">①</span> 핵심 가정값 <span class="opt-badge" style="background:rgba(169,121,43,.1);color:var(--accent-deep);border-color:transparent">빠른 검토 · 필수 항목만</span></div><div class="fields ${cols}">${allFields.map(fieldHtml).join("")}</div></div>`;
+    const qExtra = rrEligible ? rrFormBlockHtml() : "";
+    html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">①</span> 핵심 가정값 <span class="opt-badge" style="background:rgba(169,121,43,.1);color:var(--accent-deep);border-color:transparent">빠른 검토 · 필수 항목만</span></div><div class="fields ${cols}">${allFields.map(fieldHtml).join("")}${qExtra}</div></div>`;
   }else{
     const mode=(state["noimode"]||"").trim();
     const rentBased = mode==="" || mode.startsWith("임대료");
@@ -1280,10 +1353,11 @@ function renderForm(){
     d.groups.forEach((g,gi)=>{
       const ff=visibleFields(g);
       const cols = ff.length>=3 && ff.every(x=>!x.full) ? (ff.length%3===0?'three':(ff.length%2===0?'':'')) : (ff.some(x=>x.full)?'one':'');
+      const extra = (rrEligible && g.h==="운영 수입") ? rrFormBlockHtml() : "";
       if(g.adv){
-        html+=`<div class="fgroup adv" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}</span><span class="opt-badge">세부 · 접기</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}</div></div>`;
+        html+=`<div class="fgroup adv" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}</span><span class="opt-badge">세부 · 접기</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }else{
-        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${g.gl}</span> ${g.h}</div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}</div></div>`;
+        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${g.gl}</span> ${g.h}</div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }
     });
   }
@@ -1982,8 +2056,8 @@ function renderSim(){
     var small=r.kpis.filter(function(k){return !k.big;});
     var sh=small.length?('<div class="sim-grid">'+small.map(function(k){return '<div class="mx-item"><div class="mx-l">'+esc(k.l)+'</div><div class="mx-v">'+esc(k.v)+'</div></div>';}).join('')+'</div>'):'';
     var tb='';
-    if(r.table){ tb='<details class="sim-cf"><summary>연도별 현금흐름 ▾</summary><table class="sens-tbl sim-tbl"><tr>'+r.table.head.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr>'+r.table.rows.map(function(row){return '<tr>'+row.map(function(c){return '<td>'+esc(String(c))+'</td>';}).join('')+'</tr>';}).join('')+'</table></details>'; }
-    bd.innerHTML=sh+tb;
+    if(r.table){ var _op=r.tableOpen?' open':''; var _lb=r.tableLabel||'연도별 현금흐름'; var _tc=r.tableClass?(' '+r.tableClass):''; tb='<details class="sim-cf"'+_op+'><summary>'+esc(_lb)+' ▾</summary><table class="sens-tbl sim-tbl'+_tc+'"><tr>'+r.table.head.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr>'+r.table.rows.map(function(row){return '<tr>'+row.map(function(c){return '<td>'+esc(String(c))+'</td>';}).join('')+'</tr>';}).join('')+'</table></details>'; }
+    bd.innerHTML=(r.struct||'')+sh+tb;
   }
   cv.innerHTML=(r.caveats||[]).map(function(c){return esc(c);}).join(' ');
 }
@@ -2592,7 +2666,23 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       {l:'현 공실률', v:total?(r.vacantArea/total*100).toFixed(1)+'%':'—', big:false}];
     var rows=[],y; for(y=0;y<5;y++){ var b=r.inc.bk[y];
       rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(b.inplace), mk(b.leaseup), mk(b.rollover), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']); }
-    return {type:'kpi', kpis:kpis, table:{head:['연차','NOI','현계약','공실해소','롤오버','DSCR'], rows:rows},
+    var cnt=rm.leases.length, la=Math.round(r.leasedArea).toLocaleString(), va=Math.round(r.vacantArea).toLocaleString();
+    var noi1=mk(r.NOI[0]), noi5=mk(r.NOI[4]), virr=_fp(r.IRR);
+    var struct='<div class="rrx">'
+      +'<div class="rrx-t">📋 업로드한 렌트롤이 모델에 반영되는 구조</div>'
+      +'<div class="rrx-src"><b>업로드 렌트롤</b> · 임차인 '+cnt+'개 · 임대 '+la+'평'+(r.vacantArea>0?(' · 공실 '+va+'평'):'')+'</div>'
+      +'<div class="rrx-sub">임대면적을 3가지로 분해해 연도별로 전개합니다</div>'
+      +'<div class="rrx-bk">'
+      +'<div class="rrx-b rrx-b1"><span class="n">① 현 계약</span><span class="a">'+la+'평</span><span class="d">실제 임대료·관리비·잔여 렌트프리·만기 그대로</span></div>'
+      +'<div class="rrx-b rrx-b2"><span class="n">② 공실 (lease-up)</span><span class="a">'+(r.vacantArea>0?va+'평':'없음')+'</span><span class="d">시장임대료로 흡수기간에 걸쳐 채움</span></div>'
+      +'<div class="rrx-b rrx-b3"><span class="n">③ 만기 도래 (롤오버)</span><span class="a">만기 시</span><span class="d">재계약확률·다운타임·렌트프리 반영 기대값</span></div>'
+      +'</div>'
+      +'<div class="rrx-chain"><span class="rrx-node">연도별 NOI</span><span class="rrx-mini">Y1 '+noi1+' → Y5 '+noi5+'</span><span class="rrx-ar">→</span><span class="rrx-node">부채·세금·매각</span><span class="rrx-ar">→</span><span class="rrx-node hi">레버드 IRR '+virr+'</span></div>'
+      +'<div class="rrx-legend">아래 <b>연도별 NOI 분해</b> 표에서 ①현계약·②공실해소·③롤오버 금액을 연차별로 확인할 수 있습니다.</div>'
+      +'</div>';
+    return {type:'kpi', kpis:kpis, struct:struct,
+      table:{head:['연차','NOI','현계약','공실해소','롤오버','DSCR'], rows:rows}, tableOpen:true, tableClass:'rr-tbl',
+      tableLabel:'연도별 NOI 분해 — ①현계약 · ②공실해소 · ③롤오버',
       caveats:['렌트롤 반영 — 현 계약은 실제값(임대료·관리비·잔여렌트프리·만기) 그대로, 공실·만기분은 시장 가정(흡수 lease-up·확률가중 롤오버)으로 산출.']};
   }
   function _newSimDcf(){
@@ -3128,6 +3218,14 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     // 딜 변경·비우기·예시·표준값 클릭 시 렌트롤 모드 해제(캡처 단계 → 본 핸들러보다 먼저)
     ['fillExample','fillStd','clearBtn'].forEach(function(id){ var b=$id(id); if(b&&!b.__rrr){ b.__rrr=1; b.addEventListener('click',function(){ window.rrModel=null; window.rrState=null; },true); } });
     var dts=$id('dealTabs'); if(dts&&!dts.__rrr){ dts.__rrr=1; dts.addEventListener('click',function(){ window.rrModel=null; window.rrState=null; },true); }
+    // 운영수입 섹션의 렌트롤 버튼은 폼 재렌더로 새로 생성되므로 위임(delegation)으로 처리
+    if(!document.__rrDeleg){ document.__rrDeleg=1; document.addEventListener('click',function(e){
+      var t=e.target; if(!t||!t.closest) return;
+      if(t.closest('[data-rr-open]')){ e.preventDefault(); open(); return; }
+      if(t.closest('[data-rr-clear]')){ e.preventDefault(); window.rrModel=null; window.rrState=null;
+        try{ if(typeof renderForm==='function') renderForm(); if(typeof restoreInputs==='function') restoreInputs(); if(typeof update==='function') update(); }catch(err){}
+        toastMsg('렌트롤 반영을 해제했습니다 — 평당 단가 입력 기반으로 돌아갑니다'); return; }
+    }); }
     var ob=$id('rrOpen'); if(ob&&!ob.__w){ ob.__w=1; ob.addEventListener('click',open); }
     var cb=$id('rrClose'); if(cb) cb.addEventListener('click',close);
     var ov=$id('rrOverlay'); if(ov) ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
