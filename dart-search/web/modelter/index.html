@@ -627,6 +627,11 @@ html,body{overflow-x:hidden}
 .oc-tx b{font-size:13px; font-weight:700; color:var(--ink)}
 .oc-tx i{font-style:normal; font-size:11px; color:var(--muted); margin-top:2px}
 @media(max-width:560px){ .outs{gap:6px} .outs-pre{display:none} .out-chip{padding:7px 10px; gap:7px} .oc-ic{font-size:15px} .oc-tx b{font-size:12.5px} }
+
+/* 이런 순간에 — 태그+제목 한 줄(컴팩트) */
+.uc-head{display:flex; align-items:center; gap:9px; margin-bottom:7px; flex-wrap:wrap}
+.uc-head .uc-tag{margin-bottom:0}
+.uc-head .uc-t{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -663,14 +668,7 @@ html,body{overflow-x:hidden}
     </div>
     <span class="eyebrow">모델터 · 기관의 재무모델링을, 모두에게</span>
     <h1>기관급 부동산 재무모델을, <em>누구나 직접</em>.</h1>
-    <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. <b>딜을 고르고 숫자만 넣으면</b>, 나머지는 모델터가 합니다.</p>
-    <div class="outs" aria-label="모델터가 만들어 주는 것">
-      <span class="outs-pre">숫자만 입력 →</span>
-      <div class="out-chip"><span class="oc-ic">📊</span><span class="oc-tx"><b>즉시 결과</b><i>IRR·멀티플·DSCR</i></span></div>
-      <div class="out-chip"><span class="oc-ic">📥</span><span class="oc-tx"><b>Excel 모델</b><i>수식 13시트</i></span></div>
-      <div class="out-chip"><span class="oc-ic">📋</span><span class="oc-tx"><b>렌트롤 반영</b><i>임차인별</i></span></div>
-      <div class="out-chip"><span class="oc-ic">🤖</span><span class="oc-tx"><b>AI 지시문</b><i>Claude in Excel·선택</i></span></div>
-    </div>
+    <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. 딜을 고르고 숫자만 넣으면, 나머지는 모델터가 합니다. <b>재무모델이 이 화면 안에서 바로 만들어지고</b>, 수식이 살아있는 <b>Excel 파일로 그 자리에서 내려받을 수 있습니다.</b></p>
     <a class="intro-cta" href="#builder-start">바로 만들어보기 ↓</a>
   </div>
 </section>
@@ -707,18 +705,15 @@ html,body{overflow-x:hidden}
     <h2 class="cmp-title">이런 순간에 씁니다</h2>
     <div class="usecase-grid">
       <div class="uc-card">
-        <div class="uc-tag">딜 검토</div>
-        <div class="uc-t">매입 입찰 전 빠른 수익성 판단</div>
+        <div class="uc-head"><div class="uc-tag">딜 검토</div><div class="uc-t">매입 입찰 전 빠른 수익성 판단</div></div>
         <p>매입가·임대료·Exit Cap을 넣어 IRR과 멀티플을 뽑고, 입찰가와 응찰 여부를 빠르게 가늠합니다.</p>
       </div>
       <div class="uc-card">
-        <div class="uc-tag">투자심의</div>
-        <div class="uc-t">투자심의위원회 부의 자료</div>
+        <div class="uc-head"><div class="uc-tag">투자심의</div><div class="uc-t">투자심의위원회 부의 자료</div></div>
         <p>자본구조·도관과세·민감도까지 갖춘 모델로 매입 타당성 검토 보고의 수치 기초를 만듭니다.</p>
       </div>
       <div class="uc-card">
-        <div class="uc-tag">자산관리</div>
-        <div class="uc-t">보유자산 리파이낸싱·재평가</div>
+        <div class="uc-head"><div class="uc-tag">자산관리</div><div class="uc-t">보유자산 리파이낸싱·재평가</div></div>
         <p>대출 만기 전 차환 대안별 LTV·금리·DSCR을 비교하고, 보유 자산의 현재 가치를 다시 점검합니다.</p>
       </div>
     </div>
