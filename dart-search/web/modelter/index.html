@@ -4,14 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <script>(function(){try{var t=localStorage.getItem('mt_theme');if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
-<title>모델터 · 부동산 재무모델 프롬프트 빌더 for Claude in Excel</title>
+<title>모델터 · 부동산 재무모델 빌더 — 숫자만 넣으면 결과·Excel 모델까지</title>
 
-<meta name="description" content="모델터 — 딜 유형을 고르고 가정값을 채우면, Claude in Excel에 바로 붙여넣을 다중 시트 재무모델 프롬프트로 완성됩니다. 오피스·물류센터 매입, 개발·PF, 리파이낸싱, 리츠·펀드 운용." />
+<meta name="description" content="모델터 — 딜 유형을 고르고 숫자만 넣으면 IRR·멀티플 결과를 화면에서 바로, 수식이 살아있는 13시트 Excel 모델을 그 자리에서 만들어 줍니다. 렌트롤 반영·Claude in Excel 지시문까지. 오피스·물류 매입, 개발·PF, 리파이낸싱, 리츠·펀드." />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <link rel="canonical" href="https://modelter.com/" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="모델터 · 부동산 재무모델 프롬프트 빌더" />
-<meta property="og:description" content="딜 유형을 고르고 가정값을 채우면 Claude in Excel에 바로 붙여넣을 모델 프롬프트가 완성됩니다." />
+<meta property="og:title" content="모델터 · 부동산 재무모델 빌더" />
+<meta property="og:description" content="딜 종류를 고르고 숫자만 넣으면 결과를 화면에서 바로 보여주고, 수식이 살아있는 Excel 재무모델을 그 자리에서 만들어 줍니다." />
 <meta property="og:url" content="https://modelter.com/" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <meta property="og:image:width" content="1200" />
@@ -19,7 +19,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"딜 유형을 고르고 가정값을 채우면 Claude in Excel에 붙여넣을 부동산 재무모델 프롬프트가 완성됩니다.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"딜 종류를 고르고 숫자만 넣으면 결과를 바로 보여주고, 수식이 살아있는 부동산 재무모델 Excel을 그 자리에서 만들어 줍니다. 렌트롤 반영·Claude in Excel 지시문까지.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"}}
 </script>
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -629,8 +629,8 @@ html,body{overflow-x:hidden}
       <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><defs><linearGradient id="mtmark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b9842f"/><stop offset="1" stop-color="#8a5f20"/></linearGradient></defs><rect width="32" height="32" rx="8.5" fill="url(#mtmark)"/><g fill="#fbf6ec"><rect x="8.5" y="17.5" width="3.4" height="6" rx="1.1"/><rect x="14.3" y="14" width="3.4" height="9.5" rx="1.1"/><rect x="20.1" y="10.5" width="3.4" height="13" rx="1.1"/><rect x="7.5" y="24.2" width="17" height="1.7" rx="0.85"/></g></svg></span>
       <div class="wordmark">
         <b>모델터</b>
-        <span class="tag-full">부동산 재무모델 빌더 · for Claude in Excel</span>
-        <span class="tag-short">for Claude in Excel</span>
+        <span class="tag-full">부동산 재무모델 빌더 · 결과·Excel·AI까지</span>
+        <span class="tag-short">재무모델 빌더</span>
       </div>
     </a>
     <div class="head-right">
@@ -653,8 +653,8 @@ html,body{overflow-x:hidden}
     </div>
     <span class="eyebrow">모델터 · 기관의 재무모델링을, 모두에게</span>
     <h1>기관급 부동산 재무모델을, <em>누구나 직접</em>.</h1>
-    <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. 모델터는 딜 종류를 고르고 숫자 몇 개만 넣으면, Excel에서 AI(Claude)가 바로 모델을 만들어 줄 지시문을 대신 써 줍니다.</p>
-    <div class="flow"><b>딜 유형 선택</b> <span class="ar">→</span> <b>가정값 입력</b> <span class="ar">→</span> <b>복사</b> <span class="ar">→</span> <b>Claude in Excel에 붙여넣기</b></div>
+    <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. 모델터는 딜 종류를 고르고 숫자만 넣으면 — IRR·멀티플 같은 <b>결과를 화면에서 바로</b> 보여주고, 수식이 살아있는 <b>13시트 Excel 모델</b>을 그 자리에서 만들어 줍니다. 실제 <b>렌트롤</b>을 올리면 임차인별로 반영하고, 더 깊게 가려면 <b>Claude in Excel</b>용 지시문까지 함께 드립니다.</p>
+    <div class="flow"><b>딜 유형 선택</b> <span class="ar">→</span> <b>숫자 입력</b> <span class="ar">→</span> <b>결과 즉시 확인</b> <span class="ar">→</span> <b>Excel 모델 받기</b></div>
     <a class="intro-cta" href="#builder-start">바로 만들어보기 ↓</a>
   </div>
 </section>
@@ -666,11 +666,11 @@ html,body{overflow-x:hidden}
       <div class="who-grid">
         <div class="who-card">
           <div class="who-top"><span class="who-role">본부장 · 팀장</span><span class="who-gain">즉시 초안</span></div>
-          <p>주니어에게 넘기고 회수하는 시간 없이, 보고 전에 모델 초안을 그 자리에서 손에 쥡니다.</p>
+          <p>주니어에게 넘기고 회수하는 시간 없이, 보고 전에 IRR·멀티플과 Excel 모델 초안을 그 자리에서 손에 쥡니다.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">시니어</span><span class="who-gain">검토 가속</span></div>
-          <p>익숙한 구조라 바닥부터 짤 필요 없이, 가정만 바꿔가며 빠르게 시나리오를 검토합니다.</p>
+          <p>익숙한 구조라 바닥부터 짤 필요 없이, 가정만 바꾸면 결과가 바로 나와 시나리오를 빠르게 검토합니다.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">주니어</span><span class="who-gain">속도 · 정확</span></div>
@@ -739,7 +739,7 @@ html,body{overflow-x:hidden}
 
     <div>
       <div class="metrics" id="simCard" hidden>
-        <div class="mx-head"><span class="mx-t">간이 결과 <span class="mx-sub">실시간 추정</span></span><span class="mx-flag" id="simFlag" style="color:var(--accent-deep);background:rgba(169,121,43,.13)">간이·근사</span></div>
+        <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag" id="simFlag" style="color:var(--accent-deep);background:rgba(169,121,43,.13)">다운로드 Excel과 동일</span></div>
         <div class="sim-kpis" id="simKpis"></div>
         <div id="simBody"></div>
         <div class="sim-cav" id="simCaveat"></div>
@@ -767,17 +767,17 @@ html,body{overflow-x:hidden}
 
       <div class="out-panel">
         <div class="out-head">
-          <div class="t">완성된 프롬프트 <span class="badge">Claude in Excel · 붙여넣기용</span></div>
-          <span class="out-step">3단계 · 복사</span>
+          <div class="t">AI 지시문 <span class="badge">Claude in Excel · 더 깊게 다듬을 때</span></div>
+          <span class="out-step">선택 · 더 깊게</span>
           <span class="meta" id="outMeta">약 0자</span>
           <div class="out-act">
             <button class="obtn" id="pdfBtn" type="button" title="한 장 요약 PDF/인쇄">📄 요약</button>
-            <button class="obtn mail-only" id="mailBtn" title="이 프롬프트를 메일로 보내 PC에서 받기"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>메일로</button>
+            <button class="obtn mail-only" id="mailBtn" title="이 지시문을 메일로 보내 PC에서 받기"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>메일로</button>
             <button class="obtn" id="dlBtn"><svg viewBox="0 0 24 24"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 2h14v2H5v-2z"/></svg>.md</button>
             <button class="obtn solid" id="copyBtn"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z"/></svg><span id="copyLabel">전체 복사</span></button>
           </div>
         </div>
-        <p class="out-hint" id="outHint"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><span><b>예시가 채워져 있습니다.</b> 왼쪽 값을 바꾸면 이 프롬프트가 실시간으로 갱신됩니다. 그대로 복사해 Claude in Excel에 붙여넣어도 됩니다.</span></p>
+        <p class="out-hint" id="outHint"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><span><b>예시가 채워져 있습니다.</b> 왼쪽 값을 바꾸면 결과·Excel 모델·이 지시문이 실시간으로 갱신됩니다. Excel을 그대로 받거나, 이 지시문을 복사해 Claude in Excel에서 더 깊게 이어가도 됩니다.</span></p>
         <pre class="out" id="outText"></pre>
       </div>
     </div>
@@ -787,10 +787,10 @@ html,body{overflow-x:hidden}
     <div class="howto">
       <div class="ht-t">사용 방법</div>
       <ol>
-        <li>먼저 <b>모델 깊이</b>를 고르고, <b>딜 유형</b>에 맞는 가정값을 채웁니다.</li>
-        <li>값을 채우면 프롬프트가 <b>실시간으로 완성</b>됩니다. 비워두면 합리적 가정으로 두라고 지시됩니다.</li>
-        <li><b>전체 복사</b> 후 Excel의 <b>Claude in Excel 패널에 붙여넣습니다.</b></li>
-        <li>Claude가 확인 질문을 하면 답한 뒤, 한 시트씩 모델이 생성됩니다.</li>
+        <li><b>딜 유형</b>을 고르고 숫자를 채우면, 우측에 <b>IRR·멀티플 결과</b>가 바로 나옵니다.</li>
+        <li><b>13시트 Excel 모델</b>을 그 자리에서 내려받습니다 — 수식이 살아있어 가정을 바꾸면 따라 움직입니다.</li>
+        <li>실제 <b>렌트롤</b>을 올리면 임차인별로(현 계약·공실·만기) 모델에 반영됩니다.</li>
+        <li>더 깊게·맞춤으로 가려면 <b>완성된 지시문</b>을 복사해 <b>Claude in Excel</b>에서 이어갑니다.</li>
       </ol>
     </div>
   </div>
@@ -799,14 +799,14 @@ html,body{overflow-x:hidden}
     <details class="onboard">
       <summary><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> Claude in Excel이 처음이신가요?</summary>
       <div class="ob-body">
-        <p><b>Claude in Excel</b>은 Microsoft Excel 안에서 Claude를 사이드 패널로 띄워 쓰는 기능입니다. 이 프롬프트를 그 패널에 붙여넣으면, Claude가 시트를 직접 만들어 줍니다.</p>
+        <p>화면 결과와 Excel 모델만으로 충분할 때가 많지만, <b>더 깊게·맞춤으로</b> 가고 싶을 때 씁니다. <b>Claude in Excel</b>은 Excel 안에서 Claude를 사이드 패널로 띄워 쓰는 기능이고, 위 <b>AI 지시문</b>을 붙여넣으면 Claude가 시트를 더 정교하게 만들어 줍니다.</p>
         <ol>
           <li>Excel에서 Claude 패널을 엽니다. (설치·접속 방법은 "Claude in Excel"로 검색해 안내를 참고하세요.)</li>
           <li>위 <b>전체 복사</b> 버튼을 누릅니다.</li>
           <li>Claude 패널 입력창에 붙여넣고 보냅니다.</li>
           <li>Claude가 한 시트씩 모델을 만들어 줍니다. 중간 질문에는 답해 주세요.</li>
         </ol>
-        <p class="ob-alt">Excel용 Claude가 없다면, 복사한 프롬프트를 일반 Claude(claude.ai) 대화창에 붙여넣어 모델 설계안을 받아볼 수도 있습니다.</p>
+        <p class="ob-alt">Excel용 Claude가 없다면, 복사한 지시문을 일반 Claude(claude.ai) 대화창에 붙여넣어 모델 설계안을 받아볼 수도 있습니다.</p>
       </div>
     </details>
   </div>
@@ -869,14 +869,14 @@ html,body{overflow-x:hidden}
           <span>상업용 부동산 금융 9년차 · 상장리츠 · PF · 구조화금융 · <a href="https://www.linkedin.com/in/seonghoonk/" target="_blank" rel="noopener">LinkedIn</a></span>
         </div>
       </div>
-      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-06-23</p>
+      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-06-27</p>
     </div>
   </div>
 </footer>
 
-<button class="jump-fab" id="jumpFab" aria-label="프롬프트로 이동">
+<button class="jump-fab" id="jumpFab" aria-label="AI 지시문으로 이동">
   <svg viewBox="0 0 24 24"><path d="M12 16l-6-6 1.4-1.4L12 13.2l4.6-4.6L18 10z"/></svg>
-  <span>프롬프트 보기</span>
+  <span>지시문 보기</span>
 </button>
 
 <div id="printSummary" aria-hidden="true"></div>
@@ -1216,7 +1216,7 @@ function commonHtml(){
      <div class="f"><label>세무 처리</label><select id="f_taxmode" data-k="taxmode"><option>도관과세(법인세 면제)</option><option>비도관(법인세 적용)</option></select></div>
      <div class="f"><label>법인세율 <span class="unit">%</span></label><input id="f_taxrate" data-k="taxrate" data-num="1" data-min="0" data-max="50" data-pct="1" inputmode="decimal" placeholder="20" /></div>
    </div>
-   <div class="f full" style="margin-top:12px"><label>모델 목적·메모 <span class="unit">선택</span></label><textarea id="f_memo" data-k="memo" placeholder="이 모델로 무엇을 보고 싶은지, 반영할 가정·제약을 적으면 프롬프트에 포함됩니다. 예: 보수적 시나리오 기준, 공실률 10% 가정"></textarea></div>
+   <div class="f full" style="margin-top:12px"><label>모델 목적·메모 <span class="unit">선택</span></label><textarea id="f_memo" data-k="memo" placeholder="이 모델로 무엇을 보고 싶은지, 반영할 가정·제약을 적으면 모델·지시문에 함께 반영됩니다. 예: 보수적 시나리오 기준, 공실률 10% 가정"></textarea></div>
    <div class="f" style="margin-top:12px"><label>추가 적용 원칙</label><div class="opts" id="optBox"></div></div>
   </div>`;
 }
@@ -1687,7 +1687,7 @@ function buildPrintSummary(){
   var asRows=''; d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='textarea') return; var v=(state[f.k]||'').trim(); asRows+='<tr><td>'+esc(f.l)+'</td><td>'+(v?(esc(v)+(f.u?(' '+esc(f.u)):'')):'<i>미입력(가정)</i>')+'</td></tr>'; }); });
   var sheetHtml=sheets.map(function(x,i){return (i+1)+'. '+x;}).join('   ·   ');
   $('printSummary').innerHTML=
-    '<div class="ps-head"><div class="ps-brand">모델터 · 부동산 재무모델 프롬프트 빌더</div><div class="ps-date">'+date+'</div></div>'+
+    '<div class="ps-head"><div class="ps-brand">모델터 · 부동산 재무모델 빌더</div><div class="ps-date">'+date+'</div></div>'+
     '<h1 class="ps-title">'+esc(title)+' <span>'+esc(d.label)+' · '+esc(dp.label)+' ('+sheets.length+'시트)</span></h1>'+
     '<div class="ps-cols"><div class="ps-col"><h2>즉시 점검</h2><table class="ps-tbl">'+rowsHtml+'</table>'+warnHtml+'</div>'+
     '<div class="ps-col"><h2>핵심 가정</h2><table class="ps-tbl">'+asRows+'</table></div></div>'+
@@ -1837,7 +1837,7 @@ function simDcf(){
   var mult=equity>0?totalDist/equity:null;
   var avgCoC=null; if(equity>0){ var su=0,cn=0; for(var t2=1;t2<hold;t2++){ su+=cf[t2]/equity; cn++; } avgCoC=cn?su/cn:(cf[1]/equity); }
   var ucf=[-uses]; for(var t3=1;t3<=hold;t3++){ var v=noi(t3); if(t3===hold) v+=saleNet; ucf.push(v); } var unlev=irr(ucf);
-  var cav=['간이 추정 — 연간 현금흐름·'+(passthru?'도관과세(세금≈0)':('법인세 '+mfmt(taxrate*100,0)+'%·건물분70%/내용연수40년 가정'))+'·공실/CAPEX 미반영. 정밀 모델은 우측 프롬프트로 Claude in Excel.'];
+  var cav=['간이 추정 — 연간 현금흐름·'+(passthru?'도관과세(세금≈0)':('법인세 '+mfmt(taxrate*100,0)+'%·건물분70%/내용연수40년 가정'))+'·공실/CAPEX 미반영. 정밀 모델은 Excel 다운로드로.'];
   if(equity<=0) cav.unshift('자기자본이 0 이하 — 대출+우선주가 총취득원가를 초과합니다.');
   if(prefAmt>0) cav.push('우선주 워터폴: 우선배당(누적) 후 보통주 잔여, 청산 시 우선주 원금 우선 반영.');
   var kpis=[
@@ -2035,7 +2035,7 @@ async function copyOut(){ try{ await navigator.clipboard.writeText($("outText").
 function downloadOut(){ const blob=new Blob([$("outText").textContent],{type:"text/markdown"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="model-prompt-"+cur+".md"; a.click(); URL.revokeObjectURL(a.href); toast("다운로드를 시작합니다"); }
 function mailPrompt(){
   const body=encodeURIComponent($("outText").textContent+"\n\n— 모델터(modelter.com)에서 생성");
-  const subject=encodeURIComponent("[모델터] "+DEALS[cur].label+" 모델 프롬프트");
+  const subject=encodeURIComponent("[모델터] "+DEALS[cur].label+" 모델 지시문");
   window.location.href=`mailto:?subject=${subject}&body=${body}`;
   toast("메일 앱을 엽니다 — PC에서 받아 Claude in Excel에 붙여넣으세요");
 }
