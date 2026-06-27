@@ -701,6 +701,32 @@ html,body{overflow-x:hidden}
 .rr-tbl th:nth-child(4),.rr-tbl td:nth-child(4){color:var(--green)}
 .rr-tbl th:nth-child(5),.rr-tbl td:nth-child(5){color:var(--accent-deep)}
 .rr-tbl th:nth-child(3),.rr-tbl th:nth-child(4),.rr-tbl th:nth-child(5){font-weight:800}
+
+/* 자본 구조 · 트랜치별 수익 (우선주/보통주) */
+.trn{margin:2px 0 12px; border:1px solid var(--line-soft); border-radius:12px; overflow:hidden; background:var(--panel)}
+.trn-h{font-size:11.5px; font-weight:800; color:var(--ink-2); padding:9px 12px; background:var(--bg); border-bottom:1px solid var(--line-soft); display:flex; align-items:baseline; gap:7px}
+.trn-h span{font-size:10px; font-weight:600; color:var(--muted)}
+.trn-row{display:grid; grid-template-columns:1.3fr .7fr 1fr 1fr 1fr; align-items:center; gap:6px; padding:9px 12px; border-bottom:1px solid var(--line-soft); border-left:3px solid transparent}
+.trn-row:last-child{border-bottom:none}
+.trn-sen{border-left-color:var(--ink-3); background:rgba(120,120,120,.03)}
+.trn-pref{border-left-color:var(--blue); background:rgba(58,90,120,.045)}
+.trn-com{border-left-color:var(--accent-solid); background:rgba(169,121,43,.05)}
+.trn-n{display:flex; flex-direction:column; line-height:1.15}
+.trn-n b{font-size:13px; font-weight:800; color:var(--ink)}
+.trn-n i{font-size:10px; font-style:normal; color:var(--muted); font-weight:600}
+.trn-w{font-family:var(--mono); font-size:13px; font-weight:800; color:var(--ink); text-align:right}
+.trn-amt{font-family:var(--mono); font-size:11px; color:var(--ink-3); text-align:right}
+.trn-m{display:flex; flex-direction:column; align-items:flex-end; line-height:1.15}
+.trn-m b{font-family:var(--mono); font-size:13.5px; font-weight:800; color:var(--ink)}
+.trn-m i{font-size:9.5px; font-style:normal; color:var(--muted); font-weight:600; margin-top:1px}
+.trn-pref .trn-m b,.trn-pref .trn-n b{color:var(--blue)}
+.trn-com .trn-m:nth-of-type(4) b{color:var(--accent-deep)}
+.trn-m.muted b{color:var(--ink-3); font-family:var(--font); font-weight:700; font-size:11px}
+.trn-m.muted i{color:var(--line)}
+@media(max-width:520px){
+  .trn-row{grid-template-columns:1.2fr .8fr 1fr 1fr; row-gap:4px}
+  .trn-amt{display:none}
+}
 </style>
 </head>
 <body>
@@ -1033,8 +1059,8 @@ const SHEET_INFO={
 const TRANCHES=[
  {id:"senior",name:"선순위 대출",sr:"SENIOR",cls:"sr-senior",on:true,ltv:"55",rate:"4.2",rateLabel:"금리",extra:{label:"상환방식",type:"select",opts:["만기일시","원리금균등","원금균등"]}},
  {id:"mezz",name:"중순위 (메자닌)",sr:"MEZZ",cls:"sr-mezz",on:false,ltv:"10",rate:"8.0",rateLabel:"금리",extra:{label:"상환방식",type:"select",opts:["만기일시상환","이자만 지급"]}},
- {id:"pref",name:"우선주",sr:"PREF",cls:"sr-pref",on:false,ltv:"10",rate:"7.0",rateLabel:"요구 CoC",extra:{label:"우선배당",type:"select",opts:["누적적","비누적적"]}},
- {id:"common",name:"보통주 자기자본",sr:"EQUITY",cls:"sr-equity",on:true,ltv:"25",rate:"",extra:null,equity:true}
+ {id:"pref",name:"우선주",sr:"PREF",cls:"sr-pref",on:true,ltv:"30",rate:"6.0",rateLabel:"요구 CoC",extra:{label:"우선배당",type:"select",opts:["누적적","비누적적"]}},
+ {id:"common",name:"보통주 자기자본",sr:"EQUITY",cls:"sr-equity",on:true,ltv:"15",rate:"",extra:null,equity:true}
 ];
 
 /* ---------- 딜 유형 정의 ---------- */
@@ -2057,7 +2083,7 @@ function renderSim(){
     var sh=small.length?('<div class="sim-grid">'+small.map(function(k){return '<div class="mx-item"><div class="mx-l">'+esc(k.l)+'</div><div class="mx-v">'+esc(k.v)+'</div></div>';}).join('')+'</div>'):'';
     var tb='';
     if(r.table){ var _op=r.tableOpen?' open':''; var _lb=r.tableLabel||'연도별 현금흐름'; var _tc=r.tableClass?(' '+r.tableClass):''; tb='<details class="sim-cf"'+_op+'><summary>'+esc(_lb)+' ▾</summary><table class="sens-tbl sim-tbl'+_tc+'"><tr>'+r.table.head.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')+'</tr>'+r.table.rows.map(function(row){return '<tr>'+row.map(function(c){return '<td>'+esc(String(c))+'</td>';}).join('')+'</tr>';}).join('')+'</table></details>'; }
-    bd.innerHTML=(r.struct||'')+sh+tb;
+    bd.innerHTML=(r.struct||'')+(r.tranche||'')+sh+tb;
   }
   cv.innerHTML=(r.caveats||[]).map(function(c){return esc(c);}).join(' ');
 }
@@ -2090,9 +2116,9 @@ function renderPreview(){
 /* ---------- 예시 ---------- */
 const EXAMPLES={
  office:{state:{asset:"강남 A타워",gfa:"8,400",price:"120,000",acqtax:"4.6",acqfee:"1.5",appraisal:"123,500",noimode:"임대료·관리비로 산출",rentpp:"62,000",campp:"21,000",depmult:"12",noi1:"",noig:"2.0",hold:"5",exitcap:"4.8",salefee:"1.8"},
-   stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.2",mezz_on:false,pref_on:false,common_on:true,common_ltv:"45",common_coc:"12"}},
+   stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.2",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"12"}},
  logistics:{state:{asset:"이천 물류센터",gfa:"35,000",price:"210,000",acqtax:"4.6",acqfee:"1.5",appraisal:"215,000",noimode:"임대료·관리비로 산출",rentpp:"28,000",campp:"1,700",depmult:"12",noi1:"",noig:"2.5",hold:"5",exitcap:"5.4",salefee:"1.8"},
-   stack:{senior_on:true,senior_ltv:"58",senior_rate:"4.5",mezz_on:false,pref_on:false,common_on:true,common_ltv:"42",common_coc:"13"}},
+   stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.5",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"13"}},
  dev:{state:{asset:"안성 물류 개발",land:"12,000",gfa:"24,000",tpc:"320,000",landcost:"90,000",conscost:"180,000",consperiod:"28",saleopen:"6",absorb:"24",saleprice:"평당 1,650만",exitmode:"분양 완료",exitcap:"5.5"},
    stack:{senior_on:true,senior_ltv:"60",senior_rate:"5.1",mezz_on:true,mezz_ltv:"15",mezz_rate:"8.5",pref_on:false,common_on:true,common_ltv:"25",common_coc:"15"}},
  refi:{state:{asset:"분당 B빌딩",noi:"4,200",appraisal:"85,000",dscrmin:"1.2",oldbal:"46,000",oldrate:"3.6",oldmat:"0.5",prepayfee:"0.5",newfee:"0.3"},
@@ -2594,15 +2620,39 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var sale=NOI[5]/n('C58',0.045), netSale=sale-sale*n('C59',0.01);
     var dist=[];
     for(y=0;y<5;y++){ var d=opCF[y]-DS[y]; if(y===4) d+=netSale-endBal[4]; dist.push(d); }
-    var commonCF=[];
-    for(y=0;y<5;y++){ var pd=Math.min(dist[y],prefAmt*prefCoc); var pp=(y===4)?Math.min(dist[y]-pd,prefAmt):0; commonCF.push(dist[y]-(pd+pp)); }
+    var commonCF=[],prefCF=[];
+    for(y=0;y<5;y++){ var pd=Math.min(dist[y],prefAmt*prefCoc); var pp=(y===4)?Math.min(dist[y]-pd,prefAmt):0; prefCF.push(pd+pp); commonCF.push(dist[y]-(pd+pp)); }
     var IRR=_irr([-equity].concat(dist));
     var EM=dist.reduce(function(a,b){return a+b;},0)/equity;
     var coc=(commonCF.slice(0,4).reduce(function(a,b){return a+b;},0)/4)/common;
+    var prefIRR=(prefAmt>0)?_irr([-prefAmt].concat(prefCF)):null;
+    var commonIRR=(common>0)?_irr([-common].concat(commonCF)):null;
+    var commonEM=(common>0)?commonCF.reduce(function(a,b){return a+b;},0)/common:null;
     var unlev=_irr([-uses].concat(opCF.slice(0,4)).concat([opCF[4]+netSale]));
-    return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,price:price,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist};
+    return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,price:price,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist,
+      uses:uses,loan:loan,prefAmt:prefAmt,common:common,prefCoc:prefCoc,prefIRR:prefIRR,commonIRR:commonIRR,commonEM:commonEM,commonCoC:coc};
   }
   function _fp(x){ return (x==null||!isFinite(x))?'—':(x*100).toFixed(2)+'%'; }
+  // 우선주·보통주(자본 트랜치)별 비중·수익 블록
+  function _trancheBlock(r){
+    if(!r) return '';
+    var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
+    function wOf(id,amt){ var w=(typeof mLtv==='function')?mLtv(id):NaN; if(isFinite(w)) return Math.round(w)+'%'; if(r.uses&&isFinite(amt)) return Math.round(amt/r.uses*100)+'%'; return '—'; }
+    function on(id){ return (typeof mOn==='function')?mOn(id):true; }
+    var rows='';
+    if(on('senior')&&r.loan>0){
+      var sr=NaN; try{ var ss=(typeof stackState!=='undefined'&&stackState)||{}; sr=parseFloat(ss['senior_rate']); if(!isFinite(sr)&&typeof TRANCHES!=='undefined'){ var ts=TRANCHES.find(function(x){return x.id==='senior';}); sr=parseFloat(ts&&ts.rate); } }catch(e){}
+      rows+='<div class="trn-row trn-sen"><span class="trn-n"><b>선순위</b><i>Senior</i></span><span class="trn-w">'+wOf('senior',r.loan)+'</span><span class="trn-amt">'+mk(r.loan)+'</span><span class="trn-m"><b>'+(isFinite(sr)?sr.toFixed(1)+'%':'—')+'</b><i>금리</i></span><span class="trn-m muted"><b>대출</b><i>부채</i></span></div>';
+    }
+    if(on('pref')&&r.prefAmt>0){
+      rows+='<div class="trn-row trn-pref"><span class="trn-n"><b>우선주</b><i>Preferred</i></span><span class="trn-w">'+wOf('pref',r.prefAmt)+'</span><span class="trn-amt">'+mk(r.prefAmt)+'</span><span class="trn-m"><b>'+_fp(r.prefIRR)+'</b><i>IRR</i></span><span class="trn-m"><b>'+_fp(r.prefCoc)+'</b><i>배당률</i></span></div>';
+    }
+    if(r.common>0){
+      rows+='<div class="trn-row trn-com"><span class="trn-n"><b>보통주</b><i>Common</i></span><span class="trn-w">'+wOf('common',r.common)+'</span><span class="trn-amt">'+mk(r.common)+'</span><span class="trn-m"><b>'+_fp(r.commonIRR)+'</b><i>IRR</i></span><span class="trn-m"><b>'+_fp(r.commonCoC)+'</b><i>배당률</i></span></div>';
+    }
+    if(!rows) return '';
+    return '<div class="trn"><div class="trn-h">자본 구조 · 트랜치별 수익 <span>Capital stack &amp; returns</span></div>'+rows+'</div>';
+  }
   // ── 임차인별 NOI 엔진 v2 (현계약 실제 + 공실 흡수 lease-up + 확률가중 롤오버) ──
   function leaseIncome(leases, gfa, mkt, hold){
     var leasedArea=0; leases.forEach(function(l){leasedArea+=(l.area||0);});
@@ -2646,11 +2696,15 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     for(y=0;y<hold;y++){var interest=bal*sRate,prin; if(repay.indexOf('만기일시')>=0)prin=0;else if(repay.indexOf('원금균등')>=0)prin=loan/mat;else prin=pmt(sRate,mat,loan)-interest; DS.push(interest+prin);DSCR.push(NOI[y]/(interest+prin));bal-=prin;endBal.push(bal);}
     var sale=NOI[hold]/n('exitCap',0.045), netSale=sale-sale*n('saleFee',0.01);
     var dist=[];for(y=0;y<hold;y++){var d=(NOI[y]-capexB*Math.pow(1+opG,y))-DS[y];if(y===hold-1)d+=netSale-endBal[hold-1];dist.push(d);}
-    var commonCF=[];for(y=0;y<hold;y++){var pd=Math.min(dist[y],prefAmt*prefCoc);var pp=(y===hold-1)?Math.min(dist[y]-pd,prefAmt):0;commonCF.push(dist[y]-(pd+pp));}
+    var commonCF=[],prefCF=[];for(y=0;y<hold;y++){var pd=Math.min(dist[y],prefAmt*prefCoc);var pp=(y===hold-1)?Math.min(dist[y]-pd,prefAmt):0;prefCF.push(pd+pp);commonCF.push(dist[y]-(pd+pp));}
     var IRR=_irr([-equity].concat(dist)); var EM=dist.reduce(function(a,b){return a+b;},0)/equity;
     var coc=(commonCF.slice(0,hold-1).reduce(function(a,b){return a+b;},0)/(hold-1))/common;
+    var prefIRR=(prefAmt>0)?_irr([-prefAmt].concat(prefCF)):null;
+    var commonIRR=(common>0)?_irr([-common].concat(commonCF)):null;
+    var commonEM=(common>0)?commonCF.reduce(function(a,b){return a+b;},0)/common:null;
     var opCF=NOI.slice(0,hold).map(function(noi,k){return noi-capexB*Math.pow(1+opG,k);}); var unlev=_irr([-uses].concat(opCF.slice(0,hold-1)).concat([opCF[hold-1]+netSale]));
-    return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist,inc:inc,uses:uses,vacantArea:inc.vacantArea,leasedArea:inc.leasedArea};
+    return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist,inc:inc,uses:uses,vacantArea:inc.vacantArea,leasedArea:inc.leasedArea,
+      loan:loan,prefAmt:prefAmt,common:common,prefCoc:prefCoc,prefIRR:prefIRR,commonIRR:commonIRR,commonEM:commonEM,commonCoC:coc};
   }
   function rrLeaseResult(){
     var rm=(typeof window!=='undefined')?window.rrModel:null;
@@ -2660,9 +2714,9 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var total=r.leasedArea+r.vacantArea;
-    var kpis=[{l:'레버드 IRR(세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
-      {l:'Equity Multiple', v:em, big:true},{l:'평균 배당률(CoC)', v:_fp(r.coc), big:true},
-      {l:'언레버드 IRR', v:_fp(r.unlev), big:false},{l:'최소 DSCR', v:ds, big:false},
+    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
+      {l:'Equity Multiple', v:em, big:true},{l:'Unlevered IRR', v:_fp(r.unlev), big:true},
+      {l:'최소 DSCR', v:ds, big:false},
       {l:'현 공실률', v:total?(r.vacantArea/total*100).toFixed(1)+'%':'—', big:false}];
     var rows=[],y; for(y=0;y<5;y++){ var b=r.inc.bk[y];
       rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(b.inplace), mk(b.leaseup), mk(b.rollover), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']); }
@@ -2680,7 +2734,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       +'<div class="rrx-chain"><span class="rrx-node">연도별 NOI</span><span class="rrx-mini">Y1 '+noi1+' → Y5 '+noi5+'</span><span class="rrx-ar">→</span><span class="rrx-node">부채·세금·매각</span><span class="rrx-ar">→</span><span class="rrx-node hi">레버드 IRR '+virr+'</span></div>'
       +'<div class="rrx-legend">아래 <b>연도별 NOI 분해</b> 표에서 ①현계약·②공실해소·③롤오버 금액을 연차별로 확인할 수 있습니다.</div>'
       +'</div>';
-    return {type:'kpi', kpis:kpis, struct:struct,
+    return {type:'kpi', kpis:kpis, struct:struct, tranche:_trancheBlock(r),
       table:{head:['연차','NOI','현계약','공실해소','롤오버','DSCR'], rows:rows}, tableOpen:true, tableClass:'rr-tbl',
       tableLabel:'연도별 NOI 분해 — ①현계약 · ②공실해소 · ③롤오버',
       caveats:['렌트롤 반영 — 현 계약은 실제값(임대료·관리비·잔여렌트프리·만기) 그대로, 공실·만기분은 시장 가정(흡수 lease-up·확률가중 롤오버)으로 산출.']};
@@ -2691,17 +2745,16 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
     var kpis=[
-      {l:'레버드 IRR(세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
+      {l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
       {l:'Equity Multiple', v:em, big:true},
-      {l:'평균 배당률(CoC)', v:_fp(r.coc), big:true},
-      {l:'언레버드 IRR', v:_fp(r.unlev), big:false},
+      {l:'Unlevered IRR', v:_fp(r.unlev), big:true},
       {l:'최소 DSCR', v:ds, big:false},
       {l:'자기자본', v:mk(r.equity), big:false}
     ];
     var rows=[],y;
     for(y=0;y<5;y++) rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(r.DS[y]), mk(r.dist[y]), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']);
-    return {type:'kpi', kpis:kpis, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
-      caveats:['화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(임대가능면적·세부 운영비·보증금운용·감가·매각 반영).']};
+    return {type:'kpi', kpis:kpis, tranche:_trancheBlock(r), table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
+      caveats:['화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(자본구조·우선주 배당·도관과세·임대가능면적·세부 운영비·보증금운용·감가·매각 반영).']};
   }
   try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
 
