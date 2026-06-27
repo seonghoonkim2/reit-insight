@@ -114,14 +114,14 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 
 /* why section */
 .why{padding:36px 0 42px; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); background:linear-gradient(180deg,#fbf8f1,#f5f2ea)}
-.why .wrap{display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start}
+.why .wrap{display:block}
 @media(max-width:860px){ .why .wrap{grid-template-columns:1fr; gap:18px} }
 .why-label{font-family:var(--serif); font-size:12.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin-bottom:14px}
 .why-lead{font-size:18.5px; font-weight:600; letter-spacing:-.015em; color:var(--ink); margin-bottom:7px; line-height:1.28}
 .why-body p{font-size:14.5px; color:var(--ink-2); line-height:1.55; margin:0 0 6px}
 .why-body b{color:var(--ink); font-weight:600}
 .why-foot{font-size:13.5px!important; color:var(--muted)!important; padding-top:8px; border-top:1px dashed var(--line-soft); margin-bottom:0!important}
-.who-grid{display:flex; flex-direction:column; gap:6px}
+.who-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
 .who-card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:9px 13px; transition:.16s}
 .who-card:hover{border-color:var(--accent); box-shadow:var(--soft)}
 .who-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:3px}
@@ -602,6 +602,21 @@ button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-
   .deal-tab{min-height:42px}
   .f input,.f select{min-height:42px}
 }
+
+/* 누가 쓰면 좋은가 — 전체폭 가로 배치 */
+.why-who.full{text-align:center}
+.why-who.full .who-grid{text-align:left; margin-top:2px}
+@media(max-width:820px){ .who-grid{grid-template-columns:1fr 1fr} }
+@media(max-width:480px){ .who-grid{grid-template-columns:1fr} }
+/* 왜 만들었나 — 맨 아래 글 */
+.why-end{padding:26px 0 6px; border-top:1px solid var(--line-soft)}
+.why-end-label{font-family:var(--font); font-weight:700; font-size:12px; letter-spacing:.01em; color:var(--accent-deep); background:rgba(169,121,43,.08); padding:5px 12px; border-radius:999px; display:inline-block; margin-bottom:12px}
+.why-end p{font-size:14px; color:var(--ink-2); line-height:1.8; max-width:760px; margin:0}
+.why-end b{color:var(--ink); font-weight:600}
+/* 모바일 가로 넘침 차단 + 폭 채움 */
+html,body{overflow-x:hidden}
+.scen-wrap,#simBody,#sensBody,.sim-cf{overflow-x:auto; -webkit-overflow-scrolling:touch}
+@media(max-width:520px){ .wrap{padding:0 14px} .scen-tbl input{min-width:42px} }
 </style>
 </head>
 <body>
@@ -646,16 +661,7 @@ button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-
 
 <section class="why">
   <div class="wrap">
-    <div class="why-story">
-      <div class="why-label">왜 만들었나</div>
-      <p class="why-lead">제 책상 위의 반복에서 시작했습니다.</p>
-      <div class="why-body">
-        <p>상업용 부동산 금융 실무를 하며, 딜이 바뀔 때마다 같은 일을 처음부터 다시 했습니다. 가정을 잡고, 시트를 연결하고, 숫자가 맞는지 검증하고. 모델의 구조는 매번 비슷한데, 그 구조를 세우는 손은 늘 같은 수고를 반복했습니다.</p>
-        <p>그러다 생각했습니다. <b>이 반복을 AI에게 제대로 시킬 수 있다면?</b> 핵심은 "계산해줘"가 아니라 "이 구조로 세워줘"였습니다. 그 지시를 누구나 만들 수 있게 정리한 것이 모델터입니다.</p>
-        <p class="why-foot">거창한 제품이 아닙니다. 같은 고민을 하는 분들에게 작은 출발점이 되면 좋겠다는 개인 프로젝트입니다.</p>
-      </div>
-    </div>
-    <div class="why-who">
+    <div class="why-who full">
       <div class="why-label">누가 쓰면 좋은가</div>
       <div class="who-grid">
         <div class="who-card">
@@ -842,6 +848,13 @@ button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-
         <p class="fb-note">버튼을 누르면 작성하신 의견이 바로 전송됩니다. 이메일을 남겨주시면 회신드릴 수 있습니다. 별도 연락은 위 LinkedIn을 이용해 주세요.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="why-end">
+  <div class="wrap">
+    <div class="why-end-label">왜 만들었나</div>
+    <p>상업용 부동산 금융 실무를 하며, 딜이 바뀔 때마다 같은 일을 처음부터 다시 했습니다. 가정을 잡고, 시트를 연결하고, 숫자가 맞는지 검증하고. 모델의 구조는 매번 비슷한데, 그 구조를 세우는 손은 늘 같은 수고를 반복했습니다. 그러다 생각했습니다 — <b>이 반복을 AI에게 제대로 시킬 수 있다면?</b> 핵심은 "계산해줘"가 아니라 "이 구조로 세워줘"였습니다. 그 지시를 누구나 만들 수 있게 정리한 것이 모델터입니다. 거창한 제품이 아닙니다. 같은 고민을 하는 분들에게 작은 출발점이 되면 좋겠다는 개인 프로젝트입니다.</p>
   </div>
 </section>
 
