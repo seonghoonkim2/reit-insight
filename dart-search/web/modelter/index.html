@@ -583,6 +583,15 @@ header{background:rgba(253,252,249,.82)}
 .rr-note{font-size:11px;color:var(--muted);margin-top:6px}
 .rr-actions{margin-top:14px}
 .rr-link{background:none;border:none;color:var(--accent-deep);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 4px;font-family:inherit;margin-left:auto}
+.rr-mkt{margin:12px 0 4px}
+.rr-mkt-h{font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:8px}
+.rr-mkt-h span{font-weight:500;color:var(--muted);font-size:11px}
+.rr-mkt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:560px){.rr-mkt-grid{grid-template-columns:1fr 1fr}}
+.rr-mi{display:flex;flex-direction:column;gap:3px}
+.rr-mi span{font-size:10.5px;color:var(--muted)}
+.rr-mi input{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%;box-sizing:border-box}
+.rr-mi input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(169,121,43,.12)}
 /* ── UX: 접근성 포커스 · 줄바꿈 방지 · 터치타깃 ── */
 button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:8px}
 .obtn,.out-step,.out-head .badge,.sl-btn,.depth-opt b,.mx-flag,.badge{white-space:nowrap}
@@ -867,6 +876,7 @@ button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-
     <div id="rrResult" hidden>
       <div class="rr-summary" id="rrSummary"></div>
       <div class="rr-map" id="rrMap"></div>
+      <div class="rr-mkt" id="rrMkt"></div>
       <div class="rr-actions"><button class="rr-btn solid" id="rrApply" type="button">이 렌트롤로 모델 채우기 →</button></div>
     </div>
   </div>
@@ -2320,9 +2330,13 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     return t;
   }
 
-  function buildXlsx(tmpl, overrides, extraSheets){
+  function buildXlsx(tmpl, overrides, extraSheets, sheetOv){
     var t=applyOverrides(tmpl, overrides);
     if(extraSheets&&extraSheets.length){ var idx=1,z; for(z=0;z<t.sheets.length;z++) if(t.sheets[z].name==='01_Assumptions'){idx=z+1;break;} t.sheets.splice.apply(t.sheets,[idx,0].concat(extraSheets)); }
+    if(sheetOv){ Object.keys(sheetOv).forEach(function(snm){ var sh=null,q; for(q=0;q<t.sheets.length;q++) if(t.sheets[q].name===snm){sh=t.sheets[q];break;} if(!sh) return;
+      var byRef={}; sh.cells.forEach(function(c){byRef[c.r]=c;});
+      Object.keys(sheetOv[snm]).forEach(function(ref){ var ov2=sheetOv[snm][ref], c=byRef[ref]; if(!c){ c={r:ref,role:'vn'}; sh.cells.push(c); byRef[ref]=c; }
+        delete c.f; delete c.n; delete c.s; if('n' in ov2)c.n=ov2.n; else if('f' in ov2)c.f=ov2.f; else if('s' in ov2)c.s=ov2.s; }); }); }
     var xfList=[], xfMap={};
     var sheetsXml=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
     var stylesXml=buildStyles(xfList);
@@ -2470,7 +2484,74 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,price:price,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist};
   }
   function _fp(x){ return (x==null||!isFinite(x))?'—':(x*100).toFixed(2)+'%'; }
+  // ── 임차인별 NOI 엔진 v2 (현계약 실제 + 공실 흡수 lease-up + 확률가중 롤오버) ──
+  function leaseIncome(leases, gfa, mkt, hold){
+    var leasedArea=0; leases.forEach(function(l){leasedArea+=(l.area||0);});
+    var vacantArea=Math.max(0, gfa-leasedArea); var rentY=[],camY=[],bk=[],y;
+    for(y=1;y<=hold+1;y++){ var rent=0,cam=0,bIn=0,bLu=0,bRo=0;
+      leases.forEach(function(l){
+        var stp=(l.stepUp!=null?l.stepUp:mkt.mktStepUp); var eY=Math.max(1,Math.ceil(l.yrsToExp!=null?l.yrsToExp:999));
+        if(y<=eY){ var freeBefore=Math.max(0,(l.rentFreeRemain||0)-12*(y-1)); var freeThis=Math.min(12,freeBefore), paying=12-freeThis;
+          var r=l.area*l.rentPP*Math.pow(1+stp,y-1)*paying/1e6; rent+=r; bIn+=r; cam+=l.area*(l.camPP||0)*Math.pow(1+mkt.camG,y-1)*12/1e6;
+        } else { var mrent=l.area*mkt.marketPP*(1+mkt.mtm)*12, first=(y===eY+1);
+          var occF=first?(mkt.renewP+(1-mkt.renewP)*Math.max(0,(12-mkt.downtime)/12)):1; var rfF=first?Math.max(0,(12-mkt.newRentFree)/12):1;
+          var r=mrent*occF*rfF*Math.pow(1+mkt.mktStepUp,y-eY-1)/1e6; rent+=r; bRo+=r; cam+=l.area*mkt.marketCamPP*12*Math.pow(1+mkt.camG,y-1)/1e6; }
+      });
+      if(vacantArea>0){ var fPrev=Math.min(1-mkt.stabVac,(12*(y-1))/mkt.absorbMonths), fCur=Math.min(1-mkt.stabVac,(12*y)/mkt.absorbMonths);
+        var avgF=(fPrev+fCur)/2, delta=Math.max(0,fCur-fPrev); var rfHair=delta*vacantArea*mkt.marketPP*(mkt.newRentFree/12)*12/1e6;
+        var r=(vacantArea*avgF*mkt.marketPP*12*Math.pow(1+mkt.mktStepUp,y-1))/1e6-rfHair; rent+=r; bLu+=r;
+        cam+=(vacantArea*avgF*mkt.marketCamPP*12*Math.pow(1+mkt.camG,y-1))/1e6; }
+      rentY.push(rent);camY.push(cam);bk.push({inplace:bIn,leaseup:bLu,rollover:bRo});
+    }
+    return {rentY:rentY,camY:camY,bk:bk,leasedArea:leasedArea,vacantArea:vacantArea};
+  }
+  function assumFullV2(){
+    var V=assumFull(); function n(k,d){var x=V[k];return (typeof x==='number'&&isFinite(x))?x:d;}
+    var gfa=n('C7',0), price=n('C11',0)*gfa/100;
+    return {gfa:gfa, price:price, aprR:n('C13',1.02), acqtax:n('C15',0.046), acqfee:n('C16',0.018),
+      sLtv:n('C45',0.55), sRate:n('C46',0.045), finFee:n('C17',0.005), prefRatio:n('C51',0), prefCoc:n('C52',0.06),
+      depMonths:n('C26',10), depRate:n('C29',0.03), otherIncome:n('C31',12000)*gfa*12/1e6, otherG:n('C32',0.02),
+      opexAnnual:(n('C34',1000)+n('C35',6500)+n('C36',4500)+n('C37',2500)+n('C38',1500))*gfa*12/1e6 + price*n('C39',0.004) + price*n('C40',0.0008),
+      capexAnnual:n('C43',8000)*gfa/1e6, opexG:n('C41',0.02), exitCap:n('C58',0.045), saleFee:n('C59',0.01), mat:n('C48',20)};
+  }
+  function leaseModelV2(leases, V, mkt, hold){
+    hold=hold||5; function n(k,d){var x=V[k];return (typeof x==='number'&&isFinite(x))?x:d;}
+    var gfa=n('gfa',0); var inc=leaseIncome(leases, gfa, mkt, hold);
+    var price=n('price',0), appraisal=price*n('aprR',1.02); var loan=n('sLtv',0.55)*appraisal, finFee=loan*n('finFee',0.005);
+    var uses=price+price*n('acqtax',0.046)+price*n('acqfee',0.018)+finFee; var prefAmt=n('prefRatio',0)*uses, prefCoc=n('prefCoc',0.06);
+    var common=uses-loan-prefAmt, equity=prefAmt+common; var opG=n('opexG',0.02), depMonths=n('depMonths',10), depRate=n('depRate',0.03);
+    var otherInc=n('otherIncome',0), otherG=n('otherG',0.02), opexAnnual=n('opexAnnual',0), capexB=n('capexAnnual',0), y, NOI=[];
+    for(y=0;y<hold+1;y++){ var rent=inc.rentY[y],cam=inc.camY[y]; var depIncome=(rent*1e6/12)*depMonths*depRate/1e6, other=otherInc*Math.pow(1+otherG,y), opex=opexAnnual*Math.pow(1+opG,y); NOI.push(rent+cam+other+depIncome-opex); }
+    var sRate=n('sRate',0.045), mat=n('mat',20), repay=mkt.repay||'만기일시(이자만)'; function pmt(r,nn,pv){return r?(r*pv)/(1-Math.pow(1+r,-nn)):pv/nn;}
+    var bal=loan,DS=[],DSCR=[],endBal=[];
+    for(y=0;y<hold;y++){var interest=bal*sRate,prin; if(repay.indexOf('만기일시')>=0)prin=0;else if(repay.indexOf('원금균등')>=0)prin=loan/mat;else prin=pmt(sRate,mat,loan)-interest; DS.push(interest+prin);DSCR.push(NOI[y]/(interest+prin));bal-=prin;endBal.push(bal);}
+    var sale=NOI[hold]/n('exitCap',0.045), netSale=sale-sale*n('saleFee',0.01);
+    var dist=[];for(y=0;y<hold;y++){var d=(NOI[y]-capexB*Math.pow(1+opG,y))-DS[y];if(y===hold-1)d+=netSale-endBal[hold-1];dist.push(d);}
+    var commonCF=[];for(y=0;y<hold;y++){var pd=Math.min(dist[y],prefAmt*prefCoc);var pp=(y===hold-1)?Math.min(dist[y]-pd,prefAmt):0;commonCF.push(dist[y]-(pd+pp));}
+    var IRR=_irr([-equity].concat(dist)); var EM=dist.reduce(function(a,b){return a+b;},0)/equity;
+    var coc=(commonCF.slice(0,hold-1).reduce(function(a,b){return a+b;},0)/(hold-1))/common;
+    var opCF=NOI.slice(0,hold).map(function(noi,k){return noi-capexB*Math.pow(1+opG,k);}); var unlev=_irr([-uses].concat(opCF.slice(0,hold-1)).concat([opCF[hold-1]+netSale]));
+    return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist,inc:inc,uses:uses,vacantArea:inc.vacantArea,leasedArea:inc.leasedArea};
+  }
+  function rrLeaseResult(){
+    var rm=(typeof window!=='undefined')?window.rrModel:null;
+    if(!rm||!rm.on||!rm.leases||!rm.leases.length) return null;
+    if(!((typeof cur!=='undefined')&&(cur==='office'||cur==='logistics'))) return null;
+    var r=leaseModelV2(rm.leases, assumFullV2(), rm.mkt, 5);
+    var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
+    var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
+    var total=r.leasedArea+r.vacantArea;
+    var kpis=[{l:'레버드 IRR(세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
+      {l:'Equity Multiple', v:em, big:true},{l:'평균 배당률(CoC)', v:_fp(r.coc), big:true},
+      {l:'언레버드 IRR', v:_fp(r.unlev), big:false},{l:'최소 DSCR', v:ds, big:false},
+      {l:'현 공실률', v:total?(r.vacantArea/total*100).toFixed(1)+'%':'—', big:false}];
+    var rows=[],y; for(y=0;y<5;y++){ var b=r.inc.bk[y];
+      rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(b.inplace), mk(b.leaseup), mk(b.rollover), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']); }
+    return {type:'kpi', kpis:kpis, table:{head:['연차','NOI','현계약','공실해소','롤오버','DSCR'], rows:rows},
+      caveats:['렌트롤 반영 — 현 계약은 실제값(임대료·관리비·잔여렌트프리·만기) 그대로, 공실·만기분은 시장 가정(흡수 lease-up·확률가중 롤오버)으로 산출.']};
+  }
   function _newSimDcf(){
+    var rr=rrLeaseResult(); if(rr) return rr;
     var r=calcModel(assumFull());
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
@@ -2524,11 +2605,51 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     cells.push({r:'F'+r,role:'vn',z:'num',n:Math.round(D)});
     return {name:'01_Rent_Roll', hidden:false, maxcol:8, cells:cells, merges:[], widths:{}};
   }
+  function leaseExtraSheets(){
+    var rm=(typeof window!=='undefined')?window.rrModel:null;
+    if(!rm||!rm.on||!rm.leases||!rm.leases.length) return null;
+    if(!((typeof cur!=='undefined')&&(cur==='office'||cur==='logistics'))) return null;
+    var V=assumFullV2(), r=leaseModelV2(rm.leases, V, rm.mkt, 5), inc=r.inc, mkt=rm.mkt, yc=['C','D','E','F','G','H'];
+    var ov={'04_Operating_ProForma':{}};
+    for(var y=0;y<6;y++){ ov['04_Operating_ProForma'][yc[y]+'5']={n:Math.round(inc.rentY[y]*100)/100}; ov['04_Operating_ProForma'][yc[y]+'6']={n:Math.round(inc.camY[y]*100)/100}; }
+    // 01_Rent_Roll (현 계약 실제값)
+    var rc=[], hd=['임차인','면적(평)','평당월임대료','평당월관리비','보증금','잔여렌트프리(개월)','만기연차','step-up'], cs=['B','C','D','E','F','G','H','I'];
+    rc.push({r:'B1',role:'ti',s:'01_Rent_Roll — 현 계약 (실제값)'});
+    rc.push({r:'B2',role:'st',s:'업로드 렌트롤의 실제 임대조건 · 모델 임대수입이 이 값에서 산출됩니다'});
+    hd.forEach(function(h,i){ rc.push({r:cs[i]+'4',role:'th',s:h}); });
+    var rw=5; rm.leases.forEach(function(l){
+      rc.push({r:'B'+rw,role:'lb',s:l.name||'임차'}); rc.push({r:'C'+rw,role:'vn',z:'num1',n:Math.round((l.area||0)*10)/10});
+      rc.push({r:'D'+rw,role:'vn',z:'num',n:Math.round(l.rentPP||0)}); rc.push({r:'E'+rw,role:'vn',z:'num',n:Math.round(l.camPP||0)});
+      rc.push({r:'F'+rw,role:'vn',z:'num',n:Math.round(l.deposit||0)}); rc.push({r:'G'+rw,role:'vn',z:'num1',n:l.rentFreeRemain||0});
+      rc.push({r:'H'+rw,role:'vn',z:'num1',n:l.yrsToExp!=null?Math.round(l.yrsToExp*10)/10:''}); rc.push({r:'I'+rw,role:'vn',z:'pct1',n:(l.stepUp!=null?l.stepUp:mkt.mktStepUp)});
+      rw++;
+    });
+    var sRR={name:'01_Rent_Roll',hidden:false,maxcol:9,cells:rc,merges:[],widths:{}};
+    // 02_Market_Assumptions
+    var ma=[], rows2=[['시장 평당임대료(원)',mkt.marketPP,'num'],['시장 평당관리비(원)',mkt.marketCamPP,'num'],['MTM(시장격차)',mkt.mtm,'pct1'],['신규 렌트프리(개월)',mkt.newRentFree,'num1'],['공실 흡수기간(개월)',mkt.absorbMonths,'num1'],['안정화 공실률',mkt.stabVac,'pct1'],['재계약률',mkt.renewP,'pct1'],['다운타임(개월)',mkt.downtime,'num1'],['시장 임대료 상승률',mkt.mktStepUp,'pct1'],['GFA(평)',V.gfa,'num1'],['임대면적(평)',r.leasedArea,'num1'],['공실면적(평)',r.vacantArea,'num1']];
+    ma.push({r:'B1',role:'ti',s:'02_Market_Assumptions — 공실·신규 가정'}); ma.push({r:'B2',role:'st',s:'공실 lease-up·만기 롤오버에만 적용 (현 계약은 실제값)'});
+    ma.push({r:'B4',role:'th',s:'항목'}); ma.push({r:'C4',role:'th',s:'값'});
+    var rw2=5; rows2.forEach(function(x){ ma.push({r:'B'+rw2,role:'lb',s:x[0]}); ma.push({r:'C'+rw2,role:'vi',z:x[2],n:x[1]}); rw2++; });
+    var sMA={name:'02_Market_Assumptions',hidden:false,maxcol:6,cells:ma,merges:[],widths:{}};
+    // Lease_NOI_Buildup (버킷 분해)
+    var lb=[]; lb.push({r:'B1',role:'ti',s:'Lease_NOI_Buildup — 임대수입 분해 (백만원)'});
+    lb.push({r:'B2',role:'st',s:'현 계약(실제)·공실 흡수(lease-up)·만기 롤오버(확률가중) → 04_Operating 임대수입으로 연결'});
+    lb.push({r:'B4',role:'th',s:'구분'}); ['Y1','Y2','Y3','Y4','Y5','Y6'].forEach(function(h,i){ lb.push({r:yc[i]+'4',role:'th',s:h}); });
+    function brow(rr2,label,vals,bold){ lb.push({r:'B'+rr2,role:bold?'lbb':'lb',s:label}); for(var i=0;i<6;i++) lb.push({r:yc[i]+rr2,role:'vn',z:'num1',n:Math.round(vals[i]*10)/10}); }
+    brow(5,'현 계약 임대료', inc.bk.map(function(b){return b.inplace;}));
+    brow(6,'공실해소 임대료', inc.bk.map(function(b){return b.leaseup;}));
+    brow(7,'롤오버 임대료', inc.bk.map(function(b){return b.rollover;}));
+    brow(8,'임대료 합계', inc.rentY, true); brow(9,'관리비 합계', inc.camY, true);
+    lb.push({r:'B11',role:'nw',s:'※ 값은 모델터 임차인별 엔진 산출 — 04_Operating 임대료·관리비 행으로 연결되어 NOI·IRR이 계산됩니다.'});
+    var sLB={name:'Lease_NOI_Buildup',hidden:false,maxcol:8,cells:lb,merges:[],widths:{}};
+    return {sheets:[sRR,sMA,sLB], ov:ov, leaseMode:true};
+  }
   function downloadXlsx(){
     try{
       var ov=assumOverrides();
-      var rr=rentRollSheet();
-      var bytes=XLSXGEN.buildXlsx(XLTMPL, ov, rr?[rr]:null);
+      var ext=leaseExtraSheets();
+      var bytes = ext ? XLSXGEN.buildXlsx(XLTMPL, ov, ext.sheets, ext.ov)
+                      : (function(){ var rr=rentRollSheet(); return XLSXGEN.buildXlsx(XLTMPL, ov, rr?[rr]:null); })();
       var blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
       var nm=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset).replace(/[\\\/:*?"<>|]/g,'').trim():'매입';
       var fname='모델터_'+(nm||'매입')+'_재무모델.xlsx';
@@ -2925,15 +3046,27 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       kpi('보증금 배수',agg.depositMonths.toFixed(1)+'개월')+
       kpi('WALE',agg.wale!=null?agg.wale.toFixed(1)+'년':'만기 없음')+
       kpi('만기 분포',exp||'—',true);
+    var mi=[['rr_mktrent','시장 평당임대료(원)',Math.round(agg.wAvgRentPP)],['rr_mktcam','시장 평당관리비(원)',Math.round(agg.wAvgCamPP)],['rr_rf','신규 렌트프리(개월)',3],['rr_absorb','공실 흡수기간(개월)',12],['rr_stab','안정화 공실률(%)',5],['rr_renew','재계약률(%)',70],['rr_down','다운타임(개월)',6],['rr_step','시장 상승률(%/년)',3]];
+    $id('rrMkt').innerHTML='<div class="rr-mkt-h">공실·신규 가정 <span>현 계약은 실제값 그대로 · 공실·만기분에만 적용</span></div><div class="rr-mkt-grid">'+mi.map(function(m){return '<label class="rr-mi"><span>'+m[1]+'</span><input id="'+m[0]+'" type="number" value="'+m[2]+'" inputmode="decimal" /></label>';}).join('')+'</div>';
     $id('rrResult').hidden=false;
   }
   function kpi(l,v,wide){ return '<div class="rr-kpi'+(wide?' wide':'')+'"><div class="rr-kl">'+l+'</div><div class="rr-kv">'+v+'</div></div>'; }
   function toastMsg(m){ try{ if(typeof toast==='function') toast(m); else alert(m); }catch(e){ alert(m); } }
 
+  function rrv(id,def){ var el=$id(id); var v=el?parseFloat(String(el.value).replace(/,/g,'')):NaN; return isFinite(v)?v:def; }
   function applyRR(){
     if(!pending){ return; }
     var agg=pending.agg;
     if(typeof state==='undefined') return;
+    var rep=(typeof stackState!=='undefined'&&stackState['senior_extra'])||'만기일시';
+    var repMap={'만기일시':'만기일시(이자만)','원금균등':'원금균등','원리금균등':'원리금균등'};
+    var mkt={ marketPP:rrv('rr_mktrent',Math.round(agg.wAvgRentPP)), marketCamPP:rrv('rr_mktcam',Math.round(agg.wAvgCamPP)),
+      newRentFree:rrv('rr_rf',3), absorbMonths:rrv('rr_absorb',12), stabVac:rrv('rr_stab',5)/100,
+      renewP:rrv('rr_renew',70)/100, downtime:rrv('rr_down',6), mktStepUp:rrv('rr_step',3)/100, mtm:0, camG:0.03,
+      repay:repMap[rep]||'만기일시(이자만)' };
+    var leases=pending.ex.leases.map(function(l){ return {area:l.area, rentPP:l.rentPP, camPP:l.camPP, deposit:l.deposit, yrsToExp:l.yrsToExp, rentFreeRemain:(l.rentFree||0), stepUp:l.stepUp}; });
+    window.rrModel={leases:leases, mkt:mkt, on:true};
+    // 프롬프트 텍스트용 드라이버도 채움(가중평균)
     state.noimode='임대료·관리비로 산출';
     state.rentpp=String(Math.round(agg.wAvgRentPP));
     state.campp=String(Math.round(agg.wAvgCamPP));
@@ -2941,13 +3074,15 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     window.rrState={leases:pending.ex.leases, agg:agg, asOf:pending.ex.asOf};
     try{ if(typeof renderForm==='function'){ renderForm(); } if(typeof restoreInputs==='function') restoreInputs(); if(typeof update==='function') update(); }catch(e){}
     close();
-    var occNote = gfaNow()?(' · 공실률 '+(agg.vacancy*100).toFixed(1)+'%(는 가정 시트에서 반영)'):'';
-    toastMsg('렌트롤 적용: '+agg.count+'개 임차인 · 평당 '+Math.round(agg.wAvgRentPP).toLocaleString()+'원'+occNote);
+    toastMsg('렌트롤 반영 — 현 계약 '+agg.count+'개 실제값 + 공실 '+(gfaNow()?(agg.vacancy*100).toFixed(0)+'%':'')+' 신규가정. 화면 결과·다운로드에 임차인별로 반영됩니다.');
   }
   function open(){ var o=$id('rrOverlay'); if(o){ o.hidden=false; document.body.style.overflow='hidden'; } }
   function close(){ var o=$id('rrOverlay'); if(o){ o.hidden=true; document.body.style.overflow=''; } pending=null; var r=$id('rrResult'); if(r) r.hidden=true; }
 
   function wireRR(){
+    // 딜 변경·비우기·예시·표준값 클릭 시 렌트롤 모드 해제(캡처 단계 → 본 핸들러보다 먼저)
+    ['fillExample','fillStd','clearBtn'].forEach(function(id){ var b=$id(id); if(b&&!b.__rrr){ b.__rrr=1; b.addEventListener('click',function(){ window.rrModel=null; window.rrState=null; },true); } });
+    var dts=$id('dealTabs'); if(dts&&!dts.__rrr){ dts.__rrr=1; dts.addEventListener('click',function(){ window.rrModel=null; window.rrState=null; },true); }
     var ob=$id('rrOpen'); if(ob&&!ob.__w){ ob.__w=1; ob.addEventListener('click',open); }
     var cb=$id('rrClose'); if(cb) cb.addEventListener('click',close);
     var ov=$id('rrOverlay'); if(ov) ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
