@@ -549,7 +549,7 @@ header{background:rgba(253,252,249,.82)}
 
 /* 인쇄: 종이에 깔끔하게 나오도록 프롬프트 위주로 */
 @media print{
-  header,.maker-row,.intro .flow,.intro-cta,.jump-fab,.toast,.feedback,.onboard,.refbar,.skip,.theme-btn,.out-act,.out-hint{display:none!important}
+  header,.maker-row,.intro .flow,.outs,.intro-cta,.jump-fab,.toast,.feedback,.onboard,.refbar,.skip,.theme-btn,.out-act,.out-hint{display:none!important}
   body{background:#fff; color:#000}
   .out-panel{position:static; background:#fff; border:1px solid #ccc; box-shadow:none}
   .out-head{border-color:#ddd}
@@ -617,6 +617,16 @@ button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-
 html,body{overflow-x:hidden}
 .scen-wrap,#simBody,#sensBody,.sim-cf{overflow-x:auto; -webkit-overflow-scrolling:touch}
 @media(max-width:520px){ .wrap{padding:0 14px} .scen-tbl input{min-width:42px} }
+
+/* 히어로 산출물 칩 (도식) */
+.outs{display:flex; flex-wrap:wrap; justify-content:center; align-items:stretch; gap:8px; margin-top:18px}
+.outs-pre{font-size:12.5px; font-weight:700; color:var(--accent-deep); align-self:center; margin-right:3px}
+.out-chip{display:flex; align-items:center; gap:9px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 13px; box-shadow:var(--soft)}
+.oc-ic{font-size:17px; line-height:1}
+.oc-tx{display:flex; flex-direction:column; line-height:1.18; text-align:left}
+.oc-tx b{font-size:13px; font-weight:700; color:var(--ink)}
+.oc-tx i{font-style:normal; font-size:11px; color:var(--muted); margin-top:2px}
+@media(max-width:560px){ .outs{gap:6px} .outs-pre{display:none} .out-chip{padding:7px 10px; gap:7px} .oc-ic{font-size:15px} .oc-tx b{font-size:12.5px} }
 </style>
 </head>
 <body>
@@ -653,8 +663,14 @@ html,body{overflow-x:hidden}
     </div>
     <span class="eyebrow">모델터 · 기관의 재무모델링을, 모두에게</span>
     <h1>기관급 부동산 재무모델을, <em>누구나 직접</em>.</h1>
-    <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. 모델터는 딜 종류를 고르고 숫자만 넣으면 — IRR·멀티플 같은 <b>결과를 화면에서 바로</b> 보여주고, 수식이 살아있는 <b>13시트 Excel 모델</b>을 그 자리에서 만들어 줍니다. 실제 <b>렌트롤</b>을 올리면 임차인별로 반영하고, 더 깊게 가려면 <b>Claude in Excel</b>용 지시문까지 함께 드립니다.</p>
-    <div class="flow"><b>딜 유형 선택</b> <span class="ar">→</span> <b>숫자 입력</b> <span class="ar">→</span> <b>결과 즉시 확인</b> <span class="ar">→</span> <b>Excel 모델 받기</b></div>
+    <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. <b>딜을 고르고 숫자만 넣으면</b>, 나머지는 모델터가 합니다.</p>
+    <div class="outs" aria-label="모델터가 만들어 주는 것">
+      <span class="outs-pre">숫자만 입력 →</span>
+      <div class="out-chip"><span class="oc-ic">📊</span><span class="oc-tx"><b>즉시 결과</b><i>IRR·멀티플·DSCR</i></span></div>
+      <div class="out-chip"><span class="oc-ic">📥</span><span class="oc-tx"><b>Excel 모델</b><i>수식 13시트</i></span></div>
+      <div class="out-chip"><span class="oc-ic">📋</span><span class="oc-tx"><b>렌트롤 반영</b><i>임차인별</i></span></div>
+      <div class="out-chip"><span class="oc-ic">🤖</span><span class="oc-tx"><b>AI 지시문</b><i>Claude in Excel·선택</i></span></div>
+    </div>
     <a class="intro-cta" href="#builder-start">바로 만들어보기 ↓</a>
   </div>
 </section>
