@@ -645,7 +645,7 @@ html,body{overflow-x:hidden}
 .sim-kpi.down{background-color:rgba(179,71,48,.10); border-color:rgba(179,71,48,.46)}
 .sim-kpi.down .sk-v{color:var(--red)}
 @keyframes valFlash{0%{color:var(--accent-deep); text-shadow:0 0 10px rgba(143,98,32,.35)} 100%{}}
-.mx-v.changed{animation:valFlash .8s ease-out}
+.mx-v.changed,.mini-v.changed{animation:valFlash .8s ease-out}
 .mx-item.changed .mx-l::after{content:""; display:inline-block; width:5px; height:5px; margin-left:5px; border-radius:50%; background:var(--accent); animation:dotFade 1s ease-out forwards}
 @keyframes dotFade{0%{opacity:.9} 100%{opacity:0}}
 @media (prefers-reduced-motion: reduce){
@@ -758,6 +758,15 @@ html,body{overflow-x:hidden}
 .wn-cta:hover{filter:brightness(1.07)}
 .wn-snooze{display:block; width:100%; margin-top:8px; border:none; background:transparent; color:var(--muted); font-family:var(--font); font-size:12.5px; font-weight:600; padding:8px; cursor:pointer; border-radius:8px}
 .wn-snooze:hover{color:var(--ink-2); background:rgba(0,0,0,.04)}
+
+/* 스크롤 시 떠오르는 실시간 미니 결과 (IRR·CoC) */
+.mini-kpi{position:fixed; top:66px; right:14px; z-index:60; display:flex; align-items:center; gap:13px; background:var(--panel); border:1px solid var(--line); border-radius:13px; box-shadow:0 10px 28px rgba(0,0,0,.18); padding:8px 14px 8px 11px; opacity:0; transform:translateY(-8px) scale(.95); transition:opacity .22s ease, transform .22s ease; pointer-events:none}
+.mini-kpi.show{opacity:1; transform:none}
+.mini-tag{font-size:9px; font-weight:800; letter-spacing:.04em; color:var(--on-accent); background:var(--accent-solid); padding:2px 6px; border-radius:5px; align-self:center}
+.mini-item{display:flex; flex-direction:column; align-items:flex-end; line-height:1.05}
+.mini-l{font-size:9.5px; font-weight:700; color:var(--muted); letter-spacing:.03em}
+.mini-v{font-size:17px; font-weight:800; font-family:var(--mono); color:var(--ink); transition:color .35s ease}
+@media(max-width:520px){ .mini-kpi{top:58px; right:9px; gap:10px; padding:7px 11px 7px 9px} .mini-v{font-size:15.5px} .mini-tag{font-size:8.5px} }
 </style>
 </head>
 <body>
@@ -807,6 +816,12 @@ html,body{overflow-x:hidden}
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
   </div>
+</div>
+
+<div class="mini-kpi" id="miniKpi" aria-hidden="true">
+  <span class="mini-tag">실시간</span>
+  <div class="mini-item"><span class="mini-l">IRR</span><span class="mini-v" id="miniIrr">—</span></div>
+  <div class="mini-item"><span class="mini-l">CoC</span><span class="mini-v" id="miniCoc">—</span></div>
 </div>
 
 <section class="intro" id="top">
@@ -899,7 +914,7 @@ html,body{overflow-x:hidden}
       <div class="panel-body" id="formBody"></div>
     </div>
 
-    <div>
+    <div id="resultCol">
       <div class="metrics" id="simCard" hidden>
         <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag" id="simFlag" style="color:var(--accent-deep);background:rgba(169,121,43,.13)">다운로드 Excel과 동일</span></div>
         <div class="sim-kpis" id="simKpis"></div>
@@ -2143,6 +2158,12 @@ function renderSim(){
     bd.innerHTML=(r.struct||'')+(r.tranche||'')+sh+tb;
   }
   cv.innerHTML=(r.caveats||[]).map(function(c){return esc(c);}).join(' ');
+  // 스크롤 시 떠오르는 미니 결과(IRR·CoC) 값 갱신
+  var miEl=$('miniKpi');
+  if(miEl){
+    if(r.mini){ var iv=$('miniIrr'), cv2=$('miniCoc'); if(iv) iv.textContent=r.mini.irr; if(cv2) cv2.textContent=r.mini.coc; if(window.__miniSetData) window.__miniSetData(true); }
+    else if(window.__miniSetData){ window.__miniSetData(false); }
+  }
 }
 
 /* 시트 구조 미리보기 렌더 */
@@ -2791,7 +2812,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       +'<div class="rrx-chain"><span class="rrx-node">연도별 NOI</span><span class="rrx-mini">Y1 '+noi1+' → Y5 '+noi5+'</span><span class="rrx-ar">→</span><span class="rrx-node">부채·세금·매각</span><span class="rrx-ar">→</span><span class="rrx-node hi">레버드 IRR '+virr+'</span></div>'
       +'<div class="rrx-legend">아래 <b>연도별 NOI 분해</b> 표에서 ①현계약·②공실해소·③롤오버 금액을 연차별로 확인할 수 있습니다.</div>'
       +'</div>';
-    return {type:'kpi', kpis:kpis, struct:struct, tranche:_trancheBlock(r),
+    return {type:'kpi', kpis:kpis, struct:struct, tranche:_trancheBlock(r), mini:{irr:_fp(r.IRR), coc:_fp(r.coc)},
       table:{head:['연차','NOI','현계약','공실해소','롤오버','DSCR'], rows:rows}, tableOpen:true, tableClass:'rr-tbl',
       tableLabel:'연도별 NOI 분해 — ①현계약 · ②공실해소 · ③롤오버',
       caveats:['렌트롤 반영 — 현 계약은 실제값(임대료·관리비·잔여렌트프리·만기) 그대로, 공실·만기분은 시장 가정(흡수 lease-up·확률가중 롤오버)으로 산출.']};
@@ -2810,7 +2831,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     ];
     var rows=[],y;
     for(y=0;y<5;y++) rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(r.DS[y]), mk(r.dist[y]), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']);
-    return {type:'kpi', kpis:kpis, tranche:_trancheBlock(r), table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
+    return {type:'kpi', kpis:kpis, tranche:_trancheBlock(r), mini:{irr:_fp(r.IRR), coc:_fp(r.coc)}, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
       caveats:['화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(자본구조·우선주 배당·도관과세·임대가능면적·세부 운영비·보증금운용·감가·매각 반영).']};
   }
   try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
@@ -3432,6 +3453,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     for(var i=0;i<big.length;i++){ var l=big[i].querySelector('.sk-l'), v=big[i].querySelector('.sk-v'); if(l&&v) m['B::'+l.textContent] = v.textContent; }
     var sm = document.querySelectorAll('#simBody .mx-item');
     for(var j=0;j<sm.length;j++){ var ll=sm[j].querySelector('.mx-l'), vv=sm[j].querySelector('.mx-v'); if(ll&&vv) m['S::'+ll.textContent] = vv.textContent; }
+    var mn = document.querySelectorAll('#miniKpi .mini-item');
+    for(var k=0;k<mn.length;k++){ var ml=mn[k].querySelector('.mini-l'), mv=mn[k].querySelector('.mini-v'); if(ml&&mv) m['M::'+ml.textContent] = mv.textContent; }
     return m;
   }
   function flash(prev, first){
@@ -3463,6 +3486,20 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
         v.classList.add('changed'); item.classList.add('changed');
         setTimeout(function(){ v.classList.remove('changed'); item.classList.remove('changed'); }, 1000);
       })(sm[j]);
+    }
+    // 미니 결과(IRR·CoC) count-up + 강조
+    var mn = document.querySelectorAll('#miniKpi .mini-item');
+    for(var k=0;k<mn.length;k++){
+      (function(item){
+        var l=item.querySelector('.mini-l'), v=item.querySelector('.mini-v'); if(!l||!v) return;
+        var oldV = prev['M::'+l.textContent], newV = v.textContent;
+        if(oldV==null || oldV===newV) return;
+        var a = parts(oldV), b = parts(newV);
+        v.classList.remove('changed'); void v.offsetWidth;
+        if(a && b && b.num!==a.num) tween(v, a, b, newV);
+        v.classList.add('changed');
+        setTimeout(function(){ v.classList.remove('changed'); }, 1000);
+      })(mn[k]);
     }
   }
   function wrap(){
@@ -3510,6 +3547,41 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&ov&&!ov.hidden) dismissModal(); });
   var snz=document.getElementById('wnSnooze'); if(snz) snz.addEventListener('click',function(){ snoozeDay(); closeWN(); if(bar) bar.hidden=true; });
   var cta=document.getElementById('wnCta'); if(cta) cta.addEventListener('click',function(){ dismissModal(); var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth'}); });
+})();
+
+/* ── 모바일: 모델 결과를 입력 위로 + 스크롤 시 미니 결과(IRR·CoC) ── */
+(function(){
+  var grid=document.querySelector('.grid2');
+  var sim=document.getElementById('simCard');
+  var home=document.getElementById('resultCol');
+  var panel=grid?grid.querySelector('.panel'):null;
+  var mini=document.getElementById('miniKpi');
+
+  // (A) 모바일(≤920px)에서 모델 결과 카드를 입력 폼 위로 이동 (재렌더에도 element는 유지)
+  function placeSim(){
+    if(!grid||!sim||!panel||!home) return;
+    var mobile = window.matchMedia('(max-width:920px)').matches;
+    if(mobile){
+      if(sim.parentNode!==grid || sim.nextElementSibling!==panel) grid.insertBefore(sim, panel);
+    } else {
+      if(sim.parentNode!==home) home.insertBefore(sim, home.firstChild);
+    }
+  }
+  placeSim();
+  var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(placeSim, 150); });
+
+  // (B) 결과 카드가 화면 위로 스크롤돼 사라지면 IRR·CoC 미니 결과를 우상단에 표시
+  var hasData=false, lastEntry=null;
+  function evalShow(){
+    if(!mini||!sim) return;
+    var pastTop = !!(lastEntry && !lastEntry.isIntersecting && lastEntry.boundingClientRect.bottom < 100);
+    if(hasData && pastTop && !sim.hidden) mini.classList.add('show'); else mini.classList.remove('show');
+  }
+  window.__miniSetData=function(on){ hasData=!!on; evalShow(); };
+  if(mini && sim && 'IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){ lastEntry=es[es.length-1]; evalShow(); }, {threshold:0, rootMargin:'-72px 0px 0px 0px'});
+    io.observe(sim);
+  }
 })();
 
 </script>
