@@ -741,6 +741,7 @@ html,body{overflow-x:hidden}
 @media(max-width:600px){ .ann-msg{font-size:12px} .ann-more{padding:6px 9px; font-size:11.5px} .announce-in{gap:8px; padding:8px 0} }
 
 .wn-overlay{position:fixed; inset:0; background:rgba(20,14,4,.5); backdrop-filter:blur(2px); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px}
+.wn-overlay[hidden]{display:none}
 .wn-modal{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:18px; max-width:480px; width:100%; padding:26px 24px 22px; box-shadow:0 20px 60px rgba(0,0,0,.32); max-height:90vh; overflow:auto}
 .wn-x{position:absolute; top:13px; right:13px; border:none; background:transparent; font-size:22px; color:var(--muted); cursor:pointer; line-height:1; padding:4px 8px; border-radius:8px}
 .wn-x:hover{color:var(--ink); background:rgba(0,0,0,.05)}
@@ -755,6 +756,8 @@ html,body{overflow-x:hidden}
 .wn-list li>div span{font-size:12.5px; color:var(--ink-2); line-height:1.45}
 .wn-cta{display:block; width:100%; border:none; border-radius:11px; background:var(--accent-solid); color:var(--on-accent); font-family:var(--font); font-size:14.5px; font-weight:700; padding:13px; cursor:pointer; box-shadow:0 4px 14px rgba(143,98,32,.3); transition:.15s}
 .wn-cta:hover{filter:brightness(1.07)}
+.wn-snooze{display:block; width:100%; margin-top:8px; border:none; background:transparent; color:var(--muted); font-family:var(--font); font-size:12.5px; font-weight:600; padding:8px; cursor:pointer; border-radius:8px}
+.wn-snooze:hover{color:var(--ink-2); background:rgba(0,0,0,.04)}
 </style>
 </head>
 <body>
@@ -802,6 +805,7 @@ html,body{overflow-x:hidden}
       <li><span class="wn-ic">⬇️</span><div><b>수식 살아있는 Excel</b><span>화면 수치와 동일한 13시트 모델을 그 자리에서 .xlsx로 받습니다.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
+    <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
   </div>
 </div>
 
@@ -3483,20 +3487,29 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
 
 /* ── 업그레이드 공지 배너 + What's new 모달 ── */
 (function(){
-  var KEY='mt_whatsnew_v2';   // 다음 대규모 업데이트 때 버전을 올리면 다시 노출됨
+  var SNOOZE='mt_wn_snooze_v2';   // 'YYYY-M-D' 저장 → 그날 하루 배너·팝업 자동노출 안 함
   var bar=document.getElementById('announce'), ov=document.getElementById('wnOverlay');
-  if(!bar) return;
-  var dismissed=false; try{ dismissed=localStorage.getItem(KEY)==='1'; }catch(e){}
-  if(!dismissed) bar.hidden=false;
-  function dismiss(){ bar.hidden=true; try{ localStorage.setItem(KEY,'1'); }catch(e){} }
-  function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow='hidden'; } dismiss(); }
-  function closeWN(){ if(ov){ ov.hidden=true; document.body.style.overflow=''; } }
+  if(!bar && !ov) return;
+  function today(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+  function snoozedToday(){ try{ return localStorage.getItem(SNOOZE)===today(); }catch(e){ return false; } }
+  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen')==='1'; }catch(e){ return false; } }
+  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen','1'); }catch(e){} }
+  function snoozeDay(){ try{ localStorage.setItem(SNOOZE,today()); }catch(e){} }
+  function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow=''; document.body.style.overflow='hidden'; } }
+  function closeWN(){ if(ov){ ov.hidden=true; } document.body.style.overflow=''; }
+  function dismissModal(){ markSeen(); closeWN(); }            // 닫기(×·바깥·ESC): 이번 방문에만 안 보임
+  // 첫 노출: 오늘 그만보기 상태가 아니면 배너 표시 + (이번 세션 처음이면) 팝업 자동
+  if(!snoozedToday()){
+    if(bar) bar.hidden=false;
+    if(ov && !seenSession()) openWN();
+  }
   var more=document.getElementById('annMore'); if(more) more.addEventListener('click',openWN);
-  var ax=document.getElementById('annClose'); if(ax) ax.addEventListener('click',dismiss);
-  var wx=document.getElementById('wnClose'); if(wx) wx.addEventListener('click',closeWN);
-  if(ov) ov.addEventListener('click',function(e){ if(e.target===ov) closeWN(); });
-  var cta=document.getElementById('wnCta'); if(cta) cta.addEventListener('click',function(){ closeWN(); var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth'}); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&ov&&!ov.hidden) closeWN(); });
+  var ax=document.getElementById('annClose'); if(ax) ax.addEventListener('click',function(){ if(bar) bar.hidden=true; });
+  var wx=document.getElementById('wnClose'); if(wx) wx.addEventListener('click',dismissModal);
+  if(ov) ov.addEventListener('click',function(e){ if(e.target===ov) dismissModal(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&ov&&!ov.hidden) dismissModal(); });
+  var snz=document.getElementById('wnSnooze'); if(snz) snz.addEventListener('click',function(){ snoozeDay(); closeWN(); if(bar) bar.hidden=true; });
+  var cta=document.getElementById('wnCta'); if(cta) cta.addEventListener('click',function(){ dismissModal(); var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth'}); });
 })();
 
 </script>
