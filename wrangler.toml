@@ -1,0 +1,6 @@
+name = "reit-insight"
+compatibility_date = "2025-01-01"
+
+# 모델터(단일 정적 파일)만 서빙: 이 폴더가 사이트 루트가 됩니다.
+[assets]
+directory = "./dart-search/web/modelter"
