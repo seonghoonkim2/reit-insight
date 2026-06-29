@@ -965,7 +965,7 @@ html,body{overflow-x:hidden}
       <div class="ht-t">사용 방법</div>
       <ol>
         <li><b>딜 유형</b>을 고르고 숫자를 채우면, 우측에 <b>IRR·멀티플 결과</b>가 바로 나옵니다.</li>
-        <li><b>13시트 Excel 모델</b>을 그 자리에서 내려받습니다 — 수식이 살아있어 가정을 바꾸면 따라 움직입니다.</li>
+        <li><b>오피스 매입</b>은 13시트 Excel 모델을 그 자리에서 내려받습니다 — 수식이 살아있어 가정을 바꾸면 따라 움직입니다.</li>
         <li>실제 <b>렌트롤</b>을 올리면 임차인별로(현 계약·공실·만기) 모델에 반영됩니다.</li>
         <li>더 깊게·맞춤으로 가려면 <b>완성된 지시문</b>을 복사해 <b>Claude in Excel</b>에서 이어갑니다.</li>
       </ol>
@@ -2832,7 +2832,9 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var rows=[],y;
     for(y=0;y<5;y++) rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(r.DS[y]), mk(r.dist[y]), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']);
     return {type:'kpi', kpis:kpis, tranche:_trancheBlock(r), mini:{irr:_fp(r.IRR), coc:_fp(r.coc)}, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
-      caveats:['화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(자본구조·우선주 배당·도관과세·임대가능면적·세부 운영비·보증금운용·감가·매각 반영).']};
+      caveats:[(typeof cur!=='undefined'&&cur==='office')
+        ? '화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(자본구조·우선주 배당·도관과세·임대가능면적·세부 운영비·보증금운용·감가·매각 반영).'
+        : '자본구조·우선주 배당·도관과세·감가·매각을 반영한 레버드 DCF 간이 결과입니다. 더 정밀한 모델은 아래 AI 지시문을 Claude in Excel에서 이어가세요.']};
   }
   try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
 
@@ -2930,10 +2932,13 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
 
   function updateXlsxBtn(){
-    var b=$id('xlDownload'); if(!b) return;
-    var card=$id('simCard');
-    var ok=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics')&&card&&!card.hidden;
-    b.hidden=!ok;
+    // 현재 엑셀 모델은 오피스 매입에 특화 → 다운로드는 오피스에서만 제공
+    var isOffice=(typeof cur!=='undefined')&&(cur==='office');
+    var b=$id('xlDownload'), card=$id('simCard');
+    if(b){ b.hidden=!(isOffice&&card&&!card.hidden); }
+    // '다운로드 Excel과 동일' 배지는 다운로드가 있는 오피스에서만 표시
+    var flag=$id('simFlag');
+    if(flag){ if(isOffice){ flag.style.display=''; flag.textContent='다운로드 Excel과 동일'; } else { flag.style.display='none'; } }
   }
 
   // 결과 갱신 때마다 버튼 노출 동기화 (renderSim 래핑)
