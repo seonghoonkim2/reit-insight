@@ -3306,7 +3306,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   function renderResult(){
     var agg=pending.agg, ex=pending.ex, map=pending.map, hdr=pending.grid[pending.hr]||[];
     var fld={name:'임차인',area:'면적',rent:'임대료',cam:'관리비',deposit:'보증금',end:'만기'};
-    var mapHtml=Object.keys(fld).map(function(k){ var col=map[k]; return '<span class="rr-chip'+(col!=null?' on':'')+'">'+fld[k]+': '+(col!=null?(String(hdr[col]||'열'+col)):'—')+'</span>'; }).join('');
+    var _hesc=function(v){ return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    var mapHtml=Object.keys(fld).map(function(k){ var col=map[k]; return '<span class="rr-chip'+(col!=null?' on':'')+'">'+fld[k]+': '+(col!=null?_hesc(hdr[col]||'열'+col):'—')+'</span>'; }).join('');
     var exp=Object.keys(agg.expiry).sort(function(a,b){return a-b;}).map(function(y){ return 'Y'+y+' '+Math.round(agg.expiry[y])+'평'; }).join(' · ');
     $id('rrMap').innerHTML='<div class="rr-maprow">자동 인식: '+mapHtml+'</div>'+
       '<div class="rr-note">면적단위 '+(ex.areaUnit==='sqm'?'㎡→평 환산':'평')+' · 임차인 '+agg.count+'개 인식'+(/합계/.test('')?'':'')+'</div>';
