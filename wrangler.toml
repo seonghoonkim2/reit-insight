@@ -1,6 +1,11 @@
 name = "reit-insight"
 compatibility_date = "2025-01-01"
 
+# 커스텀 도메인 연결: 배포 시 Cloudflare가 modelter.com의 DNS·인증서를 자동 구성
+routes = [
+  { pattern = "modelter.com", custom_domain = true }
+]
+
 # 모델터(단일 정적 파일)만 서빙: 이 폴더가 사이트 루트가 됩니다.
 [assets]
 directory = "./dart-search/web/modelter"
