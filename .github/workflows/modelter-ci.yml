@@ -1,0 +1,31 @@
+# 모델터 CI — 푸시/PR마다 모델터 자동 검증 (라이브 배포 전 안전망)
+# 깨진 코드/빠진 파일(og.png 등)이 modelter.com으로 나가는 걸 빨간불로 알림.
+# ※ 하드 게이트로 만들려면: GitHub 저장소 Settings → Branches →
+#    master 보호 규칙에 "Modelter CI" 상태체크 필수 + PR 머지로만 운영.
+
+name: Modelter CI
+
+on:
+  push:
+    paths:
+      - "dart-search/web/modelter/**"
+      - "tools/modelter-ci-check.js"
+      - ".github/workflows/modelter-ci.yml"
+  pull_request:
+    paths:
+      - "dart-search/web/modelter/**"
+      - "tools/modelter-ci-check.js"
+      - ".github/workflows/modelter-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: 검증 (앱 로드·5개 딜·렌트롤·헤더·og.png)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: 모델터 검증
+        run: node tools/modelter-ci-check.js
