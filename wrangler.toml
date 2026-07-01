@@ -13,6 +13,10 @@ routes = [
 directory = "./dart-search/web/modelter"
 binding = "ASSETS"
 
-# 익명 사용 이벤트를 Workers Logs 로 남김 (대시보드에서 조회, 별도 활성화 불필요)
+# 익명 사용 이벤트 — Workers Logs(즉시 조회) + Analytics Engine(장기 집계) 둘 다 기록
 [observability]
 enabled = true
+
+[[analytics_engine_datasets]]
+binding = "AE"
+dataset = "Modelter"
