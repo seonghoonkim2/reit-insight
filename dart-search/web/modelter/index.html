@@ -3561,6 +3561,35 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   }
 })();
 
+/* ── 익명 사용 이벤트 (딜유형·행동만 · 입력값/렌트롤 내용은 전송 안 함) ── */
+(function(){
+  function track(t, extra){
+    try{
+      var b={ t:t,
+        deal:(typeof cur!=='undefined'?cur:''),
+        depth:(typeof depth!=='undefined'?depth:''),
+        rr:!!(window.rrModel&&window.rrModel.on) };
+      if(extra){ for(var k in extra) b[k]=extra[k]; }
+      var body=JSON.stringify(b);
+      if(navigator.sendBeacon){ navigator.sendBeacon('/e', body); }
+      else if(window.fetch){ fetch('/e',{method:'POST',body:body,keepalive:true}).catch(function(){}); }
+    }catch(e){}
+  }
+  window.mtTrack=track;
+  track('session');
+  document.addEventListener('click', function(e){
+    var t=e.target; if(!t||!t.closest) return;
+    var el;
+    if((el=t.closest('.deal-tab'))){ track('deal_select',{deal:(el.dataset&&el.dataset.k)||''}); return; }
+    if(t.closest('#fillExample')){ track('example_fill'); return; }
+    if(t.closest('#xlDownload')){ track('xlsx_download'); return; }
+    if(t.closest('#rrApply')){ track('rentroll_upload'); return; }
+    if(t.closest('#rrSample')){ track('sample_download'); return; }
+    if(t.closest('#copyBtn')){ track('prompt_copy'); return; }
+    if((el=t.closest('.depth-opt'))){ track('depth_change',{depth:(el.dataset&&el.dataset.depth)||''}); return; }
+  }, true);
+})();
+
 </script>
 </body>
 </html>

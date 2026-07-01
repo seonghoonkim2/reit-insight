@@ -27,6 +27,7 @@ ok(/_hesc\(hdr\[col\]/.test(html), '렌트롤 헤더 XSS 이스케이프 유지'
 ok(html.includes('id="miniKpi"'), '미니 결과(IRR·CoC) 위젯 존재');
 ok(html.includes('id="wnOverlay"'), "What's new 팝업 존재");
 ok((html.match(/trn-pref/g) || []).length >= 1, '우선주·보통주 트랜치 블록 존재');
+ok(/window\.mtTrack\s*=\s*track/.test(html), '익명 사용 이벤트 트래킹 스니펫 존재');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);

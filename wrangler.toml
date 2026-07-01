@@ -1,4 +1,5 @@
 name = "reit-insight"
+main = "worker.js"
 compatibility_date = "2025-01-01"
 
 # 커스텀 도메인 연결: 배포 시 Cloudflare가 modelter.com의 DNS·인증서를 자동 구성
@@ -7,5 +8,12 @@ routes = [
 ]
 
 # 모델터(단일 정적 파일)만 서빙: 이 폴더가 사이트 루트가 됩니다.
+# main 워커가 /e(익명 이벤트)만 처리하고, 나머지는 이 에셋으로 서빙됩니다.
 [assets]
 directory = "./dart-search/web/modelter"
+binding = "ASSETS"
+
+# 익명 사용 이벤트 저장소 (무료 티어). worker.js의 env.AE 로 기록.
+[[analytics_engine_datasets]]
+binding = "AE"
+dataset = "modelter_events"
