@@ -160,6 +160,8 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .deal-tab.on{background:var(--ink); color:var(--panel); border-color:var(--ink)}
 .deal-tab .badge-base{font-size:10px; background:var(--accent-solid); color:var(--on-accent); padding:2px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
 .deal-tab.on .badge-base{background:var(--accent)}
+.deal-tab .badge-lite{font-size:10px; background:var(--bg); color:var(--muted); border:1px solid var(--line-soft); padding:1px 6px; border-radius:5px; font-weight:600}
+.deal-tab.on .badge-lite{background:rgba(255,255,255,.18); color:var(--on-accent); border-color:transparent}
 
 .builder{padding:14px 0 60px}
 .grid2{display:grid; grid-template-columns:minmax(0,470px) minmax(0,1fr); gap:22px; align-items:start}
@@ -768,6 +770,16 @@ html,body{overflow-x:hidden}
 .mini-l{font-size:9.5px; font-weight:700; color:var(--muted); letter-spacing:.03em}
 .mini-v{font-size:17px; font-weight:800; font-family:var(--mono); color:var(--ink); transition:color .35s ease}
 @media(max-width:520px){ .mini-kpi{top:58px; right:9px; gap:10px; padding:7px 11px 7px 9px} .mini-v{font-size:15.5px} .mini-tag{font-size:8.5px} }
+
+/* 2변수 민감도 히트맵 (Exit Cap × 성장률 → 레버드 IRR) */
+.hx-wrap{overflow-x:auto; margin-top:2px}
+.hx-axis-top{font-size:10.5px; color:var(--muted); font-weight:600; margin:0 0 4px 3px}
+.hx-tbl{width:100%; border-collapse:separate; border-spacing:3px; margin-top:0}
+.hx-tbl th{font-size:11px; font-weight:700; color:var(--ink-2); font-family:var(--mono); padding:4px 5px; white-space:nowrap; text-align:center; border:none}
+.hx-tbl th.hx-corner{color:var(--muted); font-weight:600; font-family:var(--font); font-size:10px}
+.hx-tbl td.hx-cell{font-size:12px; font-weight:700; font-family:var(--mono); color:var(--ink); text-align:center; padding:7px 6px; border-radius:6px; white-space:nowrap; border:none}
+.hx-tbl th.hx-base{color:var(--accent-deep); font-weight:800}
+.hx-tbl td.hx-base{font-weight:800; outline:2px solid var(--accent-solid); outline-offset:-2px}
 </style>
 </head>
 <body>
@@ -1162,7 +1174,7 @@ const DEALS={
     ]}
    ]},
 
- dev:{label:"개발 · PF", baseAsset:"개발사업",
+ dev:{label:"개발 · PF", lite:true, baseAsset:"개발사업",
    sheets:["Construction_Schedule","PF_Drawdown","Interest_Capitalization","Sales_Absorption","Profitability_Summary","Sensitivity"],
    stack:true, stackMode:"dev", tax:true,
    groups:[
@@ -1186,7 +1198,7 @@ const DEALS={
     ]}
    ]},
 
- refi:{label:"리파이낸싱", baseAsset:"리파이낸싱",
+ refi:{label:"리파이낸싱", lite:true, baseAsset:"리파이낸싱",
    sheets:["Debt_Schedule","DSCR_ICR_Test","Covenant_Check","Refinance_Compare","Return_Summary"],
    stack:false, refi:true, tax:false,
    groups:[
@@ -1206,7 +1218,7 @@ const DEALS={
     ]}
    ]},
 
- reit:{label:"리츠 · 펀드 운용", baseAsset:"리츠 운용",
+ reit:{label:"리츠 · 펀드 운용", lite:true, baseAsset:"리츠 운용",
    sheets:["NAV_Bridge","Distribution_Model","Dividend_Yield","AUM_Rollforward","IR_Summary"],
    stack:false, tax:true, taxFixed:"도관과세",
    groups:[
@@ -1281,7 +1293,7 @@ let depth="standard";
 /* ---------- 딜 탭 ---------- */
 function renderTabs(){
   $("dealTabs").innerHTML=Object.entries(DEALS).map(([k,d])=>
-    `<button class="deal-tab ${k===cur?'on':''}" data-k="${k}">${d.label}${d.base?'<span class="badge-base">기본</span>':''}</button>`
+    `<button class="deal-tab ${k===cur?'on':''}" data-k="${k}">${d.label}${d.base?'<span class="badge-base">기본</span>':''}${d.lite?'<span class="badge-lite" title="간이 체크 — 빠른 감 잡기용">간이</span>':''}</button>`
   ).join("");
   $("dealTabs").querySelectorAll(".deal-tab").forEach(b=>b.addEventListener("click",()=>{ cur=b.dataset.k; fillExample(); }));
   $("dtLabel").textContent=DEALS[cur].label;
@@ -1944,12 +1956,61 @@ function sensData(){
   }
   return null;
 }
+/* 2변수 민감도(Exit Cap × 성장률) — 실제 엔진 25회로 레버드 IRR 매트릭스 */
+function sens2Data(){
+  if(!(cur==='office'||cur==='logistics')) return null;
+  if(typeof window.__mtSens2!=='function' || typeof window.__mtSensBase!=='function') return null;
+  var base=window.__mtSensBase(); if(!base || !isFinite(base.ec) || !isFinite(base.g)) return null;
+  var ecSteps=[-1,-0.5,0,0.5,1].map(function(d){ return base.ec+d; });
+  var gSteps=[-1,-0.5,0,0.5,1].map(function(d){ return base.g+d; });
+  var rows=[], min=Infinity, max=-Infinity, any=false;
+  for(var i=0;i<ecSteps.length;i++){ var row=[];
+    for(var j=0;j<gSteps.length;j++){
+      var v=window.__mtSens2(ecSteps[i], gSteps[j]); row.push(v);
+      if(v!=null && isFinite(v)){ any=true; if(v<min)min=v; if(v>max)max=v; }
+    }
+    rows.push(row);
+  }
+  if(!any) return null;
+  return { ecSteps:ecSteps, gSteps:gSteps, rows:rows, baseI:2, baseJ:2, gLabel:base.gLabel||'NOI 성장률', min:min, max:max };
+}
+function _sensMix(a,b,u){ return [Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]+(b[1]-a[1])*u),Math.round(a[2]+(b[2]-a[2])*u)]; }
+function _sensHeat(v,min,max){
+  if(v==null || !isFinite(v)) return {bg:'transparent', txt:'—'};
+  var t=(max>min)?(v-min)/(max-min):0.5;
+  var c1=[191,71,48], c2=[214,170,90], c3=[47,125,87], col;
+  if(t<0.5) col=_sensMix(c1,c2,t/0.5); else col=_sensMix(c2,c3,(t-0.5)/0.5);
+  return {bg:'rgba('+col[0]+','+col[1]+','+col[2]+',.24)', txt:(v*100).toFixed(1)+'%'};
+}
+function renderHeat(m){
+  function r1(x){ return (Math.round(x*10)/10).toFixed(1); }
+  var head='<tr><th class="hx-corner">Cap＼성장</th>'+m.gSteps.map(function(g,j){ return '<th'+(j===m.baseJ?' class="hx-base"':'')+'>'+r1(g)+'%</th>'; }).join('')+'</tr>';
+  var body=m.ecSteps.map(function(ec,i){
+    var cells=m.rows[i].map(function(v,j){ var h=_sensHeat(v,m.min,m.max); var isB=(i===m.baseI&&j===m.baseJ);
+      return '<td class="hx-cell'+(isB?' hx-base':'')+'" style="background:'+h.bg+'">'+h.txt+'</td>'; }).join('');
+    return '<tr><th'+(i===m.baseI?' class="hx-base"':'')+'>'+r1(ec)+'%</th>'+cells+'</tr>';
+  }).join('');
+  return '<div class="hx-wrap"><div class="hx-axis-top">'+esc(m.gLabel)+' →</div><table class="sens-tbl hx-tbl">'+head+body+'</table></div>';
+}
 function renderSens(){
   var card=$('sensCard'); if(!card) return;
+  var sub=card.querySelector('.mx-sub');
+  if(cur==='office'||cur==='logistics'){
+    var m=sens2Data();
+    if(m){
+      card.hidden=false;
+      $('sensTitle').textContent='민감도 — 레버드 IRR';
+      if(sub) sub.textContent='Exit Cap × '+m.gLabel;
+      $('sensBody').innerHTML=renderHeat(m);
+      $('sensNote').textContent='각 칸 = 해당 Exit Cap·성장률에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 초록=높음·빨강=낮음.';
+      return;
+    }
+  }
   var o=sensData();
   if(!o){ card.hidden=true; return; }
   card.hidden=false;
   $('sensTitle').textContent=o.title;
+  if(sub) sub.textContent='1변수 스윕';
   var th='<tr><th>'+esc(o.driver)+'</th>'+o.steps.map(function(st){return '<th'+(st.base?' class="base"':'')+'>'+esc(st.label)+'</th>';}).join('')+'</tr>';
   var tr='<tr><td>'+esc(o.outLabel)+'</td>'+o.steps.map(function(st){return '<td'+(st.base?' class="base"':'')+'>'+esc(st.out)+'</td>';}).join('')+'</tr>';
   $('sensBody').innerHTML='<table class="sens-tbl">'+th+tr+'</table>';
@@ -2808,6 +2869,34 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         : '자본구조·우선주 배당·도관과세·감가·매각을 반영한 레버드 DCF 간이 결과입니다. 더 정밀한 모델은 아래 AI 지시문을 Claude in Excel에서 이어가세요.']};
   }
   try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
+
+  // ── 2변수 민감도용: 현재 가정 기준 Exit Cap·성장률(%)과, (ec,g)에서의 레버드 IRR ──
+  function _sensOffice(){ return (typeof cur!=='undefined')&&(cur==='office'||cur==='logistics'); }
+  window.__mtSensBase=function(){
+    try{
+      if(!_sensOffice()) return null;
+      var rm=(typeof window!=='undefined')?window.rrModel:null;
+      if(rm&&rm.on&&rm.leases&&rm.leases.length){
+        var V=assumFullV2();
+        return { ec:(V.exitCap||0.045)*100, g:((rm.mkt&&rm.mkt.mktStepUp)||0.03)*100, rr:true, gLabel:'시장임대료 성장' };
+      }
+      var V2=assumFull();
+      return { ec:(V2['C58']||0.045)*100, g:(V2['C27']||0.03)*100, rr:false, gLabel:'NOI 성장률' };
+    }catch(e){ return null; }
+  };
+  window.__mtSens2=function(ecPct, gPct){
+    try{
+      if(!_sensOffice()) return null;
+      var rm=(typeof window!=='undefined')?window.rrModel:null;
+      if(rm&&rm.on&&rm.leases&&rm.leases.length){
+        var V=assumFullV2(); V.exitCap=ecPct/100;
+        var mkt={}; for(var kk in rm.mkt) mkt[kk]=rm.mkt[kk]; mkt.mktStepUp=gPct/100;
+        var r=leaseModelV2(rm.leases, V, mkt, 5); return (r&&isFinite(r.IRR))?r.IRR:null;
+      }
+      var V2=assumFull(); V2['C58']=ecPct/100; V2['C27']=gPct/100; V2['C28']=gPct/100;
+      var r2=calcModel(V2); return (r2&&isFinite(r2.IRR))?r2.IRR:null;
+    }catch(e){ return null; }
+  };
 
   function notes(){
     var s=(typeof state!=='undefined'&&state)?state:{}, k=(typeof stackState!=='undefined'&&stackState)?stackState:{}, w=[];
