@@ -47,7 +47,7 @@ ok((html.match(/feeY/g) || []).length >= 2, '운용보수·고정비 계산(calc
 ok(html.includes('운용보수율(취득가)'), '엑셀 운용보수 셀(C76/C78)');
 ok((html.match(/k:"opfee"/g) || []).length >= 2, '운용보수 입력(오피스·물류) 존재');
 ok(html.includes('window.__setSensAxis'), '민감도 축 토글(성장률/금리) 존재');
-ok(html.includes("What's new · v5"), "What's new 팝업 v5");
+ok(html.includes("What's new · v3"), "What's new 팝업 v3");
 ok(html.includes('function holdTemplate'), '변동 보유기간 엑셀 생성기(holdTemplate) 존재');
 ok((html.match(/t:"range"/g) || []).length >= 2, '보유기간 슬라이더(오피스·물류) 존재');
 ok(html.includes('function mtHold'), '보유기간 헬퍼(mtHold) 존재');
@@ -65,7 +65,7 @@ ok(html.includes("c+'7-'+A+'$C$78'"), 'holdTemplate 과세소득에 운용보수
 ok(html.includes('01_Assumptions!$C$75*POWER(1+01_Assumptions!$C$27,01_Assumptions!$C$79)'), '엑셀 기본템플릿 보증금 성장 정산(P0-3 완결)');
 ok(html.includes('prt-flag'), '파리티 배지(화면=엑셀) 존재');
 ok(html.includes('화면 = 다운로드 엑셀'), '파리티 배지 라벨');
-ok(html.includes('파리티 — 화면 = 다운로드 엑셀'), '방법론 모달 파리티 섹션 존재');
+ok(html.includes('<h4>화면 = 다운로드 엑셀</h4>'), '방법론 모달 화면=엑셀 일치 섹션 존재');
 ok(html.includes('feats:featSnapshot()'), '이벤트 스키마: 활성기능 스냅샷(feats) 전송');
 ok(html.includes("track('share_link')") && html.includes("track('pdf_export')") && html.includes("track('slot_save')"), '이벤트: 공유·PDF·보관함 액션 추적');
 ok(html.includes("mtTrack('sens_axis'"), '이벤트: 민감도 축 토글 추적');
