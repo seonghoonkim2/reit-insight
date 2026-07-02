@@ -59,6 +59,10 @@ ok(html.includes('id="cmpOverlay"'), '딜 비교 모달 존재');
 ok(html.includes('class="ps-kpis"'), 'IC 원페이저 KPI 스트립 존재');
 ok(html.includes('class="ps-stack"'), 'IC 원페이저 자본구조(트랜치) 섹션 존재');
 ok(/class="ps-sens"/.test(html), 'IC 원페이저 민감도 히트맵 섹션 존재');
+ok((html.match(/NOI\[y\]-INT\[y\]-depY-feeY/g)||[]).length>=2, '세무 손금산입: 과세소득 = NOI−이자−감가−운용보수(화면 2엔진)');
+ok(html.includes('C5-C6-C7-01_Assumptions!$C$78'), '엑셀 기본템플릿 과세소득에 운용보수 손금산입');
+ok(html.includes("c+'7-'+A+'$C$78'"), 'holdTemplate 과세소득에 운용보수 손금산입(변동 보유)');
+ok(html.includes('01_Assumptions!$C$75*POWER(1+01_Assumptions!$C$27,01_Assumptions!$C$79)'), '엑셀 기본템플릿 보증금 성장 정산(P0-3 완결)');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
