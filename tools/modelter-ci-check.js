@@ -56,6 +56,9 @@ ok(/depExit/.test(html), '보증금 성장 정산(depExit) 존재');
 ok(html.includes('function computeForSnapshot'), '딜 비교 순수계산 래퍼(computeForSnapshot) 존재');
 ok(html.includes('function renderCompare'), '딜 비교 렌더러(renderCompare) 존재');
 ok(html.includes('id="cmpOverlay"'), '딜 비교 모달 존재');
+ok(html.includes('class="ps-kpis"'), 'IC 원페이저 KPI 스트립 존재');
+ok(html.includes('class="ps-stack"'), 'IC 원페이저 자본구조(트랜치) 섹션 존재');
+ok(/class="ps-sens"/.test(html), 'IC 원페이저 민감도 히트맵 섹션 존재');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
@@ -157,6 +160,12 @@ const driver = `;(function(){
     var _stB2 = state, _curB2 = cur;
     try { renderCompare(); } finally { loadSlots = _origLoad; }
     if (cur !== _curB2 || state !== _stB2) throw new Error("renderCompare 후 전역 미복원");
+  }
+  // IC 원페이저 강화(KPI스트립·트랜치·히트맵): 오피스(전체)·리츠(KPI만) 무예외
+  if (typeof buildPrintSummary === "function") {
+    cur = "office"; window.rrModel = null; fillExample(); buildPrintSummary();
+    cur = "reit"; fillExample(); buildPrintSummary();
+    cur = "office"; fillExample();
   }
   globalThis.__CI_OK = 1;
 })();`;

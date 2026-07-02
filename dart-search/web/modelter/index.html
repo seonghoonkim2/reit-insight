@@ -496,7 +496,7 @@ header{background:rgba(253,252,249,.82)}
   body.psum *{visibility:hidden!important}
   body.psum #printSummary, body.psum #printSummary *{visibility:visible!important}
   body.psum{background:#fff}
-  body.psum #printSummary{display:block; position:absolute; left:0; top:0; width:100%; padding:2mm 4mm; color:#111; font-family:var(--font)}
+  body.psum #printSummary{display:block; position:absolute; left:0; top:0; width:100%; padding:2mm 4mm; color:#111; font-family:var(--font); -webkit-print-color-adjust:exact; print-color-adjust:exact}
   #printSummary .ps-head{display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid #1b2230; padding-bottom:6px; margin-bottom:10px}
   #printSummary .ps-brand{font-weight:700; color:#1b2230; font-size:12pt}
   #printSummary .ps-date{font-size:9pt; color:#555}
@@ -513,6 +513,34 @@ header{background:rgba(253,252,249,.82)}
   #printSummary .ps-warn ul{margin:3px 0 0 16px}
   #printSummary .ps-sheets{font-size:9pt; color:#333; line-height:1.55}
   #printSummary .ps-foot{margin-top:12px; padding-top:6px; border-top:1px solid #ccc; font-size:8pt; color:#666}
+  /* KPI 스트립 */
+  #printSummary .ps-kpis{display:flex; gap:8px; margin:0 0 10px}
+  #printSummary .ps-kpi{flex:1; border:1px solid #ccc; border-radius:6px; padding:6px 8px; text-align:center; background:#faf9f6}
+  #printSummary .ps-kpi.warn{border-color:#b3472f; background:#fbf1ee}
+  #printSummary .ps-kpi.good{border-color:#2f7d57; background:#eef6f1}
+  #printSummary .pk-l{font-size:8pt; color:#555; margin-bottom:2px}
+  #printSummary .pk-v{font-size:14pt; font-weight:800; color:#111; line-height:1.1}
+  #printSummary .ps-kpi.warn .pk-v{color:#b3472f}
+  #printSummary .ps-kpi.good .pk-v{color:#2f7d57}
+  /* 자본 구조(트랜치) */
+  #printSummary .ps-stack .trn{background:none; border:none; margin:0; padding:0; box-shadow:none}
+  #printSummary .ps-stack .trn-h{display:none}
+  #printSummary .trn-row{display:flex; align-items:center; gap:8px; padding:4px 6px; border-bottom:1px solid #eee; font-size:9.5pt; color:#111; background:none}
+  #printSummary .trn-n{flex:0 0 92px}
+  #printSummary .trn-n b{font-weight:700} #printSummary .trn-n i{display:block; font-style:normal; font-size:7.5pt; color:#888}
+  #printSummary .trn-w{flex:0 0 46px; text-align:right; font-weight:700}
+  #printSummary .trn-amt{flex:1; text-align:right; font-weight:600}
+  #printSummary .trn-m{flex:0 0 68px; text-align:right}
+  #printSummary .trn-m b{font-weight:700} #printSummary .trn-m i{display:block; font-style:normal; font-size:7.5pt; color:#888}
+  #printSummary .trn-m.muted b{color:#888; font-weight:600}
+  /* 민감도 히트맵 */
+  #printSummary .ps-sens .hx-wrap{overflow:visible}
+  #printSummary .ps-sens .hx-axis-top{font-size:8pt; color:#555; margin:0 0 3px}
+  #printSummary .ps-sens .sens-tbl{border-collapse:collapse; font-size:8.5pt; margin:0}
+  #printSummary .ps-sens .sens-tbl th,#printSummary .ps-sens .sens-tbl td{border:1px solid #ddd; padding:3px 7px; text-align:center; color:#111}
+  #printSummary .ps-sens .sens-tbl th{background:#f0ede8; font-weight:700}
+  #printSummary .ps-sens .hx-cell{font-weight:600}
+  #printSummary .ps-sens .sens-tbl .hx-base{outline:2px solid #1b2230; outline-offset:-2px; font-weight:800}
 }
 
 /* 시나리오 비교 */
@@ -2020,15 +2048,31 @@ function buildPrintSummary(){
   var d=DEALS[cur]; var title=((state.asset||'').trim())||d.label; var r=computeMetrics();
   var sheets=(typeof sheetListFor==='function')?sheetListFor():[]; var dp=DEPTHS[depth];
   var date=new Date().toISOString().slice(0,10);
+  /* 실측 모델 결과(KPI·트랜치·민감도) */
+  var mdl=null; try{ mdl=(typeof simModel==='function')?simModel():null; }catch(e){}
+  var kpiStrip='';
+  if(mdl&&mdl.kpis&&mdl.kpis.length){
+    var big=mdl.kpis.filter(function(k){return k.big;}); if(!big.length) big=mdl.kpis.slice(0,4);
+    kpiStrip='<div class="ps-kpis">'+big.map(function(k){ var tn=(k.tone==='warn'?' warn':(k.tone==='good'?' good':'')); return '<div class="ps-kpi'+tn+'"><div class="pk-l">'+esc(String(k.l))+'</div><div class="pk-v">'+esc(String(k.v))+'</div></div>'; }).join('')+'</div>';
+  }
   var rowsHtml=(r.rows||[]).map(function(x){return '<tr><td>'+esc(String(x.l))+'</td><td>'+esc(String(x.v))+(x.est?' (추정)':'')+'</td></tr>';}).join('');
   var warnHtml=(r.warns&&r.warns.length)?('<div class="ps-warn"><b>점검 필요</b><ul>'+r.warns.map(function(w){return '<li>'+esc(w)+'</li>';}).join('')+'</ul></div>'):'';
   var asRows=''; d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='textarea') return; var v=(state[f.k]||'').trim(); asRows+='<tr><td>'+esc(f.l)+'</td><td>'+(v?(esc(v)+(f.u?(' '+esc(f.u)):'')):'<i>미입력(가정)</i>')+'</td></tr>'; }); });
+  /* 자본 구조(트랜치) — 모델이 산출한 경우만 */
+  var stackHtml=(mdl&&mdl.tranche)?('<h2>자본 구조 · 트랜치별 수익</h2><div class="ps-stack">'+mdl.tranche+'</div>'):'';
+  /* 민감도 히트맵 — 오피스·물류만 */
+  var sensHtml='';
+  if((cur==='office'||cur==='logistics')&&typeof sens2Data==='function'&&typeof renderHeat==='function'){
+    try{ var sm=sens2Data((typeof sensAxis!=='undefined'&&sensAxis)?sensAxis:'growth'); if(sm) sensHtml='<h2>민감도 — 레버드 IRR (Exit Cap × '+esc(String(sm.gLabel))+')</h2><div class="ps-sens">'+renderHeat(sm)+'</div>'; }catch(e){}
+  }
   var sheetHtml=sheets.map(function(x,i){return (i+1)+'. '+x;}).join('   ·   ');
   $('printSummary').innerHTML=
     '<div class="ps-head"><div class="ps-brand">모델터 · 부동산 재무모델 빌더</div><div class="ps-date">'+date+'</div></div>'+
     '<h1 class="ps-title">'+esc(title)+' <span>'+esc(d.label)+' · '+esc(dp.label)+' ('+sheets.length+'시트)</span></h1>'+
+    kpiStrip+
     '<div class="ps-cols"><div class="ps-col"><h2>즉시 점검</h2><table class="ps-tbl">'+rowsHtml+'</table>'+warnHtml+'</div>'+
     '<div class="ps-col"><h2>핵심 가정</h2><table class="ps-tbl">'+asRows+'</table></div></div>'+
+    stackHtml+sensHtml+
     '<h2>생성될 시트 구조</h2><p class="ps-sheets">'+esc(sheetHtml)+'</p>'+
     '<div class="ps-foot">modelter.com · 코람코자산신탁 상장리츠팀 김성훈 · 본 요약은 입력값 기반 직접계산·추정치이며 투자 권유가 아닙니다.</div>';
 }
