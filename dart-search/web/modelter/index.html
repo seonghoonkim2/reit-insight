@@ -891,7 +891,7 @@ html,body{overflow-x:hidden}
 <div class="wn-overlay" id="wnOverlay" hidden>
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
-    <div class="wn-eyebrow">What's new · v4</div>
+    <div class="wn-eyebrow">What's new · v5</div>
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
     <p class="wn-lead">예전엔 AI에게 줄 ‘지시문(프롬프트)’만 만들었다면, 이제는 이 화면 안에서 진짜 재무모델이 돌아갑니다.</p>
     <ul class="wn-list">
@@ -900,7 +900,8 @@ html,body{overflow-x:hidden}
       <li><span class="wn-ic">🏛️</span><div><b>우선주·보통주 분리</b><span>자본 트랜치별 비중·IRR·배당률을 각각 보여줍니다.</span></div></li>
       <li><span class="wn-ic">⬇️</span><div><b>수식 살아있는 Excel</b><span>화면 수치와 동일한 13시트 모델을 그 자리에서 .xlsx로 받습니다.</span></div></li>
       <li><span class="wn-ic">📊</span><div><b>세후 IRR · 민감도 히트맵</b><span>비도관 선택 시 세후 수익률까지, Exit Cap×성장률 민감도를 히트맵으로 한눈에.</span></div></li>
-      <li><span class="wn-ic">🇰🇷</span><div><b>한국 실무 정합 <span class="wn-tag">NEW</span></b><span>보증금 승계·운용보수 반영, 렌트롤 전용/임대면적 구분, 우선주 누적배당 — 실무 기준에 맞춘 정밀도.</span></div></li>
+      <li><span class="wn-ic">🇰🇷</span><div><b>한국 실무 정합</b><span>보증금 승계·운용보수 반영, 렌트롤 전용/임대면적 구분, 우선주 누적배당 — 실무 기준에 맞춘 정밀도.</span></div></li>
+      <li><span class="wn-ic">🆚</span><div><b>딜 비교 · IC 원페이저 · 파리티 <span class="wn-tag">NEW</span></b><span>저장한 딜을 나란히 비교하고, KPI·자본구조·민감도를 담은 한 장 요약을 인쇄로. ‘화면 = 다운로드 엑셀’을 검증합니다.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -3947,8 +3948,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   if(!bar && !ov) return;
   function today(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function snoozedToday(){ try{ return localStorage.getItem(SNOOZE)===today(); }catch(e){ return false; } }
-  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v4')==='1'; }catch(e){ return false; } }
-  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v4','1'); }catch(e){} }
+  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v5')==='1'; }catch(e){ return false; } }
+  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v5','1'); }catch(e){} }
   function snoozeDay(){ try{ localStorage.setItem(SNOOZE,today()); }catch(e){} }
   function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow=''; document.body.style.overflow='hidden'; } }
   function closeWN(){ if(ov){ ov.hidden=true; } document.body.style.overflow=''; }
