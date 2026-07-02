@@ -51,6 +51,8 @@ ok(html.includes("What's new · v4"), "What's new 팝업 v4");
 ok(html.includes('function holdTemplate'), '변동 보유기간 엑셀 생성기(holdTemplate) 존재');
 ok((html.match(/t:"range"/g) || []).length >= 2, '보유기간 슬라이더(오피스·물류) 존재');
 ok(html.includes('function mtHold'), '보유기간 헬퍼(mtHold) 존재');
+ok(html.includes('function putS'), 'holdTemplate 헤더·2차지표 재생성 존재');
+ok(/depExit/.test(html), '보증금 성장 정산(depExit) 존재');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
@@ -122,6 +124,10 @@ const driver = `;(function(){
     if (_ex.leases[0].netArea !== 1200) throw new Error("렌트롤 전용면적 netArea 실패: " + _ex.leases[0].netArea);
     var _agg = RENTROLL.aggregate(_ex.leases, 8400, 0.88);
     if (!(_agg.rentable > 7391 && _agg.rentable < 7393)) throw new Error("렌트롤 임대가능면적 산출 실패: " + _agg.rentable);
+    // 따옴표 CSV(임차인명 콤마) 열 밀림 방지
+    var _csvq = ["임차인,임대면적(평),월임대료", String.fromCharCode(34)+"ABC, Inc."+String.fromCharCode(34)+",2000,124000000"].join(String.fromCharCode(10));
+    var _gq = RENTROLL.parseDelimited(_csvq);
+    if (!(_gq[1].length === 3 && _gq[1][0] === "ABC, Inc.")) throw new Error("따옴표 CSV 파싱 실패: " + JSON.stringify(_gq[1]));
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();
