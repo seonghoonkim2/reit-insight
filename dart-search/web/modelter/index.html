@@ -787,6 +787,11 @@ html,body{overflow-x:hidden}
 @media(max-width:520px){ .mini-kpi{top:58px; right:9px; gap:10px; padding:7px 11px 7px 9px} .mini-v{font-size:15.5px} .mini-tag{font-size:8.5px} }
 
 /* 2변수 민감도 히트맵 (Exit Cap × 성장률 → 레버드 IRR) */
+.hx-toggle{display:flex; align-items:center; gap:6px; margin:0 0 8px}
+.hx-toggle>span{font-size:11px; font-weight:700; color:var(--muted); margin-right:2px}
+.hx-tg{font-size:11.5px; font-weight:700; color:var(--ink-2); background:var(--bg); border:1px solid var(--line-soft); border-radius:7px; padding:3px 10px; cursor:pointer; font-family:var(--font); transition:.12s}
+.hx-tg:hover{border-color:var(--accent-solid)}
+.hx-tg.on{background:var(--accent-solid); color:var(--on-accent); border-color:transparent}
 .hx-wrap{overflow-x:auto; margin-top:2px}
 .hx-axis-top{font-size:10.5px; color:var(--muted); font-weight:600; margin:0 0 4px 3px}
 .hx-tbl{width:100%; border-collapse:separate; border-spacing:3px; margin-top:0}
@@ -832,7 +837,7 @@ html,body{overflow-x:hidden}
 <div class="wn-overlay" id="wnOverlay" hidden>
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
-    <div class="wn-eyebrow">What's new · v3</div>
+    <div class="wn-eyebrow">What's new · v4</div>
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
     <p class="wn-lead">예전엔 AI에게 줄 ‘지시문(프롬프트)’만 만들었다면, 이제는 이 화면 안에서 진짜 재무모델이 돌아갑니다.</p>
     <ul class="wn-list">
@@ -840,7 +845,8 @@ html,body{overflow-x:hidden}
       <li><span class="wn-ic">📋</span><div><b>렌트롤 업로드</b><span>임차인 목록을 올리면 현 계약·공실·만기까지 임차인별로 정밀 반영됩니다.</span></div></li>
       <li><span class="wn-ic">🏛️</span><div><b>우선주·보통주 분리</b><span>자본 트랜치별 비중·IRR·배당률을 각각 보여줍니다.</span></div></li>
       <li><span class="wn-ic">⬇️</span><div><b>수식 살아있는 Excel</b><span>화면 수치와 동일한 13시트 모델을 그 자리에서 .xlsx로 받습니다.</span></div></li>
-      <li><span class="wn-ic">📊</span><div><b>세후 IRR · 민감도 히트맵 <span class="wn-tag">NEW</span></b><span>비도관 선택 시 세후 수익률까지, Exit Cap×성장률 민감도를 히트맵으로 한눈에.</span></div></li>
+      <li><span class="wn-ic">📊</span><div><b>세후 IRR · 민감도 히트맵</b><span>비도관 선택 시 세후 수익률까지, Exit Cap×성장률 민감도를 히트맵으로 한눈에.</span></div></li>
+      <li><span class="wn-ic">🇰🇷</span><div><b>한국 실무 정합 <span class="wn-tag">NEW</span></b><span>보증금 승계·운용보수 반영, 렌트롤 전용/임대면적 구분, 우선주 누적배당 — 실무 기준에 맞춘 정밀도.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -2036,23 +2042,26 @@ function sensData(){
   return null;
 }
 /* 2변수 민감도(Exit Cap × 성장률) — 실제 엔진 25회로 레버드 IRR 매트릭스 */
-function sens2Data(){
+function sens2Data(mode){
   if(!(cur==='office'||cur==='logistics')) return null;
   if(typeof window.__mtSens2!=='function' || typeof window.__mtSensBase!=='function') return null;
-  var base=window.__mtSensBase(); if(!base || !isFinite(base.ec) || !isFinite(base.g)) return null;
+  var base=window.__mtSensBase(); if(!base || !isFinite(base.ec)) return null;
+  var isRate=(mode==='rate'); var yBase=isRate?base.rate:base.g; if(!isFinite(yBase)) return null;
   var ecSteps=[-1,-0.5,0,0.5,1].map(function(d){ return base.ec+d; });
-  var gSteps=[-1,-0.5,0,0.5,1].map(function(d){ return base.g+d; });
+  var gSteps=[-1,-0.5,0,0.5,1].map(function(d){ return yBase+d; });
   var rows=[], min=Infinity, max=-Infinity, any=false;
   for(var i=0;i<ecSteps.length;i++){ var row=[];
     for(var j=0;j<gSteps.length;j++){
-      var v=window.__mtSens2(ecSteps[i], gSteps[j]); row.push(v);
+      var v=window.__mtSens2(ecSteps[i], gSteps[j], mode); row.push(v);
       if(v!=null && isFinite(v)){ any=true; if(v<min)min=v; if(v>max)max=v; }
     }
     rows.push(row);
   }
   if(!any) return null;
-  return { ecSteps:ecSteps, gSteps:gSteps, rows:rows, baseI:2, baseJ:2, gLabel:base.gLabel||'NOI 성장률', min:min, max:max };
+  return { ecSteps:ecSteps, gSteps:gSteps, rows:rows, baseI:2, baseJ:2, gLabel:isRate?'선순위 금리':(base.gLabel||'NOI 성장률'), min:min, max:max };
 }
+var sensAxis='growth';
+window.__setSensAxis=function(m){ sensAxis=m; try{ renderSens(); }catch(e){} };
 function _sensMix(a,b,u){ return [Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]+(b[1]-a[1])*u),Math.round(a[2]+(b[2]-a[2])*u)]; }
 function _sensHeat(v,min,max){
   if(v==null || !isFinite(v)) return {bg:'transparent', txt:'—'};
@@ -2075,13 +2084,16 @@ function renderSens(){
   var card=$('sensCard'); if(!card) return;
   var sub=card.querySelector('.mx-sub');
   if(cur==='office'||cur==='logistics'){
-    var m=sens2Data();
+    var m=sens2Data(sensAxis);
     if(m){
       card.hidden=false;
       $('sensTitle').textContent='민감도 — 레버드 IRR';
       if(sub) sub.textContent='Exit Cap × '+m.gLabel;
-      $('sensBody').innerHTML=renderHeat(m);
-      $('sensNote').textContent='각 칸 = 해당 Exit Cap·성장률에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 초록=높음·빨강=낮음.';
+      var tg='<div class="hx-toggle"><span>2번째 축</span>'
+        +'<button type="button" class="hx-tg'+(sensAxis!=='rate'?' on':'')+'" onclick="__setSensAxis(\'growth\')">성장률</button>'
+        +'<button type="button" class="hx-tg'+(sensAxis==='rate'?' on':'')+'" onclick="__setSensAxis(\'rate\')">선순위 금리</button></div>';
+      $('sensBody').innerHTML=tg+renderHeat(m);
+      $('sensNote').textContent='각 칸 = 해당 Exit Cap·'+(sensAxis==='rate'?'선순위 금리':'성장률')+'에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 초록=높음·빨강=낮음.';
       return;
     }
   }
@@ -2992,22 +3004,24 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       var rm=(typeof window!=='undefined')?window.rrModel:null;
       if(rm&&rm.on&&rm.leases&&rm.leases.length){
         var V=assumFullV2();
-        return { ec:(V.exitCap||0.045)*100, g:((rm.mkt&&rm.mkt.mktStepUp)||0.03)*100, rr:true, gLabel:'시장임대료 성장' };
+        return { ec:(V.exitCap||0.045)*100, g:((rm.mkt&&rm.mkt.mktStepUp)||0.03)*100, rate:(V.sRate||0.045)*100, rr:true, gLabel:'시장임대료 성장' };
       }
       var V2=assumFull();
-      return { ec:(V2['C58']||0.045)*100, g:(V2['C27']||0.03)*100, rr:false, gLabel:'NOI 성장률' };
+      return { ec:(V2['C58']||0.045)*100, g:(V2['C27']||0.03)*100, rate:(V2['C46']||0.045)*100, rr:false, gLabel:'NOI 성장률' };
     }catch(e){ return null; }
   };
-  window.__mtSens2=function(ecPct, gPct){
+  window.__mtSens2=function(ecPct, yPct, mode){
     try{
       if(!_sensOffice()) return null;
+      var isRate=(mode==='rate');
       var rm=(typeof window!=='undefined')?window.rrModel:null;
       if(rm&&rm.on&&rm.leases&&rm.leases.length){
-        var V=assumFullV2(); V.exitCap=ecPct/100;
-        var mkt={}; for(var kk in rm.mkt) mkt[kk]=rm.mkt[kk]; mkt.mktStepUp=gPct/100;
+        var V=assumFullV2(); V.exitCap=ecPct/100; if(isRate) V.sRate=yPct/100;
+        var mkt={}; for(var kk in rm.mkt) mkt[kk]=rm.mkt[kk]; if(!isRate) mkt.mktStepUp=yPct/100;
         var r=leaseModelV2(rm.leases, V, mkt, 5); return (r&&isFinite(r.IRR))?r.IRR:null;
       }
-      var V2=assumFull(); V2['C58']=ecPct/100; V2['C27']=gPct/100; V2['C28']=gPct/100;
+      var V2=assumFull(); V2['C58']=ecPct/100;
+      if(isRate){ V2['C46']=yPct/100; } else { V2['C27']=yPct/100; V2['C28']=yPct/100; }
       var r2=calcModel(V2); return (r2&&isFinite(r2.IRR))?r2.IRR:null;
     }catch(e){ return null; }
   };
@@ -3715,13 +3729,13 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
 
 /* ── 업그레이드 공지 배너 + What's new 모달 ── */
 (function(){
-  var SNOOZE='mt_wn_snooze_v3';   // 'YYYY-M-D' 저장 → 그날 하루 배너·팝업 자동노출 안 함 (v3: 재노출 위해 키 갱신)
+  var SNOOZE='mt_wn_snooze_v4';   // 'YYYY-M-D' 저장 → 그날 하루 배너·팝업 자동노출 안 함 (v3: 재노출 위해 키 갱신)
   var bar=document.getElementById('announce'), ov=document.getElementById('wnOverlay');
   if(!bar && !ov) return;
   function today(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function snoozedToday(){ try{ return localStorage.getItem(SNOOZE)===today(); }catch(e){ return false; } }
-  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v3')==='1'; }catch(e){ return false; } }
-  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v3','1'); }catch(e){} }
+  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v4')==='1'; }catch(e){ return false; } }
+  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v4','1'); }catch(e){} }
   function snoozeDay(){ try{ localStorage.setItem(SNOOZE,today()); }catch(e){} }
   function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow=''; document.body.style.overflow='hidden'; } }
   function closeWN(){ if(ov){ ov.hidden=true; } document.body.style.overflow=''; }

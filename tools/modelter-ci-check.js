@@ -46,6 +46,8 @@ ok((html.match(/k:"depassume"/g) || []).length >= 2, '보증금 승계 입력(�
 ok((html.match(/feeY/g) || []).length >= 2, '운용보수·고정비 계산(calcModel·leaseModelV2) 존재');
 ok(html.includes('운용보수율(취득가)'), '엑셀 운용보수 셀(C76/C78)');
 ok((html.match(/k:"opfee"/g) || []).length >= 2, '운용보수 입력(오피스·물류) 존재');
+ok(html.includes('window.__setSensAxis'), '민감도 축 토글(성장률/금리) 존재');
+ok(html.includes("What's new · v4"), "What's new 팝업 v4");
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
