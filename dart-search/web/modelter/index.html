@@ -872,7 +872,7 @@ html,body{overflow-x:hidden}
     <div class="md-sec">
       <h4>세금</h4>
       <div class="md-f"><b>도관과세</b>(기본) — 배당소득공제로 법인세가 0에 수렴. 세전 ≈ 세후.</div>
-      <div class="md-f"><b>비도관</b> — 감가상각 = 매입가 × 70%(건물분) ÷ 40년<br>과세소득 = NOI − 이자 − 감가상각, 법인세 = max(0, 과세소득 × 세율)<br>매각 양도세 = max(0, 순매각가 − 세무상 장부가) × 세율 → 세후 IRR 별도 산출</div>
+      <div class="md-f"><b>비도관</b> — 감가상각 = 총투자액(Uses) × 30%(건물분) ÷ 40년<br>과세소득 = NOI − 이자 − 감가상각, 법인세 = max(0, 과세소득 × 세율)<br>매각 양도세 = max(0, 순매각가 − 세무상 장부가) × 세율 → 화면에 세전·세후 IRR 함께 표시</div>
     </div>
 
     <div class="md-sec">
@@ -2784,11 +2784,11 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     }
     var mat=n('C48',20), repay=(typeof V['C47']==='string')?V['C47']:'만기일시(이자만)';
     function pmt(r,nn,pv){return r?(r*pv)/(1-Math.pow(1+r,-nn)):pv/nn;}
-    var bal=loan, DS=[],DSCR=[],endBal=[];
+    var bal=loan, DS=[],DSCR=[],endBal=[],INT=[];
     for(y=0;y<5;y++){
       var interest=bal*sRate, prin;
       if(repay.indexOf('만기일시')>=0)prin=0; else if(repay.indexOf('원금균등')>=0)prin=loan/mat; else prin=pmt(sRate,mat,loan)-interest;
-      DS.push(interest+prin);DSCR.push(NOI[y]/(interest+prin)); bal-=prin; endBal.push(bal);
+      DS.push(interest+prin);DSCR.push(NOI[y]/(interest+prin)); INT.push(interest); bal-=prin; endBal.push(bal);
     }
     var sale=NOI[5]/n('C58',0.045), netSale=sale-sale*n('C59',0.01);
     var dist=[];
@@ -2802,7 +2802,13 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var commonIRR=(common>0)?_irr([-common].concat(commonCF)):null;
     var commonEM=(common>0)?commonCF.reduce(function(a,b){return a+b;},0)/common:null;
     var unlev=_irr([-uses].concat(opCF.slice(0,4)).concat([opCF[4]+netSale]));
+    // 세후(비도관): 엑셀 06_Tax_Disposition·08_Equity_Cashflow(세후행)·09_Return_Summary!E6 와 동일 로직
+    var passthru=(n('C66',1)===1), taxrate=n('C65',0.22), depY=(n('C61',0.3)*uses)/n('C62',40);
+    var atDist=[]; for(y=0;y<5;y++){ var txbl=NOI[y]-INT[y]-depY, opTax=passthru?0:Math.max(0,txbl)*taxrate; var ad=dist[y]-opTax;
+      if(y===4){ var book=uses-depY*5, dispTax=passthru?0:Math.max(0,netSale-book)*taxrate; ad-=dispTax; } atDist.push(ad); }
+    var IRRat=_irr([-equity].concat(atDist)), EMat=atDist.reduce(function(a,b){return a+b;},0)/equity;
     return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,price:price,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist,
+      IRRat:IRRat,EMat:EMat,passthru:passthru,taxrate:taxrate,
       uses:uses,loan:loan,prefAmt:prefAmt,common:common,prefCoc:prefCoc,prefIRR:prefIRR,commonIRR:commonIRR,commonEM:commonEM,commonCoC:coc};
   }
   function _fp(x){ return (x==null||!isFinite(x))?'—':(x*100).toFixed(2)+'%'; }
@@ -2854,7 +2860,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       sLtv:n('C45',0.55), sRate:n('C46',0.045), finFee:n('C17',0.005), prefRatio:n('C51',0), prefCoc:n('C52',0.06),
       depMonths:n('C26',10), depRate:n('C29',0.03), otherIncome:n('C31',12000)*gfa*12/1e6, otherG:n('C32',0.02),
       opexAnnual:(n('C34',1000)+n('C35',6500)+n('C36',4500)+n('C37',2500)+n('C38',1500))*gfa*12/1e6 + price*n('C39',0.004) + price*n('C40',0.0008),
-      capexAnnual:n('C43',8000)*gfa/1e6, opexG:n('C41',0.02), exitCap:n('C58',0.045), saleFee:n('C59',0.01), mat:n('C48',20)};
+      capexAnnual:n('C43',8000)*gfa/1e6, opexG:n('C41',0.02), exitCap:n('C58',0.045), saleFee:n('C59',0.01), mat:n('C48',20),
+      buildRatio:n('C61',0.3), depLife:n('C62',40), taxrate:n('C65',0.22), passthru:(n('C66',1)===1)};
   }
   function leaseModelV2(leases, V, mkt, hold){
     hold=hold||5; function n(k,d){var x=V[k];return (typeof x==='number'&&isFinite(x))?x:d;}
@@ -2865,10 +2872,15 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var otherInc=n('otherIncome',0), otherG=n('otherG',0.02), opexAnnual=n('opexAnnual',0), capexB=n('capexAnnual',0), y, NOI=[];
     for(y=0;y<hold+1;y++){ var rent=inc.rentY[y],cam=inc.camY[y]; var depIncome=(rent*1e6/12)*depMonths*depRate/1e6, other=otherInc*Math.pow(1+otherG,y), opex=opexAnnual*Math.pow(1+opG,y); NOI.push(rent+cam+other+depIncome-opex); }
     var sRate=n('sRate',0.045), mat=n('mat',20), repay=mkt.repay||'만기일시(이자만)'; function pmt(r,nn,pv){return r?(r*pv)/(1-Math.pow(1+r,-nn)):pv/nn;}
-    var bal=loan,DS=[],DSCR=[],endBal=[];
-    for(y=0;y<hold;y++){var interest=bal*sRate,prin; if(repay.indexOf('만기일시')>=0)prin=0;else if(repay.indexOf('원금균등')>=0)prin=loan/mat;else prin=pmt(sRate,mat,loan)-interest; DS.push(interest+prin);DSCR.push(NOI[y]/(interest+prin));bal-=prin;endBal.push(bal);}
+    var bal=loan,DS=[],DSCR=[],endBal=[],INT=[];
+    for(y=0;y<hold;y++){var interest=bal*sRate,prin; if(repay.indexOf('만기일시')>=0)prin=0;else if(repay.indexOf('원금균등')>=0)prin=loan/mat;else prin=pmt(sRate,mat,loan)-interest; DS.push(interest+prin);DSCR.push(NOI[y]/(interest+prin));INT.push(interest);bal-=prin;endBal.push(bal);}
     var sale=NOI[hold]/n('exitCap',0.045), netSale=sale-sale*n('saleFee',0.01);
     var dist=[];for(y=0;y<hold;y++){var d=(NOI[y]-capexB*Math.pow(1+opG,y))-DS[y];if(y===hold-1)d+=netSale-endBal[hold-1];dist.push(d);}
+    // 세후(비도관): calcModel과 동일 로직 (엑셀 06/08/09 세후행)
+    var passthru=(V.passthru!==false), atRate=n('taxrate',0.22), depY=(n('buildRatio',0.3)*uses)/n('depLife',40);
+    var atDist=[];for(y=0;y<hold;y++){var txbl=NOI[y]-INT[y]-depY,opTax=passthru?0:Math.max(0,txbl)*atRate;var ad=dist[y]-opTax;
+      if(y===hold-1){var book=uses-depY*hold,dispTax=passthru?0:Math.max(0,netSale-book)*atRate;ad-=dispTax;}atDist.push(ad);}
+    var IRRat=_irr([-equity].concat(atDist));
     var commonCF=[],prefCF=[];for(y=0;y<hold;y++){var pd=Math.min(dist[y],prefAmt*prefCoc);var pp=(y===hold-1)?Math.min(dist[y]-pd,prefAmt):0;prefCF.push(pd+pp);commonCF.push(dist[y]-(pd+pp));}
     var IRR=_irr([-equity].concat(dist)); var EM=dist.reduce(function(a,b){return a+b;},0)/equity;
     var coc=(commonCF.slice(0,hold-1).reduce(function(a,b){return a+b;},0)/(hold-1))/common;
@@ -2877,6 +2889,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var commonEM=(common>0)?commonCF.reduce(function(a,b){return a+b;},0)/common:null;
     var opCF=NOI.slice(0,hold).map(function(noi,k){return noi-capexB*Math.pow(1+opG,k);}); var unlev=_irr([-uses].concat(opCF.slice(0,hold-1)).concat([opCF[hold-1]+netSale]));
     return {IRR:IRR,EM:EM,coc:coc,minDSCR:Math.min.apply(null,DSCR),unlev:unlev,equity:equity,netSale:netSale,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist,inc:inc,uses:uses,vacantArea:inc.vacantArea,leasedArea:inc.leasedArea,
+      IRRat:IRRat,passthru:passthru,
       loan:loan,prefAmt:prefAmt,common:common,prefCoc:prefCoc,prefIRR:prefIRR,commonIRR:commonIRR,commonEM:commonEM,commonCoC:coc};
   }
   function rrLeaseResult(){
@@ -2887,10 +2900,11 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var total=r.leasedArea+r.vacantArea;
-    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
-      {l:'Equity Multiple', v:em, big:true},{l:'Unlevered IRR', v:_fp(r.unlev), big:true},
+    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')}];
+    if(r.passthru===false) kpis.push({l:'Levered IRR (세후)', v:_fp(r.IRRat), big:true, tone:(r.IRRat!=null&&r.IRRat<0?'warn':'')});
+    kpis.push({l:'Equity Multiple', v:em, big:true},{l:'Unlevered IRR', v:_fp(r.unlev), big:true},
       {l:'최소 DSCR', v:ds, big:false},
-      {l:'현 공실률', v:total?(r.vacantArea/total*100).toFixed(1)+'%':'—', big:false}];
+      {l:'현 공실률', v:total?(r.vacantArea/total*100).toFixed(1)+'%':'—', big:false});
     var rows=[],y; for(y=0;y<5;y++){ var b=r.inc.bk[y];
       rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(b.inplace), mk(b.leaseup), mk(b.rollover), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']); }
     var cnt=rm.leases.length, la=Math.round(r.leasedArea).toLocaleString(), va=Math.round(r.vacantArea).toLocaleString();
@@ -2917,19 +2931,20 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var r=calcModel(assumFull());
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
-    var kpis=[
-      {l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')},
+    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')}];
+    if(r.passthru===false) kpis.push({l:'Levered IRR (세후)', v:_fp(r.IRRat), big:true, tone:(r.IRRat!=null&&r.IRRat<0?'warn':'')});
+    kpis.push(
       {l:'Equity Multiple', v:em, big:true},
       {l:'Unlevered IRR', v:_fp(r.unlev), big:true},
       {l:'최소 DSCR', v:ds, big:false},
-      {l:'자기자본', v:mk(r.equity), big:false}
-    ];
+      {l:'자기자본', v:mk(r.equity), big:false});
     var rows=[],y;
     for(y=0;y<5;y++) rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(r.DS[y]), mk(r.dist[y]), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']);
+    var taxNote=(r.passthru===false)?(' 비도관 선택 → 세전·세후 IRR을 함께 표시합니다(감가상각 건물분 30%·40년, 법인세 '+(r.taxrate*100).toFixed(0)+'% 반영, 엑셀 06/08/09시트와 동일).'):'';
     return {type:'kpi', kpis:kpis, tranche:_trancheBlock(r), mini:{irr:_fp(r.IRR), coc:_fp(r.coc)}, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
-      caveats:[(typeof cur!=='undefined'&&cur==='office')
+      caveats:[((typeof cur!=='undefined'&&cur==='office')
         ? '화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(자본구조·우선주 배당·도관과세·임대가능면적·세부 운영비·보증금운용·감가·매각 반영).'
-        : '자본구조·우선주 배당·도관과세·감가·매각을 반영한 레버드 DCF 간이 결과입니다. 더 정밀한 모델은 아래 AI 지시문을 Claude in Excel에서 이어가세요.']};
+        : '자본구조·우선주 배당·도관과세·감가·매각을 반영한 레버드 DCF 간이 결과입니다. 더 정밀한 모델은 아래 AI 지시문을 Claude in Excel에서 이어가세요.')+taxNote]};
   }
   try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
 

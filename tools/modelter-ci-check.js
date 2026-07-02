@@ -28,6 +28,9 @@ ok(html.includes('id="miniKpi"'), '미니 결과(IRR·CoC) 위젯 존재');
 ok(html.includes('id="wnOverlay"'), "What's new 팝업 존재");
 ok((html.match(/trn-pref/g) || []).length >= 1, '우선주·보통주 트랜치 블록 존재');
 ok(/window\.mtTrack\s*=\s*track/.test(html), '익명 사용 이벤트 트래킹 스니펫 존재');
+ok((html.match(/IRRat:IRRat/g) || []).length >= 2, '세후 IRR 계산(calcModel·leaseModelV2) 존재');
+ok(html.includes('Levered IRR (세후)'), '비도관 세후 IRR KPI 존재');
+ok(html.includes('id="mdOverlay"'), '방법론(가정·계산식) 모달 존재');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
@@ -86,6 +89,15 @@ const driver = `;(function(){
   if (!(RR && RR.tranche)) throw new Error("렌트롤 tranche 누락");
   if (!(RR && RR.mini)) throw new Error("렌트롤 mini 누락");
   window.rrModel = null;
+  // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
+  cur = "office"; fillExample();
+  var preR = simModel(); if (preR.kpis.some(function(k){return k.l.indexOf("세후")>=0;})) throw new Error("도관인데 세후 KPI가 노출됨");
+  state["taxmode"] = "비도관(법인세 적용)"; state["taxrate"] = "22";
+  var atR = simModel();
+  var atK = atR.kpis.filter(function(k){return k.l.indexOf("세후")>=0;});
+  if (atK.length !== 1) throw new Error("비도관 세후 IRR KPI 누락");
+  if (atK[0].v === preR.kpis[0].v) throw new Error("비도관 세후 IRR가 세전과 동일(세금 미반영)");
+  state["taxmode"] = ""; state["taxrate"] = "";
   globalThis.__CI_OK = 1;
 })();`;
 
