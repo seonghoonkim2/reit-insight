@@ -756,6 +756,7 @@ html,body{overflow-x:hidden}
 .wn-ic{flex:0 0 auto; width:34px; height:34px; border-radius:9px; background:var(--bg); border:1px solid var(--line-soft); display:flex; align-items:center; justify-content:center; font-size:17px}
 .wn-list li>div{display:flex; flex-direction:column; gap:2px}
 .wn-list li b{font-size:14px; font-weight:800; color:var(--ink)}
+.wn-tag{font-size:9px; font-weight:800; letter-spacing:.03em; color:var(--on-accent); background:var(--accent-solid); padding:1px 5px; border-radius:4px; margin-left:5px; vertical-align:middle}
 .wn-list li>div span{font-size:12.5px; color:var(--ink-2); line-height:1.45}
 .wn-cta{display:block; width:100%; border:none; border-radius:11px; background:var(--accent-solid); color:var(--on-accent); font-family:var(--font); font-size:14.5px; font-weight:700; padding:13px; cursor:pointer; box-shadow:0 4px 14px rgba(143,98,32,.3); transition:.15s}
 .wn-cta:hover{filter:brightness(1.07)}
@@ -831,7 +832,7 @@ html,body{overflow-x:hidden}
 <div class="wn-overlay" id="wnOverlay" hidden>
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
-    <div class="wn-eyebrow">What's new · v2</div>
+    <div class="wn-eyebrow">What's new · v3</div>
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
     <p class="wn-lead">예전엔 AI에게 줄 ‘지시문(프롬프트)’만 만들었다면, 이제는 이 화면 안에서 진짜 재무모델이 돌아갑니다.</p>
     <ul class="wn-list">
@@ -839,6 +840,7 @@ html,body{overflow-x:hidden}
       <li><span class="wn-ic">📋</span><div><b>렌트롤 업로드</b><span>임차인 목록을 올리면 현 계약·공실·만기까지 임차인별로 정밀 반영됩니다.</span></div></li>
       <li><span class="wn-ic">🏛️</span><div><b>우선주·보통주 분리</b><span>자본 트랜치별 비중·IRR·배당률을 각각 보여줍니다.</span></div></li>
       <li><span class="wn-ic">⬇️</span><div><b>수식 살아있는 Excel</b><span>화면 수치와 동일한 13시트 모델을 그 자리에서 .xlsx로 받습니다.</span></div></li>
+      <li><span class="wn-ic">📊</span><div><b>세후 IRR · 민감도 히트맵 <span class="wn-tag">NEW</span></b><span>비도관 선택 시 세후 수익률까지, Exit Cap×성장률 민감도를 히트맵으로 한눈에.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -3678,13 +3680,13 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
 
 /* ── 업그레이드 공지 배너 + What's new 모달 ── */
 (function(){
-  var SNOOZE='mt_wn_snooze_v2';   // 'YYYY-M-D' 저장 → 그날 하루 배너·팝업 자동노출 안 함
+  var SNOOZE='mt_wn_snooze_v3';   // 'YYYY-M-D' 저장 → 그날 하루 배너·팝업 자동노출 안 함 (v3: 재노출 위해 키 갱신)
   var bar=document.getElementById('announce'), ov=document.getElementById('wnOverlay');
   if(!bar && !ov) return;
   function today(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function snoozedToday(){ try{ return localStorage.getItem(SNOOZE)===today(); }catch(e){ return false; } }
-  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen')==='1'; }catch(e){ return false; } }
-  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen','1'); }catch(e){} }
+  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v3')==='1'; }catch(e){ return false; } }
+  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v3','1'); }catch(e){} }
   function snoozeDay(){ try{ localStorage.setItem(SNOOZE,today()); }catch(e){} }
   function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow=''; document.body.style.overflow='hidden'; } }
   function closeWN(){ if(ov){ ov.hidden=true; } document.body.style.overflow=''; }
