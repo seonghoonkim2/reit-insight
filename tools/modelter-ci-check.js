@@ -53,6 +53,9 @@ ok((html.match(/t:"range"/g) || []).length >= 2, '보유기간 슬라이더(오�
 ok(html.includes('function mtHold'), '보유기간 헬퍼(mtHold) 존재');
 ok(html.includes('function putS'), 'holdTemplate 헤더·2차지표 재생성 존재');
 ok(/depExit/.test(html), '보증금 성장 정산(depExit) 존재');
+ok(html.includes('function computeForSnapshot'), '딜 비교 순수계산 래퍼(computeForSnapshot) 존재');
+ok(html.includes('function renderCompare'), '딜 비교 렌더러(renderCompare) 존재');
+ok(html.includes('id="cmpOverlay"'), '딜 비교 모달 존재');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
@@ -138,6 +141,23 @@ const driver = `;(function(){
   if (atK.length !== 1) throw new Error("비도관 세후 IRR KPI 누락");
   if (atK[0].v === preR.kpis[0].v) throw new Error("비도관 세후 IRR가 세전과 동일(세금 미반영)");
   state["taxmode"] = ""; state["taxrate"] = "";
+  // 딜 비교 뷰: 순수계산 래퍼가 전역을 반드시 복원 + renderCompare 무예외
+  if (typeof computeForSnapshot === "function" && typeof renderCompare === "function") {
+    cur = "office"; window.rrModel = null; fillExample();
+    var _sOffice = {}; for (var _k1 in state) _sOffice[_k1] = state[_k1];
+    cur = "logistics"; fillExample();
+    var _sLogi = {}; for (var _k2 in state) _sLogi[_k2] = state[_k2];
+    cur = "office"; fillExample();
+    var _stBefore = state, _curBefore = cur, _depthBefore = depth;
+    var _cs = computeForSnapshot({c:"logistics", d:depth, s:_sLogi, k:stackState, r:refiState, rr:null});
+    if (!(_cs && _cs.kpis && _cs.kpis.length)) throw new Error("computeForSnapshot 결과 없음");
+    if (cur !== _curBefore || depth !== _depthBefore || state !== _stBefore) throw new Error("computeForSnapshot 전역 미복원");
+    var _origLoad = loadSlots;
+    loadSlots = function(){ return { "딜A":{c:"office",d:depth,s:_sOffice,k:{},r:{},rr:null}, "딜B":{c:"logistics",d:depth,s:_sLogi,k:{},r:{},rr:null} }; };
+    var _stB2 = state, _curB2 = cur;
+    try { renderCompare(); } finally { loadSlots = _origLoad; }
+    if (cur !== _curB2 || state !== _stB2) throw new Error("renderCompare 후 전역 미복원");
+  }
   globalThis.__CI_OK = 1;
 })();`;
 

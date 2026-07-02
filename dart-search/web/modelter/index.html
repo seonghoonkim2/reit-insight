@@ -472,6 +472,23 @@ header{background:rgba(253,252,249,.82)}
 .sl-sel{font-family:var(--font); font-size:13px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 9px; max-width:190px}
 .sl-btn{font-family:var(--font); font-size:12.5px; font-weight:600; color:var(--ink-2); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer; transition:.16s}
 .sl-btn:hover{border-color:var(--accent); color:var(--accent-deep)}
+.sl-cmp{border-color:var(--accent); color:var(--accent-deep); font-weight:700}
+.sl-cmp:hover{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
+
+/* 딜 비교 모달 */
+.cmp-modal{max-width:760px}
+.cmp-wrap{overflow-x:auto; margin:2px 0 0; -webkit-overflow-scrolling:touch}
+.cmp-tbl{border-collapse:collapse; width:100%; font-size:12.5px; min-width:340px}
+.cmp-tbl th,.cmp-tbl td{border:1px solid var(--line-soft); padding:7px 10px; text-align:right; white-space:nowrap}
+.cmp-tbl th{background:var(--bg); vertical-align:bottom}
+.cmp-corner,.cmp-lab{text-align:left !important; font-weight:600; color:var(--ink-2); background:var(--bg)}
+.cmp-name{display:block; font-weight:700; color:var(--ink); font-size:13px; line-height:1.2}
+.cmp-deal{display:block; font-weight:500; color:var(--muted); font-size:11px; margin-top:2px}
+.cmp-badge{display:inline-block; margin-top:5px; font-size:10.5px; font-weight:700; color:var(--on-accent); background:var(--green); border-radius:6px; padding:1px 7px}
+.cmp-tbl th.cmp-best{background:color-mix(in srgb, var(--green) 14%, var(--panel)); border-color:var(--green)}
+.cmp-tbl tr.cmp-diff td{background:color-mix(in srgb, var(--accent) 8%, var(--panel))}
+.cmp-tbl tr.cmp-diff td.cmp-lab{background:color-mix(in srgb, var(--accent) 14%, var(--bg)); color:var(--accent-deep)}
+.cmp-note{font-size:11px; color:var(--muted); line-height:1.5; margin:12px 0 0}
 
 /* 한 장 요약(인쇄/PDF) */
 #printSummary{display:none}
@@ -906,6 +923,16 @@ html,body{overflow-x:hidden}
   </div>
 </div>
 
+<div class="wn-overlay" id="cmpOverlay" hidden>
+  <div class="wn-modal cmp-modal" role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
+    <button class="wn-x" id="cmpClose" type="button" aria-label="닫기">×</button>
+    <div class="wn-eyebrow">딜 비교 · Compare</div>
+    <h3 id="cmpTitle">저장한 딜 나란히 비교</h3>
+    <p class="md-sub">현재 입력 + 보관함 딜을 한 표로. 값이 다른 행은 강조되고, 세전 IRR이 가장 높은 딜에 배지가 붙습니다.</p>
+    <div id="cmpBody"></div>
+  </div>
+</div>
+
 <div class="mini-kpi" id="miniKpi" aria-hidden="true">
   <span class="mini-tag">실시간</span>
   <div class="mini-item"><span class="mini-l">IRR</span><span class="mini-v" id="miniIrr">—</span></div>
@@ -998,6 +1025,7 @@ html,body{overflow-x:hidden}
         <select id="slotSel" class="sl-sel"><option value="">— 불러오기 —</option></select>
         <button class="sl-btn" id="slotSave" type="button">현재 저장</button>
         <button class="sl-btn" id="slotDel" type="button" title="선택 딜 삭제" hidden>삭제</button>
+        <button class="sl-btn sl-cmp" id="cmpOpen" type="button" title="저장한 딜과 현재 입력을 나란히 비교" hidden>딜 비교</button>
       </div>
       <div class="panel-body" id="formBody"></div>
     </div>
@@ -1949,9 +1977,41 @@ document.addEventListener('keydown',function(e){ if((e.metaKey||e.ctrlKey)&&e.ke
 var SLOTS_KEY='mt_slots';
 function loadSlots(){ try{ return JSON.parse(localStorage.getItem(SLOTS_KEY)||'{}')||{}; }catch(e){ return {}; } }
 function saveSlots(o){ try{ localStorage.setItem(SLOTS_KEY,JSON.stringify(o)); }catch(e){} }
-function refreshSlotSel(){ var sel=$('slotSel'); if(!sel) return; var o=loadSlots(); var names=Object.keys(o); var prev=sel.value; sel.innerHTML='<option value="">— 불러오기 ('+names.length+') —</option>'+names.map(function(n){return '<option>'+esc(n)+'</option>';}).join(''); if(names.indexOf(prev)>=0) sel.value=prev; var del=$('slotDel'); if(del) del.hidden=!sel.value; }
-function slotSave(){ var def=((state.asset||'').trim())||DEALS[cur].label; var name=prompt('저장할 딜 이름을 입력하세요', def); if(name===null) return; name=(name||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } var o=loadSlots(); o[name]={c:cur,d:depth,s:state,k:stackState,r:refiState}; saveSlots(o); refreshSlotSel(); var sel=$('slotSel'); if(sel){ sel.value=name; } var del=$('slotDel'); if(del) del.hidden=false; toast(name+' 저장됨'); }
-function slotLoad(name){ var o=loadSlots(); var pp=o[name]; if(!pp) return; if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d; state=pp.s||{}; stackState=pp.k||{}; refiState=pp.r||{}; renderTabs(); renderForm(); restoreInputs(); update(); toast(name+' 불러옴'); }
+function refreshSlotSel(){ var sel=$('slotSel'); if(!sel) return; var o=loadSlots(); var names=Object.keys(o); var prev=sel.value; sel.innerHTML='<option value="">— 불러오기 ('+names.length+') —</option>'+names.map(function(n){return '<option>'+esc(n)+'</option>';}).join(''); if(names.indexOf(prev)>=0) sel.value=prev; var del=$('slotDel'); if(del) del.hidden=!sel.value; var cmp=$('cmpOpen'); if(cmp) cmp.hidden=!names.length; }
+function slotSave(){ var def=((state.asset||'').trim())||DEALS[cur].label; var name=prompt('저장할 딜 이름을 입력하세요', def); if(name===null) return; name=(name||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } var o=loadSlots(); o[name]={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:(window.rrModel&&window.rrModel.on?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null)}; saveSlots(o); refreshSlotSel(); var sel=$('slotSel'); if(sel){ sel.value=name; } var del=$('slotDel'); if(del) del.hidden=false; toast(name+' 저장됨'); }
+function slotLoad(name){ var o=loadSlots(); var pp=o[name]; if(!pp) return; if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d; state=pp.s||{}; stackState=pp.k||{}; refiState=pp.r||{}; window.rrModel=(pp.rr&&pp.rr.leases)?{leases:pp.rr.leases,mkt:pp.rr.mkt,on:true}:null; renderTabs(); renderForm(); restoreInputs(); update(); toast(name+' 불러옴'); }
+// 스냅샷(딜)을 전역을 건드리지 않고 계산 — 비교 뷰용. 전역 백업→적용→simModel→반드시 복원.
+function computeForSnapshot(snap){
+  var bk={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:window.rrModel};
+  var out=null;
+  try{
+    cur=(snap.c&&DEALS[snap.c])?snap.c:cur; depth=(snap.d&&DEPTHS[snap.d])?snap.d:depth;
+    state=snap.s||{}; stackState=snap.k||{}; refiState=snap.r||{};
+    window.rrModel=(snap.rr&&snap.rr.leases)?{leases:snap.rr.leases,mkt:snap.rr.mkt,on:true}:null;
+    var m=simModel();
+    out={label:((state.asset||'').trim())||DEALS[cur].label, deal:DEALS[cur].label, dealKey:cur, kpis:(m&&m.kpis)?m.kpis:[], state:state};
+  }catch(e){ out=null; }
+  finally{ cur=bk.c; depth=bk.d; state=bk.s; stackState=bk.k; refiState=bk.r; window.rrModel=bk.rr; }
+  return out;
+}
+function renderCompare(){
+  var slots=loadSlots(), names=Object.keys(slots), cols=[];
+  var curSnap={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:(window.rrModel&&window.rrModel.on?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null)};
+  var c0=computeForSnapshot(curSnap); if(c0){ c0.label='현재 입력'; cols.push(c0); }
+  names.slice(0,4).forEach(function(nm){ var c=computeForSnapshot(slots[nm]); if(c){ c.label=nm; cols.push(c); } });
+  cols=cols.filter(function(c){return c&&c.kpis&&c.kpis.length;});
+  if(cols.length<1){ $('cmpBody').innerHTML='<p class="md-sub">비교할 딜이 없습니다. 입력값을 넣고 저장해 보세요.</p>'; return; }
+  var labels=[]; cols.forEach(function(c){ c.kpis.forEach(function(k){ if(labels.indexOf(k.l)<0) labels.push(k.l); }); });
+  var irrVals=cols.map(function(c){ var k=null,i; for(i=0;i<c.kpis.length;i++){ if(c.kpis[i].l.indexOf('세전')>=0||c.kpis[i].l==='Levered IRR'){ k=c.kpis[i]; break; } } return k?parseFloat(String(k.v).replace('%','')):NaN; });
+  var bestI=-1,bestV=-Infinity; irrVals.forEach(function(v,i){ if(isFinite(v)&&v>bestV){bestV=v;bestI=i;} });
+  var head='<tr><th class="cmp-corner">지표</th>'+cols.map(function(c,i){ return '<th'+(i===bestI?' class="cmp-best"':'')+'><span class="cmp-name">'+esc(c.label)+'</span><span class="cmp-deal">'+esc(c.deal)+'</span>'+(i===bestI?'<span class="cmp-badge">최고 IRR</span>':'')+'</th>'; }).join('')+'</tr>';
+  var body=labels.map(function(lab){
+    var cells=cols.map(function(c){ var v='—',i; for(i=0;i<c.kpis.length;i++){ if(c.kpis[i].l===lab){ v=c.kpis[i].v; break; } } return v; });
+    var diff=false,j; for(j=1;j<cells.length;j++){ if(cells[j]!==cells[0]) diff=true; }
+    return '<tr'+(diff?' class="cmp-diff"':'')+'><td class="cmp-lab">'+esc(lab)+'</td>'+cells.map(function(v){return '<td>'+esc(String(v))+'</td>';}).join('')+'</tr>';
+  }).join('');
+  $('cmpBody').innerHTML='<div class="cmp-wrap"><table class="cmp-tbl">'+head+body+'</table></div><p class="cmp-note">값 기반 직접계산·추정치 — 투자 권유 아님. 각 딜의 세부는 해당 딜을 불러와 확인하세요.</p>';
+}
 function slotDelete(){ var sel=$('slotSel'); if(!sel||!sel.value) return; var name=sel.value; if(!confirm(name+' 을(를) 삭제할까요?')) return; var o=loadSlots(); delete o[name]; saveSlots(o); refreshSlotSel(); toast('삭제됨'); }
 (function(){ var sel=$('slotSel'); if(sel) sel.addEventListener('change',function(){ var del=$('slotDel'); if(del) del.hidden=!sel.value; if(sel.value) slotLoad(sel.value); }); var sv=$('slotSave'); if(sv) sv.addEventListener('click',slotSave); var dl=$('slotDel'); if(dl) dl.addEventListener('click',slotDelete); refreshSlotSel(); })();
 
@@ -3860,6 +3920,17 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   var op=document.getElementById('mdOpen'); if(op) op.addEventListener('click',open);
   var x=document.getElementById('mdClose'); if(x) x.addEventListener('click',close);
   var cta=document.getElementById('mdCta'); if(cta) cta.addEventListener('click',close);
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
+})();
+
+/* ── 딜 비교 모달 ── */
+(function(){
+  var ov=document.getElementById('cmpOverlay'); if(!ov) return;
+  function open(){ try{ renderCompare(); }catch(e){} ov.hidden=false; document.body.style.overflow='hidden'; if(window.mtTrack) try{ mtTrack('compare'); }catch(e){} }
+  function close(){ ov.hidden=true; document.body.style.overflow=''; }
+  var op=document.getElementById('cmpOpen'); if(op) op.addEventListener('click',open);
+  var x=document.getElementById('cmpClose'); if(x) x.addEventListener('click',close);
   ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
 })();
