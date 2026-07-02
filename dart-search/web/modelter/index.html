@@ -762,6 +762,20 @@ html,body{overflow-x:hidden}
 .wn-snooze{display:block; width:100%; margin-top:8px; border:none; background:transparent; color:var(--muted); font-family:var(--font); font-size:12.5px; font-weight:600; padding:8px; cursor:pointer; border-radius:8px}
 .wn-snooze:hover{color:var(--ink-2); background:rgba(0,0,0,.04)}
 
+/* ── 방법론(가정·계산식) 모달 ── */
+.md-modal{max-width:600px; text-align:left}
+.md-modal h3{margin-bottom:4px}
+.md-sub{font-size:12.5px; color:var(--muted); line-height:1.55; margin:0 0 16px}
+.md-sec{margin:0 0 15px}
+.md-sec h4{font-size:13px; font-weight:800; color:var(--accent-deep); margin:0 0 7px; letter-spacing:-.01em}
+.md-sec>p{font-size:12.5px; color:var(--ink-2); line-height:1.55; margin:0 0 6px}
+.md-f{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:var(--ink); background:var(--bg); border:1px solid var(--line-soft); border-radius:8px; padding:8px 10px; margin:5px 0; line-height:1.6; word-break:keep-all}
+.md-f b{color:var(--accent-deep); font-weight:700}
+.md-note{font-size:12px; color:var(--ink-2); line-height:1.55; background:rgba(191,71,48,.06); border:1px solid rgba(191,71,48,.2); border-radius:10px; padding:12px 13px; margin:6px 0 4px}
+.md-note b{color:var(--ink)}
+.md-open{border:none; background:transparent; color:var(--muted); font-family:var(--font); font-size:12px; font-weight:600; cursor:pointer; padding:0; margin-top:10px; text-decoration:underline; text-underline-offset:2px}
+.md-open:hover{color:var(--ink-2)}
+
 /* 스크롤 시 떠오르는 실시간 미니 결과 (IRR·CoC) */
 .mini-kpi{position:fixed; top:66px; right:14px; z-index:60; display:flex; align-items:center; gap:13px; background:var(--panel); border:1px solid var(--line); border-radius:13px; box-shadow:0 10px 28px rgba(0,0,0,.18); padding:8px 14px 8px 11px; opacity:0; transform:translateY(-8px) scale(.95); transition:opacity .22s ease, transform .22s ease; pointer-events:none}
 .mini-kpi.show{opacity:1; transform:none}
@@ -828,6 +842,54 @@ html,body{overflow-x:hidden}
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
+  </div>
+</div>
+
+<div class="wn-overlay" id="mdOverlay" hidden>
+  <div class="wn-modal md-modal" role="dialog" aria-modal="true" aria-labelledby="mdTitle">
+    <button class="wn-x" id="mdClose" type="button" aria-label="닫기">×</button>
+    <div class="wn-eyebrow">방법론 · Methodology</div>
+    <h3 id="mdTitle">화면 수치는 이렇게 계산됩니다</h3>
+    <p class="md-sub">스크리닝 도구는 가정이 투명해야 믿고 쓸 수 있습니다. 화면 계산에 쓰인 식과 가정을 그대로 공개합니다.</p>
+
+    <div class="md-sec">
+      <h4>오피스 · 물류 — 레버드 DCF</h4>
+      <p>취득부터 매각까지 자기자본 현금흐름을 전개해 IRR·Equity Multiple·배당수익률을 산출합니다.</p>
+      <div class="md-f"><b>총 투자액</b> = 매입가 × (1 + 취득세율 + 취득부대비율)</div>
+      <div class="md-f"><b>1차연도 NOI</b> = (임대료 + 관리비)/㎡ × 연면적 × 12 × 순영업이익률<br>순영업이익률: 오피스 65% · 물류 85% (임대료 기반 입력 시) — NOI 직접입력도 가능</div>
+      <div class="md-f"><b>연차별 NOI</b> = 1차연도 NOI × (1 + NOI 성장률)^(연차 − 1)</div>
+      <div class="md-f"><b>매각가</b> = 매각 다음해(forward) NOI ÷ Exit Cap　·　<b>순매각가</b> = 매각가 × (1 − 매각수수료)</div>
+      <div class="md-f"><b>자기자본</b> = 총 투자액 − 대출 − 우선주 (잔액 plug)</div>
+      <div class="md-f"><b>DSCR</b> = NOI ÷ (이자 + 원금상환)　상환방식: 만기일시 · 원리금균등 · 원금균등</div>
+      <div class="md-f"><b>레버드 IRR</b> = 자기자본 현금흐름의 내부수익률(이분법)<br><b>Equity Multiple</b> = 총회수 ÷ 자기자본　·　<b>평균 배당수익률</b> = 보유 중 연 자기자본 CF ÷ 자기자본<br><b>언레버드 IRR</b> = 무차입 기준(−총투자액, 연 NOI, 매각연도 +순매각가)</div>
+    </div>
+
+    <div class="md-sec">
+      <h4>우선주 · 보통주 워터폴</h4>
+      <p>매 기간 <b>우선주 우선배당(누적)</b>을 먼저 지급하고 남은 현금을 보통주가 가져갑니다. 매각(청산) 시에는 우선주 원금과 미지급 배당을 보통주보다 먼저 회수합니다.</p>
+    </div>
+
+    <div class="md-sec">
+      <h4>세금</h4>
+      <div class="md-f"><b>도관과세</b>(기본) — 배당소득공제로 법인세가 0에 수렴. 세전 ≈ 세후.</div>
+      <div class="md-f"><b>비도관</b> — 감가상각 = 매입가 × 70%(건물분) ÷ 40년<br>과세소득 = NOI − 이자 − 감가상각, 법인세 = max(0, 과세소득 × 세율)<br>매각 양도세 = max(0, 순매각가 − 세무상 장부가) × 세율 → 세후 IRR 별도 산출</div>
+    </div>
+
+    <div class="md-sec">
+      <h4>다른 탭 (간이 지표)</h4>
+      <p><b>리파이낸싱</b>: 대안별 신규대출·DSCR·순인출·수수료 비교(1차연도 기준). <b>리츠</b>: 배당수익률·DPS·P/NAV. <b>개발형</b>: 사업이익률·ROE·연환산 간이 IRR. — "간이" 배지가 붙은 탭은 빠른 감 잡기용입니다.</p>
+    </div>
+
+    <div class="md-sec">
+      <h4>민감도</h4>
+      <p>오피스·물류는 <b>Exit Cap × NOI 성장률</b>(렌트롤 사용 시 시장임대료 성장) 5×5 히트맵으로 레버드 IRR이 어떻게 흔들리는지 보여줍니다. 가운데 칸이 현재 가정입니다.</p>
+    </div>
+
+    <div class="md-note">
+      <b>한계 — 반드시 확인하세요.</b> 화면 수치는 <b>간이 추정</b>입니다. 공실·CAPEX·단계별 자금흐름·건설이자·약정 트리거 전개는 반영하지 않습니다. 공실·13시트·세금 시트까지 담은 정밀 모델은 <b>Excel 다운로드</b>에서 확인하세요. 배당수익률·주가 등 숫자는 예시 샘플이며(종목명·코드는 실제), 본 도구는 <b>투자 권유가 아닌 정보 제공</b> 목적입니다.
+    </div>
+
+    <button class="wn-cta" id="mdCta" type="button">닫기</button>
   </div>
 </div>
 
@@ -1029,7 +1091,8 @@ html,body{overflow-x:hidden}
           <span>상업용 부동산 금융 9년차 · 상장리츠 · PF · 구조화금융 · <a href="https://www.linkedin.com/in/seonghoonk/" target="_blank" rel="noopener">LinkedIn</a></span>
         </div>
       </div>
-      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-06-27</p>
+      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-07-02</p>
+      <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
     </div>
   </div>
 </footer>
@@ -3613,6 +3676,18 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&ov&&!ov.hidden) dismissModal(); });
   var snz=document.getElementById('wnSnooze'); if(snz) snz.addEventListener('click',function(){ snoozeDay(); closeWN(); if(bar) bar.hidden=true; });
   var cta=document.getElementById('wnCta'); if(cta) cta.addEventListener('click',function(){ dismissModal(); var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth'}); });
+})();
+
+/* ── 방법론(가정·계산식) 모달 ── */
+(function(){
+  var ov=document.getElementById('mdOverlay'); if(!ov) return;
+  function open(){ ov.hidden=false; document.body.style.overflow='hidden'; if(window.mtTrack) try{ mtTrack('method'); }catch(e){} }
+  function close(){ ov.hidden=true; document.body.style.overflow=''; }
+  var op=document.getElementById('mdOpen'); if(op) op.addEventListener('click',open);
+  var x=document.getElementById('mdClose'); if(x) x.addEventListener('click',close);
+  var cta=document.getElementById('mdCta'); if(cta) cta.addEventListener('click',close);
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
 })();
 
 /* ── 모바일: 모델 결과를 입력 위로 + 스크롤 시 미니 결과(IRR·CoC) ── */
