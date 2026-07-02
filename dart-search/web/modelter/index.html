@@ -2182,7 +2182,7 @@ function sens2Data(mode){
   return { ecSteps:ecSteps, gSteps:gSteps, rows:rows, baseI:2, baseJ:2, gLabel:isRate?'선순위 금리':(base.gLabel||'NOI 성장률'), min:min, max:max };
 }
 var sensAxis='growth';
-window.__setSensAxis=function(m){ sensAxis=m; try{ renderSens(); }catch(e){} };
+window.__setSensAxis=function(m){ sensAxis=m; try{ renderSens(); }catch(e){} if(window.mtTrack) try{ mtTrack('sens_axis',{axis:m}); }catch(e){} };
 function _sensMix(a,b,u){ return [Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]+(b[1]-a[1])*u),Math.round(a[2]+(b[2]-a[2])*u)]; }
 function _sensHeat(v,min,max){
   if(v==null || !isFinite(v)) return {bg:'transparent', txt:'—'};
@@ -4025,14 +4025,32 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   }
 })();
 
-/* ── 익명 사용 이벤트 (딜유형·행동만 · 입력값/렌트롤 내용은 전송 안 함) ── */
+/* ── 익명 사용 이벤트 (딜유형·행동·활성기능만 · 입력값/렌트롤 내용은 전송 안 함) ── */
 (function(){
+  // 활성 기능 스냅샷: 어떤 선택 기능이 켜졌는지(기능명 플래그만, 수치 없음) → 기능 우선순위 판단용
+  function featSnapshot(){
+    var f=[];
+    try{
+      if(window.rrModel&&window.rrModel.on) f.push('rr');
+      if(typeof state!=='undefined'&&state){
+        if((state['depassume']||'').indexOf('반영')===0) f.push('dep');
+        var of=parseFloat(String(state['opfee']||'').replace(/,/g,'')); if(isFinite(of)&&of>0) f.push('fee');
+        if((state['taxmode']||'').indexOf('비도관')>=0) f.push('bido');
+        var vac=parseFloat(String(state['vacancy']||'').replace(/,/g,'')); if(isFinite(vac)&&vac>0) f.push('vac');
+        var h=parseFloat(String(state['hold']||'').replace(/,/g,'')); if(isFinite(h)&&Math.round(h)!==5) f.push('hold');
+      }
+      if(typeof stackState!=='undefined'&&stackState&&(stackState['pref_on']===true||stackState['pref_on']==='true')) f.push('pref');
+      if(typeof scenOn!=='undefined'&&scenOn) f.push('scen');
+    }catch(e){}
+    return f.join(',');
+  }
   function track(t, extra){
     try{
       var b={ t:t,
         deal:(typeof cur!=='undefined'?cur:''),
         depth:(typeof depth!=='undefined'?depth:''),
-        rr:!!(window.rrModel&&window.rrModel.on) };
+        rr:!!(window.rrModel&&window.rrModel.on),
+        feats:featSnapshot() };
       if(extra){ for(var k in extra) b[k]=extra[k]; }
       var body=JSON.stringify(b);
       if(navigator.sendBeacon){ navigator.sendBeacon('/e', body); }
@@ -4046,10 +4064,15 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     var el;
     if((el=t.closest('.deal-tab'))){ track('deal_select',{deal:(el.dataset&&el.dataset.k)||''}); return; }
     if(t.closest('#fillExample')){ track('example_fill'); return; }
+    if(t.closest('#fillStd')){ track('fill_std'); return; }
     if(t.closest('#xlDownload')){ track('xlsx_download'); return; }
     if(t.closest('#rrApply')){ track('rentroll_upload'); return; }
     if(t.closest('#rrSample')){ track('sample_download'); return; }
     if(t.closest('#copyBtn')){ track('prompt_copy'); return; }
+    if(t.closest('#shareBtn')){ track('share_link'); return; }
+    if(t.closest('#pdfBtn')){ track('pdf_export'); return; }
+    if(t.closest('#slotSave')){ track('slot_save'); return; }
+    if(t.closest('#slotDel')){ track('slot_delete'); return; }
     if((el=t.closest('.depth-opt'))){ track('depth_change',{depth:(el.dataset&&el.dataset.depth)||''}); return; }
   }, true);
 })();

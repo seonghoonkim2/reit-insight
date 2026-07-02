@@ -66,6 +66,9 @@ ok(html.includes('01_Assumptions!$C$75*POWER(1+01_Assumptions!$C$27,01_Assumptio
 ok(html.includes('prt-flag'), '파리티 배지(화면=엑셀) 존재');
 ok(html.includes('화면 = 다운로드 엑셀'), '파리티 배지 라벨');
 ok(html.includes('파리티 — 화면 = 다운로드 엑셀'), '방법론 모달 파리티 섹션 존재');
+ok(html.includes('feats:featSnapshot()'), '이벤트 스키마: 활성기능 스냅샷(feats) 전송');
+ok(html.includes("track('share_link')") && html.includes("track('pdf_export')") && html.includes("track('slot_save')"), '이벤트: 공유·PDF·보관함 액션 추적');
+ok(html.includes("mtTrack('sens_axis'"), '이벤트: 민감도 축 토글 추적');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
@@ -99,7 +102,10 @@ G.document = { getElementById: () => stub(), querySelector: () => null, querySel
 G.location = { hash: '', origin: 'https://modelter.com', pathname: '/', href: '' };
 G.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 G.sessionStorage = { getItem: () => null, setItem() {}, removeItem() {} };
-G.navigator = {}; G.alert = () => {};
+// navigator는 Node 내장 getter → defineProperty로 교체(sendBeacon 캡처). fetch 폴백도 캡처.
+try { Object.defineProperty(G, 'navigator', { configurable: true, value: { sendBeacon: (u, b) => { if (u === '/e') G.__beacon = b; return true; } } }); } catch (e) { }
+G.fetch = (u, o) => { if (u === '/e' && o) G.__beacon = o.body; return Promise.resolve({ ok: true, status: 204 }); };
+G.alert = () => {};
 G.URL = { createObjectURL: () => 'blob:x', revokeObjectURL() {} }; G.Blob = function (p) { this.parts = p; };
 G.IntersectionObserver = function () { this.observe = () => {}; this.disconnect = () => {}; };
 
@@ -173,6 +179,15 @@ const driver = `;(function(){
     cur = "office"; window.rrModel = null; fillExample(); buildPrintSummary();
     cur = "reit"; fillExample(); buildPrintSummary();
     cur = "office"; fillExample();
+  }
+  // 이벤트 스키마 확장: mtTrack 페이로드에 활성기능 스냅샷(feats) 포함
+  if (typeof window.mtTrack === "function") {
+    cur = "office"; window.rrModel = null; fillExample();
+    window.mtTrack("ci_probe");
+    var _pb = null; try { _pb = JSON.parse(globalThis.__beacon || "{}"); } catch (e) {}
+    if (!_pb || _pb.t !== "ci_probe") throw new Error("mtTrack 비콘 미전송");
+    if (!("feats" in _pb)) throw new Error("이벤트 스키마에 feats 누락");
+    if (_pb.deal !== "office") throw new Error("이벤트 deal 필드 누락");
   }
   globalThis.__CI_OK = 1;
 })();`;
