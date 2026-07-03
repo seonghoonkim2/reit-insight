@@ -177,7 +177,8 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .panel-head .ex.ghost{border-style:solid; border-color:var(--line); color:var(--ink-3); display:inline-flex; align-items:center; gap:5px}
 .panel-head .ex.ghost svg{width:14px; height:14px; fill:currentColor}
 .panel-head .ex.ghost:hover{border-color:var(--accent); color:var(--accent-deep); background:rgba(169,121,43,.05)}
-.panel-head .ex.ico{padding:0; width:34px; height:34px; justify-content:center; gap:0}
+.panel-head .ex.ico{padding:0; width:34px; height:34px; justify-content:center; gap:0; opacity:.55}
+.panel-head .ex.ico:hover,.panel-head .ex.ico:focus-visible{opacity:1}
 .panel-head .ex.primary{border:1px solid var(--accent-solid); background:var(--accent-solid); color:var(--on-accent); box-shadow:0 1px 3px rgba(143,98,32,.25)}
 .panel-head .ex.primary:hover{background:var(--accent-solid); filter:brightness(1.07)}
 @media(max-width:480px){ .panel-head .ex{font-size:12.5px; padding:6px 10px} .ph-actions{width:100%; justify-content:flex-start} }
@@ -188,6 +189,9 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .fgroup:last-child{border-bottom:none}
 .fgroup-h{font-size:12.5px; font-weight:700; color:var(--accent); letter-spacing:.04em; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px}
 .fgroup-h .gl{font-family:var(--serif); font-size:14.5px; opacity:.8}
+.gh-cnt{font-size:10.5px; font-weight:700; color:var(--muted); background:var(--bg); border:1px solid var(--line-soft); border-radius:999px; padding:1px 7px; letter-spacing:0}
+.gh-cnt.full{color:var(--green); border-color:rgba(47,125,87,.35)}
+.gh-cnt:empty{display:none}
 .fields{display:grid; grid-template-columns:1fr 1fr; gap:10px 12px}
 .fields.one{grid-template-columns:1fr}
 .fields.three{grid-template-columns:1fr 1fr 1fr}
@@ -227,18 +231,17 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .stack-sum.ok{border-color:var(--green); color:var(--green)}
 
 /* model depth segmented control */
-.depth-pick{background:linear-gradient(180deg,#fbf8f1,#f3efe6); border:1px solid var(--line); border-radius:13px; padding:14px 15px; margin-bottom:16px}
-.dp-head{font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:11px; display:flex; align-items:center; gap:7px}
-.dp-step{font-size:11px; font-weight:700; color:var(--on-accent); background:var(--accent-solid); padding:2px 8px; border-radius:999px; letter-spacing:.02em}
-.depth-seg{display:grid; grid-template-columns:repeat(3,1fr); gap:7px}
-.depth-opt{border:1px solid var(--line); background:var(--bg); border-radius:10px; padding:9px 8px; cursor:pointer; font-family:var(--font); text-align:center; transition:.16s; display:flex; flex-direction:column; gap:2px}
-.depth-opt b{font-size:14px; font-weight:600; color:var(--ink-2)}
-.depth-opt span{font-size:11px; color:var(--muted)}
+.depth-pick{background:linear-gradient(180deg,#fbf8f1,#f3efe6); border:1px solid var(--line); border-radius:12px; padding:9px 12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.dp-head{font-size:12.5px; font-weight:700; color:var(--ink-2); display:flex; align-items:center; gap:6px; flex:0 0 auto; margin:0}
+.depth-seg{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; flex:1; min-width:230px}
+.depth-opt{border:1px solid var(--line); background:var(--bg); border-radius:9px; padding:5px 6px; cursor:pointer; font-family:var(--font); text-align:center; transition:.16s; display:flex; flex-direction:column; gap:1px}
+.depth-opt b{font-size:12.5px; font-weight:600; color:var(--ink-2)}
+.depth-opt span{font-size:10px; color:var(--muted)}
 .depth-opt:hover{border-color:var(--accent)}
 .depth-opt.on{background:var(--ink); border-color:var(--ink)}
 .depth-opt.on b{color:var(--panel)}
 .depth-opt.on span{color:#cda557}
-.depth-desc{font-size:12.5px; color:var(--muted); margin-top:7px; line-height:1.45; padding-left:2px}
+.depth-desc{font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.45; padding-left:2px; flex-basis:100%}
 
 /* contextual help tooltip */
 .help{display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; background:var(--line-soft); color:var(--muted); font-size:10px; font-weight:700; cursor:help; position:relative; flex-shrink:0}
@@ -474,7 +477,8 @@ header{background:rgba(253,252,249,.82)}
 .mx-v{font-size:15px; font-weight:700; color:var(--ink); font-family:var(--mono); white-space:nowrap; text-align:right}
 .mx-est{font-size:9.5px; font-weight:700; color:var(--accent-deep); background:rgba(169,121,43,.13); padding:1px 5px; border-radius:4px}
 .help.sm{width:13px; height:13px; font-size:9px}
-.mx-warn{margin-top:11px; display:flex; flex-direction:column; gap:6px}
+.mx-warn{margin:0 0 11px; display:flex; flex-direction:column; gap:6px}
+.mx-warn:empty{display:none}
 .mx-w{font-size:12px; line-height:1.45; color:var(--red); background:rgba(187,70,48,.08); border:1px solid rgba(187,70,48,.22); border-radius:9px; padding:7px 10px}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
 
@@ -1017,19 +1021,19 @@ html,body{overflow-x:hidden}
       <div class="who-grid">
         <div class="who-card">
           <div class="who-top"><span class="who-role">본부장 · 팀장</span><span class="who-gain">즉시 초안</span></div>
-          <p>주니어에게 넘기고 회수하는 시간 없이, 보고 전에 IRR·멀티플과 Excel 모델 초안을 그 자리에서 손에 쥡니다.</p>
+          <p>보고 전에 IRR·멀티플과 Excel 초안을 그 자리에서.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">시니어</span><span class="who-gain">검토 가속</span></div>
-          <p>익숙한 구조라 바닥부터 짤 필요 없이, 가정만 바꾸면 결과가 바로 나와 시나리오를 빠르게 검토합니다.</p>
+          <p>가정만 바꾸면 결과가 바로 — 시나리오 검토가 빨라집니다.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">주니어</span><span class="who-gain">속도 · 정확</span></div>
-          <p>매번 새로 짜던 모델을 검증된 구조 위에서 빠르게 완성하고, 가정 검토에 시간을 씁니다.</p>
+          <p>검증된 구조 위에서 완성하고, 가정 검토에 집중합니다.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">취준생 · 학생</span><span class="who-gain">실전 감각</span></div>
-          <p>교과서에 없는 실무 모델의 구조를 직접 만들어 보며, 현장에서 통하는 감각을 익힙니다.</p>
+          <p>실무 모델 구조를 직접 만들며 현장 감각을 익힙니다.</p>
         </div>
       </div>
     </div>
@@ -1043,15 +1047,15 @@ html,body{overflow-x:hidden}
     <div class="usecase-grid">
       <div class="uc-card">
         <div class="uc-head"><div class="uc-tag">딜 검토</div><div class="uc-t">매입 입찰 전 빠른 수익성 판단</div></div>
-        <p>매입가·임대료·Exit Cap을 넣어 IRR과 멀티플을 뽑고, 입찰가와 응찰 여부를 빠르게 가늠합니다.</p>
+        <p>매입가·임대료·Exit Cap만 넣어 입찰 전 IRR·멀티플을 가늠합니다.</p>
       </div>
       <div class="uc-card">
         <div class="uc-head"><div class="uc-tag">투자심의</div><div class="uc-t">투자심의위원회 부의 자료</div></div>
-        <p>자본구조·도관과세·민감도까지 갖춘 모델로 매입 타당성 검토 보고의 수치 기초를 만듭니다.</p>
+        <p>자본구조·도관과세·민감도까지 갖춘 수치 기초를 만듭니다.</p>
       </div>
       <div class="uc-card">
         <div class="uc-head"><div class="uc-tag">자산관리</div><div class="uc-t">보유자산 리파이낸싱·재평가</div></div>
-        <p>대출 만기 전 차환 대안별 LTV·금리·DSCR을 비교하고, 보유 자산의 현재 가치를 다시 점검합니다.</p>
+        <p>차환 대안별 LTV·금리·DSCR을 비교해 보유 자산을 재점검합니다.</p>
       </div>
     </div>
   </div>
@@ -1095,8 +1099,8 @@ html,body{overflow-x:hidden}
       </div>
       <div class="metrics" id="metricsCard" hidden>
         <div class="mx-head"><span class="mx-t">즉시 점검 <span class="mx-sub">입력값 기반</span></span><span class="mx-flag" id="mxFlag"></span></div>
-        <div class="mx-grid" id="mxGrid"></div>
         <div class="mx-warn" id="mxWarn"></div>
+        <div class="mx-grid" id="mxGrid"></div>
         <div class="mx-foot" id="mxFoot"></div>
       </div>
       <div class="metrics" id="sensCard" hidden>
@@ -1535,7 +1539,7 @@ function refiHtml(){
 
 function depthHtml(){
   const depthBtns=Object.entries(DEPTHS).map(([k,v])=>`<button type="button" class="depth-opt ${k===depth?'on':''}" data-depth="${k}"><b>${v.label}</b><span>${v.range}</span></button>`).join("");
-  return `<div class="depth-pick"><div class="dp-head"><span class="dp-step">먼저</span> 얼마나 깊게 볼까요? <span class="help" tabindex="0">?<span class="tip">시트 수가 많다고 더 좋은 모델은 아닙니다. 목적에 맞는 깊이를 고르세요. 빠른 검토는 핵심만, 표준은 실무용, 심층은 위원회·실사용입니다.</span></span></div>
+  return `<div class="depth-pick"><div class="dp-head">모델 깊이 <span class="help" tabindex="0">?<span class="tip">시트 수가 많다고 더 좋은 모델은 아닙니다. 빠른 검토는 핵심만, 표준은 실무용, 심층은 위원회·실사용. 엑셀·AI 지시문 구성에 반영됩니다.</span></span></div>
    <div class="depth-seg" id="depthSeg">${depthBtns}</div>
    <div class="depth-desc" id="depthDesc">${DEPTHS[depth].desc}</div>
   </div>`;
@@ -1609,9 +1613,9 @@ function renderForm(){
       const cols = ff.length>=3 && ff.every(x=>!x.full) ? (ff.length%3===0?'three':(ff.length%2===0?'':'')) : (ff.some(x=>x.full)?'one':'');
       const extra = (rrEligible && g.h==="운영 수입") ? rrFormBlockHtml() : "";
       if(g.adv){
-        html+=`<div class="fgroup adv" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}</span><span class="opt-badge">세부 · 접기</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
+        html+=`<div class="fgroup adv" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">세부 · 접기</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }else{
-        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${g.gl}</span> ${g.h}</div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
+        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }
     });
   }
@@ -1926,7 +1930,23 @@ function update(){
   renderMetrics();
   renderSens();
   renderScenNote();
+  updateGroupCounts();
   saveLocal();
+}
+/* 그룹별 입력 진행 표시 (n/m) — 어디까지 채웠는지 부담을 줄여줌 */
+function updateGroupCounts(){
+  var fb=$('formBody'); if(!fb) return;
+  fb.querySelectorAll('.fgroup').forEach(function(gr){
+    var cnt=gr.querySelector('.gh-cnt'); if(!cnt) return;
+    var total=0, filled=0;
+    gr.querySelectorAll('.fields [data-k]').forEach(function(el){
+      if(el.tagName==='SELECT'||el.tagName==='TEXTAREA') return;
+      total++; if(((el.value||'')+'').trim()!=='') filled++;
+    });
+    if(!total){ cnt.textContent=''; return; }
+    cnt.textContent=filled+'/'+total;
+    cnt.className='gh-cnt'+(filled===total?' full':'');
+  });
 }
 
 /* ---------- 즉시 점검(라이브 지표) ---------- */
@@ -2678,6 +2698,19 @@ renderForm();
 initTheme();
 // URL 공유값 > 브라우저 저장값 > 예시 순으로 복원
 if(!tryRestoreFromURL() && !tryRestoreLocal()) fillExample();
+
+/* 재방문자는 소개를 건너뛰고 빌더로 바로 (신규 방문 서사는 유지) */
+(function(){
+  try{
+    if(location.hash) return;                       // 공유 링크 복원 시엔 그대로
+    var seen=localStorage.getItem('mt_visited');
+    localStorage.setItem('mt_visited','1');
+    if(seen==='1'){
+      var el=document.getElementById('builder-start');
+      if(el) el.scrollIntoView({block:'start'});
+    }
+  }catch(e){}
+})();
 </script>
 
 <!-- Cloudflare Web Analytics: 아래 T 값에 토큰을 넣으면 자동 활성화됩니다.
