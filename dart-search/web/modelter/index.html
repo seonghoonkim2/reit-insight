@@ -201,7 +201,7 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .f-range input[type=range]{flex:1; width:auto; padding:0; border:none; background:transparent; accent-color:var(--accent-solid); height:24px; cursor:pointer}
 .f-rout{font-size:16px; font-weight:800; font-family:var(--mono); color:var(--accent-deep); min-width:42px; text-align:right; white-space:nowrap}
 .f textarea{min-height:52px; line-height:1.5}
-.f input:focus,.f select:focus,.f textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(169,121,43,.12)}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(169,121,43,.24)}
 .f input::placeholder,.f textarea::placeholder{color:#b5b0a4}
 
 /* capital stack tranches */
@@ -431,6 +431,12 @@ header{background:rgba(253,252,249,.82)}
 .deal-tab{border-radius:999px; padding:10px 18px}
 .deal-tab.on{background:var(--accent-solid); border-color:var(--accent-solid); color:var(--on-accent)}
 .deal-tab.on .badge-base{background:var(--panel); color:var(--accent-deep)}
+/* 모바일: 딜 탭 한 줄 가로 스크롤 (두 줄 래핑 방지) */
+@media(max-width:640px){
+  .deal-tabs{flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start; padding:2px 4px 8px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+  .deal-tabs::-webkit-scrollbar{display:none}
+  .deal-tab{flex:0 0 auto; scroll-snap-align:center}
+}
 
 /* 모델 깊이: 인디고 활성 */
 .depth-opt.on{background:var(--accent-solid); border-color:var(--accent-solid)}
@@ -439,7 +445,7 @@ header{background:rgba(253,252,249,.82)}
 
 /* 입력 필드 */
 .f input,.f select,.f textarea{border-radius:11px}
-.f input:focus,.f select:focus,.f textarea:focus{box-shadow:0 0 0 3px rgba(169,121,43,.15)}
+.f input:focus,.f select:focus,.f textarea:focus{box-shadow:0 0 0 3px rgba(169,121,43,.26)}
 
 /* 솔리드 버튼 그림자 */
 .dl-btn,.fb-send{box-shadow:0 10px 24px rgba(169,121,43,.28)}
@@ -494,6 +500,8 @@ header{background:rgba(253,252,249,.82)}
 .cmp-tbl th.cmp-best{background:color-mix(in srgb, var(--green) 14%, var(--panel)); border-color:var(--green)}
 .cmp-tbl tr.cmp-diff td{background:color-mix(in srgb, var(--accent) 8%, var(--panel))}
 .cmp-tbl tr.cmp-diff td.cmp-lab{background:color-mix(in srgb, var(--accent) 14%, var(--bg)); color:var(--accent-deep)}
+.cmp-tbl tr.cmp-diff td.cmp-lab::before{content:"Δ "; font-weight:800}
+.cmp-delta{display:block; font-size:10.5px; font-weight:600; color:var(--red); line-height:1.2; margin-top:1px}
 .cmp-note{font-size:11px; color:var(--muted); line-height:1.5; margin:12px 0 0}
 
 /* 한 장 요약(인쇄/PDF) */
@@ -570,9 +578,12 @@ header{background:rgba(253,252,249,.82)}
 .sens-tbl .base{color:var(--accent-deep); background:rgba(169,121,43,.09); font-weight:800; border-radius:4px}
 
 /* 간이 결과 */
-.sim-kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:4px}
-@media(max-width:520px){ .sim-kpis{grid-template-columns:1fr 1fr} }
+.sim-kpis{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:4px}
+.sim-kpi-sub{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px}
 .sim-kpi{background:var(--bg); border:1px solid var(--line-soft); border-radius:12px; padding:11px 10px; text-align:center}
+.sim-kpi.main{display:flex; align-items:center; justify-content:space-between; gap:10px; text-align:left; padding:13px 16px; border-color:var(--line)}
+.sim-kpi.main .sk-l{font-size:13px; font-weight:600; margin:0}
+.sim-kpi.main .sk-v{font-size:30px}
 .sim-kpi.good{border-color:rgba(47,125,87,.4)}
 .sim-kpi.warn{border-color:rgba(187,70,48,.35)}
 .sk-l{font-size:12px; color:var(--ink-2); margin-bottom:3px; line-height:1.2}
@@ -2039,13 +2050,23 @@ function renderCompare(){
   cols=cols.filter(function(c){return c&&c.kpis&&c.kpis.length;});
   if(cols.length<1){ $('cmpBody').innerHTML='<p class="md-sub">비교할 딜이 없습니다. 입력값을 넣고 저장해 보세요.</p>'; return; }
   var labels=[]; cols.forEach(function(c){ c.kpis.forEach(function(k){ if(labels.indexOf(k.l)<0) labels.push(k.l); }); });
-  var irrVals=cols.map(function(c){ var k=null,i; for(i=0;i<c.kpis.length;i++){ if(c.kpis[i].l.indexOf('세전')>=0||c.kpis[i].l==='Levered IRR'){ k=c.kpis[i]; break; } } return k?parseFloat(String(k.v).replace('%','')):NaN; });
-  var bestI=-1,bestV=-Infinity; irrVals.forEach(function(v,i){ if(isFinite(v)&&v>bestV){bestV=v;bestI=i;} });
-  var head='<tr><th class="cmp-corner">지표</th>'+cols.map(function(c,i){ return '<th'+(i===bestI?' class="cmp-best"':'')+'><span class="cmp-name">'+esc(c.label)+'</span><span class="cmp-deal">'+esc(c.deal)+'</span>'+(i===bestI?'<span class="cmp-badge">최고 IRR</span>':'')+'</th>'; }).join('')+'</tr>';
+  var irrLab=null;
+  var irrVals=cols.map(function(c){ var k=null,i; for(i=0;i<c.kpis.length;i++){ if(c.kpis[i].l.indexOf('세전')>=0||c.kpis[i].l==='Levered IRR'){ k=c.kpis[i]; break; } } if(k&&!irrLab) irrLab=k.l; return k?parseFloat(String(k.v).replace('%','')):NaN; });
+  // 최고 IRR: 동점(0.005%p 이내)은 공동 처리, 전원 동점이면 배지 생략
+  var bestV=-Infinity; irrVals.forEach(function(v){ if(isFinite(v)&&v>bestV) bestV=v; });
+  var bestSet=irrVals.map(function(v){ return isFinite(v)&&isFinite(bestV)&&Math.abs(v-bestV)<0.005; });
+  var nBest=bestSet.filter(Boolean).length;
+  var showBadge=isFinite(bestV)&&nBest>0&&nBest<cols.length;
+  var head='<tr><th class="cmp-corner">지표</th>'+cols.map(function(c,i){ var isB=showBadge&&bestSet[i]; return '<th'+(isB?' class="cmp-best"':'')+'><span class="cmp-name">'+esc(c.label)+'</span><span class="cmp-deal">'+esc(c.deal)+'</span>'+(isB?'<span class="cmp-badge">최고 IRR</span>':'')+'</th>'; }).join('')+'</tr>';
   var body=labels.map(function(lab){
     var cells=cols.map(function(c){ var v='—',i; for(i=0;i<c.kpis.length;i++){ if(c.kpis[i].l===lab){ v=c.kpis[i].v; break; } } return v; });
     var diff=false,j; for(j=1;j<cells.length;j++){ if(cells[j]!==cells[0]) diff=true; }
-    return '<tr'+(diff?' class="cmp-diff"':'')+'><td class="cmp-lab">'+esc(lab)+'</td>'+cells.map(function(v){return '<td>'+esc(String(v))+'</td>';}).join('')+'</tr>';
+    var isIrrRow=(lab===irrLab)&&showBadge;
+    return '<tr'+(diff?' class="cmp-diff"':'')+'><td class="cmp-lab">'+esc(lab)+'</td>'+cells.map(function(v,ci2){
+      var dHtml='';
+      if(isIrrRow&&isFinite(irrVals[ci2])&&!bestSet[ci2]){ var dd=irrVals[ci2]-bestV; dHtml='<span class="cmp-delta">'+(Math.round(dd*100)/100).toFixed(2)+'%p</span>'; }
+      return '<td>'+esc(String(v))+dHtml+'</td>';
+    }).join('')+'</tr>';
   }).join('');
   $('cmpBody').innerHTML='<div class="cmp-wrap"><table class="cmp-tbl">'+head+body+'</table></div><p class="cmp-note">값 기반 직접계산·추정치 — 투자 권유 아님. 각 딜의 세부는 해당 딜을 불러와 확인하세요.</p>';
 }
@@ -2185,7 +2206,8 @@ function _sensMix(a,b,u){ return [Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]
 function _sensHeat(v,min,max){
   if(v==null || !isFinite(v)) return {bg:'transparent', txt:'—'};
   var t=(max>min)?(v-min)/(max-min):0.5;
-  var c1=[191,71,48], c2=[214,170,90], c3=[47,125,87], col;
+  /* 색약 대응 diverging: 주황(낮음) ↔ 중립 ↔ 파랑(높음) */
+  var c1=[209,118,50], c2=[224,217,201], c3=[58,110,165], col;
   if(t<0.5) col=_sensMix(c1,c2,t/0.5); else col=_sensMix(c2,c3,(t-0.5)/0.5);
   return {bg:'rgba('+col[0]+','+col[1]+','+col[2]+',.24)', txt:(v*100).toFixed(1)+'%'};
 }
@@ -2212,7 +2234,7 @@ function renderSens(){
         +'<button type="button" class="hx-tg'+(sensAxis!=='rate'?' on':'')+'" onclick="__setSensAxis(\'growth\')">성장률</button>'
         +'<button type="button" class="hx-tg'+(sensAxis==='rate'?' on':'')+'" onclick="__setSensAxis(\'rate\')">선순위 금리</button></div>';
       $('sensBody').innerHTML=tg+renderHeat(m);
-      $('sensNote').textContent='각 칸 = 해당 Exit Cap·'+(sensAxis==='rate'?'선순위 금리':'성장률')+'에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 초록=높음·빨강=낮음.';
+      $('sensNote').textContent='각 칸 = 해당 Exit Cap·'+(sensAxis==='rate'?'선순위 금리':'성장률')+'에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 파랑=높음·주황=낮음.';
       return;
     }
   }
@@ -2392,7 +2414,9 @@ function renderSim(){
     var body=labels.map(function(L){ return '<tr><td>'+L+'</td>'+r.rows.map(function(x){return cell(x,L);}).join('')+'</tr>'; }).join('');
     bd.innerHTML=(r.best?('<div class="sim-rec">추천: '+r.best+'안 (기준 충족·DSCR 최고)</div>'):'')+'<table class="sens-tbl sim-tbl">'+th+body+'</table>';
   } else {
-    kp.innerHTML=r.kpis.filter(function(k){return k.big;}).map(function(k){ return '<div class="sim-kpi'+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div></div>'; }).join('');
+    var bigs=r.kpis.filter(function(k){return k.big;});
+    function skTile(k,mn){ return '<div class="sim-kpi'+(mn?' main':'')+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div></div>'; }
+    kp.innerHTML=bigs.length?(skTile(bigs[0],true)+(bigs.length>1?('<div class="sim-kpi-sub">'+bigs.slice(1).map(function(k){return skTile(k,false);}).join('')+'</div>'):'')):'';
     var small=r.kpis.filter(function(k){return !k.big;});
     var sh=small.length?('<div class="sim-grid">'+small.map(function(k){return '<div class="mx-item"><div class="mx-l">'+esc(k.l)+'</div><div class="mx-v">'+esc(k.v)+'</div></div>';}).join('')+'</div>'):'';
     var tb='';
@@ -2984,7 +3008,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var rows='';
     if(on('senior')&&r.loan>0){
       var sr=NaN; try{ var ss=(typeof stackState!=='undefined'&&stackState)||{}; sr=parseFloat(ss['senior_rate']); if(!isFinite(sr)&&typeof TRANCHES!=='undefined'){ var ts=TRANCHES.find(function(x){return x.id==='senior';}); sr=parseFloat(ts&&ts.rate); } }catch(e){}
-      rows+='<div class="trn-row trn-sen"><span class="trn-n"><b>선순위</b><i>Senior</i></span><span class="trn-w">'+wOf('senior',r.loan)+'</span><span class="trn-amt">'+mk(r.loan)+'</span><span class="trn-m"><b>'+(isFinite(sr)?sr.toFixed(1)+'%':'—')+'</b><i>금리</i></span><span class="trn-m muted"><b>대출</b><i>부채</i></span></div>';
+      var srep=''; try{ srep=(typeof stackState!=='undefined'&&stackState&&stackState['senior_extra'])||'만기일시'; }catch(e){ srep='만기일시'; }
+      rows+='<div class="trn-row trn-sen"><span class="trn-n"><b>선순위</b><i>Senior</i></span><span class="trn-w">'+wOf('senior',r.loan)+'</span><span class="trn-amt">'+mk(r.loan)+'</span><span class="trn-m"><b>'+(isFinite(sr)?sr.toFixed(1)+'%':'—')+'</b><i>금리</i></span><span class="trn-m"><b>'+srep+'</b><i>상환</i></span></div>';
     }
     if(on('pref')&&r.prefAmt>0){
       rows+='<div class="trn-row trn-pref"><span class="trn-n"><b>우선주</b><i>Preferred</i></span><span class="trn-w">'+wOf('pref',r.prefAmt)+'</span><span class="trn-amt">'+mk(r.prefAmt)+'</span><span class="trn-m"><b>'+_fp(r.prefIRR)+'</b><i>IRR</i></span><span class="trn-m"><b>'+_fp(r.prefCoc)+'</b><i>배당률</i></span></div>';
@@ -3149,7 +3174,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var total=r.leasedArea+r.vacantArea;
-    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')}];
+    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null?(r.IRR>=0.08?'good':(r.IRR<0.04?'warn':'')):'warn')}];
     if(r.passthru===false) kpis.push({l:'Levered IRR (세후)', v:_fp(r.IRRat), big:true, tone:(r.IRRat!=null&&r.IRRat<0?'warn':'')});
     kpis.push({l:'Equity Multiple', v:em, big:true},{l:'Unlevered IRR', v:_fp(r.unlev), big:true},
       {l:'최소 DSCR', v:ds, big:false},
@@ -3180,7 +3205,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var r=calcModel(assumFull());
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
-    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null&&r.IRR<0?'warn':'')}];
+    var kpis=[{l:'Levered IRR (세전)', v:_fp(r.IRR), big:true, tone:(r.IRR!=null?(r.IRR>=0.08?'good':(r.IRR<0.04?'warn':'')):'warn')}];
     if(r.passthru===false) kpis.push({l:'Levered IRR (세후)', v:_fp(r.IRRat), big:true, tone:(r.IRRat!=null&&r.IRRat<0?'warn':'')});
     kpis.push(
       {l:'Equity Multiple', v:em, big:true},
