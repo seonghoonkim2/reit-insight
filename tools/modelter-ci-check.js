@@ -47,7 +47,10 @@ ok((html.match(/feeY/g) || []).length >= 2, '운용보수·고정비 계산(calc
 ok(html.includes('운용보수율(취득가)'), '엑셀 운용보수 셀(C76/C78)');
 ok((html.match(/k:"opfee"/g) || []).length >= 2, '운용보수 입력(오피스·물류) 존재');
 ok(html.includes('window.__setSensAxis'), '민감도 축 토글(성장률/금리) 존재');
-ok(html.includes("What's new · v3"), "What's new 팝업 v3");
+ok(html.includes("What's new · v4"), "What's new 팝업 v4");
+ok(html.includes("function loadSampleDeal"), "샘플 딜 로더 존재");
+ok(html.includes("MT_SAMPLES"), "샘플 딜 데이터(가짜 임차인) 존재");
+ok(html.includes("function rrDisplayName"), "임차인명 비식별 헬퍼 존재");
 ok(html.includes('function holdTemplate'), '변동 보유기간 엑셀 생성기(holdTemplate) 존재');
 ok((html.match(/t:"range"/g) || []).length >= 2, '보유기간 슬라이더(오피스·물류) 존재');
 ok(html.includes('function mtHold'), '보유기간 헬퍼(mtHold) 존재');

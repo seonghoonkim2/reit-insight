@@ -1012,14 +1012,15 @@ html,body{overflow-x:hidden}
 <div class="wn-overlay" id="wnOverlay" hidden>
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
-    <div class="wn-eyebrow">What's new · v3</div>
+    <div class="wn-eyebrow">What's new · v4</div>
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
     <p class="wn-lead">이제 이 화면 안에서 재무모델이 바로 돌아갑니다.</p>
     <ul class="wn-list">
       <li><span class="wn-ic">⚡</span><div><b>실시간 모델 + Excel</b><span>가정을 바꾸면 IRR·멀티플이 바로 움직이고, 같은 수치의 13시트 엑셀을 그 자리에서 받습니다.</span></div></li>
       <li><span class="wn-ic">📋</span><div><b>렌트롤 업로드</b><span>임차인 목록을 올리면 계약·공실·만기까지 반영됩니다.</span></div></li>
       <li><span class="wn-ic">🇰🇷</span><div><b>실무 디테일</b><span>보증금 승계·운용보수·우선주 배당·세후 IRR까지 반영합니다.</span></div></li>
-      <li><span class="wn-ic">🆚</span><div><b>딜 비교 · 한 장 요약 <span class="wn-tag">NEW</span></b><span>저장한 딜을 나란히 비교하고, 결과를 한 장으로 인쇄합니다.</span></div></li>
+      <li><span class="wn-ic">🆚</span><div><b>딜 비교 · 한 장 요약</b><span>저장한 딜을 나란히 비교하고, 결과를 한 장으로 인쇄합니다.</span></div></li>
+      <li><span class="wn-ic">🧮</span><div><b>검토 도구 <span class="wn-tag">NEW</span></b><span>임대차 리스크·부채 커버넌트·케이스·역산·가정 신뢰도 — 샘플 딜로 바로 체험하세요.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -1066,6 +1067,11 @@ html,body{overflow-x:hidden}
     <div class="md-sec">
       <h4>민감도</h4>
       <p>오피스·물류는 <b>Exit Cap × NOI 성장률</b>(렌트롤 사용 시 시장임대료 성장) 5×5 히트맵으로 레버드 IRR이 어떻게 흔들리는지 보여줍니다. 가운데 칸이 현재 가정입니다.</p>
+    </div>
+
+    <div class="md-sec">
+      <h4>검토 보조 — 신뢰도·체크·케이스·역산</h4>
+      <p><b>가정 신뢰도</b>: 핵심 입력의 출처(실제/공공/브로커/판단/기본가정)를 중요도 가중으로 점수화하고 성숙도(S0~S3)로 표시합니다. <b>체크</b>: 입력·현금흐름·부채·렌트롤 점검을 한 곳에 모아 오류·경고로 구분합니다. <b>케이스</b>: Downside(성장률 −0.5%p·Exit Cap +0.25%p·공실 +2%p·금리 +0.5%p)·Severe(−1.0/+0.5/+5/+1.0%p)를 자동 계산합니다. <b>역산</b>: 목표 IRR 입찰가·손익분기 Exit Cap·공실률을 이분법으로 구합니다. <b>임대차 리스크</b>: WALE·만기 집중·임차인 집중도를 렌트롤에서 산출하며, 임차인명 비식별 옵션이 있습니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1331,7 +1337,7 @@ html,body{overflow-x:hidden}
     <div class="rr-top"><b>📋 렌트롤로 모델 채우기</b><button class="rr-x" id="rrClose" type="button" aria-label="닫기">✕</button></div>
     <p class="rr-help">엑셀에서 렌트롤 범위를 복사해 붙여넣거나 <b>.xlsx/.csv</b> 파일을 올리세요. 임차인·전용면적·임대면적·임대료·관리비·보증금·만기 열을 자동 인식합니다(전용·임대면적이 함께 있으면 <b>임대면적 기준</b>으로 모델링). <b>전 과정 브라우저 안에서만 처리되어 서버로 전송되지 않습니다.</b> 반영 후 ‘임대차 리스크’ 카드에서 임차인명 비식별(임차인A·B…)을 켤 수 있습니다.</p>
     <textarea id="rrPaste" placeholder="여기에 렌트롤을 붙여넣기 (엑셀에서 범위 복사 → 붙여넣기)"></textarea>
-    <div class="rr-row"><label class="rr-file">📁 파일 선택 (.xlsx/.csv)<input type="file" id="rrFile" accept=".xlsx,.csv" hidden /></label><button class="rr-btn" id="rrParse" type="button">붙여넣기 분석 →</button><button class="rr-link" id="rrSample" type="button">📥 샘플 양식 받기</button></div>
+    <div class="rr-row"><label class="rr-file">📁 파일 선택 (.xlsx/.csv)<input type="file" id="rrFile" accept=".xlsx,.csv" hidden /></label><button class="rr-btn" id="rrParse" type="button">붙여넣기 분석 →</button><button class="rr-link" id="rrSample" type="button">📥 샘플 양식 받기</button><button class="rr-link" id="rrDemoA" type="button">🏢 샘플 딜: 안정형 오피스</button><button class="rr-link" id="rrDemoB" type="button">🏭 샘플 딜: 물류 단기만기</button></div>
     <div id="rrResult" hidden>
       <div class="rr-map" id="rrMap"></div>
       <div class="rr-warns" id="rrWarns"></div>
@@ -4496,6 +4502,44 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     close();
     toastMsg('렌트롤 반영 — 현 계약 '+agg.count+'개 실제값 + 공실 '+(gfaNow()?(agg.vacancy*100).toFixed(0)+'%':'')+' 신규가정. 화면 결과·다운로드에 임차인별로 반영됩니다.');
   }
+  // ── 샘플 딜: 가짜 임차인으로 렌트롤 기능 체험 (실존 자산·기업과 무관) ──
+  var MT_SAMPLES={
+    A:{ cur:'office', label:'안정형 오피스 (WALE 4.5년·분산 임차)',
+      leases:[
+        {name:'한들전자(주)',      area:1300, rentPP:61000, camPP:21000, yrs:6.5},
+        {name:'미르파트너스',      area:1250, rentPP:60000, camPP:21000, yrs:5.5},
+        {name:'청람물산',          area:1100, rentPP:59000, camPP:20500, yrs:5.0},
+        {name:'바로컨설팅',        area:1000, rentPP:62000, camPP:21500, yrs:4.5},
+        {name:'다온인베스트',      area:900,  rentPP:60000, camPP:21000, yrs:3.5},
+        {name:'세움디자인그룹',    area:800,  rentPP:58000, camPP:20000, yrs:2.5},
+        {name:'푸른에셋운용',      area:650,  rentPP:63000, camPP:22000, yrs:1.5}
+      ]},
+    B:{ cur:'logistics', label:'물류 단기만기 (Top1 집중·36M 만기 몰림)',
+      leases:[
+        {name:'급류로지스틱스',    area:5200, rentPP:33000, camPP:5000,  yrs:1.2},
+        {name:'한내유통(주)',      area:3600, rentPP:31000, camPP:5000,  yrs:2.0},
+        {name:'서진콜드체인',      area:2800, rentPP:35000, camPP:5500,  yrs:2.8}
+      ]}
+  };
+  function loadSampleDeal(key){
+    var sm=MT_SAMPLES[key]; if(!sm||typeof state==='undefined') return;
+    cur=sm.cur; fillExample();
+    var leases=sm.leases.map(function(l){ return {area:l.area, netArea:null, rentPP:l.rentPP, camPP:l.camPP, deposit:Math.round(l.area*l.rentPP*12), yrsToExp:l.yrs, rentFreeRemain:0, stepUp:null}; });
+    var A=0,R=0,C=0,D=0; leases.forEach(function(l){ A+=l.area; R+=l.area*l.rentPP; C+=l.area*l.camPP; D+=l.deposit; });
+    var wR=Math.round(R/A), wC=Math.round(C/A);
+    var rep=(typeof stackState!=='undefined'&&stackState['senior_extra'])||'만기일시';
+    var repMap={'만기일시':'만기일시(이자만)','원금균등':'원금균등','원리금균등':'원리금균등'};
+    var mkt={ marketPP:wR, marketCamPP:wC, newRentFree:3, absorbMonths:12, stabVac:0.05, renewP:0.7, downtime:6, mktStepUp:0.03, mtm:0, camG:0.03, repay:repMap[rep]||'만기일시(이자만)' };
+    window.rrModel={leases:leases, mkt:mkt, on:true, confirmed:true};
+    window.rrState={leases:leases.map(function(l,i){ var o={}; for(var k in l) o[k]=l[k]; o.name=sm.leases[i].name; return o; }), agg:{count:leases.length,leasedArea:A,wAvgRentPP:wR}, asOf:null};
+    state.noimode='임대료·관리비로 산출';
+    state.rentpp=String(wR); state.campp=String(wC);
+    var mR=R; if(mR>0) state.depmult=String(Math.round(D/mR*10)/10);
+    try{ renderTabs(); renderForm(); restoreInputs(); update(); }catch(e){}
+    close();
+    toastMsg('샘플 딜 반영 — '+sm.label+'. 모든 임차인·수치는 가상의 예시입니다.');
+    if(window.mtTrack) try{ mtTrack('sample_deal',{key:key}); }catch(e2){}
+  }
   function open(){ var o=$id('rrOverlay'); if(o){ o.hidden=false; document.body.style.overflow='hidden'; } }
   function close(){ var o=$id('rrOverlay'); if(o){ o.hidden=true; document.body.style.overflow=''; } pending=null; var r=$id('rrResult'); if(r) r.hidden=true; }
 
@@ -4522,6 +4566,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     });
     var ap=$id('rrApply'); if(ap) ap.addEventListener('click',applyRR);
     var sp=$id('rrSample'); if(sp) sp.addEventListener('click',downloadSample);
+    var da=$id('rrDemoA'); if(da) da.addEventListener('click',function(){ loadSampleDeal('A'); });
+    var db2=$id('rrDemoB'); if(db2) db2.addEventListener('click',function(){ loadSampleDeal('B'); });
     // 매핑 드롭다운 수정 → map 재구성 → 재추출·재검증·재렌더
     var mp=$id('rrMap'); if(mp&&!mp.__w){ mp.__w=1; mp.addEventListener('change',function(e){
       var t=e.target; if(!t||!t.classList||!t.classList.contains('rr-fld')||!pending) return;
@@ -4696,8 +4742,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   if(!bar && !ov) return;
   function today(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function snoozedToday(){ try{ return localStorage.getItem(SNOOZE)===today(); }catch(e){ return false; } }
-  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v3')==='1'; }catch(e){ return false; } }
-  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v3','1'); }catch(e){} }
+  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v4')==='1'; }catch(e){ return false; } }
+  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v4','1'); }catch(e){} }
   function snoozeDay(){ try{ localStorage.setItem(SNOOZE,today()); }catch(e){} }
   function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow=''; document.body.style.overflow='hidden'; } }
   function closeWN(){ if(ov){ ov.hidden=true; } document.body.style.overflow=''; }
