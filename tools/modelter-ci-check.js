@@ -72,6 +72,13 @@ ok(html.includes('rr-maptbl'), '렌트롤 매핑 확인 표 존재');
 ok(html.includes('function rrRiskMetrics'), '임대차 리스크 지표(rrRiskMetrics) 존재');
 ok(html.includes('id="rrRiskCard"'), '임대차 리스크 카드 존재');
 ok(html.includes("name:'Lease_Risk'"), '엑셀 Lease_Risk 시트 존재');
+ok(html.includes('function mtChecks'), '체크 레지스트리(mtChecks) 존재');
+ok(html.includes('function _covBlock'), '부채 커버넌트 표(_covBlock) 존재');
+ok(html.includes('INT:INT,endBal:endBal,exitCap:'), '엔진 INT·endBal·exitCap 노출(2엔진)');
+ok((html.match(/INT:INT,endBal:endBal,exitCap:/g)||[]).length>=2, '두 엔진 모두 노출');
+ok(html.includes('04_Operating_ProForma!C18/C6'), '엑셀 05 ICR 행');
+ok(html.includes('04_Operating_ProForma!C18/C8'), '엑셀 05 Debt Yield 행');
+ok(html.includes('Exit Cap ≥ 진입 Cap − 0.5%p'), '엑셀 11 검증: 역스프레드 체크');
 ok(html.includes('feats:featSnapshot()'), '이벤트 스키마: 활성기능 스냅샷(feats) 전송');
 ok(html.includes("track('share_link')") && html.includes("track('pdf_export')") && html.includes("track('slot_save')"), '이벤트: 공유·PDF·보관함 액션 추적');
 ok(html.includes("mtTrack('sens_axis'"), '이벤트: 민감도 축 토글 추적');
@@ -183,6 +190,19 @@ const driver = `;(function(){
     if (Math.abs(_rm.exp12 - 0.25) > 1e-9) throw new Error("12M 만기비중 오류: " + _rm.exp12);
     if (Math.abs(_rm.occupancy - 0.8) > 1e-9) throw new Error("점유율 오류: " + _rm.occupancy);
     if (!(_rm.sched[1] && _rm.sched[3])) throw new Error("만기 스케줄 누락");
+  }
+  // 체크 레지스트리: 커버넌트 기준 초과 설정 → breach 검출 / raw 노출 확인
+  if (typeof mtChecks === "function") {
+    cur = "office"; window.rrModel = null; fillExample();
+    var _m5 = simModel();
+    if (!(_m5 && _m5.raw && _m5.raw.INT && _m5.raw.endBal && _m5.raw.exitCap > 0)) throw new Error("simModel raw(INT/endBal/exitCap) 미노출");
+    if (!(_m5.cov && _m5.cov.indexOf("커버넌트") >= 0)) throw new Error("커버넌트 표(cov) 미부착");
+    state["covdscr"] = "9.9";
+    var _ck = mtChecks();
+    if (!_ck.some(function(c){ return c.id === "DEBT_DSCR_BREACH"; })) throw new Error("DSCR 커버넌트 breach 미검출");
+    state["covdscr"] = "";
+    var _ck2 = mtChecks();
+    if (_ck2.some(function(c){ return c.id === "DEBT_DSCR_BREACH"; })) throw new Error("기준 해제 후에도 breach 잔존");
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();
