@@ -165,7 +165,11 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 
 .builder{padding:14px 0 60px}
 .grid2{display:grid; grid-template-columns:minmax(0,470px) minmax(0,1fr); gap:22px; align-items:start}
-@media(max-width:920px){ .grid2{grid-template-columns:1fr} }
+@media(max-width:920px){ .grid2{grid-template-columns:minmax(0,1fr)} }
+.grid2>*{min-width:0}
+/* 안전망: 어떤 넓은 표가 새어 나와도 페이지 가로 스크롤은 만들지 않음 */
+html,body{overflow-x:clip}
+@media(max-width:430px){ .trn-h span{display:none} .trn-h{white-space:nowrap} }
 
 .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--soft)}
 .panel-head{padding:15px 20px; border-bottom:1px solid var(--line-soft); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
@@ -1020,7 +1024,7 @@ html,body{overflow-x:hidden}
       <li><span class="wn-ic">📋</span><div><b>렌트롤 업로드</b><span>임차인 목록을 올리면 계약·공실·만기까지 반영됩니다.</span></div></li>
       <li><span class="wn-ic">🇰🇷</span><div><b>실무 디테일</b><span>보증금 승계·운용보수·우선주 배당·세후 IRR까지 반영합니다.</span></div></li>
       <li><span class="wn-ic">🆚</span><div><b>딜 비교 · 한 장 요약</b><span>저장한 딜을 나란히 비교하고, 결과를 한 장으로 인쇄합니다.</span></div></li>
-      <li><span class="wn-ic">🧮</span><div><b>검토 도구 <span class="wn-tag">NEW</span></b><span>임대차 리스크·부채 커버넌트·케이스·역산·가정 신뢰도 — 샘플 딜로 바로 체험하세요.</span></div></li>
+      <li><span class="wn-ic">🧮</span><div><b>검토 도구 <span class="wn-tag">NEW</span></b><span>임대차 리스크, 커버넌트, 케이스, 역산까지. 샘플 딜로 바로 볼 수 있습니다.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -1230,12 +1234,12 @@ html,body{overflow-x:hidden}
           <div class="sv-row"><span class="sv-l">손익분기 Exit Cap</span><button class="sl-btn" id="svEc" type="button">계산</button><span class="sv-res" id="svEcRes"></span></div>
           <div class="sv-row"><span class="sv-l">손익분기 공실률</span><button class="sl-btn" id="svVac" type="button">계산</button><span class="sv-res" id="svVacRes"></span></div>
         </div>
-        <div class="mx-foot">현재 입력 기준 이분법(bisection) 역산 — 입력을 바꾸면 다시 계산하세요. 매입가 역산 시 취득세·대출액(LTV)·자기자본이 함께 재계산됩니다. 자기자본이 총투자액의 5% 미만이 되는 영역은 제외합니다.</div>
+        <div class="mx-foot">현재 입력값에서 거꾸로 계산합니다. 입력을 바꾸면 다시 눌러 주세요. 매입가를 역산하면 취득세, 대출액, 자기자본도 같이 다시 계산되고, 자기자본이 총투자액의 5%에 못 미치는 답은 빼고 찾습니다.</div>
       </div>
       <div class="metrics" id="rrRiskCard" hidden>
         <div class="mx-head"><span class="mx-t">임대차 리스크 <span class="mx-sub">렌트롤 기반</span></span><span class="mx-flag" id="rrRiskFlag"></span></div>
         <div id="rrRiskBody"></div>
-        <div class="mx-foot">WALE = 잔여 임대기간 가중평균(만기 있는 계약 기준) · 집중도 = 연임대료 기준 · 기준은 일반적 실무 관행이며 자산 성격에 따라 달리 볼 수 있습니다.</div>
+        <div class="mx-foot">WALE는 만기가 있는 계약의 잔여 임대기간을 가중평균한 값이고, 집중도는 연임대료 기준입니다. 판정 기준은 통상적인 눈높이라 자산 성격에 따라 달리 볼 수 있습니다.</div>
       </div>
       <div class="preview-card">
         <div class="pv-head">
@@ -1335,7 +1339,7 @@ html,body{overflow-x:hidden}
 <div class="rr-overlay" id="rrOverlay" hidden>
   <div class="rr-modal">
     <div class="rr-top"><b>📋 렌트롤로 모델 채우기</b><button class="rr-x" id="rrClose" type="button" aria-label="닫기">✕</button></div>
-    <p class="rr-help">엑셀에서 렌트롤 범위를 복사해 붙여넣거나 <b>.xlsx/.csv</b> 파일을 올리세요. 임차인·전용면적·임대면적·임대료·관리비·보증금·만기 열을 자동 인식합니다(전용·임대면적이 함께 있으면 <b>임대면적 기준</b>으로 모델링). <b>전 과정 브라우저 안에서만 처리되어 서버로 전송되지 않습니다.</b> 반영 후 ‘임대차 리스크’ 카드에서 임차인명 비식별(임차인A·B…)을 켤 수 있습니다.</p>
+    <p class="rr-help">엑셀에서 렌트롤 범위를 복사해 붙여넣거나 <b>.xlsx/.csv</b> 파일을 올리세요. 임차인·전용면적·임대면적·임대료·관리비·보증금·만기 열을 자동 인식합니다(전용·임대면적이 함께 있으면 <b>임대면적 기준</b>으로 모델링). <b>전 과정 브라우저 안에서만 처리되어 서버로 전송되지 않습니다.</b> 반영한 뒤에는 임차인명을 ‘임차인A·B’ 식으로 가려서 쓸 수도 있습니다.</p>
     <textarea id="rrPaste" placeholder="여기에 렌트롤을 붙여넣기 (엑셀에서 범위 복사 → 붙여넣기)"></textarea>
     <div class="rr-row"><label class="rr-file">📁 파일 선택 (.xlsx/.csv)<input type="file" id="rrFile" accept=".xlsx,.csv" hidden /></label><button class="rr-btn" id="rrParse" type="button">붙여넣기 분석 →</button><button class="rr-link" id="rrSample" type="button">📥 샘플 양식 받기</button><button class="rr-link" id="rrDemoA" type="button">🏢 샘플 딜: 안정형 오피스</button><button class="rr-link" id="rrDemoB" type="button">🏭 샘플 딜: 물류 단기만기</button></div>
     <div id="rrResult" hidden>
@@ -2169,28 +2173,28 @@ function mtChecks(){
     var m=null; try{ m=simModel(); }catch(e){}
     var r=m&&m.raw;
     if(r){
-      if(r.IRR==null) add('IRR_FAILED','error','현금흐름 구조상 IRR 계산에 실패했습니다 — 매입가·임대료·Exit Cap을 확인하세요.');
-      if(isFinite(r.equity)&&r.equity<=0) add('DEBT_NEGATIVE_EQUITY','error','자기자본이 0 이하입니다 — 레버리지(LTV·우선주 비중) 가정을 확인하세요.');
-      if(r.NOI&&r.DSCR&&r.NOI.slice(0,r.DSCR.length).some(function(v){return v<0;})) add('CF_NEGATIVE_NOI','warning','NOI가 음수인 연도가 있습니다 — 임대료·운영비 가정을 확인하세요.');
-      if(isFinite(r.minDSCR)&&r.minDSCR<1) add('DSCR_BELOW_1','warning','최소 DSCR '+r.minDSCR.toFixed(2)+'x — 운영현금흐름으로 원리금을 충당하지 못하는 구간이 있습니다.');
+      if(r.IRR==null) add('IRR_FAILED','error','IRR이 계산되지 않습니다. 매입가, 임대료, Exit Cap을 확인해 주세요.');
+      if(isFinite(r.equity)&&r.equity<=0) add('DEBT_NEGATIVE_EQUITY','error','자기자본이 0 이하로 계산됩니다. LTV나 우선주 비중이 과하지 않은지 확인해 주세요.');
+      if(r.NOI&&r.DSCR&&r.NOI.slice(0,r.DSCR.length).some(function(v){return v<0;})) add('CF_NEGATIVE_NOI','warning','NOI가 음수인 연도가 있습니다. 임대료와 운영비 가정을 확인해 주세요.');
+      if(isFinite(r.minDSCR)&&r.minDSCR<1) add('DSCR_BELOW_1','warning','최소 DSCR '+r.minDSCR.toFixed(2)+'x. 운영현금으로 원리금을 못 갚는 구간이 있습니다.');
       var minD=parseNum(state['covdscr']), maxL=parseNum(state['covltv']);
-      if(isFinite(minD)&&isFinite(r.minDSCR)&&r.minDSCR<minD) add('DEBT_DSCR_BREACH','warning','DSCR 커버넌트 위반 가능성 — 최소 DSCR '+r.minDSCR.toFixed(2)+'x < 기준 '+minD.toFixed(2)+'x. 배당 제한·cash sweep 조건을 검토하세요.');
+      if(isFinite(minD)&&isFinite(r.minDSCR)&&r.minDSCR<minD) add('DEBT_DSCR_BREACH','warning','DSCR 커버넌트 위반 가능성 — 최소 DSCR '+r.minDSCR.toFixed(2)+'x < 기준 '+minD.toFixed(2)+'x. 대출 약정상 배당 제한이 걸릴 수 있습니다.');
       if(isFinite(maxL)&&r.endBal&&r.exitCap>0&&r.DSCR){
         var mx=0; for(var y=0;y<r.DSCR.length;y++){ var fwd=(r.NOI[y+1]!=null?r.NOI[y+1]:r.NOI[y]); var iv=fwd/r.exitCap; if(iv>0){ var lv=r.endBal[y]/iv; if(lv>mx) mx=lv; } }
-        if(mx>maxL/100) add('DEBT_LTV_BREACH','warning','내재 LTV 최대 '+(mx*100).toFixed(0)+'% > 기준 '+maxL+'% — LTV 커버넌트 위반 가능성.');
+        if(mx>maxL/100) add('DEBT_LTV_BREACH','warning','내재 LTV 최대 '+(mx*100).toFixed(0)+'% > 기준 '+maxL+'%를 넘습니다. LTV 약정 위반 소지가 있습니다.');
       }
     }
   }
   if(window.rrModel&&window.rrModel.on&&window.rrModel.leases){
-    if(!window.rrModel.confirmed) add('RR_MAPPING_UNCONFIRMED','warning','렌트롤 매핑이 확정되지 않은 결과입니다 — 업로드 화면에서 매핑을 확인하세요.');
+    if(!window.rrModel.confirmed) add('RR_MAPPING_UNCONFIRMED','warning','렌트롤 매핑을 아직 확정하지 않았습니다. 업로드 화면에서 확인해 주세요.');
     try{
       var ls0=(window.rrState&&window.rrState.leases&&window.rrState.leases.length===window.rrModel.leases.length)?window.rrState.leases:window.rrModel.leases;
       var ls=ls0.map(function(l,i){ var o={}; for(var kk in l) o[kk]=l[kk]; o.name=rrDisplayName(l.name,i); return o; });
       var gfa=parseNum(state.gfa), ratio=(cur==='logistics')?0.97:0.88;
       var rk=rrRiskMetrics(ls, isFinite(gfa)?gfa*ratio:0);
-      if(rk.waleRent!=null&&rk.waleRent<MT_RISK.wale.watch) add('RR_WALE_SHORT','warning','WALE '+rk.waleRent.toFixed(1)+'년 — 잔여 임대기간이 짧습니다. 재계약률·다운타임 가정이 결과를 좌우합니다.');
-      if(rk.exp36>MT_RISK.exp36.watch) add('RR_EXPIRY_36M','warning','임대면적의 '+(rk.exp36*100).toFixed(0)+'%가 36개월 내 만기 — 롤오버 가정(재계약률·다운타임)을 확인하세요.');
-      if(rk.top1>MT_RISK.top1.watch) add('RR_TOP1_CONC','warning','최대 임차인 비중 '+(rk.top1*100).toFixed(0)+'%'+(rk.topName?('('+rk.topName+')'):'')+' — 단일 임차인 이탈 리스크가 큽니다.');
+      if(rk.waleRent!=null&&rk.waleRent<MT_RISK.wale.watch) add('RR_WALE_SHORT','warning','WALE '+rk.waleRent.toFixed(1)+'년으로 짧아, 재계약률과 다운타임 가정이 결과를 크게 좌우합니다.');
+      if(rk.exp36>MT_RISK.exp36.watch) add('RR_EXPIRY_36M','warning','임대면적의 '+(rk.exp36*100).toFixed(0)+'%가 3년 안에 만기입니다. 재계약률과 다운타임 가정을 확인해 주세요.');
+      if(rk.top1>MT_RISK.top1.watch) add('RR_TOP1_CONC','warning','최대 임차인 비중 '+(rk.top1*100).toFixed(0)+'%'+(rk.topName?('('+rk.topName+')'):'')+'입니다. 한 곳만 나가도 타격이 큽니다.');
     }catch(e){}
   }
   L.sort(function(a,b){ return (a.sev==='error'?0:1)-(b.sev==='error'?0:1); });
@@ -2488,13 +2492,13 @@ function mtQuality(){
 }
 function mtMaturity(q){
   if(!q) return null;
-  if(q.nErr>0) return {lv:'S0', label:'빠른 스크리닝', msg:'오류(⛔)를 해결해야 검토 단계로 올라갑니다.'};
+  if(q.nErr>0) return {lv:'S0', label:'빠른 스크리닝', msg:'오류를 먼저 해결해야 검토 단계로 올라갑니다.'};
   var rrOK=window.rrModel&&window.rrModel.on&&window.rrModel.confirmed;
-  if(!rrOK) return {lv:'S0', label:'빠른 스크리닝', msg:'방향성 확인용입니다. 렌트롤을 반영하면 임차인별 리스크까지 검토됩니다.'};
+  if(!rrOK) return {lv:'S0', label:'빠른 스크리닝', msg:'방향을 잡는 단계입니다. 렌트롤을 올리면 임차인별 리스크까지 같이 봅니다.'};
   var cov=isFinite(parseNum(state['covdscr']))||isFinite(parseNum(state['covltv']));
-  if(cov&&q.score>=80&&q.defShare<=0.2) return {lv:'S3', label:'IC 초안 가능', msg:'가정 출처·체크·케이스가 정리된 상태 — 최종 검토자는 원자료를 대조하세요.'};
-  if(cov&&q.score>=60) return {lv:'S2', label:'검토 준비', msg:'DD·IC 초안 검토에 쓸 수 있는 수준 — Default 가정을 실제 자료로 교체할수록 올라갑니다.'};
-  return {lv:'S1', label:'렌트롤 반영', msg:'임차인 리스크 반영 — 커버넌트 기준과 가정 출처를 채우면 검토 수준이 올라갑니다.'};
+  if(cov&&q.score>=80&&q.defShare<=0.2) return {lv:'S3', label:'IC 초안 가능', msg:'가정 출처와 점검이 갖춰졌습니다. 최종 판단 전에 원자료만 대조하면 됩니다.'};
+  if(cov&&q.score>=60) return {lv:'S2', label:'검토 준비', msg:'검토 초안에 쓸 만한 수준입니다. 기본가정을 실제 자료로 바꿀수록 점수가 올라갑니다.'};
+  return {lv:'S1', label:'렌트롤 반영', msg:'임차인 리스크까지 반영됐습니다. 커버넌트 기준과 가정 출처를 채우면 한 단계 올라갑니다.'};
 }
 function renderQuality(){
   var card=$('qualCard'); if(!card) return;
@@ -2513,7 +2517,7 @@ function renderQuality(){
     return '<div class="ql-row"><span class="ql-k">'+a.l+'</span>'+chip+'</div>';
   }).join('')+'</div>';
   $('qualBody').innerHTML='<div class="ql-top"><div class="ql-score">'+q.score+'<span>/100</span></div><div class="ql-desc">'+esc(mt.msg)+'</div></div>'+bar+legend+list;
-  $('qualFoot').textContent='점수 = 출처 점수(실제100·공공85·브로커65·판단55·기본30)의 중요도 가중 평균'+(q.defShare>=0.3?' − 기본가정 30%↑ 감점':'')+(q.nErr>0?' · 오류 존재로 50점 상한':'')+'. 출처 칩을 클릭해 바꿀 수 있습니다.';
+  $('qualFoot').textContent='출처별 점수(실제 100, 공공 85, 브로커 65, 판단 55, 기본 30)를 중요도로 가중평균한 값입니다'+(q.defShare>=0.3?'. 기본가정이 30%를 넘어 감점됐습니다':'')+(q.nErr>0?'. 오류가 있어 50점까지만 인정됩니다':'')+' 칩을 누르면 출처를 바꿀 수 있습니다.';
   card.hidden=false;
 }
 (function(){
@@ -2575,7 +2579,7 @@ function solveBreakEvenVacancy(){
 }
 (function(){
   function res(id,html,bad){ var el=$(id); if(el){ el.innerHTML=html; el.classList.toggle('bad',!!bad); } }
-  var NOCONV='범위 내 수렴하지 않음 — 목표를 확인하세요';
+  var NOCONV='이 범위에서는 답이 없습니다. 목표를 확인해 주세요';
   document.addEventListener('click',function(e){
     var t=e.target; if(!t||!t.closest) return;
     if(t.closest('#svBid')){
@@ -2601,7 +2605,7 @@ function solveBreakEvenVacancy(){
       var r2=solveBreakEvenVacancy();
       var cv=parseNum(state['vacancy']); cv=isFinite(cv)?cv:0;
       if(r2.converged) res('svVacRes','DSCR 1.0x 손익분기 공실률 <b>'+r2.value.toFixed(1)+'%</b> (현재 '+cv+'%)');
-      else res('svVacRes','범위(0~80%) 내에서 DSCR이 1.0x를 하회하지 않음 — 여유 있음',false);
+      else res('svVacRes','공실 0~80% 범위에서는 DSCR이 1.0x 밑으로 내려가지 않습니다. 여유가 있는 딜입니다',false);
       if(window.mtTrack) try{ mtTrack('solver',{kind:'vacancy'}); }catch(err){}
       return;
     }
@@ -2633,12 +2637,12 @@ function caseSnapshot(adj){
   return {c:cur,d:depth,s:s,k:kk,r:refiState,rr:rr};
 }
 function caseComment(r,base){
-  if(!r||r.IRR==null) return 'IRR 계산 불가 — 현금흐름 구조 확인 필요';
+  if(!r||r.IRR==null) return 'IRR이 계산되지 않는 구조입니다';
   var c=[];
   if(r.EM!=null&&r.EM<1) c.push('투자원금 손실 가능성');
   if(isFinite(r.minDSCR)&&r.minDSCR<1) c.push('원리금 미충당 구간 발생');
   else if(isFinite(r.minDSCR)&&r.minDSCR<1.2) c.push('상환여력 얇음(DSCR<1.2x)');
-  if(base&&base.IRR!=null&&(base.IRR-r.IRR)>0.03) c.push('기본 대비 −'+((base.IRR-r.IRR)*100).toFixed(1)+'%p — Exit Cap·성장률 민감');
+  if(base&&base.IRR!=null&&(base.IRR-r.IRR)>0.03) c.push('기본 대비 −'+((base.IRR-r.IRR)*100).toFixed(1)+'%p. Exit Cap과 성장률에 민감한 딜입니다');
   return c.length?c.join(' · '):'배당 여력 축소 수준';
 }
 function caseBreachYear(r){
@@ -2672,7 +2676,7 @@ function renderCases(){
   if(flag){ var bad=(sev&&((sev.EM!=null&&sev.EM<1)||(isFinite(sev.minDSCR)&&sev.minDSCR<1)));
     flag.textContent=bad?'Severe 위험':'스트레스 통과'; flag.className='mx-flag '+(bad?'bad':'ok'); }
   $('caseBody').innerHTML=body;
-  $('caseFoot').textContent='조정폭 — Downside: 성장률 −0.5%p·Exit Cap +0.25%p·공실 +2%p·금리 +0.5%p / Severe: −1.0%p·+0.5%p·+5%p·+1.0%p. 나머지 가정 동일, 렌트롤 사용 시 시장가정에 동일 적용.';
+  $('caseFoot').textContent='Downside는 성장률 −0.5%p, Exit Cap +0.25%p, 공실 +2%p, 금리 +0.5%p를 준 경우이고, Severe는 각각 −1.0 / +0.5 / +5 / +1.0%p입니다. 나머지 가정은 그대로 두고, 렌트롤을 쓰면 시장 가정에도 같은 폭을 적용합니다.';
   card.hidden=false;
 }
 /* ---------- 임대차 리스크 (렌트롤 기반) ---------- */
@@ -2741,7 +2745,7 @@ function renderRRRisk(){
   var worst=rows.filter(function(x){return x.st==='risk';}).length, watch=rows.filter(function(x){return x.st==='watch';}).length;
   var flag=$('rrRiskFlag');
   if(flag){ flag.textContent=worst?('위험 '+worst+'건'):(watch?('주의 '+watch+'건'):'양호'); flag.className='mx-flag '+(worst?'bad':(watch?'':'ok')); if(!worst&&watch){ flag.style.color='var(--accent-deep)'; flag.style.background='rgba(169,121,43,.13)'; } else { flag.style.color=''; flag.style.background=''; } }
-  var mask='<label class="rr-mask"><input type="checkbox" id="rrMaskCk"'+(rrMaskOn()?' checked':'')+'> 임차인명 비식별(임차인A·B…) — 화면·엑셀·인쇄 공통</label>';
+  var mask='<label class="rr-mask"><input type="checkbox" id="rrMaskCk"'+(rrMaskOn()?' checked':'')+'> 임차인명 가리기 — 임차인A·B로 표시 (화면·엑셀·인쇄 모두 적용)</label>';
   $('rrRiskBody').innerHTML=grid+schedH+mask;
   card.hidden=false;
 }
@@ -3605,10 +3609,10 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         }
         rows+='<tr'+(cls?' class="'+cls+'"':'')+'><td>Y'+(y+1)+'</td><td>'+meok(noi)+'</td><td>'+meok(ds)+'</td><td>'+(isFinite(dscr)?dscr.toFixed(2)+'x':'—')+'</td><td>'+(icr!=null?icr.toFixed(1)+'x':'—')+'</td><td>'+(dy!=null?(dy*100).toFixed(1)+'%':'—')+'</td><td>'+(ltv!=null?(ltv*100).toFixed(0)+'%':'—')+'</td><td class="cv-st">'+st+'</td></tr>';
       }
-      var refi=(lastDY!=null&&lastLTV!=null)?('<div class="cov-refi">만기시점 Debt Yield <b>'+(lastDY*100).toFixed(1)+'%</b> · 내재 LTV <b>'+(lastLTV*100).toFixed(0)+'%</b> — 차환(리파이) 여력 참고. 내재가치 = 익년 NOI ÷ Exit Cap.</div>'):'';
+      var refi=(lastDY!=null&&lastLTV!=null)?('<div class="cov-refi">만기시점 Debt Yield <b>'+(lastDY*100).toFixed(1)+'%</b> · 내재 LTV <b>'+(lastLTV*100).toFixed(0)+'%</b> 입니다. 차환 여력을 가늠하는 참고치이며, 내재가치는 다음해 NOI를 Exit Cap으로 나눈 값입니다.</div>'):'';
       var opn=judge?' open':'';
       return '<details class="sim-cf cov-d"'+opn+'><summary>부채 커버넌트 · 리파이 참고 ▾</summary>'
-        +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><span>미입력 시 판정 없이 표시만 · 엑셀 05_Debt_Schedule 11~13행과 동일</span></div>'
+        +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><span>기준을 안 넣으면 판정 없이 숫자만 보여줍니다 (엑셀 05_Debt_Schedule에도 같은 행이 있음)</span></div>'
         +'<div class="cov-wrap"><table class="sens-tbl cov-tbl"><tr><th>연차</th><th>NOI</th><th>원리금</th><th>DSCR</th><th>ICR</th><th>Debt Yield</th><th>내재 LTV</th><th>판정</th></tr>'+rows+'</table></div>'+refi+'</details>';
     }catch(e){ return ''; }
   }
@@ -3817,7 +3821,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var taxNote=(r.passthru===false)?(' 비도관 선택 → 세전·세후 IRR을 함께 표시합니다(감가상각 건물분 30%·40년, 법인세 '+(r.taxrate*100).toFixed(0)+'% 반영, 엑셀 06/08/09시트와 동일).'):'';
     return {type:'kpi', kpis:kpis, tranche:_trancheBlock(r), cov:_covBlock(r), raw:r, mini:{irr:_fp(r.IRR), coc:_fp(r.coc)}, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
       caveats:[((typeof cur!=='undefined'&&cur==='office')
-        ? '화면 수치 = 아래 ‘엑셀 모델 받기’의 13시트 정밀 모델과 동일한 계산입니다(자본구조·우선주 배당·도관과세·임대가능면적·세부 운영비·보증금운용·감가·매각 반영).'
+        ? '화면 수치는 아래에서 받는 엑셀 모델과 같은 계산식에서 나옵니다. 자본구조, 우선주 배당, 도관과세, 보증금, 감가, 매각까지 반영한 값입니다.'
         : '자본구조·우선주 배당·도관과세·감가·매각을 반영한 레버드 DCF 간이 결과입니다. 더 정밀한 모델은 아래 AI 지시문을 Claude in Excel에서 이어가세요.')+taxNote]};
   }
   try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
@@ -4455,7 +4459,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       var opts=RR_FLDS.map(function(f){ return '<option value="'+f[0]+'"'+(f[0]===curFld?' selected':'')+'>'+f[1]+'</option>'; }).join('');
       mapRows+='<tr'+(curFld===''?' class="rr-skip"':'')+'><td class="rr-oc">'+_hesc(h)+'</td><td><select class="rr-fld" data-rrcol="'+c+'">'+opts+'</select></td><td class="rr-smp">'+_hesc(samples.join(' · ')||'—')+'</td></tr>';
     }
-    $id('rrMap').innerHTML='<div class="rr-map-h">① 열 매핑 확인 <span>자동 인식 결과입니다 — 잘못 연결된 열은 직접 바꿔주세요</span></div>'+
+    $id('rrMap').innerHTML='<div class="rr-map-h">① 열 매핑 확인 <span>자동으로 짚은 결과입니다. 잘못 연결된 열은 직접 바꿔주세요</span></div>'+
       '<div class="rr-map-wrap"><table class="rr-maptbl"><tr><th>원본 열</th><th>모델터 항목</th><th>샘플 값</th></tr>'+mapRows+'</table></div>'+
       '<div class="rr-note">면적단위 '+(ex.areaUnit==='sqm'?'㎡→평 환산':'평')+' · 임차인 '+agg.count+'개 인식</div>';
     // ── 행 단위 검증 경고 ──
@@ -4537,7 +4541,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     var mR=R; if(mR>0) state.depmult=String(Math.round(D/mR*10)/10);
     try{ renderTabs(); renderForm(); restoreInputs(); update(); }catch(e){}
     close();
-    toastMsg('샘플 딜 반영 — '+sm.label+'. 모든 임차인·수치는 가상의 예시입니다.');
+    toastMsg('샘플 딜을 불러왔습니다: '+sm.label+'. 임차인과 수치는 모두 가상입니다.');
     if(window.mtTrack) try{ mtTrack('sample_deal',{key:key}); }catch(e2){}
   }
   function open(){ var o=$id('rrOverlay'); if(o){ o.hidden=false; document.body.style.overflow='hidden'; } }
