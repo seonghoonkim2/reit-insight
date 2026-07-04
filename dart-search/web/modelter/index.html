@@ -512,13 +512,6 @@ header{background:rgba(253,252,249,.82)}
 .cov-tbl tr.cv-ok .cv-st{color:var(--green)}
 .cov-refi{font-size:11.5px; color:var(--ink-3); margin-top:8px; line-height:1.5}
 .cov-refi b{color:var(--accent-deep)}
-/* 케이스 표 */
-.case-tbl td,.case-tbl th{white-space:nowrap}
-.case-tbl .cs-note{white-space:normal; text-align:left; font-size:11px; color:var(--ink-3); min-width:140px}
-.case-tbl .cs-l{font-weight:700; color:var(--ink)}
-.case-tbl tr.cs-downside td{background:rgba(169,121,43,.05)}
-.case-tbl tr.cs-severe td{background:rgba(187,70,48,.06)}
-.cs-loss{color:var(--red)}
 /* 역산 카드 */
 .sv-rows{display:flex; flex-direction:column; gap:9px}
 .sv-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2)}
@@ -529,27 +522,6 @@ header{background:rgba(253,252,249,.82)}
 .sv-res b{color:var(--accent-deep); font-family:var(--mono)}
 .sv-res.bad{color:var(--red)}
 .sv-apply{border-color:var(--green); color:var(--green)}
-/* 가정 신뢰도 카드 */
-.ql-top{display:flex; align-items:center; gap:14px; margin-bottom:10px}
-.ql-score{font-size:34px; font-weight:800; font-family:var(--mono); color:var(--ink); line-height:1}
-.ql-score span{font-size:13px; color:var(--muted); font-weight:600}
-.ql-desc{font-size:12px; color:var(--ink-3); line-height:1.5; flex:1}
-.ql-bar{display:flex; height:10px; border-radius:6px; overflow:hidden; background:var(--bg); margin-bottom:6px}
-.ql-bar i{display:block; height:100%}
-.ql-leg{display:flex; gap:12px; flex-wrap:wrap; font-size:10.5px; color:var(--muted); margin-bottom:10px}
-.ql-leg span{display:inline-flex; align-items:center; gap:4px}
-.ql-leg i{width:9px; height:9px; border-radius:3px; display:inline-block}
-i.ql-actual,.ql-chip.ql-actual{background:rgba(47,125,87,.75)}
-i.ql-public,.ql-chip.ql-public{background:rgba(58,110,165,.7)}
-i.ql-broker,.ql-chip.ql-broker{background:rgba(169,121,43,.65)}
-i.ql-analyst,.ql-chip.ql-analyst{background:rgba(106,114,128,.55)}
-i.ql-default,.ql-chip.ql-default{background:rgba(160,160,160,.4)}
-.ql-list{display:grid; grid-template-columns:1fr 1fr; gap:4px 16px}
-@media(max-width:560px){ .ql-list{grid-template-columns:1fr} }
-.ql-row{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:var(--ink-2); padding:3px 0; border-bottom:1px solid var(--line-soft)}
-.ql-chip{font-family:var(--font); font-size:10px; font-weight:700; color:#fff; border:none; border-radius:6px; padding:2px 8px; cursor:pointer; white-space:nowrap}
-.ql-chip.fx{cursor:default; opacity:.85}
-.ql-chip.ql-default{color:var(--ink-3)}
 .rr-mask{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); margin-top:10px; cursor:pointer}
 .rr-mask input{accent-color:var(--accent-solid)}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
@@ -602,11 +574,6 @@ i.ql-default,.ql-chip.ql-default{background:rgba(160,160,160,.4)}
   #printSummary .ps-warn{margin-top:4px; font-size:8.5pt; color:#9b3a2e}
   #printSummary .ps-warn ul{margin:3px 0 0 16px}
   #printSummary .ps-asm{font-style:normal; font-size:8pt; color:#8a6020; background:#f4efe5; border-radius:4px; padding:0 4px; font-weight:600}
-  #printSummary .ps-case{width:100%; margin-bottom:2px}
-  #printSummary .ps-case th{font-size:8.5pt; color:#555; text-align:right; padding:2px 4px; border-bottom:1px solid #ccc; font-weight:600}
-  #printSummary .ps-case th:first-child,#printSummary .ps-case td:first-child{text-align:left}
-  #printSummary .ps-case td{white-space:nowrap; text-align:right; font-weight:600}
-  #printSummary .ps-case td:first-child{font-weight:700}
   #printSummary .ps-st{font-style:normal; font-size:7.5pt; font-weight:700; border-radius:4px; padding:0 4px}
   #printSummary .ps-ok{color:#2f7d57; background:#eef6f1}
   #printSummary .ps-watch{color:#8a6020; background:#f4efe5}
@@ -1025,7 +992,7 @@ html,body{overflow-x:hidden}
       <li><span class="wn-ic">📋</span><div><b>렌트롤 업로드</b><span>임차인 목록을 올리면 계약·공실·만기까지 반영됩니다.</span></div></li>
       <li><span class="wn-ic">🇰🇷</span><div><b>실무 디테일</b><span>보증금 승계·운용보수·우선주 배당·세후 IRR까지 반영합니다.</span></div></li>
       <li><span class="wn-ic">🆚</span><div><b>딜 비교 · 한 장 요약</b><span>저장한 딜을 나란히 비교하고, 결과를 한 장으로 인쇄합니다.</span></div></li>
-      <li><span class="wn-ic">🧮</span><div><b>검토 도구 <span class="wn-tag">NEW</span></b><span>임대차 리스크, 커버넌트, 케이스, 역산까지. 샘플 딜로 바로 볼 수 있습니다.</span></div></li>
+      <li><span class="wn-ic">🧮</span><div><b>검토 도구 <span class="wn-tag">NEW</span></b><span>임대차 리스크, 부채 커버넌트, 역산까지. 샘플 딜로 바로 볼 수 있습니다.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -1075,8 +1042,8 @@ html,body{overflow-x:hidden}
     </div>
 
     <div class="md-sec">
-      <h4>검토 보조 — 신뢰도·체크·케이스·역산</h4>
-      <p><b>가정 신뢰도</b>: 핵심 입력의 출처(실제/공공/브로커/판단/기본가정)를 중요도 가중으로 점수화하고 성숙도(S0~S3)로 표시합니다. <b>체크</b>: 입력·현금흐름·부채·렌트롤 점검을 한 곳에 모아 오류·경고로 구분합니다. <b>케이스</b>: Downside(성장률 −0.5%p·Exit Cap +0.25%p·공실 +2%p·금리 +0.5%p)·Severe(−1.0/+0.5/+5/+1.0%p)를 자동 계산합니다. <b>역산</b>: 목표 IRR 입찰가·손익분기 Exit Cap·공실률을 이분법으로 구합니다. <b>임대차 리스크</b>: WALE·만기 집중·임차인 집중도를 렌트롤에서 산출하며, 임차인명 비식별 옵션이 있습니다.</p>
+      <h4>검토 보조 — 점검·부채·역산</h4>
+      <p><b>점검</b>: 입력·현금흐름·부채·렌트롤의 이상값을 한곳에 모아 오류와 경고로 구분합니다. <b>부채 커버넌트</b>: 연도별 DSCR·ICR·Debt Yield·내재 LTV를 보여주고, 기준을 넣으면 충족·주의·위반을 판정합니다. <b>역산</b>: 목표 IRR에 맞는 최대 매입가, 손익분기 Exit Cap·공실률을 거꾸로 구합니다. <b>임대차 리스크</b>: WALE·만기 집중·임차인 집중도를 렌트롤에서 산출하며, 임차인명을 가려서 쓸 수도 있습니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1217,16 +1184,6 @@ html,body{overflow-x:hidden}
         <div class="mx-head"><span class="mx-t" id="sensTitle">민감도</span><span class="mx-sub">1변수 스윕</span></div>
         <div id="sensBody"></div>
         <div class="mx-foot" id="sensNote"></div>
-      </div>
-      <div class="metrics" id="qualCard" hidden>
-        <div class="mx-head"><span class="mx-t">가정 신뢰도 <span class="mx-sub">출처 기반</span></span><span class="mx-flag" id="qualFlag"></span></div>
-        <div id="qualBody"></div>
-        <div class="mx-foot" id="qualFoot"></div>
-      </div>
-      <div class="metrics" id="caseCard" hidden>
-        <div class="mx-head"><span class="mx-t">케이스 비교 <span class="mx-sub">Base · Downside · Severe</span></span><span class="mx-flag" id="caseFlag"></span></div>
-        <div id="caseBody"></div>
-        <div class="mx-foot" id="caseFoot"></div>
       </div>
       <div class="metrics" id="solverCard" hidden>
         <div class="mx-head"><span class="mx-t">역산 <span class="mx-sub">목표에서 거꾸로</span></span></div>
@@ -2064,9 +2021,8 @@ function update(){
   renderSim();
   renderMetrics();
   renderSens();
-  renderCases();
+  renderSolverCard();
   renderRRRisk();
-  renderQuality();
   renderScenNote();
   updateGroupCounts();
   saveLocal();
@@ -2293,20 +2249,6 @@ function buildPrintSummary(){
   /* 체크 레지스트리 상위 4건 (오류 우선) */
   var ckTop=[]; try{ ckTop=mtChecks().slice(0,4); }catch(e){}
   var warnHtml=ckTop.length?('<div class="ps-warn"><b>주요 점검</b><ul>'+ckTop.map(function(c){return '<li>'+(c.sev==='error'?'[오류] ':'')+esc(c.msg)+'</li>';}).join('')+'</ul></div>'):'';
-  /* 성숙도·신뢰도 */
-  var qual=null, matu=null; try{ qual=mtQuality(); matu=qual&&mtMaturity(qual); }catch(e){}
-  /* 케이스 표 */
-  var caseHtml='';
-  try{
-    if((cur==='office'||cur==='logistics')&&mdl&&mdl.raw&&mdl.raw.IRR!=null){
-      var _rows=[{l:'Base',r:mdl.raw}];
-      MT_CASES.forEach(function(cs){ var o=computeForSnapshot(caseSnapshot(cs.adj)); _rows.push({l:cs.label,r:o&&o.raw}); });
-      var fpp=function(x){return (x==null||!isFinite(x))?'—':(x*100).toFixed(1)+'%';};
-      var fxx=function(x){return (x==null||!isFinite(x))?'—':x.toFixed(2)+'x';};
-      caseHtml='<h2>케이스 — Base · Downside · Severe</h2><table class="ps-tbl ps-case"><tr><th>케이스</th><th>세전 IRR</th><th>EM</th><th>최소 DSCR</th><th>원금손실</th></tr>'+
-        _rows.map(function(x){ var rr2=x.r; return '<tr><td>'+x.l+'</td><td>'+fpp(rr2&&rr2.IRR)+'</td><td>'+fxx(rr2&&rr2.EM)+'</td><td>'+fxx(rr2&&rr2.minDSCR)+'</td><td>'+((rr2&&rr2.EM!=null&&rr2.EM<1)?'가능':'아니오')+'</td></tr>'; }).join('')+'</table>';
-    }
-  }catch(e){}
   /* 임대차 리스크 (렌트롤 반영 시, 좌측 열) */
   var rrHtml='';
   try{
@@ -2341,11 +2283,11 @@ function buildPrintSummary(){
   var sheetHtml=sheets.map(function(x,i){return (i+1)+'. '+x;}).join('   ·   ');
   $('printSummary').innerHTML=
     '<div class="ps-head"><div class="ps-brand">모델터 · 부동산 재무모델 빌더</div><div class="ps-date">'+date+'</div></div>'+
-    '<h1 class="ps-title">'+esc(title)+' <span>'+esc(d.label)+' · '+esc(dp.label)+' ('+sheets.length+'시트)'+(matu?(' · 성숙도 '+matu.lv+' '+matu.label+' · 가정 신뢰도 '+qual.score+'점'):'')+'</span></h1>'+
+    '<h1 class="ps-title">'+esc(title)+' <span>'+esc(d.label)+' · '+esc(dp.label)+' ('+sheets.length+'시트)</span></h1>'+
     kpiStrip+
     '<div class="ps-cols"><div class="ps-col"><h2>즉시 점검</h2><table class="ps-tbl">'+rowsHtml+'</table>'+warnHtml+stackHtml+rrHtml+'</div>'+
     '<div class="ps-col"><h2>핵심 가정</h2><table class="ps-tbl">'+asRows+'</table></div></div>'+
-    caseHtml+sensHtml+
+    sensHtml+
     '<h2>생성될 시트 구조</h2><p class="ps-sheets">'+esc(sheetHtml)+'</p>'+
     '<div class="ps-foot">modelter.com · 코람코자산신탁 상장리츠팀 김성훈 · 본 요약은 입력값 기반 직접계산·추정치이며 투자 권유가 아닙니다.</div>';
 }
@@ -2458,79 +2400,6 @@ function _sensHeat(v,min,max){
 function rrMaskOn(){ return String(state['rrmask']||'')==='1'; }
 function rrAlias(i){ var A='ABCDEFGHIJKLMNOPQRSTUVWXYZ'; return '임차인'+(i<26?A[i]:(A[Math.floor(i/26)-1]+A[i%26])); }
 function rrDisplayName(nm,i){ return rrMaskOn()?rrAlias(i):(nm||('임차'+(i+1))); }
-/* ---------- 가정 출처·품질 점수·성숙도 ---------- */
-var srcState={};
-var MT_SRC={actual:{s:100,l:'실제 자료'},public:{s:85,l:'공공·시장'},broker:{s:65,l:'IM·브로커'},analyst:{s:55,l:'자체 판단'},'default':{s:30,l:'기본가정'}};
-var MT_SRC_CYCLE=['analyst','actual','public','broker'];
-// 결과에 중요한 입력일수록 큰 가중치 (중요도 가중 평균)
-function mtKeyAssumptions(){
-  if(!(cur==='office'||cur==='logistics')) return [];
-  var mode=(state['noimode']||'').trim(); var rentBased=(mode===''||mode.indexOf('임대료')===0);
-  var L=[{k:'price',l:'매입가',w:10}];
-  if(rentBased){ L.push({k:'rentpp',l:'평당 임대료',w:10},{k:'campp',l:'평당 관리비',w:6}); }
-  else L.push({k:'noi1',l:'1차연도 NOI',w:10});
-  L.push({k:'exitcap',l:'Exit Cap',w:10},{k:'_srate',l:'선순위 금리',w:8},{k:'vacancy',l:'공실률',w:7},
-    {k:'noig',l:'성장률',w:7},{k:'opfee',l:'운용보수율',w:4},{k:'acqtax',l:'취득세율',w:4},
-    {k:'salefee',l:'매각수수료율',w:3},{k:'hold',l:'보유기간',w:5});
-  return L;
-}
-function mtSourceOf(k){
-  if(window.rrModel&&window.rrModel.on&&window.rrModel.confirmed&&(k==='rentpp'||k==='campp'||k==='vacancy')) return 'actual';
-  if(srcState[k]) return srcState[k];
-  var v=(k==='_srate')?((stackState&&stackState['senior_rate'])||''):(state[k]||'');
-  return String(v).trim()===''?'default':'analyst';
-}
-function mtQuality(){
-  var ks=mtKeyAssumptions(); if(!ks.length) return null;
-  var sw=0, ss=0, defW=0, cnt={actual:0,public:0,broker:0,analyst:0,'default':0};
-  ks.forEach(function(a){ var s=mtSourceOf(a.k); sw+=a.w; ss+=MT_SRC[s].s*a.w; if(s==='default') defW+=a.w; cnt[s]+=a.w; });
-  var score=ss/sw, defShare=defW/sw;
-  if(defShare>=0.3) score-=5;
-  if(window.rrModel&&window.rrModel.on&&!window.rrModel.confirmed) score-=15;
-  var nErr=0; try{ nErr=mtChecks().filter(function(c){return c.sev==='error';}).length; }catch(e){}
-  if(nErr>0) score=Math.min(score,50);
-  return {score:Math.max(0,Math.round(score)), defShare:defShare, nErr:nErr, cnt:cnt, sw:sw, keys:ks};
-}
-function mtMaturity(q){
-  if(!q) return null;
-  if(q.nErr>0) return {lv:'S0', label:'빠른 스크리닝', msg:'오류를 먼저 해결해야 검토 단계로 올라갑니다.'};
-  var rrOK=window.rrModel&&window.rrModel.on&&window.rrModel.confirmed;
-  if(!rrOK) return {lv:'S0', label:'빠른 스크리닝', msg:'방향을 잡는 단계입니다. 렌트롤을 올리면 임차인별 리스크까지 같이 봅니다.'};
-  var cov=isFinite(parseNum(state['covdscr']))||isFinite(parseNum(state['covltv']));
-  if(cov&&q.score>=80&&q.defShare<=0.2) return {lv:'S3', label:'IC 초안 가능', msg:'가정 출처와 점검이 갖춰졌습니다. 최종 판단 전에 원자료만 대조하면 됩니다.'};
-  if(cov&&q.score>=60) return {lv:'S2', label:'검토 준비', msg:'검토 초안에 쓸 만한 수준입니다. 기본가정을 실제 자료로 바꿀수록 점수가 올라갑니다.'};
-  return {lv:'S1', label:'렌트롤 반영', msg:'임차인 리스크까지 반영됐습니다. 커버넌트 기준과 가정 출처를 채우면 한 단계 올라갑니다.'};
-}
-function renderQuality(){
-  var card=$('qualCard'); if(!card) return;
-  var q=mtQuality();
-  if(!q){ card.hidden=true; return; }
-  var mt=mtMaturity(q);
-  var flag=$('qualFlag'); if(flag){ flag.textContent=mt.lv+' · '+mt.label; flag.className='mx-flag '+(mt.lv==='S0'?'bad':(mt.lv==='S1'?'':'ok')); if(mt.lv==='S1'){ flag.style.color='var(--accent-deep)'; flag.style.background='rgba(169,121,43,.13)'; } else { flag.style.color=''; flag.style.background=''; } }
-  var order=['actual','public','broker','analyst','default'];
-  var bar='<div class="ql-bar">'+order.map(function(s){ var w=q.cnt[s]/q.sw*100; return w>0?('<i class="ql-'+s+'" style="width:'+w+'%"></i>'):''; }).join('')+'</div>';
-  var legend='<div class="ql-leg">'+order.filter(function(s){return q.cnt[s]>0;}).map(function(s){ return '<span><i class="ql-'+s+'"></i>'+MT_SRC[s].l+' '+Math.round(q.cnt[s]/q.sw*100)+'%</span>'; }).join('')+'</div>';
-  var list='<div class="ql-list">'+q.keys.map(function(a){
-    var s=mtSourceOf(a.k); var fixed=(window.rrModel&&window.rrModel.on&&window.rrModel.confirmed&&(a.k==='rentpp'||a.k==='campp'||a.k==='vacancy'));
-    var chip=fixed?('<span class="ql-chip ql-'+s+' fx">'+MT_SRC[s].l+' · 렌트롤</span>')
-      :(s==='default'?('<span class="ql-chip ql-default fx" title="값을 입력하면 출처를 지정할 수 있습니다">'+MT_SRC[s].l+'</span>')
-      :('<button type="button" class="ql-chip ql-'+s+'" data-srck="'+a.k+'" title="클릭해서 출처 변경">'+MT_SRC[s].l+'</button>'));
-    return '<div class="ql-row"><span class="ql-k">'+a.l+'</span>'+chip+'</div>';
-  }).join('')+'</div>';
-  $('qualBody').innerHTML='<div class="ql-top"><div class="ql-score">'+q.score+'<span>/100</span></div><div class="ql-desc">'+esc(mt.msg)+'</div></div>'+bar+legend+list;
-  $('qualFoot').textContent='출처별 점수(실제 100, 공공 85, 브로커 65, 판단 55, 기본 30)를 중요도로 가중평균한 값입니다'+(q.defShare>=0.3?'. 기본가정이 30%를 넘어 감점됐습니다':'')+(q.nErr>0?'. 오류가 있어 50점까지만 인정됩니다':'')+' 칩을 누르면 출처를 바꿀 수 있습니다.';
-  card.hidden=false;
-}
-(function(){
-  document.addEventListener('click',function(e){
-    var t=e.target; if(!t||!t.closest) return;
-    var b=t.closest('[data-srck]'); if(!b) return;
-    var k=b.dataset.srck, curS=mtSourceOf(k);
-    var i=MT_SRC_CYCLE.indexOf(curS); var next=MT_SRC_CYCLE[(i+1)%MT_SRC_CYCLE.length];
-    srcState[k]=next; renderQuality(); saveLocal();
-    if(window.mtTrack) try{ mtTrack('src_tag',{key:k}); }catch(err){}
-  });
-})();
 /* ---------- 역산 솔버 (bisection, 가드레일 포함) ---------- */
 function mtBisect(fn, lo, hi, target, tol, maxIter){
   // 1) 범위를 스캔해 유효(계산 가능)하면서 부호가 바뀌는 구간을 찾음
@@ -2612,73 +2481,12 @@ function solveBreakEvenVacancy(){
     }
   });
 })();
-/* ---------- 케이스 엔진: Base / Downside / Severe (결정론적) ---------- */
-// 조정폭 — 실무 통용 스트레스 수준. %p 단위.
-var MT_CASES=[
-  {key:'down',   label:'Downside', adj:{noig:-0.5, exitcap:0.25, vacancy:2, srate:0.5}},
-  {key:'severe', label:'Severe',   adj:{noig:-1.0, exitcap:0.5,  vacancy:5, srate:1.0}}
-];
-function caseSnapshot(adj){
-  var s={}; for(var k in state) s[k]=state[k];
-  var kk={}; for(var k2 in stackState) kk[k2]=stackState[k2];
-  function bump(key,delta){ var b=parseNum(scenBase(key)); if(!isFinite(b)) return;
-    if(key==='srate') kk['senior_rate']=String(Math.round((b+delta)*100)/100);
-    else s[key]=String(Math.round((b+delta)*100)/100); }
-  if(adj.noig!=null) bump('noig',adj.noig);
-  if(adj.exitcap!=null) bump('exitcap',adj.exitcap);
-  if(adj.srate!=null) bump('srate',adj.srate);
-  if(adj.vacancy!=null){ var bv=parseNum(state['vacancy']); bv=isFinite(bv)?bv:0; s['vacancy']=String(Math.round((bv+adj.vacancy)*100)/100); }
-  var rr=null;
-  if(window.rrModel&&window.rrModel.on&&window.rrModel.leases){
-    var mk={}; for(var k3 in window.rrModel.mkt) mk[k3]=window.rrModel.mkt[k3];
-    if(adj.noig!=null) mk.mktStepUp=(mk.mktStepUp||0)+adj.noig/100;
-    if(adj.vacancy!=null) mk.stabVac=Math.max(0,(mk.stabVac||0)+adj.vacancy/100);
-    rr={leases:window.rrModel.leases, mkt:mk};
-  }
-  return {c:cur,d:depth,s:s,k:kk,r:refiState,rr:rr};
-}
-function caseComment(r,base){
-  if(!r||r.IRR==null) return 'IRR이 계산되지 않는 구조입니다';
-  var c=[];
-  if(r.EM!=null&&r.EM<1) c.push('투자원금 손실 가능성');
-  if(isFinite(r.minDSCR)&&r.minDSCR<1) c.push('원리금 미충당 구간 발생');
-  else if(isFinite(r.minDSCR)&&r.minDSCR<1.2) c.push('상환여력 얇음(DSCR<1.2x)');
-  if(base&&base.IRR!=null&&(base.IRR-r.IRR)>0.03) c.push('기본 대비 −'+((base.IRR-r.IRR)*100).toFixed(1)+'%p. Exit Cap과 성장률에 민감한 딜입니다');
-  return c.length?c.join(' · '):'배당 여력 축소 수준';
-}
-function caseBreachYear(r){
-  if(!r||!r.DSCR) return null;
-  var th=parseNum(state['covdscr']); if(!isFinite(th)) th=1.0;
-  for(var y=0;y<r.DSCR.length;y++) if(r.DSCR[y]<th) return y+1;
-  return null;
-}
-function renderCases(){
-  var card=$('caseCard'); if(!card) return;
-  if(!(cur==='office'||cur==='logistics')){ card.hidden=true; var sv0=$('solverCard'); if(sv0) sv0.hidden=true; return; }
+/* ---------- 역산 카드 표시 토글 (오피스·물류에서 유효 결과일 때) ---------- */
+function renderSolverCard(){
+  var sv=$('solverCard'); if(!sv) return;
+  if(!(cur==='office'||cur==='logistics')){ sv.hidden=true; return; }
   var m=null; try{ m=simModel(); }catch(e){}
-  var base=m&&m.raw;
-  var sv=$('solverCard'); if(sv) sv.hidden=!(base&&base.IRR!=null);
-  if(!base||base.IRR==null){ card.hidden=true; return; }
-  var rows=[{label:'Base', raw:base, note:'현재 가정'}];
-  MT_CASES.forEach(function(cs){
-    var out=computeForSnapshot(caseSnapshot(cs.adj));
-    rows.push({label:cs.label, raw:out&&out.raw, note:caseComment(out&&out.raw, base)});
-  });
-  function fp(x){ return (x==null||!isFinite(x))?'—':(x*100).toFixed(1)+'%'; }
-  function fx(x,d){ return (x==null||!isFinite(x))?'—':x.toFixed(d)+'x'; }
-  var body='<div class="cov-wrap"><table class="sens-tbl case-tbl"><tr><th>케이스</th><th>세전 IRR</th><th>EM</th><th>최소 DSCR</th><th>DSCR 위반연차</th><th>원금손실</th><th class="cs-note">코멘트</th></tr>'+
-    rows.map(function(x){
-      var r=x.raw; var by=caseBreachYear(r);
-      var loss=(r&&r.EM!=null&&r.EM<1);
-      return '<tr class="cs-'+x.label.toLowerCase()+'"><td class="cs-l">'+x.label+'</td><td>'+fp(r&&r.IRR)+'</td><td>'+fx(r&&r.EM,2)+'</td><td>'+fx(r&&r.minDSCR,2)+'</td><td>'+(by?('Y'+by):'—')+'</td><td>'+(loss?'<b class="cs-loss">가능</b>':'아니오')+'</td><td class="cs-note">'+esc(x.note)+'</td></tr>';
-    }).join('')+'</table></div>';
-  var sev=rows[2]&&rows[2].raw;
-  var flag=$('caseFlag');
-  if(flag){ var bad=(sev&&((sev.EM!=null&&sev.EM<1)||(isFinite(sev.minDSCR)&&sev.minDSCR<1)));
-    flag.textContent=bad?'Severe 위험':'스트레스 통과'; flag.className='mx-flag '+(bad?'bad':'ok'); }
-  $('caseBody').innerHTML=body;
-  $('caseFoot').textContent='Downside는 성장률 −0.5%p, Exit Cap +0.25%p, 공실 +2%p, 금리 +0.5%p를 준 경우이고, Severe는 각각 −1.0 / +0.5 / +5 / +1.0%p입니다. 나머지 가정은 그대로 두고, 렌트롤을 쓰면 시장 가정에도 같은 폭을 적용합니다.';
-  card.hidden=false;
+  sv.hidden=!(m&&m.raw&&m.raw.IRR!=null);
 }
 /* ---------- 임대차 리스크 (렌트롤 기반) ---------- */
 // 리스크 판정 기준 — 일반적 실무 관행값, 자산 성격에 따라 조정 여지 있음
@@ -3163,14 +2971,14 @@ function tryRestoreFromURL(){
     const p=JSON.parse(json);
     if(p.c && DEALS[p.c]){ cur=p.c; }
     if(p.d && DEPTHS[p.d]){ depth=p.d; }
-    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{}; srcState=(p.src)||{};
+    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
     renderTabs(); renderForm(); restoreInputs(); update();
     return true;
   }catch(e){ return false; }
 }
 
 /* ---------- 입력값 브라우저 자동 저장/복원 ---------- */
-function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState,src:srcState})); }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState})); }catch(e){} }
 function tryRestoreLocal(){
   let raw=null; try{ raw=localStorage.getItem("mt_state"); }catch(e){ return false; }
   if(!raw) return false;
@@ -3178,7 +2986,7 @@ function tryRestoreLocal(){
     const p=JSON.parse(raw);
     if(p.c && DEALS[p.c]) cur=p.c;
     if(p.d && DEPTHS[p.d]) depth=p.d;
-    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{}; srcState=(p.src)||{};
+    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
     renderTabs(); renderForm(); restoreInputs(); update();
     return true;
   }catch(e){ return false; }
@@ -3981,16 +3789,6 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     try{
       var ov=assumOverrides();
       var _TPL=holdTemplate(XLTMPL, mtHold());
-      // 표지에 성숙도·가정 신뢰도 표기 (화면 배지와 동일 산출)
-      try{
-        var _q=(typeof mtQuality==='function')?mtQuality():null;
-        var _mt=(_q&&typeof mtMaturity==='function')?mtMaturity(_q):null;
-        if(_mt&&_q){ var _cv=null,_b2=null,i2;
-          for(i2=0;i2<_TPL.sheets.length;i2++) if(_TPL.sheets[i2].name==='00_Cover'){ _cv=_TPL.sheets[i2]; break; }
-          if(_cv) for(i2=0;i2<_cv.cells.length;i2++) if(_cv.cells[i2].r==='B2'){ _b2=_cv.cells[i2]; break; }
-          if(_b2&&_b2.s) _b2.s+=' · 성숙도 '+_mt.lv+'('+_mt.label+') · 가정 신뢰도 '+_q.score+'점';
-        }
-      }catch(e2){}
       var ext=leaseExtraSheets();
       var bytes = ext ? XLSXGEN.buildXlsx(_TPL, ov, ext.sheets, ext.ov)
                       : (function(){ var rr=rentRollSheet(); return XLSXGEN.buildXlsx(_TPL, ov, rr?[rr]:null); })();
