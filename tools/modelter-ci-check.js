@@ -23,7 +23,7 @@ if (fs.existsSync(headersPath)) {
   ok(/x-frame-options/i.test(h), '_headers: X-Frame-Options 포함');
 }
 ok(/\.xl-dl\[hidden\]\{display:none\}/.test(html), 'CSS: .xl-dl[hidden] 가드(엑셀버튼 숨김 버그 방지)');
-ok(/_hesc\(hdr\[col\]/.test(html), '렌트롤 헤더 XSS 이스케이프 유지');
+ok(/_hesc\(h\)/.test(html) && /_hesc\(samples/.test(html) && /_hesc\(w\.msg\)/.test(html), '렌트롤 헤더·샘플·경고 XSS 이스케이프 유지');
 ok(html.includes('id="miniKpi"'), '미니 결과(IRR·CoC) 위젯 존재');
 ok(html.includes('id="wnOverlay"'), "What's new 팝업 존재");
 ok((html.match(/trn-pref/g) || []).length >= 1, '우선주·보통주 트랜치 블록 존재');
@@ -66,6 +66,9 @@ ok(html.includes('01_Assumptions!$C$75*POWER(1+01_Assumptions!$C$27,01_Assumptio
 ok(html.includes('prt-flag'), '파리티 배지(화면=엑셀) 존재');
 ok(html.includes('화면 = 다운로드 엑셀'), '파리티 배지 라벨');
 ok(html.includes('<h4>화면 = 다운로드 엑셀</h4>'), '방법론 모달 화면=엑셀 일치 섹션 존재');
+ok(html.includes('function validateLeases'), '렌트롤 행 단위 검증(validateLeases) 존재');
+ok(html.includes('id="rrWarns"'), '렌트롤 검증 경고 영역 존재');
+ok(html.includes('rr-maptbl'), '렌트롤 매핑 확인 표 존재');
 ok(html.includes('feats:featSnapshot()'), '이벤트 스키마: 활성기능 스냅샷(feats) 전송');
 ok(html.includes("track('share_link')") && html.includes("track('pdf_export')") && html.includes("track('slot_save')"), '이벤트: 공유·PDF·보관함 액션 추적');
 ok(html.includes("mtTrack('sens_axis'"), '이벤트: 민감도 축 토글 추적');
@@ -147,6 +150,23 @@ const driver = `;(function(){
     var _csvq = ["임차인,임대면적(평),월임대료", String.fromCharCode(34)+"ABC, Inc."+String.fromCharCode(34)+",2000,124000000"].join(String.fromCharCode(10));
     var _gq = RENTROLL.parseDelimited(_csvq);
     if (!(_gq[1].length === 3 && _gq[1][0] === "ABC, Inc.")) throw new Error("따옴표 CSV 파싱 실패: " + JSON.stringify(_gq[1]));
+    // 행 단위 검증: 정상 렌트롤 → error 0 / 오류 렌트롤 → 코드별 검출
+    var _gOK = [["임차인","임대면적(평)","월임대료","보증금","계약만기"],["t1",1000,80000000,800000000,"2028-06"],["t2",800,60000000,600000000,"2029-03"]];
+    var _mOK = RENTROLL.autoMap(_gOK[0]), _eOK = RENTROLL.extractLeases(_gOK, 0, _mOK, {});
+    var _wOK = RENTROLL.validateLeases(_gOK, 0, _mOK, _eOK, {rentable: 2000});
+    if (_wOK.some(function(w){return w.sev === "error";})) throw new Error("정상 렌트롤에서 error 검출: " + JSON.stringify(_wOK));
+    var _gBAD = [["임차인","임대면적(평)","월임대료","보증금","계약만기"],
+      ["z1",0,50000000,0,"2028-06"],            // 면적 0 → 제외
+      ["z2",500,-10000000,0,"2028-06"],          // 음수 임대료
+      ["z3",500,0,500000000,"2027-01"],          // 보증금만 있고 임대료 없음
+      ["z4",500,40000000,0,"2020-01"],           // 만기 지남
+      ["z5",500,40000000,0,"만기미상"]];          // 날짜 인식 실패
+    var _mB = RENTROLL.autoMap(_gBAD[0]), _eB = RENTROLL.extractLeases(_gBAD, 0, _mB, {});
+    var _wB = RENTROLL.validateLeases(_gBAD, 0, _mB, _eB, {rentable: 1500});
+    var _codes = _wB.map(function(w){return w.code;});
+    ["RR_ZERO_AREA","RR_NEGATIVE_RENT","RR_DEPOSIT_WITHOUT_RENT","RR_EXPIRED_LEASE","RR_DATE_PARSE_FAILED","RR_AREA_SUM_EXCEEDS_NLA"].forEach(function(cd){
+      if (_codes.indexOf(cd) < 0) throw new Error("렌트롤 검증 미검출: " + cd + " (got " + _codes.join(",") + ")");
+    });
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();

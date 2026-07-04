@@ -660,7 +660,25 @@ header{background:rgba(253,252,249,.82)}
 .rr-chip{border:1px solid var(--line);border-radius:20px;padding:3px 9px;color:var(--muted)}
 .rr-chip.on{border-color:var(--accent);color:var(--accent-deep);background:rgba(169,121,43,.06)}
 .rr-note{font-size:11px;color:var(--muted);margin-top:6px}
-.rr-actions{margin-top:14px}
+.rr-actions{margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rr-apply-note{font-size:11.5px;color:var(--red);font-weight:600}
+.rr-map{margin-top:14px}
+.rr-map-h{font-size:12.5px;font-weight:700;color:var(--ink-2);margin:12px 0 7px}
+.rr-map-h span{font-weight:500;color:var(--muted);font-size:11px}
+.rr-map-wrap{max-height:220px;overflow:auto;border:1px solid var(--line-soft);border-radius:10px}
+.rr-maptbl{border-collapse:collapse;width:100%;font-size:12px}
+.rr-maptbl th{position:sticky;top:0;background:var(--bg);text-align:left;font-size:11px;color:var(--muted);padding:6px 9px;border-bottom:1px solid var(--line-soft)}
+.rr-maptbl td{padding:5px 9px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.rr-maptbl tr:last-child td{border-bottom:none}
+.rr-maptbl .rr-oc{font-weight:600;color:var(--ink);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rr-maptbl .rr-smp{color:var(--muted);font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rr-maptbl tr.rr-skip td{opacity:.55}
+.rr-fld{font-family:var(--font);font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:3px 6px;max-width:120px}
+.rr-warns{display:flex;flex-direction:column;gap:5px;margin-top:4px}
+.rr-w{font-size:12px;line-height:1.45;border-radius:9px;padding:6px 10px;border:1px solid}
+.rr-w.error{color:var(--red);background:rgba(187,70,48,.08);border-color:rgba(187,70,48,.25)}
+.rr-w.warning{color:#8a6020;background:rgba(169,121,43,.08);border-color:rgba(169,121,43,.25)}
+.rr-w.info{color:var(--ink-3);background:var(--bg);border-color:var(--line-soft)}
 .rr-link{background:none;border:none;color:var(--accent-deep);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 4px;font-family:inherit;margin-left:auto}
 .rr-mkt{margin:12px 0 4px}
 .rr-mkt-h{font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:8px}
@@ -1210,10 +1228,11 @@ html,body{overflow-x:hidden}
     <textarea id="rrPaste" placeholder="여기에 렌트롤을 붙여넣기 (엑셀에서 범위 복사 → 붙여넣기)"></textarea>
     <div class="rr-row"><label class="rr-file">📁 파일 선택 (.xlsx/.csv)<input type="file" id="rrFile" accept=".xlsx,.csv" hidden /></label><button class="rr-btn" id="rrParse" type="button">붙여넣기 분석 →</button><button class="rr-link" id="rrSample" type="button">📥 샘플 양식 받기</button></div>
     <div id="rrResult" hidden>
-      <div class="rr-summary" id="rrSummary"></div>
       <div class="rr-map" id="rrMap"></div>
+      <div class="rr-warns" id="rrWarns"></div>
+      <div class="rr-summary" id="rrSummary"></div>
       <div class="rr-mkt" id="rrMkt"></div>
-      <div class="rr-actions"><button class="rr-btn solid" id="rrApply" type="button">이 렌트롤로 모델 채우기 →</button></div>
+      <div class="rr-actions"><span class="rr-apply-note" id="rrApplyNote"></span><button class="rr-btn solid" id="rrApply" type="button">이 렌트롤로 모델 채우기 →</button></div>
     </div>
   </div>
 </div>
@@ -3759,9 +3778,53 @@ function leaseModel(leases, V, ro, hold){
     price:price,NOI:NOI,DS:DS,DSCR:DSCR,dist:dist,leasedArea:leasedArea,vacantArea:vacantArea};
 }
 
+// ── 행 단위 검증: 매핑 확정 전에 원본 데이터의 오류·의심값을 잡아냄 ──
+function validateLeases(grid, headerRowIdx, map, ex, opts){
+  opts=opts||{};
+  var W=[], hdr=grid[headerRowIdx]||[], dataRows=grid.slice(headerRowIdx+1);
+  var asOf=(ex&&ex.asOf)||new Date(2026,5,30);
+  var areaCol=(map.leasearea!=null)?map.leasearea:((map.area!=null)?map.area:map.netarea);
+  function add(code,sev,msg){ W.push({code:code,sev:sev,msg:msg}); }
+  // 이름은 있는데 면적이 없어 제외된 행
+  var dropped=0, negRent=0, expired=0, depNoRent=0, dateFail=0, dupNames={}, dup=0;
+  dataRows.forEach(function(row){
+    var nm=map.name!=null?String(row[map.name]||'').trim():'';
+    if(!nm||isTotalRow(nm)) return;
+    var ar=areaCol!=null?toNum(row[areaCol]):null;
+    if(ar==null||ar<=0){ dropped++; return; }
+    var rent=map.rent!=null?toNum(row[map.rent]):null;
+    if(rent!=null&&rent<0) negRent++;
+    var dep=map.deposit!=null?toNum(row[map.deposit]):null;
+    if((dep||0)>0&&(rent==null||rent===0)) depNoRent++;
+    if(map.end!=null){ var raw=row[map.end]; var dd=parseDate(raw);
+      if(raw!=null&&String(raw).trim()!==''&&!dd) dateFail++;
+      else if(dd&&dd<asOf) expired++; }
+    if(dupNames[nm]) dup++; dupNames[nm]=1;
+  });
+  if(dropped>0) add('RR_ZERO_AREA','error','면적이 없거나 0 이하인 임차인 행 '+dropped+'개 — 계산에서 제외됩니다. 면적 열 매핑을 확인하세요.');
+  if(negRent>0) add('RR_NEGATIVE_RENT','error','임대료가 음수인 행 '+negRent+'개 — 원본 단위·부호를 확인하세요.');
+  if(dateFail>0) add('RR_DATE_PARSE_FAILED','warning','만기일 형식을 인식하지 못한 행 '+dateFail+'개 — 해당 임차인은 만기 없음으로 처리됩니다.');
+  if(expired>0) add('RR_EXPIRED_LEASE','warning','만기일이 기준일 이전인 행 '+expired+'개 — 갱신 여부를 확인하세요.');
+  if(depNoRent>0) add('RR_DEPOSIT_WITHOUT_RENT','warning','보증금은 있으나 임대료가 없는 행 '+depNoRent+'개 — 무상임대 또는 누락 여부를 확인하세요.');
+  if(dup>0) add('RR_DUPLICATE_TENANT','info','동일 임차인명이 반복된 행 '+dup+'개 — 복수 호실이면 정상, 중복 입력이면 확인하세요.');
+  // 임대면적 합계 vs 임대가능면적
+  if(ex&&ex.leases&&ex.leases.length&&opts.rentable>0){
+    var sumA=0; ex.leases.forEach(function(l){ sumA+=l.area||0; });
+    if(sumA>opts.rentable*1.05) add('RR_AREA_SUM_EXCEEDS_NLA','warning','임대면적 합계('+Math.round(sumA).toLocaleString()+'평)가 임대가능면적('+Math.round(opts.rentable).toLocaleString()+'평)을 5% 이상 초과합니다 — 연면적·면적 단위를 확인하세요.');
+  }
+  // 평당 임대료 스케일 의심 (통상 평당 월 5천~40만원)
+  if(ex&&ex.leases&&ex.leases.length){
+    var meds=ex.leases.map(function(l){return l.rentPP;}).filter(function(x){return x>0;});
+    if(meds.length){ var md=median(meds);
+      if(md>400000||md<5000) add('RR_MONTHLY_ANNUAL_AMBIGUOUS','warning','평당 월임대료 중앙값이 '+Math.round(md).toLocaleString()+'원으로 통상 범위를 벗어납니다 — 월세/연세·평/㎡ 단위를 확인하세요.');
+    }
+  }
+  return W;
+}
+
 var api={parseDelimited:parseDelimited,detectHeaderRow:detectHeaderRow,autoMap:autoMap,
   extractLeases:extractLeases,aggregate:aggregate,leaseModel:leaseModel,leaseRentYear:leaseRentYear,
-  parseDate:parseDate,toNum:toNum};
+  parseDate:parseDate,toNum:toNum,validateLeases:validateLeases};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.RENTROLL=api;
 })(typeof window!=='undefined'?window:globalThis);
 
@@ -3778,25 +3841,48 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   }
   function gfaNow(){ var v=parseFloat(String((typeof state!=='undefined'&&state.gfa)||'').replace(/,/g,'')); return isFinite(v)?v:0; }
 
+  var RR_FLDS=[['name','임차인'],['leasearea','임대면적'],['netarea','전용면적'],['area','면적(단일)'],['rent','월임대료'],['cam','관리비'],['deposit','보증금'],['start','계약시작'],['end','계약만기'],['rentfree','렌트프리'],['stepup','상승률'],['','사용 안 함']];
+  function recompute(){
+    var p=pending; if(!p) return false;
+    var ex=RENTROLL.extractLeases(p.grid, p.hr, p.map, {});
+    var ratio=(typeof cur!=='undefined'&&cur==='logistics')?0.97:0.88;
+    var agg=RENTROLL.aggregate(ex.leases, gfaNow(), ratio);
+    p.ex=ex; p.agg=agg;
+    p.warns=RENTROLL.validateLeases(p.grid, p.hr, p.map, ex, {rentable:gfaNow()*ratio});
+    return ex.leases.length>0;
+  }
   function processGrid(grid){
     if(!grid||!grid.length){ toastMsg('데이터를 읽지 못했습니다'); return; }
     var hr=RENTROLL.detectHeaderRow(grid);
     if(hr<0){ toastMsg('헤더(임차인·면적·임대료 등)를 찾지 못했습니다'); return; }
     var map=RENTROLL.autoMap(grid[hr]);
-    var ex=RENTROLL.extractLeases(grid, hr, map, {});
-    if(!ex.leases.length){ toastMsg('임차인 행을 인식하지 못했습니다 — 면적 열이 매핑됐는지 확인하세요'); return; }
-    var agg=RENTROLL.aggregate(ex.leases, gfaNow(), (typeof cur!=='undefined'&&cur==='logistics')?0.97:0.88);
-    pending={grid:grid, hr:hr, map:map, ex:ex, agg:agg};
+    pending={grid:grid, hr:hr, map:map};
+    if(!recompute()){ toastMsg('임차인 행을 인식하지 못했습니다 — 아래 매핑 표에서 면적 열을 지정하세요'); }
     renderResult();
   }
   function renderResult(){
     var agg=pending.agg, ex=pending.ex, map=pending.map, hdr=pending.grid[pending.hr]||[];
-    var fld={name:'임차인',area:'면적',rent:'임대료',cam:'관리비',deposit:'보증금',end:'만기'};
     var _hesc=function(v){ return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
-    var mapHtml=Object.keys(fld).map(function(k){ var col=map[k]; return '<span class="rr-chip'+(col!=null?' on':'')+'">'+fld[k]+': '+(col!=null?_hesc(hdr[col]||'열'+col):'—')+'</span>'; }).join('');
+    // ── 매핑 확인 표: 원본 열 → 모델터 항목(수정 가능) + 샘플 값 ──
+    var colOf={}; Object.keys(map).forEach(function(k){ if(map[k]!=null&&colOf[map[k]]==null) colOf[map[k]]=k; });
+    var dataRows=pending.grid.slice(pending.hr+1);
+    var mapRows='';
+    for(var c=0;c<hdr.length;c++){
+      var h=String(hdr[c]||'').trim(); if(h==='') continue;
+      var curFld=colOf[c]!=null?colOf[c]:'';
+      var samples=[]; for(var ri=0;ri<dataRows.length&&samples.length<2;ri++){ var sv=dataRows[ri][c]; if(sv!=null&&String(sv).trim()!=='') samples.push(String(sv).slice(0,16)); }
+      var opts=RR_FLDS.map(function(f){ return '<option value="'+f[0]+'"'+(f[0]===curFld?' selected':'')+'>'+f[1]+'</option>'; }).join('');
+      mapRows+='<tr'+(curFld===''?' class="rr-skip"':'')+'><td class="rr-oc">'+_hesc(h)+'</td><td><select class="rr-fld" data-rrcol="'+c+'">'+opts+'</select></td><td class="rr-smp">'+_hesc(samples.join(' · ')||'—')+'</td></tr>';
+    }
+    $id('rrMap').innerHTML='<div class="rr-map-h">① 열 매핑 확인 <span>자동 인식 결과입니다 — 잘못 연결된 열은 직접 바꿔주세요</span></div>'+
+      '<div class="rr-map-wrap"><table class="rr-maptbl"><tr><th>원본 열</th><th>모델터 항목</th><th>샘플 값</th></tr>'+mapRows+'</table></div>'+
+      '<div class="rr-note">면적단위 '+(ex.areaUnit==='sqm'?'㎡→평 환산':'평')+' · 임차인 '+agg.count+'개 인식</div>';
+    // ── 행 단위 검증 경고 ──
+    var W=pending.warns||[];
+    var nErr=W.filter(function(w){return w.sev==='error';}).length;
+    $id('rrWarns').innerHTML=W.length?('<div class="rr-map-h">② 데이터 점검 <span>'+(nErr?('오류 '+nErr+'건 포함'):'경고·참고')+'</span></div>'+W.map(function(w){ return '<div class="rr-w '+w.sev+'">'+(w.sev==='error'?'⛔':(w.sev==='warning'?'⚠':'ℹ'))+' '+_hesc(w.msg)+'</div>'; }).join('')):'';
+    var an=$id('rrApplyNote'); if(an) an.textContent=nErr?('오류 행은 제외하고 '+agg.count+'개 임차인만 반영됩니다'):'';
     var exp=Object.keys(agg.expiry).sort(function(a,b){return a-b;}).map(function(y){ return 'Y'+y+' '+Math.round(agg.expiry[y])+'평'; }).join(' · ');
-    $id('rrMap').innerHTML='<div class="rr-maprow">자동 인식: '+mapHtml+'</div>'+
-      '<div class="rr-note">면적단위 '+(ex.areaUnit==='sqm'?'㎡→평 환산':'평')+' · 임차인 '+agg.count+'개 인식'+(/합계/.test('')?'':'')+'</div>';
     $id('rrSummary').innerHTML=
       kpi('임차인 수',agg.count+'개')+kpi('임대면적',Math.round(agg.leasedArea).toLocaleString()+'평')+
       kpi('공실률',gfaNow()?(agg.vacancy*100).toFixed(1)+'%':'GFA 입력시')+
@@ -3824,7 +3910,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       renewP:rrv('rr_renew',70)/100, downtime:rrv('rr_down',6), mktStepUp:rrv('rr_step',3)/100, mtm:0, camG:0.03,
       repay:repMap[rep]||'만기일시(이자만)' };
     var leases=pending.ex.leases.map(function(l){ return {area:l.area, netArea:l.netArea, rentPP:l.rentPP, camPP:l.camPP, deposit:l.deposit, yrsToExp:l.yrsToExp, rentFreeRemain:(l.rentFree||0), stepUp:l.stepUp}; });
-    window.rrModel={leases:leases, mkt:mkt, on:true};
+    window.rrModel={leases:leases, mkt:mkt, on:true, confirmed:true};
     // 프롬프트 텍스트용 드라이버도 채움(가중평균)
     state.noimode='임대료·관리비로 산출';
     state.rentpp=String(Math.round(agg.wAvgRentPP));
@@ -3861,6 +3947,17 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     });
     var ap=$id('rrApply'); if(ap) ap.addEventListener('click',applyRR);
     var sp=$id('rrSample'); if(sp) sp.addEventListener('click',downloadSample);
+    // 매핑 드롭다운 수정 → map 재구성 → 재추출·재검증·재렌더
+    var mp=$id('rrMap'); if(mp&&!mp.__w){ mp.__w=1; mp.addEventListener('change',function(e){
+      var t=e.target; if(!t||!t.classList||!t.classList.contains('rr-fld')||!pending) return;
+      var newMap={};
+      $id('rrMap').querySelectorAll('select.rr-fld').forEach(function(sel){
+        var f=sel.value, c=parseInt(sel.dataset.rrcol,10);
+        if(f&&newMap[f]==null) newMap[f]=c;   // 같은 항목이 중복 지정되면 앞 열이 우선
+      });
+      pending.map=newMap;
+      recompute(); renderResult();
+    }); }
   }
   function sampleSheet(){
     var rows=[
