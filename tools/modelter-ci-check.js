@@ -69,6 +69,9 @@ ok(html.includes('<h4>화면 = 다운로드 엑셀</h4>'), '방법론 모달 화
 ok(html.includes('function validateLeases'), '렌트롤 행 단위 검증(validateLeases) 존재');
 ok(html.includes('id="rrWarns"'), '렌트롤 검증 경고 영역 존재');
 ok(html.includes('rr-maptbl'), '렌트롤 매핑 확인 표 존재');
+ok(html.includes('function rrRiskMetrics'), '임대차 리스크 지표(rrRiskMetrics) 존재');
+ok(html.includes('id="rrRiskCard"'), '임대차 리스크 카드 존재');
+ok(html.includes("name:'Lease_Risk'"), '엑셀 Lease_Risk 시트 존재');
 ok(html.includes('feats:featSnapshot()'), '이벤트 스키마: 활성기능 스냅샷(feats) 전송');
 ok(html.includes("track('share_link')") && html.includes("track('pdf_export')") && html.includes("track('slot_save')"), '이벤트: 공유·PDF·보관함 액션 추적');
 ok(html.includes("mtTrack('sens_axis'"), '이벤트: 민감도 축 토글 추적');
@@ -167,6 +170,19 @@ const driver = `;(function(){
     ["RR_ZERO_AREA","RR_NEGATIVE_RENT","RR_DEPOSIT_WITHOUT_RENT","RR_EXPIRED_LEASE","RR_DATE_PARSE_FAILED","RR_AREA_SUM_EXCEEDS_NLA"].forEach(function(cd){
       if (_codes.indexOf(cd) < 0) throw new Error("렌트롤 검증 미검출: " + cd + " (got " + _codes.join(",") + ")");
     });
+  }
+  // 임대차 리스크 지표: WALE(면적)=(100*1+300*3)/400=2.5, top1=쿠팡 300/400=0.75, 만기 스케줄
+  if (typeof rrRiskMetrics === "function") {
+    var _rm = rrRiskMetrics([
+      {name:"소형임차", area:100, rentPP:10000, deposit:0, yrsToExp:1},
+      {name:"대형임차", area:300, rentPP:10000, deposit:0, yrsToExp:3}
+    ], 500);
+    if (Math.abs(_rm.waleArea - 2.5) > 1e-9) throw new Error("WALE(면적) 오류: " + _rm.waleArea);
+    if (Math.abs(_rm.waleRent - 2.5) > 1e-9) throw new Error("WALE(임대료) 오류: " + _rm.waleRent);
+    if (Math.abs(_rm.top1 - 0.75) > 1e-9) throw new Error("top1 집중도 오류: " + _rm.top1);
+    if (Math.abs(_rm.exp12 - 0.25) > 1e-9) throw new Error("12M 만기비중 오류: " + _rm.exp12);
+    if (Math.abs(_rm.occupancy - 0.8) > 1e-9) throw new Error("점유율 오류: " + _rm.occupancy);
+    if (!(_rm.sched[1] && _rm.sched[3])) throw new Error("만기 스케줄 누락");
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();

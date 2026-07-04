@@ -479,6 +479,18 @@ header{background:rgba(253,252,249,.82)}
 .help.sm{width:13px; height:13px; font-size:9px}
 .mx-warn{margin:0 0 11px; display:flex; flex-direction:column; gap:6px}
 .mx-warn:empty{display:none}
+/* 임대차 리스크 카드 */
+.rsk-chip{display:inline-block; font-size:10px; font-weight:700; border-radius:6px; padding:1px 6px; vertical-align:1px; margin-left:4px}
+.rsk-chip.ok{color:var(--green); background:rgba(47,125,87,.12)}
+.rsk-chip.watch{color:#8a6020; background:rgba(169,121,43,.14)}
+.rsk-chip.risk{color:var(--red); background:rgba(187,70,48,.13)}
+.rsk-sch-h{font-size:12px; font-weight:700; color:var(--ink-2); margin:12px 0 7px}
+.rsk-sch-row{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--ink-2); margin-bottom:5px}
+.rsk-sch-y{flex:0 0 26px; font-weight:700; color:var(--accent-deep)}
+.rsk-sch-bar{flex:0 0 90px; height:9px; background:var(--bg); border-radius:5px; overflow:hidden}
+.rsk-sch-bar i{display:block; height:100%; background:var(--accent); opacity:.7; border-radius:5px}
+.rsk-sch-v{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rsk-sch-t{flex:0 1 auto; color:var(--muted); font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px}
 .mx-w{font-size:12px; line-height:1.45; color:var(--red); background:rgba(187,70,48,.08); border:1px solid rgba(187,70,48,.22); border-radius:9px; padding:7px 10px}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
 
@@ -1125,6 +1137,11 @@ html,body{overflow-x:hidden}
         <div class="mx-head"><span class="mx-t" id="sensTitle">민감도</span><span class="mx-sub">1변수 스윕</span></div>
         <div id="sensBody"></div>
         <div class="mx-foot" id="sensNote"></div>
+      </div>
+      <div class="metrics" id="rrRiskCard" hidden>
+        <div class="mx-head"><span class="mx-t">임대차 리스크 <span class="mx-sub">렌트롤 기반</span></span><span class="mx-flag" id="rrRiskFlag"></span></div>
+        <div id="rrRiskBody"></div>
+        <div class="mx-foot">WALE = 잔여 임대기간 가중평균(만기 있는 계약 기준) · 집중도 = 연임대료 기준 · 기준은 일반적 실무 관행이며 자산 성격에 따라 달리 볼 수 있습니다.</div>
       </div>
       <div class="preview-card">
         <div class="pv-head">
@@ -1948,6 +1965,7 @@ function update(){
   renderSim();
   renderMetrics();
   renderSens();
+  renderRRRisk();
   renderScenNote();
   updateGroupCounts();
   saveLocal();
@@ -2261,6 +2279,74 @@ function _sensHeat(v,min,max){
   var c1=[209,118,50], c2=[224,217,201], c3=[58,110,165], col;
   if(t<0.5) col=_sensMix(c1,c2,t/0.5); else col=_sensMix(c2,c3,(t-0.5)/0.5);
   return {bg:'rgba('+col[0]+','+col[1]+','+col[2]+',.24)', txt:(v*100).toFixed(1)+'%'};
+}
+/* ---------- 임대차 리스크 (렌트롤 기반) ---------- */
+// 리스크 판정 기준 — 일반적 실무 관행값, 자산 성격에 따라 조정 여지 있음
+var MT_RISK={ wale:{ok:4.0,watch:2.5}, exp36:{ok:0.30,watch:0.50}, top1:{ok:0.20,watch:0.35}, top3:{ok:0.45,watch:0.65}, occ:{ok:0.95,watch:0.85} };
+// 순수 함수: 리스 배열 → 임대차 리스크 지표 (엑셀 Lease_Risk 시트와 동일 정의)
+function rrRiskMetrics(leases, rentable){
+  var A=0, AR=0, D=0, waA=0, wA=0, wrR=0, wR=0, e12=0, e36=0, byT={}, sched={};
+  leases.forEach(function(l,i){
+    var a=l.area||0, ar=a*(l.rentPP||0)*12/1e6, nm=l.name||('임차'+(i+1));
+    A+=a; AR+=ar; D+=(l.deposit||0);
+    if(l.yrsToExp!=null){
+      waA+=a*l.yrsToExp; wA+=a; wrR+=ar*l.yrsToExp; wR+=ar;
+      if(l.yrsToExp<=1) e12+=a; if(l.yrsToExp<=3) e36+=a;
+      var y=Math.max(1,Math.ceil(l.yrsToExp)); var s=sched[y]||(sched[y]={area:0,rent:0,names:[]}); s.area+=a; s.rent+=ar; s.names.push({n:nm,r:ar});
+    }
+    byT[nm]=(byT[nm]||0)+ar;
+  });
+  var rents=Object.keys(byT).map(function(k){return {n:k,r:byT[k]};}).sort(function(x,y){return y.r-x.r;});
+  return { leasedArea:A, annualRent:AR, deposit:D,
+    occupancy:(rentable>0)?Math.min(1,A/rentable):null,
+    waleArea:wA?waA/wA:null, waleRent:wR?wrR/wR:null,
+    exp12:A?e12/A:0, exp36:A?e36/A:0,
+    top1:AR&&rents[0]?rents[0].r/AR:0,
+    top3:AR?rents.slice(0,3).reduce(function(s,x){return s+x.r;},0)/AR:0,
+    topName:rents[0]?rents[0].n:null, sched:sched };
+}
+function _rskSt(v,th,dir){ // dir 'hi'=높을수록 좋음, 'lo'=낮을수록 좋음
+  if(v==null) return null;
+  if(dir==='hi') return v>=th.ok?'ok':(v>=th.watch?'watch':'risk');
+  return v<th.ok?'ok':(v<th.watch?'watch':'risk');
+}
+function renderRRRisk(){
+  var card=$('rrRiskCard'); if(!card) return;
+  var rm=window.rrModel, rs=window.rrState;
+  var on=(cur==='office'||cur==='logistics')&&rm&&rm.on&&rm.leases&&rm.leases.length;
+  if(!on){ card.hidden=true; return; }
+  var leases=(rs&&rs.leases&&rs.leases.length===rm.leases.length)?rs.leases:rm.leases;
+  var gfa=parseNum(state.gfa), ratio=(cur==='logistics')?0.97:0.88;
+  var m=rrRiskMetrics(leases, isFinite(gfa)?gfa*ratio:0);
+  var rows=[
+    {l:'WALE (임대료 가중)', v:m.waleRent!=null?m.waleRent.toFixed(1)+'년':'—', st:_rskSt(m.waleRent,MT_RISK.wale,'hi')},
+    {l:'WALE (면적 가중)', v:m.waleArea!=null?m.waleArea.toFixed(1)+'년':'—', st:_rskSt(m.waleArea,MT_RISK.wale,'hi')},
+    {l:'12개월 내 만기(면적)', v:(m.exp12*100).toFixed(0)+'%', st:null},
+    {l:'36개월 내 만기(면적)', v:(m.exp36*100).toFixed(0)+'%', st:_rskSt(m.exp36,MT_RISK.exp36,'lo')},
+    {l:'최대 임차인 비중(임대료)', v:(m.top1*100).toFixed(0)+'%'+(m.topName?(' · '+esc(m.topName)):''), st:_rskSt(m.top1,MT_RISK.top1,'lo')},
+    {l:'상위 3 임차인 비중', v:(m.top3*100).toFixed(0)+'%', st:_rskSt(m.top3,MT_RISK.top3,'lo')},
+    {l:'점유율(임대가능면적 대비)', v:m.occupancy!=null?(m.occupancy*100).toFixed(1)+'%':'GFA 입력 시', st:_rskSt(m.occupancy,MT_RISK.occ,'hi')},
+    {l:'연간 임대수입(현 계약)', v:meok(m.annualRent), st:null}
+  ];
+  var STL={ok:'양호',watch:'주의',risk:'위험'};
+  var grid='<div class="mx-grid">'+rows.map(function(x){
+    return '<div class="mx-item"><div class="mx-l">'+x.l+'</div><div class="mx-v">'+x.v+(x.st?(' <span class="rsk-chip '+x.st+'">'+STL[x.st]+'</span>'):'')+'</div></div>';
+  }).join('')+'</div>';
+  // 연도별 만기 스케줄 (면적 비중 바)
+  var years=Object.keys(m.sched).map(Number).sort(function(a,b){return a-b;});
+  var schedH='';
+  if(years.length){
+    schedH='<div class="rsk-sch-h">연도별 만기 스케줄</div>'+years.map(function(y){
+      var s=m.sched[y]; var pct=m.leasedArea?s.area/m.leasedArea:0;
+      var tops=s.names.sort(function(a,b){return b.r-a.r;}).slice(0,2).map(function(x){return esc(x.n);}).join('·');
+      return '<div class="rsk-sch-row"><span class="rsk-sch-y">Y'+y+'</span><span class="rsk-sch-bar"><i style="width:'+Math.max(2,Math.round(pct*100))+'%"></i></span><span class="rsk-sch-v">'+Math.round(s.area).toLocaleString()+'평 ('+(pct*100).toFixed(0)+'%) · '+meok(s.rent)+'/년</span><span class="rsk-sch-t">'+tops+'</span></div>';
+    }).join('');
+  }
+  var worst=rows.filter(function(x){return x.st==='risk';}).length, watch=rows.filter(function(x){return x.st==='watch';}).length;
+  var flag=$('rrRiskFlag');
+  if(flag){ flag.textContent=worst?('위험 '+worst+'건'):(watch?('주의 '+watch+'건'):'양호'); flag.className='mx-flag '+(worst?'bad':(watch?'':'ok')); if(!worst&&watch){ flag.style.color='var(--accent-deep)'; flag.style.background='rgba(169,121,43,.13)'; } else { flag.style.color=''; flag.style.background=''; } }
+  $('rrRiskBody').innerHTML=grid+schedH;
+  card.hidden=false;
 }
 function renderHeat(m){
   function r1(x){ return (Math.round(x*10)/10).toFixed(1); }
@@ -3370,12 +3456,16 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     // 보증금 승계: 엑셀 보증금(C75)=렌트롤 실제 보증금 합, 매각 성장은 시장상승률(C27→mktStepUp) 기준으로 leaseModelV2와 일치
     ov['01_Assumptions']={C75:{n:Math.round((rm.leases.reduce(function(a,l){return a+(l.deposit||0);},0)/1e6)*100)/100}, C27:{n:(mkt&&mkt.mktStepUp)||0.03}};
     // 01_Rent_Roll (현 계약 실제값)
+    // 임차인명: rrState(업로드 원본)에 있으면 사용 — rrModel에는 이름을 저장하지 않음(보관함 프라이버시)
+    var rrNames=(window.rrState&&window.rrState.leases&&window.rrState.leases.length===rm.leases.length)
+      ? window.rrState.leases.map(function(l,i){ return l.name||('임차'+(i+1)); })
+      : rm.leases.map(function(l,i){ return l.name||('임차'+(i+1)); });
     var rc=[], hd=['임차인','전용면적(평)','임대면적(평)','평당월임대료','평당월관리비','보증금','잔여렌트프리(개월)','만기연차','step-up'], cs=['B','C','D','E','F','G','H','I','J'];
     rc.push({r:'B1',role:'ti',s:'01_Rent_Roll — 현 계약 (실제값)'});
     rc.push({r:'B2',role:'st',s:'업로드 렌트롤의 실제 임대조건 · 모델 임대수입은 임대면적 기준으로 산출됩니다'});
     hd.forEach(function(h,i){ rc.push({r:cs[i]+'4',role:'th',s:h}); });
-    var rw=5; rm.leases.forEach(function(l){
-      rc.push({r:'B'+rw,role:'lb',s:l.name||'임차'}); rc.push({r:'C'+rw,role:'vn',z:'num1',n:(l.netArea!=null?Math.round(l.netArea*10)/10:'')}); rc.push({r:'D'+rw,role:'vn',z:'num1',n:Math.round((l.area||0)*10)/10});
+    var rw=5; rm.leases.forEach(function(l,li){
+      rc.push({r:'B'+rw,role:'lb',s:rrNames[li]}); rc.push({r:'C'+rw,role:'vn',z:'num1',n:(l.netArea!=null?Math.round(l.netArea*10)/10:'')}); rc.push({r:'D'+rw,role:'vn',z:'num1',n:Math.round((l.area||0)*10)/10});
       rc.push({r:'E'+rw,role:'vn',z:'num',n:Math.round(l.rentPP||0)}); rc.push({r:'F'+rw,role:'vn',z:'num',n:Math.round(l.camPP||0)});
       rc.push({r:'G'+rw,role:'vn',z:'num',n:Math.round(l.deposit||0)}); rc.push({r:'H'+rw,role:'vn',z:'num1',n:l.rentFreeRemain||0});
       rc.push({r:'I'+rw,role:'vn',z:'num1',n:l.yrsToExp!=null?Math.round(l.yrsToExp*10)/10:''}); rc.push({r:'J'+rw,role:'vn',z:'pct1',n:(l.stepUp!=null?l.stepUp:mkt.mktStepUp)});
@@ -3399,7 +3489,47 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     brow(8,'임대료 합계', inc.rentY, true); brow(9,'관리비 합계', inc.camY, true);
     lb.push({r:'B11',role:'nw',s:'※ 값은 모델터 임차인별 엔진 산출 — 04_Operating 임대료·관리비 행으로 연결되어 NOI·IRR이 계산됩니다.'});
     var sLB={name:'Lease_NOI_Buildup',hidden:false,maxcol:8,cells:lb,merges:[],widths:{}};
-    return {sheets:[sRR,sMA,sLB], ov:ov, leaseMode:true};
+    // ── Lease_Risk — 임대차 리스크 (화면 rrRiskMetrics와 동일 정의, 수식 기반) ──
+    var lr=[], n=rm.leases.length, rN=4+n;
+    var mScreen=(typeof rrRiskMetrics==='function')?rrRiskMetrics(rm.leases.map(function(l,i){return {area:l.area,rentPP:l.rentPP,deposit:l.deposit,yrsToExp:l.yrsToExp,name:rrNames[i]};}), (r.leasedArea+r.vacantArea)):null;
+    lr.push({r:'B1',role:'ti',s:'Lease_Risk — 임대차 리스크'});
+    lr.push({r:'B2',role:'st',s:'WALE·만기·임차인 집중도 — 01_Rent_Roll 참조 수식으로 계산 (화면 임대차 리스크 카드와 동일 정의)'});
+    ['임차인','임대면적(평)','연임대료(백만원)','잔여만기(년)','만기있음','12M내','36M내'].forEach(function(h,i){ lr.push({r:['B','C','D','E','F','G','H'][i]+'4',role:'th',s:h}); });
+    rm.leases.forEach(function(l,i){
+      var rr2=5+i, src=5+i;
+      lr.push({r:'B'+rr2,role:'lb',s:rrNames[i]});
+      lr.push({r:'C'+rr2,role:'vr',z:'num1',f:'01_Rent_Roll!D'+src});
+      lr.push({r:'D'+rr2,role:'vf',z:'num1',f:'01_Rent_Roll!D'+src+'*01_Rent_Roll!E'+src+'*12/1000000'});
+      lr.push({r:'E'+rr2,role:'vn',z:'num1',n:l.yrsToExp!=null?Math.round(l.yrsToExp*100)/100:0});
+      lr.push({r:'F'+rr2,role:'vn',z:'num',n:l.yrsToExp!=null?1:0});
+      lr.push({r:'G'+rr2,role:'vn',z:'num',n:(l.yrsToExp!=null&&l.yrsToExp<=1)?1:0});
+      lr.push({r:'H'+rr2,role:'vn',z:'num',n:(l.yrsToExp!=null&&l.yrsToExp<=3)?1:0});
+    });
+    var aR=rN+2;
+    function lrow(off,label,f,z,note){ lr.push({r:'B'+(aR+off),role:'lbb',s:label}); if(typeof f==='string') lr.push({r:'C'+(aR+off),role:'vf',z:z,f:f}); else lr.push({r:'C'+(aR+off),role:'vn',z:z,n:f}); if(note) lr.push({r:'D'+(aR+off),role:'no',s:note}); }
+    var CA='C5:C'+rN, DA='D5:D'+rN, EA='E5:E'+rN, FA='F5:F'+rN, GA='G5:G'+rN, HA='H5:H'+rN;
+    lrow(0,'임대면적 합계(평)','SUM('+CA+')','num1');
+    lrow(1,'연간 임대수입(백만원)','SUM('+DA+')','num1');
+    lrow(2,'점유율','C'+aR+'/02_Market_Assumptions!C15','pct1','임대가능면적 대비');
+    lrow(3,'WALE — 면적 가중(년)','SUMPRODUCT('+CA+','+EA+','+FA+')/SUMPRODUCT('+CA+','+FA+')','num1','만기 있는 계약 기준');
+    lrow(4,'WALE — 임대료 가중(년)','SUMPRODUCT('+DA+','+EA+','+FA+')/SUMPRODUCT('+DA+','+FA+')','num1');
+    lrow(5,'12개월 내 만기(면적)','SUMPRODUCT('+CA+','+GA+')/SUM('+CA+')','pct1');
+    lrow(6,'36개월 내 만기(면적)','SUMPRODUCT('+CA+','+HA+')/SUM('+CA+')','pct1');
+    lrow(7,'최대 임차인 비중(임대료)','MAX('+DA+')/SUM('+DA+')','pct1','행 기준 — 동일 임차인 복수 행이면 화면(합산)과 다를 수 있음');
+    lrow(8,'상위 3 임차인 비중(임대료)',mScreen?Math.round(mScreen.top3*1000)/1000:0,'pct1','임차인 합산 기준 산출값');
+    lrow(9,'보증금 합계(백만원)','SUM(01_Rent_Roll!G5:G'+rN+')/1000000','num1');
+    // 연도별 만기 스케줄 (산출값)
+    var schR=aR+11;
+    lr.push({r:'B'+schR,role:'se',s:'연도별 만기 스케줄'});
+    lr.push({r:'B'+(schR+1),role:'th',s:'연차'}); lr.push({r:'C'+(schR+1),role:'th',s:'만기면적(평)'}); lr.push({r:'D'+(schR+1),role:'th',s:'만기임대료(백만원/년)'}); lr.push({r:'E'+(schR+1),role:'th',s:'주요 임차인'});
+    if(mScreen){ Object.keys(mScreen.sched).map(Number).sort(function(a,b){return a-b;}).forEach(function(y,i){
+      var s=mScreen.sched[y], rr3=schR+2+i;
+      lr.push({r:'B'+rr3,role:'lb',s:'Y'+y}); lr.push({r:'C'+rr3,role:'vn',z:'num1',n:Math.round(s.area*10)/10});
+      lr.push({r:'D'+rr3,role:'vn',z:'num1',n:Math.round(s.rent*10)/10});
+      lr.push({r:'E'+rr3,role:'no',s:s.names.sort(function(a,b){return b.r-a.r;}).slice(0,3).map(function(x){return x.n;}).join(', ')});
+    }); }
+    var sLR={name:'Lease_Risk',hidden:false,maxcol:8,cells:lr,merges:[],widths:{}};
+    return {sheets:[sRR,sMA,sLB,sLR], ov:ov, leaseMode:true};
   }
   function downloadXlsx(){
     try{
