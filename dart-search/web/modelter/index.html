@@ -525,6 +525,27 @@ header{background:rgba(253,252,249,.82)}
 .sv-res b{color:var(--accent-deep); font-family:var(--mono)}
 .sv-res.bad{color:var(--red)}
 .sv-apply{border-color:var(--green); color:var(--green)}
+/* 가정 신뢰도 카드 */
+.ql-top{display:flex; align-items:center; gap:14px; margin-bottom:10px}
+.ql-score{font-size:34px; font-weight:800; font-family:var(--mono); color:var(--ink); line-height:1}
+.ql-score span{font-size:13px; color:var(--muted); font-weight:600}
+.ql-desc{font-size:12px; color:var(--ink-3); line-height:1.5; flex:1}
+.ql-bar{display:flex; height:10px; border-radius:6px; overflow:hidden; background:var(--bg); margin-bottom:6px}
+.ql-bar i{display:block; height:100%}
+.ql-leg{display:flex; gap:12px; flex-wrap:wrap; font-size:10.5px; color:var(--muted); margin-bottom:10px}
+.ql-leg span{display:inline-flex; align-items:center; gap:4px}
+.ql-leg i{width:9px; height:9px; border-radius:3px; display:inline-block}
+i.ql-actual,.ql-chip.ql-actual{background:rgba(47,125,87,.75)}
+i.ql-public,.ql-chip.ql-public{background:rgba(58,110,165,.7)}
+i.ql-broker,.ql-chip.ql-broker{background:rgba(169,121,43,.65)}
+i.ql-analyst,.ql-chip.ql-analyst{background:rgba(106,114,128,.55)}
+i.ql-default,.ql-chip.ql-default{background:rgba(160,160,160,.4)}
+.ql-list{display:grid; grid-template-columns:1fr 1fr; gap:4px 16px}
+@media(max-width:560px){ .ql-list{grid-template-columns:1fr} }
+.ql-row{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:var(--ink-2); padding:3px 0; border-bottom:1px solid var(--line-soft)}
+.ql-chip{font-family:var(--font); font-size:10px; font-weight:700; color:#fff; border:none; border-radius:6px; padding:2px 8px; cursor:pointer; white-space:nowrap}
+.ql-chip.fx{cursor:default; opacity:.85}
+.ql-chip.ql-default{color:var(--ink-3)}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
 
 /* 딜 보관함 */
@@ -1170,6 +1191,11 @@ html,body{overflow-x:hidden}
         <div class="mx-head"><span class="mx-t" id="sensTitle">민감도</span><span class="mx-sub">1변수 스윕</span></div>
         <div id="sensBody"></div>
         <div class="mx-foot" id="sensNote"></div>
+      </div>
+      <div class="metrics" id="qualCard" hidden>
+        <div class="mx-head"><span class="mx-t">가정 신뢰도 <span class="mx-sub">출처 기반</span></span><span class="mx-flag" id="qualFlag"></span></div>
+        <div id="qualBody"></div>
+        <div class="mx-foot" id="qualFoot"></div>
       </div>
       <div class="metrics" id="caseCard" hidden>
         <div class="mx-head"><span class="mx-t">케이스 비교 <span class="mx-sub">Base · Downside · Severe</span></span><span class="mx-flag" id="caseFlag"></span></div>
@@ -2014,6 +2040,7 @@ function update(){
   renderSens();
   renderCases();
   renderRRRisk();
+  renderQuality();
   renderScenNote();
   updateGroupCounts();
   saveLocal();
@@ -2366,6 +2393,79 @@ function _sensHeat(v,min,max){
   if(t<0.5) col=_sensMix(c1,c2,t/0.5); else col=_sensMix(c2,c3,(t-0.5)/0.5);
   return {bg:'rgba('+col[0]+','+col[1]+','+col[2]+',.24)', txt:(v*100).toFixed(1)+'%'};
 }
+/* ---------- 가정 출처·품질 점수·성숙도 ---------- */
+var srcState={};
+var MT_SRC={actual:{s:100,l:'실제 자료'},public:{s:85,l:'공공·시장'},broker:{s:65,l:'IM·브로커'},analyst:{s:55,l:'자체 판단'},'default':{s:30,l:'기본가정'}};
+var MT_SRC_CYCLE=['analyst','actual','public','broker'];
+// 결과에 중요한 입력일수록 큰 가중치 (중요도 가중 평균)
+function mtKeyAssumptions(){
+  if(!(cur==='office'||cur==='logistics')) return [];
+  var mode=(state['noimode']||'').trim(); var rentBased=(mode===''||mode.indexOf('임대료')===0);
+  var L=[{k:'price',l:'매입가',w:10}];
+  if(rentBased){ L.push({k:'rentpp',l:'평당 임대료',w:10},{k:'campp',l:'평당 관리비',w:6}); }
+  else L.push({k:'noi1',l:'1차연도 NOI',w:10});
+  L.push({k:'exitcap',l:'Exit Cap',w:10},{k:'_srate',l:'선순위 금리',w:8},{k:'vacancy',l:'공실률',w:7},
+    {k:'noig',l:'성장률',w:7},{k:'opfee',l:'운용보수율',w:4},{k:'acqtax',l:'취득세율',w:4},
+    {k:'salefee',l:'매각수수료율',w:3},{k:'hold',l:'보유기간',w:5});
+  return L;
+}
+function mtSourceOf(k){
+  if(window.rrModel&&window.rrModel.on&&window.rrModel.confirmed&&(k==='rentpp'||k==='campp'||k==='vacancy')) return 'actual';
+  if(srcState[k]) return srcState[k];
+  var v=(k==='_srate')?((stackState&&stackState['senior_rate'])||''):(state[k]||'');
+  return String(v).trim()===''?'default':'analyst';
+}
+function mtQuality(){
+  var ks=mtKeyAssumptions(); if(!ks.length) return null;
+  var sw=0, ss=0, defW=0, cnt={actual:0,public:0,broker:0,analyst:0,'default':0};
+  ks.forEach(function(a){ var s=mtSourceOf(a.k); sw+=a.w; ss+=MT_SRC[s].s*a.w; if(s==='default') defW+=a.w; cnt[s]+=a.w; });
+  var score=ss/sw, defShare=defW/sw;
+  if(defShare>=0.3) score-=5;
+  if(window.rrModel&&window.rrModel.on&&!window.rrModel.confirmed) score-=15;
+  var nErr=0; try{ nErr=mtChecks().filter(function(c){return c.sev==='error';}).length; }catch(e){}
+  if(nErr>0) score=Math.min(score,50);
+  return {score:Math.max(0,Math.round(score)), defShare:defShare, nErr:nErr, cnt:cnt, sw:sw, keys:ks};
+}
+function mtMaturity(q){
+  if(!q) return null;
+  if(q.nErr>0) return {lv:'S0', label:'빠른 스크리닝', msg:'오류(⛔)를 해결해야 검토 단계로 올라갑니다.'};
+  var rrOK=window.rrModel&&window.rrModel.on&&window.rrModel.confirmed;
+  if(!rrOK) return {lv:'S0', label:'빠른 스크리닝', msg:'방향성 확인용입니다. 렌트롤을 반영하면 임차인별 리스크까지 검토됩니다.'};
+  var cov=isFinite(parseNum(state['covdscr']))||isFinite(parseNum(state['covltv']));
+  if(cov&&q.score>=80&&q.defShare<=0.2) return {lv:'S3', label:'IC 초안 가능', msg:'가정 출처·체크·케이스가 정리된 상태 — 최종 검토자는 원자료를 대조하세요.'};
+  if(cov&&q.score>=60) return {lv:'S2', label:'검토 준비', msg:'DD·IC 초안 검토에 쓸 수 있는 수준 — Default 가정을 실제 자료로 교체할수록 올라갑니다.'};
+  return {lv:'S1', label:'렌트롤 반영', msg:'임차인 리스크 반영 — 커버넌트 기준과 가정 출처를 채우면 검토 수준이 올라갑니다.'};
+}
+function renderQuality(){
+  var card=$('qualCard'); if(!card) return;
+  var q=mtQuality();
+  if(!q){ card.hidden=true; return; }
+  var mt=mtMaturity(q);
+  var flag=$('qualFlag'); if(flag){ flag.textContent=mt.lv+' · '+mt.label; flag.className='mx-flag '+(mt.lv==='S0'?'bad':(mt.lv==='S1'?'':'ok')); if(mt.lv==='S1'){ flag.style.color='var(--accent-deep)'; flag.style.background='rgba(169,121,43,.13)'; } else { flag.style.color=''; flag.style.background=''; } }
+  var order=['actual','public','broker','analyst','default'];
+  var bar='<div class="ql-bar">'+order.map(function(s){ var w=q.cnt[s]/q.sw*100; return w>0?('<i class="ql-'+s+'" style="width:'+w+'%"></i>'):''; }).join('')+'</div>';
+  var legend='<div class="ql-leg">'+order.filter(function(s){return q.cnt[s]>0;}).map(function(s){ return '<span><i class="ql-'+s+'"></i>'+MT_SRC[s].l+' '+Math.round(q.cnt[s]/q.sw*100)+'%</span>'; }).join('')+'</div>';
+  var list='<div class="ql-list">'+q.keys.map(function(a){
+    var s=mtSourceOf(a.k); var fixed=(window.rrModel&&window.rrModel.on&&window.rrModel.confirmed&&(a.k==='rentpp'||a.k==='campp'||a.k==='vacancy'));
+    var chip=fixed?('<span class="ql-chip ql-'+s+' fx">'+MT_SRC[s].l+' · 렌트롤</span>')
+      :(s==='default'?('<span class="ql-chip ql-default fx" title="값을 입력하면 출처를 지정할 수 있습니다">'+MT_SRC[s].l+'</span>')
+      :('<button type="button" class="ql-chip ql-'+s+'" data-srck="'+a.k+'" title="클릭해서 출처 변경">'+MT_SRC[s].l+'</button>'));
+    return '<div class="ql-row"><span class="ql-k">'+a.l+'</span>'+chip+'</div>';
+  }).join('')+'</div>';
+  $('qualBody').innerHTML='<div class="ql-top"><div class="ql-score">'+q.score+'<span>/100</span></div><div class="ql-desc">'+esc(mt.msg)+'</div></div>'+bar+legend+list;
+  $('qualFoot').textContent='점수 = 출처 점수(실제100·공공85·브로커65·판단55·기본30)의 중요도 가중 평균'+(q.defShare>=0.3?' − 기본가정 30%↑ 감점':'')+(q.nErr>0?' · 오류 존재로 50점 상한':'')+'. 출처 칩을 클릭해 바꿀 수 있습니다.';
+  card.hidden=false;
+}
+(function(){
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest) return;
+    var b=t.closest('[data-srck]'); if(!b) return;
+    var k=b.dataset.srck, curS=mtSourceOf(k);
+    var i=MT_SRC_CYCLE.indexOf(curS); var next=MT_SRC_CYCLE[(i+1)%MT_SRC_CYCLE.length];
+    srcState[k]=next; renderQuality(); saveLocal();
+    if(window.mtTrack) try{ mtTrack('src_tag',{key:k}); }catch(err){}
+  });
+})();
 /* ---------- 역산 솔버 (bisection, 가드레일 포함) ---------- */
 function mtBisect(fn, lo, hi, target, tol, maxIter){
   // 1) 범위를 스캔해 유효(계산 가능)하면서 부호가 바뀌는 구간을 찾음
@@ -2991,14 +3091,14 @@ function tryRestoreFromURL(){
     const p=JSON.parse(json);
     if(p.c && DEALS[p.c]){ cur=p.c; }
     if(p.d && DEPTHS[p.d]){ depth=p.d; }
-    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
+    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{}; srcState=(p.src)||{};
     renderTabs(); renderForm(); restoreInputs(); update();
     return true;
   }catch(e){ return false; }
 }
 
 /* ---------- 입력값 브라우저 자동 저장/복원 ---------- */
-function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState})); }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState,src:srcState})); }catch(e){} }
 function tryRestoreLocal(){
   let raw=null; try{ raw=localStorage.getItem("mt_state"); }catch(e){ return false; }
   if(!raw) return false;
@@ -3006,7 +3106,7 @@ function tryRestoreLocal(){
     const p=JSON.parse(raw);
     if(p.c && DEALS[p.c]) cur=p.c;
     if(p.d && DEPTHS[p.d]) depth=p.d;
-    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
+    state=p.s||{}; stackState=p.k||{}; refiState=p.r||{}; srcState=(p.src)||{};
     renderTabs(); renderForm(); restoreInputs(); update();
     return true;
   }catch(e){ return false; }
@@ -3809,6 +3909,16 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     try{
       var ov=assumOverrides();
       var _TPL=holdTemplate(XLTMPL, mtHold());
+      // 표지에 성숙도·가정 신뢰도 표기 (화면 배지와 동일 산출)
+      try{
+        var _q=(typeof mtQuality==='function')?mtQuality():null;
+        var _mt=(_q&&typeof mtMaturity==='function')?mtMaturity(_q):null;
+        if(_mt&&_q){ var _cv=null,_b2=null,i2;
+          for(i2=0;i2<_TPL.sheets.length;i2++) if(_TPL.sheets[i2].name==='00_Cover'){ _cv=_TPL.sheets[i2]; break; }
+          if(_cv) for(i2=0;i2<_cv.cells.length;i2++) if(_cv.cells[i2].r==='B2'){ _b2=_cv.cells[i2]; break; }
+          if(_b2&&_b2.s) _b2.s+=' · 성숙도 '+_mt.lv+'('+_mt.label+') · 가정 신뢰도 '+_q.score+'점';
+        }
+      }catch(e2){}
       var ext=leaseExtraSheets();
       var bytes = ext ? XLSXGEN.buildXlsx(_TPL, ov, ext.sheets, ext.ov)
                       : (function(){ var rr=rentRollSheet(); return XLSXGEN.buildXlsx(_TPL, ov, rr?[rr]:null); })();

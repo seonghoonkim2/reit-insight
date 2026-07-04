@@ -76,6 +76,9 @@ ok(html.includes('function mtChecks'), '체크 레지스트리(mtChecks) 존재'
 ok(html.includes('function renderCases'), '케이스 엔진(renderCases) 존재');
 ok(html.includes('var MT_CASES'), '케이스 조정폭 상수 존재');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
+ok(html.includes('function mtQuality'), '가정 품질 점수(mtQuality) 존재');
+ok(html.includes('function mtMaturity'), '성숙도 배지(mtMaturity) 존재');
+ok(html.includes('id="qualCard"'), '가정 신뢰도 카드 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
 ok(html.includes('id="solverCard"'), '역산 카드 존재');
 ok(html.includes('function _covBlock'), '부채 커버넌트 표(_covBlock) 존재');
@@ -234,6 +237,23 @@ const driver = `;(function(){
     var _snx = state.exitcap; state.exitcap = String(Math.round(_r3.value * 100) / 100);
     var _em = simModel().raw.EM; state.exitcap = _snx;
     if (Math.abs(_em - 1.0) > 0.01) throw new Error("손익분기 Exit Cap 검산 실패: EM=" + _em);
+  }
+  // 품질 점수·성숙도: 결정론 + 게이팅
+  if (typeof mtQuality === "function") {
+    cur = "office"; window.rrModel = null; srcState = {}; fillExample();
+    var _q1 = mtQuality(), _q2 = mtQuality();
+    if (_q1.score !== _q2.score) throw new Error("품질 점수 비결정적");
+    var _mt1 = mtMaturity(_q1);
+    if (_mt1.lv !== "S0") throw new Error("렌트롤 없이 S0 아님: " + _mt1.lv);
+    // 렌트롤 확정 + 커버넌트 + 출처 개선 → 등급 상승
+    window.rrModel = {leases:[{area:1200,rentPP:62000,camPP:21000,deposit:0,yrsToExp:3}], mkt:{marketPP:62000,marketCamPP:21000,newRentFree:3,absorbMonths:12,stabVac:0.05,renewP:0.7,downtime:6,mktStepUp:0.03,mtm:0,camG:0.03,repay:"만기일시(이자만)"}, on:true, confirmed:true};
+    state["covdscr"] = "1.2";
+    ["price","exitcap","noig","opfee","acqtax","salefee","hold"].forEach(function(k){ srcState[k] = "actual"; });
+    srcState["_srate"] = "actual";
+    var _q3 = mtQuality(), _mt3 = mtMaturity(_q3);
+    if (!(_q3.score > _q1.score)) throw new Error("출처 개선에도 점수 미상승");
+    if (_mt3.lv === "S0") throw new Error("조건 충족에도 S0 잔존");
+    window.rrModel = null; srcState = {}; state["covdscr"] = "";
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();
