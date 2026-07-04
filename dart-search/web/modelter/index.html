@@ -989,15 +989,14 @@ html,body{overflow-x:hidden}
 <div class="wn-overlay" id="wnOverlay" hidden>
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
-    <div class="wn-eyebrow">What's new · v4</div>
+    <div class="wn-eyebrow">What's new · v3</div>
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
-    <p class="wn-lead">이제 이 화면 안에서 재무모델이 바로 돌아갑니다.</p>
+    <p class="wn-lead">입력값 하나로 화면 계산부터 보고서 다운로드까지 이어집니다.</p>
     <ul class="wn-list">
-      <li><span class="wn-ic">⚡</span><div><b>실시간 모델 + Excel</b><span>가정을 바꾸면 IRR·멀티플이 바로 움직이고, 같은 수치의 13시트 엑셀을 그 자리에서 받습니다.</span></div></li>
-      <li><span class="wn-ic">📋</span><div><b>렌트롤 업로드</b><span>임차인 목록을 올리면 계약·공실·만기까지 반영됩니다.</span></div></li>
-      <li><span class="wn-ic">🇰🇷</span><div><b>실무 디테일</b><span>보증금 승계·운용보수·우선주 배당·세후 IRR까지 반영합니다.</span></div></li>
-      <li><span class="wn-ic">🆚</span><div><b>딜 비교 · 한 장 요약</b><span>저장한 딜을 나란히 비교하고, 결과를 한 장으로 인쇄합니다.</span></div></li>
-      <li><span class="wn-ic">🧮</span><div><b>검토 도구 <span class="wn-tag">NEW</span></b><span>임대차 리스크, 부채 커버넌트, 역산까지. 샘플 딜로 바로 볼 수 있습니다.</span></div></li>
+      <li><span class="wn-ic">⬇️</span><div><b>Excel 다운로드</b><span>수식이 살아있는 13시트 재무모델을 그 자리에서 받습니다.</span></div></li>
+      <li><span class="wn-ic">📄</span><div><b>원페이지 티저 PPT <span class="wn-tag">NEW</span></b><span>자본구조·수익률을 담은 1장짜리 검토 보고서를 바로 다운로드합니다.</span></div></li>
+      <li><span class="wn-ic">⚡</span><div><b>화면 안 간이 모델</b><span>숫자를 넣으면 IRR·멀티플·DSCR가 이 화면에서 실시간으로 계산됩니다.</span></div></li>
+      <li><span class="wn-ic">🔭</span><div><b>계속 업데이트됩니다</b><span>민감도 표의 모델 내 자동 생성 등 검토에 필요한 기능을 계속 더해갑니다.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -4695,8 +4694,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   if(!bar && !ov) return;
   function today(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function snoozedToday(){ try{ return localStorage.getItem(SNOOZE)===today(); }catch(e){ return false; } }
-  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v4')==='1'; }catch(e){ return false; } }
-  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v4','1'); }catch(e){} }
+  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v3')==='1'; }catch(e){ return false; } }
+  function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v3','1'); }catch(e){} }
   function snoozeDay(){ try{ localStorage.setItem(SNOOZE,today()); }catch(e){} }
   function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow=''; document.body.style.overflow='hidden'; } }
   function closeWN(){ if(ov){ ov.hidden=true; } document.body.style.overflow=''; }
