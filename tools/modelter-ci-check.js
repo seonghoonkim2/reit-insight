@@ -75,6 +75,9 @@ ok(html.includes("name:'Lease_Risk'"), '엑셀 Lease_Risk 시트 존재');
 ok(html.includes('function mtChecks'), '체크 레지스트리(mtChecks) 존재');
 ok(html.includes('function renderCases'), '케이스 엔진(renderCases) 존재');
 ok(html.includes('var MT_CASES'), '케이스 조정폭 상수 존재');
+ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
+ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
+ok(html.includes('id="solverCard"'), '역산 카드 존재');
 ok(html.includes('function _covBlock'), '부채 커버넌트 표(_covBlock) 존재');
 ok(html.includes('INT:INT,endBal:endBal,exitCap:'), '엔진 INT·endBal·exitCap 노출(2엔진)');
 ok((html.match(/INT:INT,endBal:endBal,exitCap:/g)||[]).length>=2, '두 엔진 모두 노출');
@@ -215,6 +218,22 @@ const driver = `;(function(){
     if (state !== _stB || cur !== _curB) throw new Error("케이스 계산 후 전역 미복원");
     if (!(_sv && _sv.raw && _sv.raw.IRR != null)) throw new Error("Severe 케이스 계산 실패");
     if (!(_sv.raw.IRR < _bs.IRR)) throw new Error("Severe IRR(" + _sv.raw.IRR + ") >= Base(" + _bs.IRR + ")");
+  }
+  // 역산 솔버: 목표=현재 IRR → 매입가 ≈ 현재 매입가(±1%), 비현실 목표(80%) → 미수렴
+  if (typeof solveBidPrice === "function") {
+    cur = "office"; window.rrModel = null; fillExample();
+    var _cur0 = simModel().raw, _p0 = parseFloat(String(state.price).replace(/,/g, ""));
+    var _r1 = solveBidPrice(_cur0.IRR);
+    if (!_r1.converged) throw new Error("현재 IRR 역산 미수렴");
+    if (Math.abs(_r1.value - _p0) / _p0 > 0.01) throw new Error("역산 매입가 오차: " + _r1.value + " vs " + _p0);
+    var _r2 = solveBidPrice(5.0);
+    if (_r2.converged) throw new Error("비현실 목표(500%)에 수렴함");
+    var _r3 = solveBreakEvenExitCap("em");
+    if (!(_r3.converged && _r3.value > 0)) throw new Error("손익분기 Exit Cap 미수렴");
+    // 검증: 그 exit cap 적용 시 EM≈1.0
+    var _snx = state.exitcap; state.exitcap = String(Math.round(_r3.value * 100) / 100);
+    var _em = simModel().raw.EM; state.exitcap = _snx;
+    if (Math.abs(_em - 1.0) > 0.01) throw new Error("손익분기 Exit Cap 검산 실패: EM=" + _em);
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();

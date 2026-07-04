@@ -515,6 +515,16 @@ header{background:rgba(253,252,249,.82)}
 .case-tbl tr.cs-downside td{background:rgba(169,121,43,.05)}
 .case-tbl tr.cs-severe td{background:rgba(187,70,48,.06)}
 .cs-loss{color:var(--red)}
+/* 역산 카드 */
+.sv-rows{display:flex; flex-direction:column; gap:9px}
+.sv-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2)}
+.sv-l{flex:0 0 120px; font-weight:600}
+.sv-in input{width:56px; font-family:var(--font); font-size:12.5px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:4px 7px; text-align:right}
+.sv-in input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(169,121,43,.24)}
+.sv-res{font-size:12px; color:var(--ink-3)}
+.sv-res b{color:var(--accent-deep); font-family:var(--mono)}
+.sv-res.bad{color:var(--red)}
+.sv-apply{border-color:var(--green); color:var(--green)}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
 
 /* 딜 보관함 */
@@ -1165,6 +1175,15 @@ html,body{overflow-x:hidden}
         <div class="mx-head"><span class="mx-t">케이스 비교 <span class="mx-sub">Base · Downside · Severe</span></span><span class="mx-flag" id="caseFlag"></span></div>
         <div id="caseBody"></div>
         <div class="mx-foot" id="caseFoot"></div>
+      </div>
+      <div class="metrics" id="solverCard" hidden>
+        <div class="mx-head"><span class="mx-t">역산 <span class="mx-sub">목표에서 거꾸로</span></span></div>
+        <div class="sv-rows">
+          <div class="sv-row"><span class="sv-l">목표 세전 IRR</span><span class="sv-in"><input id="svIrr" inputmode="decimal" placeholder="12">%</span><button class="sl-btn" id="svBid" type="button">최대 매입가</button><span class="sv-res" id="svBidRes"></span><button class="sl-btn sv-apply" id="svBidApply" type="button" hidden>적용</button></div>
+          <div class="sv-row"><span class="sv-l">손익분기 Exit Cap</span><button class="sl-btn" id="svEc" type="button">계산</button><span class="sv-res" id="svEcRes"></span></div>
+          <div class="sv-row"><span class="sv-l">손익분기 공실률</span><button class="sl-btn" id="svVac" type="button">계산</button><span class="sv-res" id="svVacRes"></span></div>
+        </div>
+        <div class="mx-foot">현재 입력 기준 이분법(bisection) 역산 — 입력을 바꾸면 다시 계산하세요. 매입가 역산 시 취득세·대출액(LTV)·자기자본이 함께 재계산됩니다. 자기자본이 총투자액의 5% 미만이 되는 영역은 제외합니다.</div>
       </div>
       <div class="metrics" id="rrRiskCard" hidden>
         <div class="mx-head"><span class="mx-t">임대차 리스크 <span class="mx-sub">렌트롤 기반</span></span><span class="mx-flag" id="rrRiskFlag"></span></div>
@@ -2347,6 +2366,87 @@ function _sensHeat(v,min,max){
   if(t<0.5) col=_sensMix(c1,c2,t/0.5); else col=_sensMix(c2,c3,(t-0.5)/0.5);
   return {bg:'rgba('+col[0]+','+col[1]+','+col[2]+',.24)', txt:(v*100).toFixed(1)+'%'};
 }
+/* ---------- 역산 솔버 (bisection, 가드레일 포함) ---------- */
+function mtBisect(fn, lo, hi, target, tol, maxIter){
+  // 1) 범위를 스캔해 유효(계산 가능)하면서 부호가 바뀌는 구간을 찾음
+  //    — 경계에서 IRR 계산 불가(예: 자기자본 음수)여도 내부 유효 구간을 활용
+  var N=13, pts=[], i;
+  for(i=0;i<=N;i++){ var x=lo+(hi-lo)*i/N; var f=fn(x); if(isFinite(f)) pts.push({x:x, g:f-target}); }
+  if(!pts.length) return {converged:false, iters:0};
+  var a=null, b=null;
+  for(i=0;i<pts.length;i++){ if(Math.abs(pts[i].g)<tol) return {value:pts[i].x, converged:true, iters:0}; }
+  for(i=0;i<pts.length-1;i++){ if(pts[i].g*pts[i+1].g<0){ a=pts[i]; b=pts[i+1]; break; } }
+  if(!a) return {converged:false, iters:0};          // 유효 구간 내 해 없음 — 범위 확장하지 않음
+  // 2) 찾은 구간에서 이분법
+  var it=0, m=a.x, gm=a.g, glo=a.g, xlo=a.x, xhi=b.x;
+  while(it<maxIter){
+    m=(xlo+xhi)/2; var fm=fn(m); if(!isFinite(fm)) return {converged:false, iters:it};
+    gm=fm-target;
+    if(Math.abs(gm)<tol) return {value:m, converged:true, iters:it};
+    if(glo*gm<0){ xhi=m; } else { xlo=m; glo=gm; }
+    it++;
+  }
+  return {value:m, converged:false, iters:it};
+}
+function _snapClone(){
+  var s={}; for(var k in state) s[k]=state[k];
+  var kk={}; for(var k2 in stackState) kk[k2]=stackState[k2];
+  var rr=(window.rrModel&&window.rrModel.on&&window.rrModel.leases)?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null;
+  return {c:cur,d:depth,s:s,k:kk,r:refiState,rr:rr};
+}
+function solveBidPrice(targetIrr){
+  var p0=parseNum(state.price); if(!isFinite(p0)||p0<=0) return {converged:false, iters:0};
+  // 가드: 자기자본이 총투자액의 5% 미만이 되는(사실상 조달 불가) 영역은 해로 인정하지 않음
+  var fn=function(pp){ var sn=_snapClone(); sn.s.price=String(Math.round(pp)); var o=computeForSnapshot(sn); var r=o&&o.raw;
+    if(!r||r.IRR==null) return NaN;
+    if(!(r.equity>0)||(isFinite(r.uses)&&r.equity<r.uses*0.05)) return NaN;
+    return r.IRR; };
+  return mtBisect(fn, p0*0.3, p0*1.5, targetIrr, 0.0001, 60);
+}
+function solveBreakEvenExitCap(mode){
+  var fn=function(ec){ var sn=_snapClone(); sn.s.exitcap=String(ec); var o=computeForSnapshot(sn); var r=o&&o.raw; if(!r) return NaN; return mode==='em'?(r.EM!=null?r.EM:NaN):(r.IRR!=null?r.IRR:NaN); };
+  return mtBisect(fn, 1, 15, mode==='em'?1.0:0, mode==='em'?0.002:0.0002, 60);
+}
+function solveBreakEvenVacancy(){
+  var fn=function(v){ var sn=_snapClone(); sn.s.vacancy=String(v);
+    if(sn.rr){ var mk={}; for(var k in sn.rr.mkt) mk[k]=sn.rr.mkt[k]; mk.stabVac=v/100; sn.rr={leases:sn.rr.leases,mkt:mk}; }
+    var o=computeForSnapshot(sn); return (o&&o.raw&&isFinite(o.raw.minDSCR))?o.raw.minDSCR:NaN; };
+  return mtBisect(fn, 0, 80, 1.0, 0.005, 60);
+}
+(function(){
+  function res(id,html,bad){ var el=$(id); if(el){ el.innerHTML=html; el.classList.toggle('bad',!!bad); } }
+  var NOCONV='범위 내 수렴하지 않음 — 목표를 확인하세요';
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t||!t.closest) return;
+    if(t.closest('#svBid')){
+      var ti=parseNum(($('svIrr')&&$('svIrr').value)||''); if(!isFinite(ti)||ti<=0){ res('svBidRes','목표 IRR을 %로 입력하세요',true); return; }
+      var r=solveBidPrice(ti/100);
+      if(r.converged){ res('svBidRes','최대 매입가 <b>'+meok(r.value)+'</b> (현재 '+meok(parseNum(state.price))+')'); var ap=$('svBidApply'); if(ap){ ap.hidden=false; ap.dataset.v=String(Math.round(r.value)); } }
+      else { res('svBidRes',NOCONV,true); var ap2=$('svBidApply'); if(ap2) ap2.hidden=true; }
+      if(window.mtTrack) try{ mtTrack('solver',{kind:'bid'}); }catch(err){}
+      return;
+    }
+    if(t.closest('#svBidApply')){
+      var v=t.closest('#svBidApply').dataset.v; if(v){ state.price=Number(v).toLocaleString('en-US'); renderForm(); restoreInputs(); update(); toast('매입가를 '+meok(parseNum(v))+'로 적용했습니다'); }
+      return;
+    }
+    if(t.closest('#svEc')){
+      var em=solveBreakEvenExitCap('em'), ir=solveBreakEvenExitCap('irr');
+      var cur1=parseNum(scenBase('exitcap'));
+      res('svEcRes',(em.converged?('EM 1.0x 기준 <b>'+em.value.toFixed(2)+'%</b>'):('EM 기준 '+NOCONV))+' · '+(ir.converged?('IRR 0% 기준 <b>'+ir.value.toFixed(2)+'%</b>'):('IRR 기준 '+NOCONV))+(isFinite(cur1)?(' (현재 '+cur1+'%)'):''), !(em.converged||ir.converged));
+      if(window.mtTrack) try{ mtTrack('solver',{kind:'exitcap'}); }catch(err){}
+      return;
+    }
+    if(t.closest('#svVac')){
+      var r2=solveBreakEvenVacancy();
+      var cv=parseNum(state['vacancy']); cv=isFinite(cv)?cv:0;
+      if(r2.converged) res('svVacRes','DSCR 1.0x 손익분기 공실률 <b>'+r2.value.toFixed(1)+'%</b> (현재 '+cv+'%)');
+      else res('svVacRes','범위(0~80%) 내에서 DSCR이 1.0x를 하회하지 않음 — 여유 있음',false);
+      if(window.mtTrack) try{ mtTrack('solver',{kind:'vacancy'}); }catch(err){}
+      return;
+    }
+  });
+})();
 /* ---------- 케이스 엔진: Base / Downside / Severe (결정론적) ---------- */
 // 조정폭 — 실무 통용 스트레스 수준. %p 단위.
 var MT_CASES=[
@@ -2389,9 +2489,10 @@ function caseBreachYear(r){
 }
 function renderCases(){
   var card=$('caseCard'); if(!card) return;
-  if(!(cur==='office'||cur==='logistics')){ card.hidden=true; return; }
+  if(!(cur==='office'||cur==='logistics')){ card.hidden=true; var sv0=$('solverCard'); if(sv0) sv0.hidden=true; return; }
   var m=null; try{ m=simModel(); }catch(e){}
   var base=m&&m.raw;
+  var sv=$('solverCard'); if(sv) sv.hidden=!(base&&base.IRR!=null);
   if(!base||base.IRR==null){ card.hidden=true; return; }
   var rows=[{label:'Base', raw:base, note:'현재 가정'}];
   MT_CASES.forEach(function(cs){
