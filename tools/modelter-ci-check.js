@@ -73,6 +73,8 @@ ok(html.includes('function rrRiskMetrics'), '임대차 리스크 지표(rrRiskMe
 ok(html.includes('id="rrRiskCard"'), '임대차 리스크 카드 존재');
 ok(html.includes("name:'Lease_Risk'"), '엑셀 Lease_Risk 시트 존재');
 ok(html.includes('function mtChecks'), '체크 레지스트리(mtChecks) 존재');
+ok(html.includes('function renderCases'), '케이스 엔진(renderCases) 존재');
+ok(html.includes('var MT_CASES'), '케이스 조정폭 상수 존재');
 ok(html.includes('function _covBlock'), '부채 커버넌트 표(_covBlock) 존재');
 ok(html.includes('INT:INT,endBal:endBal,exitCap:'), '엔진 INT·endBal·exitCap 노출(2엔진)');
 ok((html.match(/INT:INT,endBal:endBal,exitCap:/g)||[]).length>=2, '두 엔진 모두 노출');
@@ -203,6 +205,16 @@ const driver = `;(function(){
     state["covdscr"] = "";
     var _ck2 = mtChecks();
     if (_ck2.some(function(c){ return c.id === "DEBT_DSCR_BREACH"; })) throw new Error("기준 해제 후에도 breach 잔존");
+  }
+  // 케이스 엔진: Severe IRR < Base IRR 단조성 + 전역 복원
+  if (typeof caseSnapshot === "function" && typeof computeForSnapshot === "function") {
+    cur = "office"; window.rrModel = null; fillExample();
+    var _bs = simModel().raw;
+    var _stB = state, _curB = cur;
+    var _sv = computeForSnapshot(caseSnapshot(MT_CASES[1].adj));
+    if (state !== _stB || cur !== _curB) throw new Error("케이스 계산 후 전역 미복원");
+    if (!(_sv && _sv.raw && _sv.raw.IRR != null)) throw new Error("Severe 케이스 계산 실패");
+    if (!(_sv.raw.IRR < _bs.IRR)) throw new Error("Severe IRR(" + _sv.raw.IRR + ") >= Base(" + _bs.IRR + ")");
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();

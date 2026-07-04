@@ -508,6 +508,13 @@ header{background:rgba(253,252,249,.82)}
 .cov-tbl tr.cv-ok .cv-st{color:var(--green)}
 .cov-refi{font-size:11.5px; color:var(--ink-3); margin-top:8px; line-height:1.5}
 .cov-refi b{color:var(--accent-deep)}
+/* 케이스 표 */
+.case-tbl td,.case-tbl th{white-space:nowrap}
+.case-tbl .cs-note{white-space:normal; text-align:left; font-size:11px; color:var(--ink-3); min-width:140px}
+.case-tbl .cs-l{font-weight:700; color:var(--ink)}
+.case-tbl tr.cs-downside td{background:rgba(169,121,43,.05)}
+.case-tbl tr.cs-severe td{background:rgba(187,70,48,.06)}
+.cs-loss{color:var(--red)}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
 
 /* 딜 보관함 */
@@ -1153,6 +1160,11 @@ html,body{overflow-x:hidden}
         <div class="mx-head"><span class="mx-t" id="sensTitle">민감도</span><span class="mx-sub">1변수 스윕</span></div>
         <div id="sensBody"></div>
         <div class="mx-foot" id="sensNote"></div>
+      </div>
+      <div class="metrics" id="caseCard" hidden>
+        <div class="mx-head"><span class="mx-t">케이스 비교 <span class="mx-sub">Base · Downside · Severe</span></span><span class="mx-flag" id="caseFlag"></span></div>
+        <div id="caseBody"></div>
+        <div class="mx-foot" id="caseFoot"></div>
       </div>
       <div class="metrics" id="rrRiskCard" hidden>
         <div class="mx-head"><span class="mx-t">임대차 리스크 <span class="mx-sub">렌트롤 기반</span></span><span class="mx-flag" id="rrRiskFlag"></span></div>
@@ -1981,6 +1993,7 @@ function update(){
   renderSim();
   renderMetrics();
   renderSens();
+  renderCases();
   renderRRRisk();
   renderScenNote();
   updateGroupCounts();
@@ -2155,7 +2168,7 @@ function computeForSnapshot(snap){
     state=snap.s||{}; stackState=snap.k||{}; refiState=snap.r||{};
     window.rrModel=(snap.rr&&snap.rr.leases)?{leases:snap.rr.leases,mkt:snap.rr.mkt,on:true}:null;
     var m=simModel();
-    out={label:((state.asset||'').trim())||DEALS[cur].label, deal:DEALS[cur].label, dealKey:cur, kpis:(m&&m.kpis)?m.kpis:[], state:state};
+    out={label:((state.asset||'').trim())||DEALS[cur].label, deal:DEALS[cur].label, dealKey:cur, kpis:(m&&m.kpis)?m.kpis:[], raw:(m&&m.raw)||null, state:state};
   }catch(e){ out=null; }
   finally{ cur=bk.c; depth=bk.d; state=bk.s; stackState=bk.k; refiState=bk.r; window.rrModel=bk.rr; }
   return out;
@@ -2333,6 +2346,73 @@ function _sensHeat(v,min,max){
   var c1=[209,118,50], c2=[224,217,201], c3=[58,110,165], col;
   if(t<0.5) col=_sensMix(c1,c2,t/0.5); else col=_sensMix(c2,c3,(t-0.5)/0.5);
   return {bg:'rgba('+col[0]+','+col[1]+','+col[2]+',.24)', txt:(v*100).toFixed(1)+'%'};
+}
+/* ---------- 케이스 엔진: Base / Downside / Severe (결정론적) ---------- */
+// 조정폭 — 실무 통용 스트레스 수준. %p 단위.
+var MT_CASES=[
+  {key:'down',   label:'Downside', adj:{noig:-0.5, exitcap:0.25, vacancy:2, srate:0.5}},
+  {key:'severe', label:'Severe',   adj:{noig:-1.0, exitcap:0.5,  vacancy:5, srate:1.0}}
+];
+function caseSnapshot(adj){
+  var s={}; for(var k in state) s[k]=state[k];
+  var kk={}; for(var k2 in stackState) kk[k2]=stackState[k2];
+  function bump(key,delta){ var b=parseNum(scenBase(key)); if(!isFinite(b)) return;
+    if(key==='srate') kk['senior_rate']=String(Math.round((b+delta)*100)/100);
+    else s[key]=String(Math.round((b+delta)*100)/100); }
+  if(adj.noig!=null) bump('noig',adj.noig);
+  if(adj.exitcap!=null) bump('exitcap',adj.exitcap);
+  if(adj.srate!=null) bump('srate',adj.srate);
+  if(adj.vacancy!=null){ var bv=parseNum(state['vacancy']); bv=isFinite(bv)?bv:0; s['vacancy']=String(Math.round((bv+adj.vacancy)*100)/100); }
+  var rr=null;
+  if(window.rrModel&&window.rrModel.on&&window.rrModel.leases){
+    var mk={}; for(var k3 in window.rrModel.mkt) mk[k3]=window.rrModel.mkt[k3];
+    if(adj.noig!=null) mk.mktStepUp=(mk.mktStepUp||0)+adj.noig/100;
+    if(adj.vacancy!=null) mk.stabVac=Math.max(0,(mk.stabVac||0)+adj.vacancy/100);
+    rr={leases:window.rrModel.leases, mkt:mk};
+  }
+  return {c:cur,d:depth,s:s,k:kk,r:refiState,rr:rr};
+}
+function caseComment(r,base){
+  if(!r||r.IRR==null) return 'IRR 계산 불가 — 현금흐름 구조 확인 필요';
+  var c=[];
+  if(r.EM!=null&&r.EM<1) c.push('투자원금 손실 가능성');
+  if(isFinite(r.minDSCR)&&r.minDSCR<1) c.push('원리금 미충당 구간 발생');
+  else if(isFinite(r.minDSCR)&&r.minDSCR<1.2) c.push('상환여력 얇음(DSCR<1.2x)');
+  if(base&&base.IRR!=null&&(base.IRR-r.IRR)>0.03) c.push('기본 대비 −'+((base.IRR-r.IRR)*100).toFixed(1)+'%p — Exit Cap·성장률 민감');
+  return c.length?c.join(' · '):'배당 여력 축소 수준';
+}
+function caseBreachYear(r){
+  if(!r||!r.DSCR) return null;
+  var th=parseNum(state['covdscr']); if(!isFinite(th)) th=1.0;
+  for(var y=0;y<r.DSCR.length;y++) if(r.DSCR[y]<th) return y+1;
+  return null;
+}
+function renderCases(){
+  var card=$('caseCard'); if(!card) return;
+  if(!(cur==='office'||cur==='logistics')){ card.hidden=true; return; }
+  var m=null; try{ m=simModel(); }catch(e){}
+  var base=m&&m.raw;
+  if(!base||base.IRR==null){ card.hidden=true; return; }
+  var rows=[{label:'Base', raw:base, note:'현재 가정'}];
+  MT_CASES.forEach(function(cs){
+    var out=computeForSnapshot(caseSnapshot(cs.adj));
+    rows.push({label:cs.label, raw:out&&out.raw, note:caseComment(out&&out.raw, base)});
+  });
+  function fp(x){ return (x==null||!isFinite(x))?'—':(x*100).toFixed(1)+'%'; }
+  function fx(x,d){ return (x==null||!isFinite(x))?'—':x.toFixed(d)+'x'; }
+  var body='<div class="cov-wrap"><table class="sens-tbl case-tbl"><tr><th>케이스</th><th>세전 IRR</th><th>EM</th><th>최소 DSCR</th><th>DSCR 위반연차</th><th>원금손실</th><th class="cs-note">코멘트</th></tr>'+
+    rows.map(function(x){
+      var r=x.raw; var by=caseBreachYear(r);
+      var loss=(r&&r.EM!=null&&r.EM<1);
+      return '<tr class="cs-'+x.label.toLowerCase()+'"><td class="cs-l">'+x.label+'</td><td>'+fp(r&&r.IRR)+'</td><td>'+fx(r&&r.EM,2)+'</td><td>'+fx(r&&r.minDSCR,2)+'</td><td>'+(by?('Y'+by):'—')+'</td><td>'+(loss?'<b class="cs-loss">가능</b>':'아니오')+'</td><td class="cs-note">'+esc(x.note)+'</td></tr>';
+    }).join('')+'</table></div>';
+  var sev=rows[2]&&rows[2].raw;
+  var flag=$('caseFlag');
+  if(flag){ var bad=(sev&&((sev.EM!=null&&sev.EM<1)||(isFinite(sev.minDSCR)&&sev.minDSCR<1)));
+    flag.textContent=bad?'Severe 위험':'스트레스 통과'; flag.className='mx-flag '+(bad?'bad':'ok'); }
+  $('caseBody').innerHTML=body;
+  $('caseFoot').textContent='조정폭 — Downside: 성장률 −0.5%p·Exit Cap +0.25%p·공실 +2%p·금리 +0.5%p / Severe: −1.0%p·+0.5%p·+5%p·+1.0%p. 나머지 가정 동일, 렌트롤 사용 시 시장가정에 동일 적용.';
+  card.hidden=false;
 }
 /* ---------- 임대차 리스크 (렌트롤 기반) ---------- */
 // 리스크 판정 기준 — 일반적 실무 관행값, 자산 성격에 따라 조정 여지 있음
