@@ -76,6 +76,10 @@ ok(html.includes('function rrRiskMetrics'), '임대차 리스크 지표(rrRiskMe
 ok(html.includes('id="rrRiskCard"'), '임대차 리스크 카드 존재');
 ok(html.includes("name:'Lease_Risk'"), '엑셀 Lease_Risk 시트 존재');
 ok(html.includes('function mtChecks'), '체크 레지스트리(mtChecks) 존재');
+ok(html.includes('global.TEASER='), '원페이지 티저 모듈 존재');
+ok(html.includes('id="tzDownload"'), '티저 버튼 존재(엑셀 옆 1/3)');
+ok(html.includes('TPL_B64'), '티저 PPT 양식 내장');
+ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
 ok(!html.includes('mtQuality') && !html.includes('renderCases'), '가정 신뢰도·케이스 카드 제거 확인');
@@ -227,6 +231,19 @@ const driver = `;(function(){
     var _em = simModel().raw.EM; state.exitcap = _snx;
     if (Math.abs(_em - 1.0) > 0.01) throw new Error("손익분기 Exit Cap 검산 실패: EM=" + _em);
     state["covdscr"] = "";
+  }
+  // 원페이지 티저: 생성 → zip 재해석 → 토큰 완전 치환·딜명·S&U 균형 확인
+  if (typeof TEASER !== "undefined") {
+    cur = "office"; window.rrModel = null; fillExample();
+    var _tz = TEASER.build();
+    if (!(_tz && _tz.length > 20000)) throw new Error("티저 생성 실패(bytes=" + (_tz && _tz.length) + ")");
+    var _zf = XLSXREAD.readZip(_tz);
+    var _sx = XLSXREAD.entryText(_zf["ppt/slides/slide1.xml"]);
+    if (_sx.indexOf("⟦") >= 0) throw new Error("티저 미치환 토큰 잔존");
+    var _nm = (state.asset || "").trim();
+    if (_nm && _sx.indexOf(_nm) < 0) throw new Error("티저에 딜명 미포함");
+    if (_sx.indexOf("Sources - Uses = 0억") < 0) throw new Error("티저 S&U 불균형: " + (_sx.match(/Sources - Uses = [^<]*/) || [""])[0]);
+    if (!_zf["[Content_Types].xml"] || !_zf["ppt/presentation.xml"]) throw new Error("티저 zip 구조 손상");
   }
   // 비도관 세후 IRR 경로: 도관에선 세후 KPI 없음 / 비도관에선 세후 KPI 등장·세전과 상이
   cur = "office"; fillExample();
