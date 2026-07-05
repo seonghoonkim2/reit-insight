@@ -253,7 +253,10 @@ html,body{overflow-x:clip}
 .help .tip{position:absolute; bottom:calc(100% + 7px); left:50%; transform:translateX(-50%); background:var(--ink); color:var(--panel); font-size:12.5px; font-weight:400; line-height:1.45; padding:8px 11px; border-radius:8px; width:200px; text-align:left; opacity:0; pointer-events:none; transition:opacity .16s; z-index:30; box-shadow:var(--soft)}
 .help .tip::after{content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:var(--ink)}
 .help:hover .tip,.help:focus .tip,.help:focus-within .tip{opacity:1}
-@media(max-width:520px){ .help .tip{width:160px; left:auto; right:-8px; transform:none} .help .tip::after{left:auto; right:12px; transform:none} }
+@media(max-width:520px){ .help .tip{width:auto; min-width:180px; max-width:min(88vw,300px); left:auto; right:-8px; transform:none; font-size:13px; line-height:1.5; padding:9px 12px} .help .tip::after{left:auto; right:12px; transform:none} }
+/* 모바일: 화면 밖으로 나가지 않게 JS가 뷰포트 기준으로 위치를 잡을 때 */
+.help .tip.tip-fx{position:fixed; right:auto; bottom:auto; width:auto; font-size:13.5px; line-height:1.55; padding:10px 13px; border-radius:9px; box-shadow:0 8px 26px rgba(0,0,0,.32)}
+.help .tip.tip-fx::after{display:none}
 
 /* inline validation */
 .f.invalid input{border-color:var(--red); box-shadow:0 0 0 3px rgba(155,58,46,.1)}
@@ -4770,6 +4773,29 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     var io=new IntersectionObserver(function(es){ lastEntry=es[es.length-1]; evalShow(); }, {threshold:0, rootMargin:'-72px 0px 0px 0px'});
     io.observe(sim);
   }
+})();
+
+/* ── 모바일: 도움말(?) 툴팁이 화면 밖으로 잘리지 않게 뷰포트 기준 위치 보정 ── */
+(function(){
+  var mq = window.matchMedia ? window.matchMedia('(max-width:520px)') : {matches:false};
+  function place(help){
+    var tip = help.querySelector('.tip'); if(!tip) return;
+    if(!mq.matches){ return; }              // 데스크톱은 기존 CSS 그대로
+    tip.classList.add('tip-fx');
+    tip.style.left='0px'; tip.style.top='0px'; tip.style.maxWidth=Math.min(320, window.innerWidth-16)+'px';
+    var r = help.getBoundingClientRect(), tr = tip.getBoundingClientRect(), vw = window.innerWidth, m = 8;
+    var cx = r.left + r.width/2;
+    var left = Math.max(m, Math.min(cx - tr.width/2, vw - m - tr.width));   // 화면 안으로 클램프
+    var top = r.top - tr.height - 8;
+    if(top < m) top = r.bottom + 8;         // 위 공간 부족하면 아래로
+    tip.style.left = left+'px'; tip.style.top = top+'px';
+  }
+  function clear(help){ var tip = help.querySelector('.tip'); if(tip){ tip.classList.remove('tip-fx'); tip.style.left=''; tip.style.top=''; tip.style.maxWidth=''; } }
+  function h(e){ return (e.target && e.target.closest) ? e.target.closest('.help') : null; }
+  document.addEventListener('focusin', function(e){ var el=h(e); if(el) place(el); });
+  document.addEventListener('focusout', function(e){ var el=h(e); if(el) clear(el); });
+  document.addEventListener('pointerover', function(e){ var el=h(e); if(el) place(el); });
+  document.addEventListener('pointerout', function(e){ var el=h(e); if(el) clear(el); });
 })();
 
 /* ── 익명 사용 이벤트 (딜유형·행동·활성기능만 · 입력값/렌트롤 내용은 전송 안 함) ── */
