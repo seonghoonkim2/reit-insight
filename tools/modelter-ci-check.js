@@ -93,6 +93,19 @@ ok(html.includes('Exit Cap ≥ 진입 Cap − 0.5%p'), '엑셀 11 검증: 역스
 ok(html.includes('feats:featSnapshot()'), '이벤트 스키마: 활성기능 스냅샷(feats) 전송');
 ok(html.includes("track('share_link')") && html.includes("track('pdf_export')") && html.includes("track('slot_save')"), '이벤트: 공유·PDF·보관함 액션 추적');
 ok(html.includes("mtTrack('sens_axis'"), '이벤트: 민감도 축 토글 추적');
+ok(html.includes("var WS_KEY='mt_deals'"), '딜 워크스페이스 저장 키(mt_deals) 존재');
+ok(html.includes('function wsDB'), '딜 워크스페이스 저장소(wsDB) 존재');
+ok(html.includes('function wsHash'), '스냅샷 해시(wsHash) 존재');
+ok(html.includes('function wsAddVersion'), '버전 추가(wsAddVersion) 존재');
+ok(html.includes('function wsApplySnapshot'), '버전 복원(wsApplySnapshot) 존재');
+ok(html.includes('function wsWithSnapshot'), '버전 기준 산출물 재생성 래퍼(wsWithSnapshot) 존재');
+ok(html.includes('function wsMigrateSlots'), '기존 보관함(mt_slots) 이관 존재');
+ok(html.includes("MODELTER_DEAL_EXPORT"), '.modelter 내보내기 형식 존재');
+ok(html.includes('function wsImportFile'), '.modelter 가져오기(wsImportFile) 존재');
+ok(html.includes('id="wsOverlay"'), '워크스페이스 패널 모달 존재');
+ok(html.includes('id="wsDirtyTag"'), '저장 안 된 변경 표시(dirty tag) 존재');
+ok(html.includes('function renderWsPanel'), '워크스페이스 패널 렌더러 존재');
+ok(html.includes('function downloadXlsx(ctx)'), '엑셀 다운로드 버전 컨텍스트 지원');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
@@ -285,6 +298,63 @@ const driver = `;(function(){
     if (!_pb || _pb.t !== "ci_probe") throw new Error("mtTrack 비콘 미전송");
     if (!("feats" in _pb)) throw new Error("이벤트 스키마에 feats 누락");
     if (_pb.deal !== "office") throw new Error("이벤트 deal 필드 누락");
+  }
+  // 딜 워크스페이스: 해시 결정성 → 저장 → dirty → v0.2 → 복원 → 재생성 래퍼 → 내보내기/가져오기 왕복
+  if (typeof wsDB === "function") {
+    cur = "office"; window.rrModel = null; fillExample();
+    var _wdb = wsDB();
+    var _sn1 = wsSnapshot();
+    if (wsHash(_sn1) !== wsHash(JSON.parse(JSON.stringify(_sn1)))) throw new Error("wsHash 비결정적(깊은복사 후 불일치)");
+    // 딜 생성 (prompt 없이 내부 API로)
+    var _did = wsId("deal"), _nowI = new Date().toISOString();
+    _wdb.deals[_did] = {id:_did, name:"CI딜", createdAt:_nowI, updatedAt:_nowI, currentVersionId:null, versions:[], outputs:[]};
+    var _v1 = wsAddVersion(_wdb.deals[_did], wsSnapshot(), "CI v1", _nowI);
+    WS = {dealId:_did, versionId:_v1.id, savedHash:_v1.hash};
+    if (_v1.label !== "v0.1") throw new Error("버전 라벨 오류: " + _v1.label);
+    if (wsDirty()) throw new Error("저장 직후 dirty=true");
+    if (!(_v1.summary && _v1.summary.IRR != null && isFinite(_v1.summary.IRR))) throw new Error("버전 요약 IRR 없음(엔진 재계산 실패)");
+    var _ctx0 = wsOutCtx();
+    if (!(_ctx0 && _ctx0.dealName === "CI딜" && _ctx0.label === "v0.1" && _ctx0.dirty === false)) throw new Error("wsOutCtx 오류");
+    // 입력 변경 → dirty
+    var _p0 = state.price; state.price = "999999";
+    if (!wsDirty()) throw new Error("입력 변경 후 dirty=false");
+    // v0.2 저장
+    var _v2 = wsAddVersion(_wdb.deals[_did], wsSnapshot(), "CI v2");
+    WS.versionId = _v2.id; WS.savedHash = _v2.hash;
+    if (_v2.label !== "v0.2") throw new Error("v0.2 라벨 오류: " + _v2.label);
+    if (wsDirty()) throw new Error("v0.2 저장 후 dirty=true");
+    // v0.1 복원 → 입력 되돌아옴 + dirty 해제
+    wsApplySnapshot(JSON.parse(JSON.stringify(_v1.snap)));
+    WS.versionId = _v1.id; WS.savedHash = _v1.hash;
+    if (state.price !== _p0) throw new Error("버전 복원 후 price 미복원: " + state.price);
+    if (wsDirty()) throw new Error("복원 후 dirty=true");
+    // wsWithSnapshot: v0.2 기준 임시 적용 후 전역 복원
+    var _stW = state, _curW = cur, _seenP = null;
+    wsWithSnapshot(_v2.snap, function(){ _seenP = state.price; });
+    if (_seenP !== "999999") throw new Error("wsWithSnapshot 스냅샷 미적용");
+    if (state !== _stW || cur !== _curW) throw new Error("wsWithSnapshot 전역 미복원");
+    // 산출물 이력
+    wsLogOutput(_did, _v2.id, "xlsx", "test.xlsx", "version");
+    if (!_wdb.deals[_did].outputs.length) throw new Error("산출물 이력 미기록");
+    // 내보내기/가져오기 왕복: id 재발급 + 버전 수 유지 + 이름 충돌 처리
+    var _ex = wsExportFile(_did);
+    if (!(_ex && _ex.fileType === "MODELTER_DEAL_EXPORT" && _ex.schema)) throw new Error(".modelter 내보내기 형식 오류");
+    var _im = wsImportFile(JSON.parse(JSON.stringify(_ex)));
+    if (_im.id === _did) throw new Error("가져오기 딜 id 미재발급");
+    if (_im.versions.length !== 2) throw new Error("가져오기 버전 수 불일치: " + _im.versions.length);
+    if (_im.name !== "CI딜 (가져옴)") throw new Error("이름 충돌 처리 오류: " + _im.name);
+    if (_im.versions[0].id === _v1.id) throw new Error("가져오기 버전 id 미재발급");
+    if (_im.currentVersionId !== _im.versions[1].id) throw new Error("가져오기 currentVersionId 재매핑 오류");
+    // loadSlots 어댑터: 딜명 → 현재 버전 스냅샷 (딜 비교 뷰 호환)
+    var _ls = loadSlots();
+    if (!(_ls["CI딜"] && _ls["CI딜"].s)) throw new Error("loadSlots 어댑터 오류");
+    // 잘못된 파일 거부
+    var _bad = false; try { wsImportFile({fileType:"nope"}); } catch (e) { _bad = true; }
+    if (!_bad) throw new Error("잘못된 .modelter 파일이 통과됨");
+    // 정리
+    delete _wdb.deals[_did]; delete _wdb.deals[_im.id];
+    WS = {dealId:null, versionId:null, savedHash:null};
+    cur = "office"; window.rrModel = null; fillExample();
   }
   globalThis.__CI_OK = 1;
 })();`;

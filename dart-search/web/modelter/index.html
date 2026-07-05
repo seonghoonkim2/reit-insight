@@ -537,6 +537,28 @@ header{background:rgba(253,252,249,.82)}
 .sl-btn:hover{border-color:var(--accent); color:var(--accent-deep)}
 .sl-cmp{border-color:var(--accent); color:var(--accent-deep); font-weight:700}
 .sl-cmp:hover{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
+.ws-dirty{font-size:11px; font-weight:700; color:var(--red); background:rgba(187,70,48,.1); border-radius:999px; padding:3px 9px; white-space:nowrap}
+/* 워크스페이스 패널 */
+.ws-modal{max-width:640px}
+.ws-sec-h{font-size:12.5px; font-weight:700; color:var(--ink-2); margin:16px 0 8px; display:flex; align-items:baseline; gap:8px}
+.ws-sec-h span{font-weight:500; color:var(--muted); font-size:11px}
+.ws-deals,.ws-vers,.ws-outs{display:flex; flex-direction:column; gap:7px}
+.ws-deal,.ws-ver{border:1px solid var(--line-soft); border-radius:11px; padding:9px 12px; background:var(--bg)}
+.ws-deal.on,.ws-ver.on{border-color:var(--accent); background:rgba(169,121,43,.05)}
+.ws-deal-t,.ws-ver-t{display:flex; align-items:baseline; gap:8px; font-size:13px; color:var(--ink); flex-wrap:wrap}
+.ws-deal-t span,.ws-date{font-size:11px; color:var(--muted); font-weight:500}
+.ws-ver-t .ws-date{margin-left:auto}
+.ws-vname{font-size:12px; color:var(--ink-3)}
+.ws-now{font-size:10px; font-weight:700; color:var(--accent-deep); background:rgba(169,121,43,.14); border-radius:6px; padding:1px 7px}
+.ws-deal-s,.ws-ver-s{font-size:11.5px; color:var(--ink-3); margin:4px 0 7px; font-family:var(--mono)}
+.ws-deal-a,.ws-ver-a{display:flex; gap:6px; flex-wrap:wrap}
+.ws-out{display:flex; align-items:center; gap:9px; font-size:12px; color:var(--ink-2); border-bottom:1px solid var(--line-soft); padding:5px 2px; flex-wrap:wrap}
+.ws-out-t{font-weight:700; flex:0 0 74px}
+.ws-out-v{font-weight:700; color:var(--accent-deep); flex:0 0 70px}
+.ws-out-f{flex:1; min-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted)}
+.ws-backup{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.ws-import{cursor:pointer}
+.ws-note{font-size:11px; color:var(--muted); line-height:1.5; flex:1; min-width:200px}
 
 /* 딜 비교 모달 */
 .cmp-modal{max-width:760px}
@@ -1076,6 +1098,15 @@ html,body{overflow-x:hidden}
   </div>
 </div>
 
+<div class="wn-overlay" id="wsOverlay" hidden>
+  <div class="wn-modal ws-modal" role="dialog" aria-modal="true" aria-labelledby="wsTitle">
+    <button class="wn-x" id="wsClose" type="button" aria-label="닫기">×</button>
+    <div class="wn-eyebrow">딜 워크스페이스 · Versions</div>
+    <h3 id="wsTitle">버전 · 산출물 · 백업</h3>
+    <div id="wsBody"></div>
+  </div>
+</div>
+
 <div class="mini-kpi" id="miniKpi" aria-hidden="true">
   <span class="mini-tag">실시간</span>
   <div class="mini-item"><span class="mini-l">IRR</span><span class="mini-v" id="miniIrr">—</span></div>
@@ -1166,9 +1197,11 @@ html,body{overflow-x:hidden}
       <div class="slots-bar">
         <span class="sl-label">딜 보관함</span>
         <select id="slotSel" class="sl-sel"><option value="">— 불러오기 —</option></select>
-        <button class="sl-btn" id="slotSave" type="button">현재 저장</button>
+        <button class="sl-btn" id="slotSave" type="button">딜로 저장</button>
+        <button class="sl-btn" id="wsOpen" type="button" title="버전 목록·산출물 이력·.modelter 백업" hidden>백업·가져오기</button>
         <button class="sl-btn" id="slotDel" type="button" title="선택 딜 삭제" hidden>삭제</button>
         <button class="sl-btn sl-cmp" id="cmpOpen" type="button" title="저장한 딜과 현재 입력을 나란히 비교" hidden>딜 비교</button>
+        <span class="ws-dirty" id="wsDirtyTag" hidden title="현재 화면값이 저장된 버전과 다릅니다">● 저장 안 된 변경</span>
       </div>
       <div class="panel-body" id="formBody"></div>
     </div>
@@ -2035,6 +2068,7 @@ function update(){
   renderRRRisk();
   renderScenNote();
   updateGroupCounts();
+  try{ renderWorkspace(); }catch(e){}
   saveLocal();
 }
 /* 그룹별 입력 진행 표시 (n/m) — 어디까지 채웠는지 부담을 줄여줌 */
@@ -2192,13 +2226,218 @@ document.addEventListener('keydown',function(e){ if((e.metaKey||e.ctrlKey)&&e.ke
 
 
 /* ---------- 딜 보관함(다중 저장) ---------- */
-var SLOTS_KEY='mt_slots';
-function loadSlots(){ try{ return JSON.parse(localStorage.getItem(SLOTS_KEY)||'{}')||{}; }catch(e){ return {}; } }
-function saveSlots(o){ try{ localStorage.setItem(SLOTS_KEY,JSON.stringify(o)); }catch(e){} }
-function refreshSlotSel(){ var sel=$('slotSel'); if(!sel) return; var o=loadSlots(); var names=Object.keys(o); var prev=sel.value; sel.innerHTML='<option value="">— 불러오기 ('+names.length+') —</option>'+names.map(function(n){return '<option>'+esc(n)+'</option>';}).join(''); if(names.indexOf(prev)>=0) sel.value=prev; var del=$('slotDel'); if(del) del.hidden=!sel.value; var cmp=$('cmpOpen'); if(cmp) cmp.hidden=!names.length; }
-function slotSave(){ var def=((state.asset||'').trim())||DEALS[cur].label; var name=prompt('저장할 딜 이름을 입력하세요', def); if(name===null) return; name=(name||'').trim(); if(!name){ toast('이름을 입력하세요'); return; } var o=loadSlots(); o[name]={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:(window.rrModel&&window.rrModel.on?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null)}; saveSlots(o); refreshSlotSel(); var sel=$('slotSel'); if(sel){ sel.value=name; } var del=$('slotDel'); if(del) del.hidden=false; toast(name+' 저장됨'); }
-function slotLoad(name){ var o=loadSlots(); var pp=o[name]; if(!pp) return; if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d; state=pp.s||{}; stackState=pp.k||{}; refiState=pp.r||{}; window.rrModel=(pp.rr&&pp.rr.leases)?{leases:pp.rr.leases,mkt:pp.rr.mkt,on:true}:null; renderTabs(); renderForm(); restoreInputs(); update(); toast(name+' 불러옴'); }
-// 스냅샷(딜)을 전역을 건드리지 않고 계산 — 비교 뷰용. 전역 백업→적용→simModel→반드시 복원.
+/* ---------- 딜 워크스페이스: 딜 → 버전(v0.N) → 산출물 이력 (브라우저 로컬 저장) ---------- */
+var WS_KEY='mt_deals', WS_SCHEMA='1.0';
+var WS={dealId:null, versionId:null, savedHash:null};
+var _wsCache=null;
+function wsDB(){
+  if(_wsCache) return _wsCache;
+  try{ var raw=localStorage.getItem(WS_KEY); _wsCache=raw?JSON.parse(raw):null; }catch(e){ _wsCache=null; }
+  if(!_wsCache||!_wsCache.deals){ _wsCache={schema:WS_SCHEMA, deals:{}}; wsMigrateSlots(_wsCache); wsPersist(); }
+  return _wsCache;
+}
+function wsPersist(){ try{ localStorage.setItem(WS_KEY, JSON.stringify(_wsCache)); }catch(e){ try{ toast('저장 공간이 부족합니다 — 딜을 .modelter로 백업 후 정리하세요'); }catch(e2){} } }
+function wsId(pfx){ return pfx+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+// 기존 딜 보관함(mt_slots) → 딜(v0.1)로 1회 이관
+function wsMigrateSlots(db){
+  try{
+    var old=JSON.parse(localStorage.getItem('mt_slots')||'null'); if(!old) return;
+    Object.keys(old).forEach(function(nm){
+      var snap=old[nm]; if(!snap||!snap.s) return;
+      var now=new Date().toISOString(), id=wsId('deal');
+      db.deals[id]={id:id,name:nm,createdAt:now,updatedAt:now,currentVersionId:null,versions:[],outputs:[]};
+      wsAddVersion(db.deals[id], snap, '기존 보관함 이관', now);
+    });
+  }catch(e){}
+}
+// 현재 입력 스냅샷 — 입력값만 저장하고, 복원 시 엔진이 결과를 재계산 (결과 하드코딩 없음)
+function wsSnapshot(){
+  var s={}; for(var k in state) s[k]=state[k];
+  var kk={}; for(var k2 in stackState) kk[k2]=stackState[k2];
+  var rr2={}; for(var k3 in refiState) rr2[k3]=refiState[k3];
+  return {c:cur,d:depth,s:s,k:kk,r:rr2,rr:(window.rrModel&&window.rrModel.on)?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null};
+}
+function wsStable(v){
+  if(v===null||typeof v!=='object') return JSON.stringify(v);
+  if(Array.isArray(v)){ var a=[]; for(var i=0;i<v.length;i++) a.push(wsStable(v[i])); return '['+a.join(',')+']'; }
+  var ks=Object.keys(v).sort(), o=[];
+  for(var j=0;j<ks.length;j++) o.push(JSON.stringify(ks[j])+':'+wsStable(v[ks[j]]));
+  return '{'+o.join(',')+'}';
+}
+function wsHash(snap){ var s=wsStable(snap), hh=2166136261>>>0; for(var i=0;i<s.length;i++){ hh^=s.charCodeAt(i); hh=Math.imul(hh,16777619)>>>0; } return ('0000000'+hh.toString(16)).slice(-8); }
+// 버전 요약 — 기존 엔진 결과에서 추출만 (별도 계산 없음)
+function wsSummary(snap){
+  var o=null; try{ o=computeForSnapshot(snap); }catch(e){}
+  var r=(o&&o.raw)||{};
+  function fin(x){ return (x!=null&&isFinite(x))?x:null; }
+  return { price:fin(parseNum(snap.s&&snap.s.price)), uses:fin(r.uses), loan:fin(r.loan),
+    prefAmt:fin(r.prefAmt), common:fin(r.common), IRR:fin(r.IRR), IRRat:fin(r.IRRat), EM:fin(r.EM),
+    coc:fin(r.coc), minDSCR:fin(r.minDSCR), exitCap:fin(r.exitCap) };
+}
+function wsAddVersion(deal, snap, name, nowIso){
+  var n=deal.versions.length+1;
+  var v={id:wsId('ver'), n:n, label:'v0.'+n, name:(name||'').trim(),
+    createdAt:nowIso||new Date().toISOString(), hash:wsHash(snap),
+    snap:JSON.parse(JSON.stringify(snap)), summary:wsSummary(snap)};
+  deal.versions.push(v); deal.currentVersionId=v.id; deal.updatedAt=v.createdAt;
+  return v;
+}
+function wsDeal(){ var db=wsDB(); return WS.dealId?(db.deals[WS.dealId]||null):null; }
+function wsVersion(deal,vid){ if(!deal) return null; for(var i=0;i<deal.versions.length;i++) if(deal.versions[i].id===vid) return deal.versions[i]; return null; }
+function wsDirty(){ if(!WS.savedHash) return false; try{ return wsHash(wsSnapshot())!==WS.savedHash; }catch(e){ return false; } }
+function wsLogOutput(dealId, versionId, type, fileName, mode){
+  var db=wsDB(), deal=db.deals[dealId]; if(!deal) return;
+  deal.outputs.push({id:wsId('out'), versionId:versionId||null, type:type, fileName:fileName, at:new Date().toISOString(), mode:mode});
+  if(deal.outputs.length>60) deal.outputs=deal.outputs.slice(-60);
+  wsPersist();
+}
+// 산출물 컨텍스트: 다운로드 파일명·메타데이터·이력 기록에 사용
+function wsOutCtx(){
+  var deal=wsDeal(); if(!deal) return null;
+  var v=wsVersion(deal,WS.versionId);
+  return {dealId:deal.id, dealName:deal.name, versionId:v?v.id:null, label:v?v.label:'', vname:v?(v.name||''):'', dirty:wsDirty()};
+}
+window.wsOutCtx=wsOutCtx; window.wsLogOutput=wsLogOutput;
+// ── 딜/버전 조작 ──
+function wsSaveDeal(){
+  var def=((state.asset||'').trim())||DEALS[cur].label;
+  var name=prompt('딜 이름을 입력하세요', def); if(name===null) return;
+  name=(name||'').trim(); if(!name){ toast('이름을 입력하세요'); return; }
+  var vname=prompt('v0.1 버전 설명 (선택) — 예: Broker IM 기준','');
+  if(vname===null) vname='';
+  var db=wsDB(), id=wsId('deal'), now=new Date().toISOString();
+  db.deals[id]={id:id,name:name,createdAt:now,updatedAt:now,currentVersionId:null,versions:[],outputs:[]};
+  var v=wsAddVersion(db.deals[id], wsSnapshot(), vname, now);
+  wsPersist(); WS={dealId:id, versionId:v.id, savedHash:v.hash};
+  refreshSlotSel(); renderWorkspace();
+  toast(name+' 저장됨 — '+v.label+(v.name?(' · '+v.name):'')+'. 이 버전 기준으로 엑셀·티저를 다시 뽑을 수 있습니다');
+  if(window.mtTrack) try{ mtTrack('ws_save',{kind:'deal'}); }catch(e){}
+}
+function wsSaveVersion(){
+  var deal=wsDeal(); if(!deal){ wsSaveDeal(); return; }
+  var next='v0.'+(deal.versions.length+1);
+  var vname=prompt(next+' 버전 설명 (선택) — 예: 렌트롤 반영 / 대출조건 변경','');
+  if(vname===null) return;
+  var v=wsAddVersion(deal, wsSnapshot(), vname);
+  wsPersist(); WS.versionId=v.id; WS.savedHash=v.hash;
+  refreshSlotSel(); renderWorkspace();
+  toast(deal.name+' → '+v.label+' 저장됨');
+  if(window.mtTrack) try{ mtTrack('ws_save',{kind:'version'}); }catch(e){}
+}
+function wsApplySnapshot(pp){
+  if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d;
+  state=Object.assign({},pp.s||{}); stackState=Object.assign({},pp.k||{}); refiState=Object.assign({},pp.r||{});
+  window.rrModel=(pp.rr&&pp.rr.leases)?{leases:pp.rr.leases,mkt:pp.rr.mkt,on:true,confirmed:true}:null;
+  window.rrState=null;
+  renderTabs(); renderForm(); restoreInputs(); update();
+}
+function wsLoadVersion(dealId, vid){
+  var db=wsDB(), deal=db.deals[dealId]; if(!deal||!deal.versions.length) return;
+  var v=wsVersion(deal,vid)||wsVersion(deal,deal.currentVersionId)||deal.versions[deal.versions.length-1];
+  WS={dealId:deal.id, versionId:v.id, savedHash:v.hash};
+  deal.currentVersionId=v.id; wsPersist();
+  wsApplySnapshot(JSON.parse(JSON.stringify(v.snap)));
+  refreshSlotSel(); renderWorkspace();
+  toast(deal.name+' · '+v.label+(v.name?(' · '+v.name):'')+' 불러옴');
+}
+function wsDeleteDeal(dealId){
+  var db=wsDB(), deal=db.deals[dealId]; if(!deal) return;
+  if(!confirm(deal.name+' 딜을 삭제할까요? 버전 '+deal.versions.length+'개가 함께 삭제됩니다.')) return;
+  delete db.deals[dealId]; wsPersist();
+  if(WS.dealId===dealId) WS={dealId:null,versionId:null,savedHash:null};
+  refreshSlotSel(); renderWorkspace(); renderWsPanel(); toast('삭제됨');
+}
+function wsDeleteVersion(dealId, vid){
+  var db=wsDB(), deal=db.deals[dealId]; if(!deal) return;
+  if(deal.versions.length<=1){ toast('마지막 버전입니다 — 딜 자체를 삭제하려면 보관함의 삭제를 사용하세요'); return; }
+  var v=wsVersion(deal,vid); if(!v) return;
+  if(!confirm(v.label+(v.name?(' · '+v.name):'')+' 버전을 삭제할까요?')) return;
+  deal.versions=deal.versions.filter(function(x){return x.id!==vid;});
+  if(deal.currentVersionId===vid) deal.currentVersionId=deal.versions[deal.versions.length-1].id;
+  if(WS.versionId===vid){ WS.versionId=deal.currentVersionId; var cv=wsVersion(deal,WS.versionId); WS.savedHash=cv?cv.hash:null; }
+  wsPersist(); renderWsPanel(); refreshSlotSel(); renderWorkspace(); toast('버전 삭제됨');
+}
+// 버전 스냅샷을 임시 적용해 산출물만 생성 (전역 백업→적용→생성→복원)
+function wsWithSnapshot(snap, fn){
+  var bk={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:window.rrModel,rs:window.rrState};
+  try{
+    if(snap.c&&DEALS[snap.c]) cur=snap.c; if(snap.d&&DEPTHS[snap.d]) depth=snap.d;
+    state=snap.s||{}; stackState=snap.k||{}; refiState=snap.r||{};
+    window.rrModel=(snap.rr&&snap.rr.leases)?{leases:snap.rr.leases,mkt:snap.rr.mkt,on:true,confirmed:true}:null;
+    window.rrState=null;
+    fn();
+  } finally{
+    cur=bk.c; depth=bk.d; state=bk.s; stackState=bk.k; refiState=bk.r;
+    window.rrModel=bk.rr; window.rrState=bk.rs;
+  }
+}
+// ── .modelter 내보내기/가져오기 ──
+function wsExportFile(dealId){
+  var db=wsDB(), d=db.deals[dealId]; if(!d) return null;
+  return {fileType:'MODELTER_DEAL_EXPORT', schema:WS_SCHEMA, exportedAt:new Date().toISOString(), deal:JSON.parse(JSON.stringify(d))};
+}
+function wsExportDownload(dealId){
+  var f=wsExportFile(dealId); if(!f) return;
+  var nm=String(f.deal.name).replace(/[\\\/:*?"<>|]/g,'').trim()||'딜';
+  var d2=new Date(), ymd=''+d2.getFullYear()+('0'+(d2.getMonth()+1)).slice(-2)+('0'+d2.getDate()).slice(-2);
+  var blob=new Blob([JSON.stringify(f,null,1)],{type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Modelter_Deal_'+nm+'_'+ymd+'.modelter'; a.click(); URL.revokeObjectURL(a.href);
+  toast('.modelter 파일로 내보냈습니다 — 다른 브라우저에서 가져오기로 복원할 수 있습니다');
+}
+function wsImportFile(obj){
+  if(!obj||obj.fileType!=='MODELTER_DEAL_EXPORT'||!obj.deal||!obj.deal.versions) throw new Error('Modelter 딜 백업 파일이 아닙니다');
+  if(String(obj.schema||'').split('.')[0]!=='1') throw new Error('지원하지 않는 파일 버전입니다 — 최신 모델터에서 다시 내보내 주세요');
+  var db=wsDB(), d=JSON.parse(JSON.stringify(obj.deal));
+  var map={}; d.id=wsId('deal');
+  var taken=Object.keys(db.deals).some(function(k){ return db.deals[k].name===d.name; });
+  if(taken) d.name=d.name+' (가져옴)';
+  d.versions=(d.versions||[]).map(function(v){ var nid=wsId('ver'); map[v.id]=nid; v.id=nid; v.dealId=d.id; return v; });
+  if(d.currentVersionId) d.currentVersionId=map[d.currentVersionId]||((d.versions[d.versions.length-1]||{}).id||null);
+  d.outputs=(d.outputs||[]).map(function(o){ o.id=wsId('out'); o.versionId=o.versionId?(map[o.versionId]||null):null; return o; });
+  db.deals[d.id]=d; wsPersist();
+  return d;
+}
+// ── 딜 비교(renderCompare) 호환 어댑터: 딜별 현재 버전 스냅샷 ──
+function loadSlots(){
+  var db=wsDB(), out={};
+  Object.keys(db.deals).forEach(function(id){
+    var d=db.deals[id]; var v=wsVersion(d,d.currentVersionId)||d.versions[d.versions.length-1];
+    if(v) out[d.name]=v.snap;
+  });
+  return out;
+}
+// ── 보관함 바 UI ──
+function refreshSlotSel(){
+  var sel=$('slotSel'); if(!sel) return;
+  var db=wsDB(), ids=Object.keys(db.deals);
+  ids.sort(function(a,b){ return (db.deals[b].updatedAt||'').localeCompare(db.deals[a].updatedAt||''); });
+  sel.innerHTML='<option value="">— 딜 열기 ('+ids.length+') —</option>'+ids.map(function(id){
+    var d=db.deals[id]; return '<option value="'+id+'"'+(WS.dealId===id?' selected':'')+'>'+esc(d.name)+' · v0.'+d.versions.length+'</option>';
+  }).join('');
+  if(WS.dealId&&db.deals[WS.dealId]) sel.value=WS.dealId;
+  var del=$('slotDel'); if(del) del.hidden=!sel.value;
+  var cmp=$('cmpOpen'); if(cmp) cmp.hidden=!ids.length;
+}
+function renderWorkspace(){
+  var deal=wsDeal();
+  var sv=$('slotSave');
+  if(sv) sv.textContent=deal?('+ v0.'+(deal.versions.length+1)+' 저장'):'딜로 저장';
+  var wsb=$('wsOpen'); if(wsb){ var db=wsDB(); wsb.hidden=false; wsb.textContent=deal?('버전('+deal.versions.length+')·백업'):'백업·가져오기'; }
+  var dd=$('wsDirtyTag');
+  if(dd){ var dirty=deal&&wsDirty(); dd.hidden=!dirty; }
+}
+(function(){
+  var sel=$('slotSel');
+  if(sel) sel.addEventListener('change',function(){
+    var del=$('slotDel'); if(del) del.hidden=!sel.value;
+    if(sel.value) wsLoadVersion(sel.value);
+  });
+  var sv=$('slotSave'); if(sv) sv.addEventListener('click',function(){ wsSaveVersion(); });
+  var dl=$('slotDel'); if(dl) dl.addEventListener('click',function(){ var s=$('slotSel'); if(s&&s.value) wsDeleteDeal(s.value); });
+  refreshSlotSel(); renderWorkspace();
+})();
+
+// 스냅샷(딜)을 전역을 건드리지 않고 계산 — 비교·요약용. 전역 백업→적용→simModel→반드시 복원.
 function computeForSnapshot(snap){
   var bk={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:window.rrModel};
   var out=null;
@@ -2240,8 +2479,107 @@ function renderCompare(){
   }).join('');
   $('cmpBody').innerHTML='<div class="cmp-wrap"><table class="cmp-tbl">'+head+body+'</table></div><p class="cmp-note">입력값으로 직접 계산한 추정치이며 투자 권유가 아닙니다. 딜별 세부는 해당 딜을 불러와 확인하세요.</p>';
 }
-function slotDelete(){ var sel=$('slotSel'); if(!sel||!sel.value) return; var name=sel.value; if(!confirm(name+' 을(를) 삭제할까요?')) return; var o=loadSlots(); delete o[name]; saveSlots(o); refreshSlotSel(); toast('삭제됨'); }
-(function(){ var sel=$('slotSel'); if(sel) sel.addEventListener('change',function(){ var del=$('slotDel'); if(del) del.hidden=!sel.value; if(sel.value) slotLoad(sel.value); }); var sv=$('slotSave'); if(sv) sv.addEventListener('click',slotSave); var dl=$('slotDel'); if(dl) dl.addEventListener('click',slotDelete); refreshSlotSel(); })();
+
+/* ---------- 워크스페이스 패널: 버전 목록 · 산출물 이력 · 백업 ---------- */
+function _wsFmtDT(iso){ try{ return String(iso).slice(0,16).replace('T',' '); }catch(e){ return '—'; } }
+function _wsFmtSum(su){
+  if(!su) return '—';
+  function fp(x){ return (x!=null&&isFinite(x))?(x*100).toFixed(1)+'%':'—'; }
+  function fx(x){ return (x!=null&&isFinite(x))?x.toFixed(2)+'x':'—'; }
+  return 'IRR '+fp(su.IRR)+' · EM '+fx(su.EM)+' · DSCR '+fx(su.minDSCR)+(su.price!=null?(' · 매입가 '+meok(su.price)):'');
+}
+function renderWsPanel(){
+  var body=$('wsBody'); if(!body) return;
+  var db=wsDB(), ids=Object.keys(db.deals);
+  ids.sort(function(a,b){ return (db.deals[b].updatedAt||'').localeCompare(db.deals[a].updatedAt||''); });
+  var deal=wsDeal();
+  var html='';
+  // 딜 목록 (활성 딜 강조)
+  if(ids.length){
+    html+='<div class="ws-sec-h">딜 보관함 <span>'+ids.length+'개 · 이 브라우저에만 저장됩니다</span></div><div class="ws-deals">'+
+      ids.map(function(id){ var d=db.deals[id]; var cv=wsVersion(d,d.currentVersionId)||d.versions[d.versions.length-1];
+        return '<div class="ws-deal'+(WS.dealId===id?' on':'')+'"><div class="ws-deal-t"><b>'+esc(d.name)+'</b><span>버전 '+d.versions.length+' · 산출물 '+(d.outputs||[]).length+' · '+_wsFmtDT(d.updatedAt)+'</span></div>'+
+          '<div class="ws-deal-s">'+esc(_wsFmtSum(cv&&cv.summary))+'</div>'+
+          '<div class="ws-deal-a">'+(WS.dealId===id?'<span class="ws-now">열려 있음</span>':('<button class="sl-btn" data-ws="open" data-deal="'+id+'">열기</button>'))+
+          '<button class="sl-btn" data-ws="export" data-deal="'+id+'">.modelter 내보내기</button>'+
+          '<button class="sl-btn" data-ws="deldeal" data-deal="'+id+'">삭제</button></div></div>';
+      }).join('')+'</div>';
+  } else {
+    html+='<p class="md-sub">저장된 딜이 없습니다. 입력을 마친 뒤 <b>딜로 저장</b>을 누르면 v0.1이 만들어지고, 이후 <b>+ v0.2 저장</b>으로 버전을 쌓을 수 있습니다.</p>';
+  }
+  // 활성 딜의 버전 목록
+  if(deal){
+    var dirty=wsDirty();
+    html+='<div class="ws-sec-h">'+esc(deal.name)+' — 버전 <span>'+(dirty?'현재 화면에 저장 안 된 변경 있음':'저장된 버전과 동일')+'</span></div>';
+    html+='<div class="ws-vers">'+deal.versions.slice().reverse().map(function(v){
+      var isCur=(WS.versionId===v.id);
+      return '<div class="ws-ver'+(isCur?' on':'')+'"><div class="ws-ver-t"><b>'+v.label+'</b>'+(v.name?(' <span class="ws-vname">'+esc(v.name)+'</span>'):'')+(isCur?' <span class="ws-now">현재</span>':'')+'<span class="ws-date">'+_wsFmtDT(v.createdAt)+'</span></div>'+
+        '<div class="ws-ver-s">'+esc(_wsFmtSum(v.summary))+'</div>'+
+        '<div class="ws-ver-a">'+(isCur?'':('<button class="sl-btn" data-ws="load" data-deal="'+deal.id+'" data-ver="'+v.id+'">불러오기</button>'))+
+        '<button class="sl-btn" data-ws="regenx" data-deal="'+deal.id+'" data-ver="'+v.id+'">엑셀 재생성</button>'+
+        '<button class="sl-btn" data-ws="regent" data-deal="'+deal.id+'" data-ver="'+v.id+'">티저 재생성</button>'+
+        (deal.versions.length>1?('<button class="sl-btn" data-ws="delver" data-deal="'+deal.id+'" data-ver="'+v.id+'">삭제</button>'):'')+
+        '</div></div>';
+    }).join('')+'</div>';
+    // 산출물 이력
+    var outs=(deal.outputs||[]).slice().reverse().slice(0,12);
+    html+='<div class="ws-sec-h">산출물 이력 <span>최근 '+outs.length+'건 · 파일은 저장하지 않고 버전 기준으로 재생성합니다</span></div>';
+    html+=outs.length?('<div class="ws-outs">'+outs.map(function(o){
+      var v=wsVersion(deal,o.versionId);
+      return '<div class="ws-out"><span class="ws-out-t">'+(o.type==='xlsx'?'📊 Excel':'📄 티저')+'</span><span class="ws-out-v">'+(v?v.label:(o.mode==='unsaved'?'미저장 상태':'—'))+'</span><span class="ws-out-f">'+esc(o.fileName)+'</span><span class="ws-date">'+_wsFmtDT(o.at)+'</span></div>';
+    }).join('')+'</div>'):'<p class="md-sub">아직 산출물 이력이 없습니다 — 엑셀·티저를 내려받으면 어떤 버전 기준인지 기록됩니다.</p>';
+  }
+  // 백업
+  html+='<div class="ws-sec-h">백업 · 가져오기</div>'+
+    '<div class="ws-backup"><label class="sl-btn ws-import">딜 가져오기 (.modelter)<input type="file" id="wsImport" accept=".modelter,application/json" hidden></label>'+
+    '<span class="ws-note">.modelter 파일에는 입력값·렌트롤 요약이 포함됩니다(원본 파일·임차인 실명은 저장되지 않음). 저장 데이터는 이 브라우저 로컬에만 보관됩니다.</span></div>';
+  body.innerHTML=html;
+}
+(function(){
+  var ov=document.getElementById('wsOverlay'); if(!ov) return;
+  function open(){ renderWsPanel(); ov.hidden=false; document.body.style.overflow='hidden'; if(window.mtTrack) try{ mtTrack('ws_open'); }catch(e){} }
+  function close(){ ov.hidden=true; document.body.style.overflow=''; }
+  var op=document.getElementById('wsOpen'); if(op) op.addEventListener('click',open);
+  var x=document.getElementById('wsClose'); if(x) x.addEventListener('click',close);
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
+  // 패널 내 액션 위임
+  document.addEventListener('click',function(e){
+    var t=e.target&&e.target.closest?e.target.closest('[data-ws]'):null; if(!t) return;
+    var act=t.dataset.ws, dealId=t.dataset.deal, verId=t.dataset.ver;
+    if(act==='open'){ wsLoadVersion(dealId); renderWsPanel(); }
+    else if(act==='load'){ wsLoadVersion(dealId, verId); close(); }
+    else if(act==='deldeal'){ wsDeleteDeal(dealId); }
+    else if(act==='delver'){ wsDeleteVersion(dealId, verId); }
+    else if(act==='export'){ wsExportDownload(dealId); }
+    else if(act==='regenx'||act==='regent'){
+      var db=wsDB(), deal=db.deals[dealId], v=wsVersion(deal,verId); if(!v) return;
+      var ctx={dealId:deal.id, dealName:deal.name, versionId:v.id, label:v.label, vname:v.name||'', dirty:false, explicit:true};
+      wsWithSnapshot(v.snap, function(){
+        try{
+          if(act==='regenx'){ if(window.__downloadXlsx) window.__downloadXlsx(ctx); }
+          else { if(window.TEASER) TEASER.download(ctx); }
+        }catch(err){ toast('재생성 오류: '+err.message); }
+      });
+      renderWsPanel();
+    }
+  });
+  // .modelter 가져오기
+  document.addEventListener('change',function(e){
+    var t=e.target; if(!t||t.id!=='wsImport') return;
+    var f=t.files&&t.files[0]; if(!f) return;
+    var fr=new FileReader();
+    fr.onload=function(){
+      try{
+        var d=wsImportFile(JSON.parse(fr.result));
+        refreshSlotSel(); renderWsPanel();
+        toast(d.name+' 가져옴 — 버전 '+d.versions.length+'개');
+      }catch(err){ toast(err.message||'파일을 읽는 중 오류가 발생했습니다'); }
+      t.value='';
+    };
+    fr.readAsText(f);
+  });
+})();
 
 /* ---------- 한 장 요약(인쇄/PDF) ---------- */
 function buildPrintSummary(){
@@ -3795,16 +4133,35 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var sLR={name:'Lease_Risk',hidden:false,maxcol:8,cells:lr,merges:[],widths:{}};
     return {sheets:[sRR,sMA,sLB,sLR], ov:ov, leaseMode:true};
   }
-  function downloadXlsx(){
+  function downloadXlsx(ctx){
     try{
+      // 워크스페이스 컨텍스트: 활성 딜이 있으면 버전 기준 메타·파일명·이력 기록
+      if(!ctx&&typeof wsOutCtx==='function') ctx=wsOutCtx();
+      if(ctx&&ctx.dirty&&!ctx.explicit){
+        if(!confirm('저장되지 않은 변경이 있습니다.\n이 상태로 받으면 나중에 같은 기준으로 재생성하기 어렵습니다.\n(먼저 + 새 버전 저장을 누르면 버전 기준으로 남습니다)\n\n현재 화면값으로 계속 받을까요?')) return;
+      }
       var ov=assumOverrides();
       var _TPL=holdTemplate(XLTMPL, mtHold());
+      // 표지에 딜·버전 표기
+      try{
+        if(ctx){ var _cv2=null,_b22=null,i3;
+          for(i3=0;i3<_TPL.sheets.length;i3++) if(_TPL.sheets[i3].name==='00_Cover'){ _cv2=_TPL.sheets[i3]; break; }
+          if(_cv2) for(i3=0;i3<_cv2.cells.length;i3++) if(_cv2.cells[i3].r==='B2'){ _b22=_cv2.cells[i3]; break; }
+          if(_b22&&_b22.s) _b22.s+=' · Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')))+' · 생성 '+new Date().toISOString().slice(0,10);
+        }
+      }catch(e3){}
       var ext=leaseExtraSheets();
       var bytes = ext ? XLSXGEN.buildXlsx(_TPL, ov, ext.sheets, ext.ov)
                       : (function(){ var rr=rentRollSheet(); return XLSXGEN.buildXlsx(_TPL, ov, rr?[rr]:null); })();
       var blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
       var nm=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset).replace(/[\\\/:*?"<>|]/g,'').trim():'매입';
       var fname='모델터_'+(nm||'매입')+'_재무모델.xlsx';
+      if(ctx&&!ctx.dirty&&ctx.label){
+        var _dn=String(ctx.dealName).replace(/[\\\/:*?"<>|]/g,'').trim()||'딜';
+        var _d3=new Date(), _ymd3=''+_d3.getFullYear()+('0'+(_d3.getMonth()+1)).slice(-2)+('0'+_d3.getDate()).slice(-2);
+        fname='모델터_'+_dn+'_'+ctx.label+'_'+_ymd3+'.xlsx';
+      }
+      if(ctx&&typeof wsLogOutput==='function') wsLogOutput(ctx.dealId, ctx.dirty?null:ctx.versionId, 'xlsx', fname, ctx.dirty?'unsaved':'saved');
       var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname;
       document.body.appendChild(a); a.click();
       setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },1500);
@@ -3828,7 +4185,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   // 결과 갱신 때마다 버튼 노출 동기화 (renderSim 래핑)
   try{ if(typeof renderSim==='function'){ var _rs=renderSim; renderSim=function(){ var r=_rs.apply(this,arguments); updateXlsxBtn(); return r; }; } }catch(e){}
 
-  function wire(){ var b=$id('xlDownload'); if(b && !b.__wired){ b.__wired=1; b.addEventListener('click',downloadXlsx); } var tz=$id('tzDownload'); if(tz && !tz.__wired){ tz.__wired=1; tz.addEventListener('click',function(){ try{ if(window.TEASER) TEASER.download(); }catch(e){ if(typeof toast==='function') toast('티저 생성 오류: '+e.message); } }); } if(typeof update==='function'){ try{update();}catch(e){} } updateXlsxBtn(); }
+  function wire(){ var b=$id('xlDownload'); if(b && !b.__wired){ b.__wired=1; b.addEventListener('click',function(){ downloadXlsx(); }); } var tz=$id('tzDownload'); if(tz && !tz.__wired){ tz.__wired=1; tz.addEventListener('click',function(){ try{ if(window.TEASER) TEASER.download(); }catch(e){ if(typeof toast==='function') toast('티저 생성 오류: '+e.message); } }); } if(typeof update==='function'){ try{update();}catch(e){} } updateXlsxBtn(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
   window.__downloadXlsx=downloadXlsx;
 })();
@@ -4081,9 +4438,13 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     };
     return V;
   }
-  function buildTeaserPptx(){
+  function buildTeaserPptx(ctx){
     var V=teaserValues();
     if(!V) return null;
+    if(ctx){
+      V.GEN='Internal · '+(ctx.dirty?'미저장 변경 반영':(ctx.label+(ctx.vname?(' '+ctx.vname):'')))+' · Generated '+V.GEN.split('Generated ')[1];
+      V.FOOT='modelter.com · '+ctx.dealName+(ctx.dirty?'':(' · '+ctx.label))+' · Modelter Teaser';
+    }
     var files=XLSXREAD.readZip(b2u(TPL_B64));
     var slide=XLSXREAD.entryText(files['ppt/slides/slide1.xml']);
     slide=slide.replace(/⟦(\w+)⟧/g, function(mm,k){ return (k in V)?xesc(V[k]):mm; });
@@ -4095,13 +4456,23 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     }
     return zipStore(out);
   }
-  function download(){
-    var bytes=buildTeaserPptx();
+  function download(ctx){
+    if(!ctx&&typeof wsOutCtx==='function') ctx=wsOutCtx();
+    if(ctx&&ctx.dirty&&!ctx.explicit){
+      if(!confirm('저장되지 않은 변경이 있습니다.\n이 상태로 받으면 나중에 같은 기준으로 재생성하기 어렵습니다.\n\n현재 화면값으로 계속 받을까요?')) return;
+    }
+    var bytes=buildTeaserPptx(ctx);
     if(!bytes){ if(typeof toast==='function') toast('먼저 오피스·물류 딜에서 매입가 등 값을 입력하세요'); return; }
     var d=new Date(), ymd=''+d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);
     var nm=(state.asset||'딜').replace(/[\\\/:*?"<>|]/g,'').trim()||'딜';
+    var fname='모델터_티저_'+nm+'_'+ymd+'.pptx';
+    if(ctx&&!ctx.dirty&&ctx.label){
+      var dn=String(ctx.dealName).replace(/[\\\/:*?"<>|]/g,'').trim()||'딜';
+      fname='모델터_티저_'+dn+'_'+ctx.label+'_'+ymd+'.pptx';
+    }
+    if(ctx&&typeof wsLogOutput==='function') wsLogOutput(ctx.dealId, ctx.dirty?null:ctx.versionId, 'pptx', fname, ctx.dirty?'unsaved':'saved');
     var blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
-    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='모델터_티저_'+nm+'_'+ymd+'.pptx'; a.click(); URL.revokeObjectURL(a.href);
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
     if(typeof toast==='function') toast('원페이지 티저를 내려받았습니다 — PPT에서 바로 편집할 수 있습니다');
     if(window.mtTrack) try{ mtTrack('teaser'); }catch(e){}
   }
