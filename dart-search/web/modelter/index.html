@@ -1090,7 +1090,7 @@ html,body{overflow-x:hidden}
 
     <div class="md-sec">
       <h4>민감도</h4>
-      <p>오피스·물류는 <b>Exit Cap × NOI 성장률</b>(렌트롤 사용 시 시장임대료 성장) 5×5 히트맵으로 레버드 IRR이 어떻게 흔들리는지 보여줍니다. 가운데 칸이 현재 가정입니다.</p>
+      <p>오피스·물류는 <b>Exit Cap × NOI 성장률</b>(렌트롤 사용 시 시장임대료 성장) 5×5 히트맵으로 레버드 IRR이 어떻게 흔들리는지 보여줍니다. 개발·PF(공동주택 분양)는 <b>분양률(100~70%) × 분양가(±5%)</b> 히트맵으로 사업이익률의 흔들림을 보여줍니다. 진하게 표시된 칸이 현재 가정입니다.</p>
     </div>
 
     <div class="md-sec">
@@ -2845,6 +2845,39 @@ function sens2Data(mode){
   if(!any) return null;
   return { ecSteps:ecSteps, gSteps:gSteps, rows:rows, baseI:2, baseJ:2, gLabel:isRate?'선순위 금리':(base.gLabel||'NOI 성장률'), min:min, max:max };
 }
+/* 개발·공동주택 분양 민감도: 분양률(행) × 분양가 조정(열) → 사업이익률. 실제 월별 엔진 재계산 */
+function devSens2(){
+  if(!(cur==='dev'&&devResi())) return null;
+  var base=simDevResi(); if(!(base&&base.raw&&isFinite(base.raw.margin))) return null;
+  var soldRows=[100,90,80,70], adjCols=[-5,-2.5,0,2.5,5];
+  var bkSold=state.aptsold, bkApt=state.aptrows, bkRet=state.retrows;
+  function scaled(json, adj){
+    var rows=[]; try{ rows=JSON.parse(json||'[]'); }catch(e){ rows=[]; }
+    return JSON.stringify(rows.map(function(r){
+      var o={}; for(var k in r) o[k]=r[k];
+      var pv=parseNum(String(r.p||'')); if(isFinite(pv)&&pv>0) o.p=String(Math.round(pv*(1+adj/100)*100)/100);
+      return o;
+    }));
+  }
+  var rows=[], min=Infinity, max=-Infinity, any=false;
+  try{
+    for(var i=0;i<soldRows.length;i++){ var row=[];
+      for(var j=0;j<adjCols.length;j++){
+        state.aptsold=String(soldRows[i]);
+        state.aptrows=scaled(bkApt, adjCols[j]); state.retrows=scaled(bkRet, adjCols[j]);
+        var r2=null; try{ r2=simDevResi(); }catch(e){}
+        var v=(r2&&r2.raw&&isFinite(r2.raw.margin))?(r2.raw.margin/100):null;
+        row.push(v);
+        if(v!=null&&isFinite(v)){ any=true; if(v<min)min=v; if(v>max)max=v; }
+      }
+      rows.push(row);
+    }
+  } finally{ state.aptsold=bkSold; if(bkApt===undefined) delete state.aptrows; else state.aptrows=bkApt; if(bkRet===undefined) delete state.retrows; else state.retrows=bkRet; }
+  if(!any) return null;
+  var curSold=parseNum(String(bkSold||'')); if(!isFinite(curSold)) curSold=100;
+  var bi=soldRows.indexOf(Math.round(curSold));
+  return {ecSteps:soldRows, gSteps:adjCols, rows:rows, baseI:bi, baseJ:2, gLabel:'분양가 조정', corner:'분양률＼분양가', min:min, max:max};
+}
 var sensAxis='growth';
 window.__setSensAxis=function(m){ sensAxis=m; try{ renderSens(); }catch(e){} if(window.mtTrack) try{ mtTrack('sens_axis',{axis:m}); }catch(e){} };
 function _sensMix(a,b,u){ return [Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]+(b[1]-a[1])*u),Math.round(a[2]+(b[2]-a[2])*u)]; }
@@ -3025,7 +3058,7 @@ function renderRRRisk(){
 })();
 function renderHeat(m){
   function r1(x){ return (Math.round(x*10)/10).toFixed(1); }
-  var head='<tr><th class="hx-corner">Cap＼성장</th>'+m.gSteps.map(function(g,j){ return '<th'+(j===m.baseJ?' class="hx-base"':'')+'>'+r1(g)+'%</th>'; }).join('')+'</tr>';
+  var head='<tr><th class="hx-corner">'+esc(m.corner||'Cap＼성장')+'</th>'+m.gSteps.map(function(g,j){ return '<th'+(j===m.baseJ?' class="hx-base"':'')+'>'+r1(g)+'%</th>'; }).join('')+'</tr>';
   var body=m.ecSteps.map(function(ec,i){
     var cells=m.rows[i].map(function(v,j){ var h=_sensHeat(v,m.min,m.max); var isB=(i===m.baseI&&j===m.baseJ);
       return '<td class="hx-cell'+(isB?' hx-base':'')+'" style="background:'+h.bg+'">'+h.txt+'</td>'; }).join('');
@@ -3047,6 +3080,17 @@ function renderSens(){
         +'<button type="button" class="hx-tg'+(sensAxis==='rate'?' on':'')+'" onclick="__setSensAxis(\'rate\')">선순위 금리</button></div>';
       $('sensBody').innerHTML=tg+renderHeat(m);
       $('sensNote').textContent='각 칸 = 해당 Exit Cap·'+(sensAxis==='rate'?'선순위 금리':'성장률')+'에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 파랑=높음·주황=낮음.';
+      return;
+    }
+  }
+  if(cur==='dev'&&typeof devResi==='function'&&devResi()){
+    var dm=null; try{ dm=devSens2(); }catch(e){}
+    if(dm){
+      card.hidden=false;
+      $('sensTitle').textContent='민감도 — 사업이익률';
+      if(sub) sub.textContent='분양률 × 분양가';
+      $('sensBody').innerHTML=renderHeat(dm);
+      $('sensNote').textContent='각 칸 = 해당 아파트 분양률 × 분양가 조정(상업시설 분양가 동시 조정)에서의 사업이익률(매출 대비). 월별 엔진으로 다시 계산한 값이며, 진한 테두리 칸이 현재 가정입니다. 파랑=높음·주황=낮음.';
       return;
     }
   }

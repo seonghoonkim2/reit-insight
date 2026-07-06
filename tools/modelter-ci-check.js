@@ -112,6 +112,7 @@ ok(html.includes('k:"devtype"'), '개발 사업유형 선택(공동주택 분양
 ok(html.includes('k:"mcount"'), '중도금 횟수 입력 존재');
 ok(html.includes('k:"dpct"') && html.includes('k:"rpct"'), '계약금·잔금 비율 입력 존재');
 ok(html.includes('function simDevBulk'), '통매각·임대 간이 엔진 유지');
+ok(html.includes('function devSens2'), '분양률×분양가 민감도 매트릭스 존재');
 ok(!html.includes("cur==='reit'") && !html.includes('리츠 · 펀드 운용') && !html.includes('function simReit'), '리츠·펀드 운용 탭 제거 확인');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
@@ -333,6 +334,17 @@ const driver = `;(function(){
     if (!(_dr3.raw.aptRev < _rw.aptRev)) throw new Error("분양률 70%인데 아파트 수입 미감소");
     if (!(_dr3.raw.loan > _rw.loan)) throw new Error("분양률 70%인데 필요 PF 한도 미증가");
     state.aptsold = _sv2;
+    // 분양률×분양가 민감도: 4×5, 기준 칸=본 결과, 상태 복원, 방향성
+    if (typeof devSens2 === "function") {
+      var _bkA = state.aptrows, _bkS = state.aptsold;
+      var _sm = devSens2();
+      if (!(_sm && _sm.rows.length === 4 && _sm.rows[0].length === 5)) throw new Error("민감도 매트릭스 크기 오류");
+      if (state.aptrows !== _bkA || state.aptsold !== _bkS) throw new Error("민감도 계산 후 상태 미복원");
+      if (Math.abs(_sm.rows[0][2] - _rw.margin / 100) > 1e-9) throw new Error("민감도 기준 칸≠본 결과: " + _sm.rows[0][2] + " vs " + _rw.margin / 100);
+      if (!(_sm.rows[3][2] < _sm.rows[0][2])) throw new Error("분양률 70%가 100%보다 이익률 높음");
+      if (!(_sm.rows[0][4] > _sm.rows[0][0])) throw new Error("분양가 +5%가 -5%보다 이익률 낮음");
+      if (_sm.baseI !== 0 || _sm.baseJ !== 2) throw new Error("기준 칸 좌표 오류");
+    }
     // 통매각(간이) 경로 유지
     state.devtype = "통매각·임대(간이)";
     if (typeof renderForm === "function") renderForm();
