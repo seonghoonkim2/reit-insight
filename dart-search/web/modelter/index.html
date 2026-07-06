@@ -6,7 +6,7 @@
 <script>(function(){try{var t=localStorage.getItem('mt_theme');if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <title>모델터 · 부동산 재무모델 빌더 — 숫자만 넣으면 결과·Excel 모델까지</title>
 
-<meta name="description" content="모델터 — 딜 유형을 고르고 숫자만 넣으면 IRR·멀티플 결과를 화면에서 바로, 수식이 살아있는 13시트 Excel 모델을 그 자리에서 만들어 줍니다. 렌트롤 반영·Claude in Excel 지시문까지. 오피스·물류 매입, 개발·PF, 리파이낸싱, 리츠·펀드." />
+<meta name="description" content="모델터 — 딜 유형을 고르고 숫자만 넣으면 IRR·멀티플 결과를 화면에서 바로, 수식이 살아있는 13시트 Excel 모델을 그 자리에서 만들어 줍니다. 렌트롤 반영·Claude in Excel 지시문까지. 오피스·물류 매입, 공동주택 분양 사업수지, 개발·PF, 리파이낸싱." />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <link rel="canonical" href="https://modelter.com/" />
 <meta property="og:type" content="website" />
@@ -977,6 +977,29 @@ html,body{overflow-x:hidden}
 .hx-tbl td.hx-cell{font-size:12px; font-weight:700; font-family:var(--mono); color:var(--ink); text-align:center; padding:7px 6px; border-radius:6px; white-space:nowrap; border:none}
 .hx-tbl th.hx-base{color:var(--accent-deep); font-weight:800}
 .hx-tbl td.hx-base{font-weight:800; outline:2px solid var(--accent-solid); outline-offset:-2px}
+
+/* 개발·공동주택 분양 그리드 */
+.dg-wrap{margin-top:6px; grid-column:1/-1}
+.dg-h{font-size:13px;font-weight:700;color:var(--ink);margin:2px 0 6px}
+.dg-note{font-size:11.5px;font-weight:500;color:var(--ink-3);margin-left:6px}
+.dev-grid{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.dev-grid table{border-collapse:collapse;width:100%;min-width:540px}
+.dev-grid th{font-size:11px;color:var(--ink-3);text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;font-weight:600}
+.dev-grid th .unit{font-weight:500;color:var(--muted)}
+.dev-grid td{padding:4px 5px;border-bottom:1px solid var(--line-soft)}
+.dev-grid tbody tr:last-child td{border-bottom:none}
+.dev-grid .dg-in{width:100%;min-width:64px;font-family:var(--font);font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.dev-grid .dg-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(169,121,43,.24)}
+.dg-calc{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right;white-space:nowrap;padding:4px 8px}
+.dev-grid tfoot td{border-top:1px solid var(--line);background:var(--line-soft)}
+.dev-grid tfoot .dg-calc{color:var(--ink);font-weight:700}
+.dg-tl{font-size:11.5px;color:var(--ink-3);padding:6px 8px;white-space:nowrap}
+.dg-x{width:30px;text-align:center}
+.dg-del{border:none;background:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1}
+.dg-del:hover{color:var(--red);background:var(--line-soft)}
+.dg-add{margin:7px 0 2px;border:1px dashed var(--line);background:none;color:var(--ink-2);font-family:var(--font);font-size:12.5px;padding:6px 12px;border-radius:9px;cursor:pointer}
+.dg-add:hover{border-color:var(--accent);color:var(--accent-deep)}
+.dg-empty{font-size:12px;color:var(--muted);padding:10px 8px}
 </style>
 </head>
 <body>
@@ -1061,8 +1084,8 @@ html,body{overflow-x:hidden}
     </div>
 
     <div class="md-sec">
-      <h4>다른 탭 (간이 지표)</h4>
-      <p><b>리파이낸싱</b>: 대안별 신규대출·DSCR·순인출·수수료 비교(1차연도 기준). <b>리츠</b>: 배당수익률·DPS·P/NAV. <b>개발형</b>: 사업이익률·ROE·연환산 간이 IRR. — "간이" 배지가 붙은 탭은 빠른 감 잡기용입니다.</p>
+      <h4>다른 탭</h4>
+      <p><b>개발 · PF(공동주택 분양)</b>: 평형별 분양가·상업시설·계약금/중도금/잔금 일정을 월별 현금흐름으로 풀어 사업이익률·필요 PF 한도·건설이자·자기자본 수익률을 산출합니다. <b>리파이낸싱</b>: 대안별 신규대출·DSCR·순인출·수수료 비교(1차연도 기준). — "간이" 배지가 붙은 항목은 빠른 감 잡기용입니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1081,7 +1104,7 @@ html,body{overflow-x:hidden}
     </div>
 
     <div class="md-note">
-      <b>한계 — 반드시 확인하세요.</b> 화면 수치는 <b>간이 추정</b>입니다. 공실·CAPEX·단계별 자금흐름·건설이자·약정 트리거 전개는 반영하지 않습니다. 공실·13시트·세금 시트까지 담은 정밀 모델은 <b>Excel 다운로드</b>에서 확인하세요. 배당수익률·주가 등 숫자는 예시 샘플이며(종목명·코드는 실제), 본 도구는 <b>투자 권유가 아닌 정보 제공</b> 목적입니다.
+      <b>한계 — 반드시 확인하세요.</b> 화면 수치는 <b>간이 추정</b>입니다. 공실·CAPEX·약정 트리거 전개 등은 단순화되어 있고, 개발 분양수지도 균등 기성·일괄 토지비 등 단순화 가정을 씁니다. 13시트·세금 시트까지 담은 정밀 모델은 <b>Excel 다운로드</b>(오피스·물류)에서 확인하세요. 본 도구는 <b>투자 권유가 아닌 정보 제공</b> 목적입니다.
     </div>
 
     <button class="wn-cta" id="mdCta" type="button">닫기</button>
@@ -1362,10 +1385,11 @@ const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const SHEET_LAYER={
   Control_Index:"입력", Source_Data:"입력", Assumptions:"입력", Sources_Uses:"입력", Capital_Stack:"입력", Rent_Roll:"입력",
   Lease_NOI_Model:"엔진", Debt_Schedule:"엔진", Tax_Disposition:"엔진", Equity_Cashflow:"엔진", Cashflow_Model:"엔진", Waterfall:"엔진",
+  Unit_Mix_Pricing:"입력", Payment_Cashin:"엔진",
   Construction_Schedule:"엔진", PF_Drawdown:"엔진", Interest_Capitalization:"엔진", Sales_Absorption:"엔진",
-  DSCR_ICR_Test:"엔진", Covenant_Check:"엔진", NAV_Bridge:"엔진", Distribution_Model:"엔진", AUM_Rollforward:"엔진",
+  DSCR_ICR_Test:"엔진", Covenant_Check:"엔진",
   Return_Summary:"결과", Sensitivity:"결과", Profitability_Summary:"결과", Refinance_Compare:"결과", Scenario_Manager:"결과",
-  Breakeven_Analysis:"결과", Dividend_Yield:"결과", IR_Summary:"결과",
+  Breakeven_Analysis:"결과",
   Validation_Checks:"검증", Validation_Dashboard:"검증", Reconciliation:"검증", Audit_Trail:"검증", Error_Log:"검증"
 };
 const LAYER_ORDER=["입력","엔진","결과","검증"];
@@ -1392,16 +1416,13 @@ const SHEET_INFO={
  Refinance_Compare:"리파이낸싱 대안별 LTV·금리·만기·DSCR·순효과 비교",
  Scenario_Manager:"Base·Upside·Downside 시나리오 입력·결과 전환 관리",
  Breakeven_Analysis:"임대율·임대료·금리 기준 손익분기 역산",
+ Unit_Mix_Pricing:"평형별 세대수·분양가와 상업시설 분양 조건 명세",
+ Payment_Cashin:"계약금·중도금·잔금 납부 일정에 따른 월별 분양수입 유입",
  Construction_Schedule:"공정·기성·공사비 투입 일정과 누적 투입 관리",
  PF_Drawdown:"PF 인출 스케줄과 약정·인출·미인출 잔액 관리",
  Interest_Capitalization:"건설기간 이자 자본화와 준공 후 비용화 전환",
  Sales_Absorption:"분양·매각 흡수율과 기간별 회수 현금흐름",
  Profitability_Summary:"총사업비·분양수입·사업이익률·자기자본수익률 요약",
- NAV_Bridge:"자산평가·부채·현금 조정으로 NAV 산출과 변동 요인 분해",
- Distribution_Model:"배당가능이익 산정과 분배 일정·배당성향 관리",
- Dividend_Yield:"주당배당금·배당수익률·시가 대비 지표 산출",
- AUM_Rollforward:"편입·편출·평가변동에 따른 운용자산 잔액 추적",
- IR_Summary:"투자자 보고용 핵심 지표·하이라이트 요약",
  Reconciliation:"원자료와 모델 결과의 대사와 차이 원인 추적",
  Audit_Trail:"가정값 변경 이력·작성자·기준일 기록",
  Error_Log:"오류 내용·영향 지표·원인 셀·수정 제안 분리 기록",
@@ -1484,27 +1505,40 @@ const DEALS={
     ]}
    ]},
 
- dev:{label:"개발 · PF", lite:true, baseAsset:"개발사업",
-   sheets:["Construction_Schedule","PF_Drawdown","Interest_Capitalization","Sales_Absorption","Profitability_Summary","Sensitivity"],
+ dev:{label:"개발 · PF", baseAsset:"개발사업",
+   sheets:["Unit_Mix_Pricing","Payment_Cashin","Construction_Schedule","PF_Drawdown","Interest_Capitalization","Sales_Absorption","Profitability_Summary","Sensitivity"],
    stack:true, stackMode:"dev", tax:true,
    groups:[
     {h:"사업 개요", gl:"①", f:[
-      {k:"asset",l:"사업명",t:"text",ph:"안성 물류 개발",def:"안성 물류 개발"},
+      {k:"asset",l:"사업명",t:"text",ph:"판교 A지구 공동주택",def:"판교 A지구 공동주택"},
+      {k:"devtype",l:"사업 유형",t:"select",opts:["공동주택 분양","통매각·임대(간이)"],hint:"공동주택 분양: 평형별 분양가·상업시설·중도금 일정을 반영한 월별 사업수지. 통매각·임대: 총사업비 대비 매각/임대 수입의 빠른 감 잡기."},
       {k:"land",l:"부지면적",u:"평",t:"num",ph:"12,000",min:0,hint:"토지 면적. 용적률·연면적 검토의 기준입니다."},
-      {k:"gfa",l:"연면적",u:"평",t:"num",ph:"24,000",min:0,hint:"건물 전체 바닥면적. 분양·임대 수입 산정의 기준."},
+      {k:"gfa",l:"연면적",u:"평",t:"num",ph:"24,000",min:0,hint:"건물 전체 바닥면적. 평당 공사비 점검의 기준."},
       {k:"tpc",l:"총사업비",u:"백만원",t:"num",ph:"320,000",min:0,hint:"토지비+공사비+금융비+기타를 모두 포함한 총투입. 자본구조 비중의 분모입니다."},
-      {k:"landcost",l:"토지비",u:"백만원",t:"num",ph:"90,000",min:0,hint:"토지 취득에 들어가는 비용."},
-      {k:"conscost",l:"공사비",u:"백만원",t:"num",ph:"180,000",min:0,hint:"도급 공사비. 기성 일정에 따라 투입됩니다."}
+      {k:"landcost",l:"토지비",u:"백만원",t:"num",ph:"180,000",min:0,hint:"토지 취득에 들어가는 비용(취득세 등 부대비 포함)."},
+      {k:"conscost",l:"공사비",u:"백만원",t:"num",ph:"290,000",min:0,hint:"도급 공사비. 공사기간 동안 기성 일정에 따라 투입됩니다."},
+      {k:"othercost",l:"기타사업비",u:"백만원",t:"num",ph:"55,000",min:0,hint:"설계·감리·각종 분담금·판촉비·분양수수료·신탁보수 등 토지비·공사비 외 비용의 합계."}
     ]},
-    {h:"일정", gl:"②", adv:1, f:[
-      {k:"consperiod",l:"공사기간",u:"개월",t:"num",ph:"28",min:1,max:200,hint:"착공부터 준공까지. 건설이자 자본화 기간과 연동됩니다."},
-      {k:"saleopen",l:"분양·임대 개시",u:"개월차",t:"num",ph:"6",min:0,max:200,hint:"착공 후 몇 개월 차에 분양·임대를 시작하는지."},
-      {k:"absorb",l:"흡수기간",u:"개월",t:"num",ph:"24",min:1,max:200,hint:"분양·임대가 완료되기까지 걸리는 기간."}
-    ]},
-    {h:"수입 / Exit", gl:"③", f:[
+    {h:"분양 수입", gl:"②", f:[
       {k:"saleprice",l:"분양가/임대가",u:"평당 만원·연",t:"text",ph:"평당 1,150만",hint:"분양은 평당 분양가, 임대는 평당 연임대료로 입력."},
       {k:"exitmode",l:"Exit 방식",t:"select",opts:["준공 후 매각(Cap)","분양 완료","보유 운영"],hint:"준공 후 통매각인지, 분양 완료인지, 직접 보유 운영인지."},
-      {k:"exitcap",l:"준공후 매각 Cap",u:"%",t:"num",ph:"5.5",min:0,max:30,pct:1,hint:"보유·통매각 시 적용할 자본환원율. 매각가 = 안정화 NOI ÷ Cap."}
+      {k:"exitcap",l:"준공후 매각 Cap",u:"%",t:"num",ph:"5.5",min:0,max:30,pct:1,hint:"보유·통매각 시 적용할 자본환원율. 매각가 = 안정화 NOI ÷ Cap."},
+      {k:"aptsold",l:"아파트 최종 분양률",u:"%",t:"num",ph:"100",min:0,max:100,pct:1,hint:"흡수기간 종료 시점까지 도달하는 분양률. 미분양 리스크를 보수적으로 보려면 90·80%로 낮춰보세요."},
+      {k:"aptinit",l:"초기 계약률",u:"%",t:"num",ph:"60",min:0,max:100,pct:1,hint:"분양 개시 달에 계약되는 비율. 청약 경쟁률이 높은 입지는 70~100%, 나머지는 흡수기간에 걸쳐 순차 판매로 계산합니다."}
+    ]},
+    {h:"일정 · 납부", gl:"③", adv:1, f:[
+      {k:"consperiod",l:"공사기간",u:"개월",t:"num",ph:"32",min:1,max:200,hint:"착공부터 준공까지. 잔금(입주)은 준공월에 들어오고, 건설이자도 이 기간에 쌓입니다."},
+      {k:"saleopen",l:"분양 개시",u:"개월차",t:"num",ph:"3",min:0,max:200,hint:"착공 후 몇 개월 차에 분양(청약·계약)을 시작하는지."},
+      {k:"absorb",l:"흡수기간",u:"개월",t:"num",ph:"18",min:1,max:200,hint:"분양 개시 후 최종 분양률에 도달하기까지 걸리는 기간."},
+      {k:"dpct",l:"계약금",u:"%",t:"num",ph:"10",min:0,max:100,pct:1,hint:"계약 시 납부 비율. 보통 10~20%."},
+      {k:"mpct",l:"중도금",u:"%",t:"num",ph:"60",min:0,max:100,pct:1,hint:"중도금 총 비율. 보통 60%를 4~6회로 나눠 냅니다. 계약금+중도금+잔금 = 100%가 되어야 합니다."},
+      {k:"mcount",l:"중도금 횟수",u:"회",t:"num",ph:"6",min:1,max:12,hint:"중도금 분할 횟수. 회차는 분양 개시~준공 사이에 균등 배치되고, 늦게 계약한 세대는 지난 회차를 계약 시 일괄 납부합니다."},
+      {k:"rpct",l:"잔금",u:"%",t:"num",ph:"30",min:0,max:100,pct:1,hint:"입주(준공) 시 납부 비율. 보통 20~30%."}
+    ]},
+    {h:"금융(PF)", gl:"④", f:[
+      {k:"equity",l:"자기자본",u:"백만원",t:"num",ph:"60,000",min:0,hint:"시행 자기자본 투입액. 부족 자금은 PF 대출로 조달하는 것으로 계산합니다."},
+      {k:"pfrate",l:"PF 금리",u:"%/년",t:"num",ph:"6.5",min:0,max:30,pct:1,hint:"PF 대출 연이자율. 월별 인출 잔액에 이자가 붙고 분양수입으로 상환됩니다."},
+      {k:"pffee",l:"PF 수수료",u:"%",t:"num",ph:"1.0",min:0,max:30,pct:1,hint:"주선·취급 수수료를 필요 한도(최대 인출액) 대비 %로. 없으면 0."}
     ]}
    ]},
 
@@ -1526,28 +1560,6 @@ const DEALS={
       {k:"prepayfee",l:"중도상환수수료",u:"%",t:"num",ph:"0.5",min:0,max:30,pct:1,hint:"기존 대출 조기 상환 시 부과되는 수수료율."},
       {k:"newfee",l:"신규취급수수료",u:"%",t:"num",ph:"0.3",min:0,max:30,pct:1,hint:"신규 대출 실행 시 취급수수료율."}
     ]}
-   ]},
-
- reit:{label:"리츠 · 펀드 운용", lite:true, baseAsset:"리츠 운용",
-   sheets:["NAV_Bridge","Distribution_Model","Dividend_Yield","AUM_Rollforward","IR_Summary"],
-   stack:false, tax:true, taxFixed:"도관과세",
-   groups:[
-    {h:"포트폴리오", gl:"①", f:[
-      {k:"aum",l:"AUM",u:"백만원",t:"num",ph:"1,400,000",min:0,hint:"운용자산 총액(Assets Under Management)."},
-      {k:"assets",l:"자산 수",u:"개",t:"num",ph:"8",min:0,hint:"포트폴리오에 편입된 부동산 자산 개수."},
-      {k:"avgcap",l:"평균 Cap",u:"%",t:"num",ph:"4.9",min:0,max:30,pct:1,hint:"포트폴리오 가중평균 자본환원율. NAV·가치평가의 기준."},
-      {k:"ltv",l:"LTV",u:"%",t:"num",ph:"48",min:0,max:100,pct:1,hint:"총자산 대비 차입 비율(Loan-to-Value)."}
-    ]},
-    {h:"자본 / 시장", gl:"②", f:[
-      {k:"shares",l:"발행주식수",u:"천주",t:"num",ph:"120,000",min:0,hint:"발행된 총 주식 수. 주당배당금(DPS) 산정의 분모."},
-      {k:"price",l:"현재 주가",u:"원",t:"num",ph:"5,200",min:0,hint:"현재 시장 주가. 배당수익률 산정에 사용."}
-    ]},
-    {h:"배당 / 보수", gl:"③", adv:1, f:[
-      {k:"payout",l:"목표 배당성향",u:"%",t:"num",ph:"90",min:0,max:100,pct:1,hint:"배당가능이익 중 배당하는 비율. 도관과세 요건상 90% 이상."},
-      {k:"freq",l:"분배 주기",t:"select",opts:["분기","반기","연"],hint:"배당을 지급하는 주기."},
-      {k:"fee",l:"운용보수율",u:"%/AUM",t:"num",ph:"0.5",min:0,max:30,pct:1,hint:"AUM 대비 연간 운용보수율."},
-      {k:"drate",l:"차입 평균금리",u:"%",t:"num",ph:"4.5",min:0,max:30,pct:1,hint:"차입금 평균 이자율. 간이 분배가능이익(이자비용) 산정에 사용."}
-    ]}
    ]}
 };
 
@@ -1566,32 +1578,28 @@ const QUICK_CORE={
   office:["Lease_NOI_Model","Return_Summary"],
   logistics:["Lease_NOI_Model","Return_Summary"],
   dev:["Profitability_Summary"],
-  refi:["Refinance_Compare"],
-  reit:["Distribution_Model"]
+  refi:["Refinance_Compare"]
 };
 // 딜별 '심층'에서 추가할 시트
 const DEEP_EXTRA={
   office:["Rent_Roll","Cashflow_Model","Scenario_Manager","Validation_Dashboard"],
   logistics:["Rent_Roll","Cashflow_Model","Scenario_Manager","Validation_Dashboard"],
   dev:["Cashflow_Model","Breakeven_Analysis","Validation_Dashboard"],
-  refi:["Sensitivity","Scenario_Manager","Validation_Dashboard"],
-  reit:["Sensitivity","Reconciliation","Validation_Dashboard"]
+  refi:["Sensitivity","Scenario_Manager","Validation_Dashboard"]
 };
 // 표준에서 제외하고 심층으로 미루는 세부 시트
 const STD_EXCLUDE={
   office:["Rent_Roll","Sensitivity"],
   logistics:["Rent_Roll","Sensitivity"],
   dev:["Sensitivity"],
-  refi:[],
-  reit:[]
+  refi:[]
 };
 // 빠른 검토 깊이에서 노출할 핵심 입력 필드 키(나머지는 숨김)
 const QUICK_FIELDS={
   office:["asset","price","rentpp","hold","exitcap"],
   logistics:["asset","price","rentpp","hold","exitcap"],
-  dev:["asset","tpc","saleprice","exitcap","exitmode"],
-  refi:["asset","noi","oldbal","oldrate","dscrmin"],
-  reit:["aum","avgcap","ltv","payout"]
+  dev:["asset","devtype","tpc","saleprice","exitcap","exitmode"],
+  refi:["asset","noi","oldbal","oldrate","dscrmin"]
 };
 
 let cur="office";
@@ -1717,11 +1725,107 @@ function rrFormBlockHtml(){
     +'</div>';
 }
 
+/* ---------- 개발·공동주택 분양: 평형/상업시설 그리드 ---------- */
+function devResi(){ return cur==='dev' && ((state['devtype']||'공동주택 분양').indexOf('공동주택')===0); }
+function devRows(key, def){
+  try{ var a=JSON.parse(state[key]||'null'); if(Array.isArray(a)) return a; }catch(e){}
+  return def?JSON.parse(JSON.stringify(def)):[];
+}
+function devGridsHtml(){
+  var apt=devRows('aptrows',[{t:'',a:'',n:'',p:''}]);
+  var ret=devRows('retrows',[]);
+  function cell(g,i,f,v,ph){ return '<td><input class="dg-in" data-g="'+g+'" data-i="'+i+'" data-f="'+f+'" value="'+esc(String(v==null?'':v))+'" placeholder="'+esc(ph||'')+'" inputmode="decimal" autocomplete="off"></td>'; }
+  var aptBody=apt.map(function(r,i){
+    return '<tr>'+cell('apt',i,'t',r.t,'84A')+cell('apt',i,'a',r.a,'34')+cell('apt',i,'n',r.n,'320')+cell('apt',i,'p',r.p,'1,050')+
+      '<td class="dg-calc" data-dgc="apt:'+i+':unit">—</td><td class="dg-calc" data-dgc="apt:'+i+':rev">—</td>'+
+      '<td class="dg-x"><button type="button" class="dg-del" data-dgdel="apt:'+i+'" title="행 삭제" aria-label="행 삭제">×</button></td></tr>';
+  }).join('');
+  var retBody=ret.map(function(r,i){
+    return '<tr>'+cell('ret',i,'t',r.t,'단지내 상가')+cell('ret',i,'a',r.a,'600')+cell('ret',i,'p',r.p,'3,500')+cell('ret',i,'s',r.s,'70')+
+      '<td class="dg-calc" data-dgc="ret:'+i+':rev">—</td>'+
+      '<td class="dg-x"><button type="button" class="dg-del" data-dgdel="ret:'+i+'" title="행 삭제" aria-label="행 삭제">×</button></td></tr>';
+  }).join('');
+  return '<div id="devGrids" class="dg-wrap">'+
+    '<div class="dg-h">평형별 분양가 <span class="dg-note">타입별 세대수 × 세대당 분양가 — 예: 7.8억이면 780</span></div>'+
+    '<div class="dev-grid"><table><thead><tr><th>타입</th><th>공급면적 <span class="unit">평</span></th><th>세대수</th><th>분양가 <span class="unit">백만원/세대</span></th><th>평당 <span class="unit">만원</span></th><th>수입</th><th></th></tr></thead>'+
+    '<tbody>'+aptBody+'</tbody>'+
+    '<tfoot><tr><td class="dg-tl">합계</td><td></td><td class="dg-calc" id="dgAptUnits">—</td><td></td><td></td><td class="dg-calc" id="dgAptTot">—</td><td></td></tr></tfoot></table></div>'+
+    '<button type="button" class="dg-add" data-dgadd="apt">+ 평형 추가</button>'+
+    '<div class="dg-h" style="margin-top:14px">상업시설 분양 <span class="dg-note">상가 등 — 평당 분양가·분양률을 아파트와 분리해 반영</span></div>'+
+    '<div class="dev-grid"><table><thead><tr><th>구분</th><th>면적 <span class="unit">평</span></th><th>평당 분양가 <span class="unit">만원</span></th><th>분양률 <span class="unit">%</span></th><th>수입 <span class="unit">분양률 반영</span></th><th></th></tr></thead>'+
+    '<tbody>'+(retBody||'<tr><td colspan="6" class="dg-empty">상업시설이 있으면 아래에서 추가하세요 — 없으면 비워둡니다</td></tr>')+'</tbody>'+
+    (ret.length?'<tfoot><tr><td class="dg-tl">합계</td><td></td><td></td><td></td><td class="dg-calc" id="dgRetTot">—</td><td></td></tr></tfoot>':'')+
+    '</table></div>'+
+    '<button type="button" class="dg-add" data-dgadd="ret">+ 상업시설 추가</button>'+
+    '</div>';
+}
+function devGridCalc(){
+  var host=$('devGrids'); if(!host) return;
+  var apt=devRows('aptrows',[]), ret=devRows('retrows',[]);
+  var units=0, aptTot=0, retTot=0;
+  apt.forEach(function(r,i){
+    var a=parseNum(String(r.a||'')), n=parseNum(String(r.n||'')), p=parseNum(String(r.p||''));
+    var u=host.querySelector('[data-dgc="apt:'+i+':unit"]'); if(u) u.textContent=(isFinite(a)&&a>0&&isFinite(p)&&p>0)?mfmt(p*100/a,0):'—';
+    var rv=(isFinite(n)&&n>0&&isFinite(p)&&p>0)?n*p:NaN;
+    var c=host.querySelector('[data-dgc="apt:'+i+':rev"]'); if(c) c.textContent=isFinite(rv)?meok(rv):'—';
+    if(isFinite(rv)) aptTot+=rv; if(isFinite(n)&&n>0) units+=n;
+  });
+  ret.forEach(function(r,i){
+    var a=parseNum(String(r.a||'')), p=parseNum(String(r.p||'')), sd=parseNum(String(r.s||''));
+    var rv=(isFinite(a)&&a>0&&isFinite(p)&&p>0)?a*p/100*((isFinite(sd)?Math.min(Math.max(sd,0),100):100)/100):NaN;
+    var c=host.querySelector('[data-dgc="ret:'+i+':rev"]'); if(c) c.textContent=isFinite(rv)?meok(rv):'—';
+    if(isFinite(rv)) retTot+=rv;
+  });
+  var e1=$('dgAptUnits'); if(e1) e1.textContent=units?(mfmt(units,0)+'세대'):'—';
+  var e2=$('dgAptTot'); if(e2) e2.textContent=aptTot?meok(aptTot):'—';
+  var e3=$('dgRetTot'); if(e3) e3.textContent=retTot?meok(retTot):'—';
+}
+function devGridWrite(){
+  var host=$('devGrids'); if(!host) return;
+  var apt=[], ret=[];
+  host.querySelectorAll('.dg-in').forEach(function(el){
+    var g=el.dataset.g, i=+el.dataset.i, f=el.dataset.f;
+    var arr=(g==='apt')?apt:ret;
+    while(arr.length<=i) arr.push({});
+    arr[i][f]=el.value;
+  });
+  state.aptrows=JSON.stringify(apt); state.retrows=JSON.stringify(ret);
+}
+function devGridsRefresh(){
+  var host=$('devGrids'); if(!host) return;
+  var tmp=document.createElement('div'); tmp.innerHTML=devGridsHtml();
+  host.replaceWith(tmp.firstChild); bindDevGrids(); update();
+}
+function bindDevGrids(){
+  var host=$('devGrids'); if(!host) return;
+  host.querySelectorAll('.dg-in').forEach(function(el){
+    el.addEventListener('input',function(){ devGridWrite(); devGridCalc(); update(); });
+  });
+  host.querySelectorAll('[data-dgdel]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var pp=b.dataset.dgdel.split(':'), g=pp[0], i=+pp[1], key=(g==='apt')?'aptrows':'retrows';
+      var rows=devRows(key,[]); rows.splice(i,1);
+      if(g==='apt'&&!rows.length) rows.push({t:'',a:'',n:'',p:''});
+      state[key]=JSON.stringify(rows); devGridsRefresh();
+    });
+  });
+  host.querySelectorAll('[data-dgadd]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var g=b.dataset.dgadd, key=(g==='apt')?'aptrows':'retrows';
+      var rows=devRows(key,[]);
+      rows.push(g==='apt'?{t:'',a:'',n:'',p:''}:{t:'',a:'',p:'',s:''});
+      state[key]=JSON.stringify(rows); devGridsRefresh();
+    });
+  });
+  devGridCalc();
+}
+
 function renderForm(){
   const d=DEALS[cur];
   const isQuick = depth==="quick";
   const rrEligible = (cur==="office"||cur==="logistics");
-  const quickKeys = QUICK_FIELDS[cur]||[];
+  let quickKeys = QUICK_FIELDS[cur]||[];
+  if(cur==="dev") quickKeys = devResi()? ["asset","devtype","landcost","conscost","othercost","equity","pfrate"] : ["asset","devtype","tpc","saleprice","exitcap","exitmode"];
   let html=depthHtml();  // 깊이 선택을 폼 최상단에
   if(isQuick){
     // 빠른 검토: 핵심 필드만 한 그룹으로 모아 노출
@@ -1730,7 +1834,7 @@ function renderForm(){
     // QUICK_FIELDS 순서대로 정렬
     allFields.sort((a,b)=>quickKeys.indexOf(a.k)-quickKeys.indexOf(b.k));
     const cols=allFields.some(x=>x.full)?'one':'';
-    const qExtra = rrEligible ? rrFormBlockHtml() : "";
+    const qExtra = rrEligible ? rrFormBlockHtml() : (devResi()? devGridsHtml() : "");
     html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">①</span> 핵심 가정값 <span class="opt-badge" style="background:rgba(169,121,43,.1);color:var(--accent-deep);border-color:transparent">빠른 검토 · 필수 항목만</span></div><div class="fields ${cols}">${allFields.map(fieldHtml).join("")}${qExtra}</div></div>`;
   }else{
     const mode=(state["noimode"]||"").trim();
@@ -1741,12 +1845,18 @@ function renderForm(){
         if(rentBased && f.k==="noi1") return false;
         if(!rentBased && rentKeys.includes(f.k)) return false;
       }
+      if(cur==="dev"){
+        const resi=devResi();
+        if(resi && ["tpc","saleprice","exitmode","exitcap"].includes(f.k)) return false;
+        if(!resi && ["othercost","aptsold","aptinit","dpct","mpct","mcount","rpct","equity","pfrate","pffee"].includes(f.k)) return false;
+      }
       return true;
     });
     d.groups.forEach((g,gi)=>{
       const ff=visibleFields(g);
       const cols = ff.length>=3 && ff.every(x=>!x.full) ? (ff.length%3===0?'three':(ff.length%2===0?'':'')) : (ff.some(x=>x.full)?'one':'');
-      const extra = (rrEligible && g.h==="운영 수입") ? rrFormBlockHtml() : "";
+      const extra = (rrEligible && g.h==="운영 수입") ? rrFormBlockHtml() : ((cur==="dev" && devResi() && g.h==="분양 수입") ? devGridsHtml() : "");
+      if(!ff.length && !extra) return;
       if(g.adv){
         html+=`<div class="fgroup adv" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">세부 · 접기</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }else{
@@ -1754,7 +1864,7 @@ function renderForm(){
       }
     });
   }
-  if(d.stack && !isQuick) html+=stackHtml(d.stackMode);
+  if(d.stack && !isQuick && !devResi()) html+=stackHtml(d.stackMode);
   if(d.refi) html+=refiHtml();
   if(!isQuick) html+=scenHtml();
   html+=commonHtml();
@@ -1766,7 +1876,7 @@ function renderForm(){
       state[el.dataset.k]=el.value;
       if(el.type==="range"){ const o=document.getElementById("rout_"+el.dataset.k); if(o) o.textContent=el.value+(el.dataset.runit||""); }
       if(el.dataset.num) validateField(el);
-      if(el.dataset.k==="noimode"){ renderForm(); restoreInputs(); update(); return; }
+      if(el.dataset.k==="noimode"||el.dataset.k==="devtype"){ renderForm(); restoreInputs(); update(); return; }
       update();
     };
     el.addEventListener("input",handler);
@@ -1783,6 +1893,7 @@ function renderForm(){
   });
   $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{ refiState[el.dataset.rk]=el.value; update(); }); });
   $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",()=>{ scenState[el.dataset.scen]=el.value; update(); }); });
+  bindDevGrids();
   var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
   ["c_freq"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",update); });
   // model depth segmented control
@@ -1948,9 +2059,8 @@ function purposeText(){
   // 기본 목적 문장
   const base={office:"오피스 매입 후보의 취득·운영·금융·매각을 반영해 세전·세후 자기자본 수익률과 투자 판단 지표를 산출",
     logistics:"물류센터 매입 후보의 취득·임대운영·금융·매각을 반영해 세전·세후 자기자본 수익률과 투자 판단 지표를 산출",
-    dev:"개발사업의 총사업비·PF 인출·건설이자 자본화·분양 흡수를 반영해 사업이익률과 자기자본수익률을 산출",
-    refi:"기존 대출 만기에 대비해 리파이낸싱 대안을 비교하고 DSCR·약정 충족 여부를 점검",
-    reit:"포트폴리오의 배당가능이익과 NAV를 산정하고 주당배당금·배당수익률과 IR 지표를 정리"};
+    dev:"평형별 분양가·상업시설·중도금 납부 일정을 반영한 월별 분양수지로 사업이익률·필요 PF 한도·자기자본수익률을 산출",
+    refi:"기존 대출 만기에 대비해 리파이낸싱 대안을 비교하고 DSCR·약정 충족 여부를 점검"};
   return base[cur]||base.office;
 }
 
@@ -1979,7 +2089,7 @@ function sheetListFor(){
     if(hasMezz||hasPref){ if(!sheets.includes("Capital_Stack")) sheets.splice(idx>=0?idx+1:1,0,"Capital_Stack"); }
     if(hasPref){ if(!sheets.includes("Waterfall")){ const ec=sheets.indexOf("Equity_Cashflow"); sheets.splice(ec>=0?ec:sheets.length-1,0,"Waterfall"); } }
   }
-  if(typeof scenOn!=='undefined' && scenOn && SCEN_DRIVERS[cur] && !sheets.includes('Scenario_Manager')) sheets.push('Scenario_Manager');
+  if(typeof scenOn!=='undefined' && scenOn && scenDrv() && !sheets.includes('Scenario_Manager')) sheets.push('Scenario_Manager');
   return sheets;
 }
 
@@ -2141,6 +2251,26 @@ function mRefi(){
 }
 
 function mDev(){
+  if(devResi()){
+    var rows=[], warns=[];
+    var apt=devRows('aptrows',[]), ret=devRows('retrows',[]);
+    var units=0, ag=0, rn=0;
+    apt.forEach(function(r){ var n=parseNum(String(r.n||'')), pz=parseNum(String(r.p||'')); if(isFinite(n)&&n>0&&isFinite(pz)&&pz>0){ ag+=n*pz; units+=n; } });
+    ret.forEach(function(r){ var a=parseNum(String(r.a||'')), pz=parseNum(String(r.p||'')), sd=parseNum(String(r.s||'')); if(isFinite(a)&&a>0&&isFinite(pz)&&pz>0) rn+=a*pz/100*((isFinite(sd)?Math.min(Math.max(sd,0),100):100)/100); });
+    var land=mnum('landcost'), cons=mnum('conscost'), other=mnum('othercost'), gfa=mnum('gfa');
+    if(units) rows.push({l:'총 세대수',v:mfmt(units,0)+'세대'});
+    if(ag) rows.push({l:'아파트 분양수입(100%)',v:meok(ag)});
+    if(rn) rows.push({l:'상업시설 수입(분양률 반영)',v:meok(rn)});
+    if(isFinite(cons)&&isFinite(gfa)&&gfa>0) rows.push({l:'평당 공사비',v:mfmt(cons*1e6/gfa/1e4,0)+'만원/평'});
+    var cb=(isFinite(land)?land:0)+(isFinite(cons)?cons:0)+(isFinite(other)?other:0);
+    if(cb>0) rows.push({l:'토지+공사+기타',v:meok(cb)});
+    var d1=mnum('dpct'), m1=mnum('mpct'), r1=mnum('rpct');
+    if(!isFinite(d1)) d1=10; if(!isFinite(m1)) m1=60; if(!isFinite(r1)) r1=30;
+    var ps=d1+m1+r1;
+    rows.push({l:'납부 비율(계약+중도+잔금)',v:mfmt(ps,0)+'%'});
+    if(Math.abs(ps-100)>0.01) warns.push('계약금+중도금+잔금 합계가 '+mfmt(ps,0)+'%입니다 — 100%로 맞춰주세요.');
+    return {rows:rows,warns:warns,note:'분양수입은 평형/상업시설 그리드 합산 기준. 건설이자·필요 PF 한도는 결과 카드에서 월별로 계산됩니다.'};
+  }
   var rows=[], warns=[];
   var tpc=mnum('tpc'), land=mnum('landcost'), cons=mnum('conscost'), gfa=mnum('gfa');
   if(isFinite(tpc)) rows.push({l:'총사업비',v:meok(tpc)});
@@ -2150,19 +2280,7 @@ function mDev(){
   return {rows:rows,warns:warns,note:'개발 자금구조 비중(%)의 분모는 총사업비입니다.'};
 }
 
-function mReit(){
-  var rows=[], warns=[];
-  var aum=mnum('aum'), cap=mnum('avgcap'), ltv=mnum('ltv'), shares=mnum('shares'), price=mnum('price'), fee=mnum('fee');
-  if(isFinite(shares)&&isFinite(price)){ rows.push({l:'시가총액',v:mfmt(shares*1000*price/1e8,0)+'억'}); }
-  var debt=NaN, nav=NaN;
-  if(isFinite(aum)&&isFinite(ltv)){ debt=aum*ltv/100; rows.push({l:'추정 차입금',v:meok(debt)}); nav=aum-debt; rows.push({l:'순자산(NAV 근사)',v:meok(nav),est:true}); }
-  if(isFinite(nav)&&isFinite(shares)&&shares>0){ var navps=nav*1e6/(shares*1000); rows.push({l:'주당 NAV(근사)',v:mfmt(navps,0)+'원',est:true}); if(isFinite(price)){ var pnav=price/navps; rows.push({l:'P/NAV',v:mfmt(pnav,2)+'x',est:true}); if(pnav<0) warns.push('NAV가 음수로 산출됩니다 — AUM·LTV 입력을 확인하세요.'); } }
-  if(isFinite(aum)&&isFinite(cap)) rows.push({l:'추정 NOI(AUM×Cap)',v:meok(aum*cap/100),est:true});
-  if(isFinite(aum)&&isFinite(fee)) rows.push({l:'연 운용보수',v:meok(aum*fee/100)});
-  return {rows:rows,warns:warns,note:'NAV·P/NAV는 부채를 장부가로 단순 가정한 근사치입니다.'};
-}
-
-function computeMetrics(){ if(cur==='office'||cur==='logistics') return mAcq(); if(cur==='refi') return mRefi(); if(cur==='dev') return mDev(); if(cur==='reit') return mReit(); return {rows:[],warns:[]}; }
+function computeMetrics(){ if(cur==='office'||cur==='logistics') return mAcq(); if(cur==='refi') return mRefi(); if(cur==='dev') return mDev(); return {rows:[],warns:[]}; }
 
 /* ---------- 체크 레지스트리: 입력·현금흐름·부채·렌트롤 점검을 한 곳으로 ---------- */
 function mtChecks(){
@@ -2648,13 +2766,14 @@ var scenOn=false, scenState={};
 var SCEN_DRIVERS={
  office:[{k:'exitcap',l:'Exit Cap',u:'%',up:-0.5,down:0.5},{k:'noig',l:'NOI 성장률',u:'%/년',up:1,down:-1},{k:'srate',l:'선순위 금리',u:'%',up:-0.5,down:0.5}],
  logistics:[{k:'exitcap',l:'Exit Cap',u:'%',up:-0.5,down:0.5},{k:'noig',l:'NOI 성장률',u:'%/년',up:1,down:-1},{k:'srate',l:'선순위 금리',u:'%',up:-0.5,down:0.5}],
- dev:[{k:'exitcap',l:'준공후 Cap',u:'%',up:-0.5,down:0.5}],
- reit:[{k:'avgcap',l:'평균 Cap',u:'%',up:-0.3,down:0.3}]
+ dev:[{k:'exitcap',l:'준공후 Cap',u:'%',up:-0.5,down:0.5}]
 };
+var SCEN_DRIVERS_RESI=[{k:'aptsold',l:'아파트 분양률',u:'%',up:0,down:-15},{k:'pfrate',l:'PF 금리',u:'%',up:-0.5,down:1}];
+function scenDrv(){ return (cur==='dev'&&devResi())?SCEN_DRIVERS_RESI:SCEN_DRIVERS[cur]; }
 function scenBase(k){ if(k==='srate'){ var sv=stackState['senior_rate']; var t=TRANCHES.find(function(x){return x.id==='senior';}); return (sv!==undefined&&sv!=='')?sv:(t?t.rate:''); } return (state[k]||''); }
 function scenDef(scn,d){ var b=parseNum(scenBase(d.k)); if(!isFinite(b)) return ''; return String(Math.round((b+(scn==='up'?d.up:d.down))*100)/100); }
 function scenHtml(){
-  var drv=SCEN_DRIVERS[cur]; if(!drv) return '';
+  var drv=scenDrv(); if(!drv) return '';
   var rowsH=drv.map(function(d){
     var base=String(scenBase(d.k)).trim();
     return '<tr><td class="sc-d">'+d.l+' <span class="unit">'+d.u+'</span></td><td class="sc-b">'+(base||'—')+'</td>'+
@@ -2667,7 +2786,7 @@ function scenHtml(){
     '<div class="scen-note" id="scenNote"></div></div></div>';
 }
 function scenarioBlock(){
-  var drv=SCEN_DRIVERS[cur]; if(!scenOn||!drv) return '';
+  var drv=scenDrv(); if(!scenOn||!drv) return '';
   function val(scn,d){ if(scn==='base'){ var b=String(scenBase(d.k)).trim(); return b||'[기준값]'; } var v=(scenState[scn+'_'+d.k]||'').trim(); if(v) return v; var dd=scenDef(scn,d); return dd||'[?]'; }
   function line(scn,label){ return '- '+label+': '+drv.map(function(d){ return d.l+' '+val(scn,d)+d.u.replace('/년',''); }).join(', '); }
   return '[시나리오 — Scenario_Manager 시트에서 비교]\n'+line('base','기준(Base)')+'\n'+line('up','상승(Upside)')+'\n'+line('down','하락(Downside)')+
@@ -2704,13 +2823,6 @@ function sensData(){
     var loan=0.55*app;
     var steps=[-1,-0.5,0,0.5,1].map(function(dx){ var rt=baseRate+dx; var icr=rt>0?noi/(loan*rt/100):NaN; return {label:mfmt(rt,1)+'%', out:isFinite(icr)?mfmt(icr,2)+'x':'—', base:dx===0}; });
     return {title:'금리 민감도 (LTV 55% 가정)', driver:'금리', outLabel:'ICR', steps:steps, note:'ICR=NOI÷연이자(만기일시). 기준선 '+(isFinite(dmin)?(mfmt(dmin,2)+'x'):'—')+' 대비 확인.'};
-  }
-  if(cur==='reit'){
-    var aum=parseNum(state.aum),ltv=parseNum(state.ltv),shares=parseNum(state.shares),price2=parseNum(state.price),cap=parseNum(state.avgcap);
-    if(!isFinite(aum)||!isFinite(ltv)||!isFinite(shares)||!isFinite(price2)||!isFinite(cap)||shares<=0||cap<=0) return null;
-    var debt=aum*ltv/100;
-    var steps=[-0.6,-0.3,0,0.3,0.6].map(function(dx){ var c=cap+dx; if(c<=0) return {label:mfmt(c,1)+'%',out:'—',base:dx===0}; var assetv=aum*cap/c; var nav=assetv-debt; var navps=nav*1e6/(shares*1000); var pnav=navps>0?price2/navps:NaN; return {label:mfmt(c,1)+'%', out:isFinite(pnav)?mfmt(pnav,2)+'x':'—', base:dx===0}; });
-    return {title:'Cap 민감도 → P/NAV', driver:'평균 Cap', outLabel:'P/NAV(근사)', steps:steps, note:'자산가치=AUM×기준Cap÷적용Cap로 재평가한 근사. P/NAV=주가÷주당NAV.'};
   }
   return null;
 }
@@ -3042,27 +3154,97 @@ function simRefi(){
   return {type:'refi', rows:rows, best:(best?best.n:null), caveats:['간이 추정 — 1차연도 DSCR(상환방식 반영)·연이자 기준. 약정 트리거·전 기간 전개는 Claude in Excel에서 정밀 산정.']};
 }
 
-function simReit(){
-  var aum=mnum('aum'),cap=mnum('avgcap'),ltv=mnum('ltv'),shares=mnum('shares'),price=mnum('price'),payout=mnum('payout'),fee=mnum('fee'),drate=mnum('drate');
-  if(!isFinite(aum)||!isFinite(cap)) return null;
-  var noi=aum*cap/100, debt=isFinite(ltv)?aum*ltv/100:0;
-  var drAssumed=!isFinite(drate), dr=isFinite(drate)?drate:4.5, intr=dr/100*debt, feeAmt=isFinite(fee)?aum*fee/100:0;
-  var dist=noi-intr-feeAmt, po=isFinite(payout)?payout/100:0.9;
-  var dps=(isFinite(shares)&&shares>0)?dist*po*1e6/(shares*1000):NaN;
-  var dy=(isFinite(dps)&&isFinite(price)&&price>0)?dps/price:NaN;
-  var nav=aum-debt, navps=(isFinite(shares)&&shares>0)?nav*1e6/(shares*1000):NaN, pnav=(isFinite(navps)&&navps>0&&isFinite(price))?price/navps:NaN;
+function simDev(){ return devResi()? simDevResi() : simDevBulk(); }
+/* 공동주택 분양 — 월 단위 사업수지: 평형별·상업시설 분양수입을 계약금/중도금/잔금 일정으로
+   현금화하고, 토지비·기성·기타비 지출과 상계해 PF 인출·상환·건설이자를 전개 */
+function simDevResi(){
+  var apt=devRows('aptrows',[]), ret=devRows('retrows',[]);
+  var land=mnum('landcost'), cons=mnum('conscost'), other=mnum('othercost');
+  var M=mnum('consperiod'), s0=mnum('saleopen'), ab=mnum('absorb');
+  var dp=mnum('dpct'), mp=mnum('mpct'), rp=mnum('rpct'), mk=mnum('mcount');
+  var soldT=mnum('aptsold'), init=mnum('aptinit');
+  var E=mnum('equity'), rate=mnum('pfrate'), feePct=mnum('pffee');
+  if(!isFinite(M)||M<1) M=32; M=Math.round(M);
+  if(!isFinite(s0)||s0<0) s0=3; s0=Math.round(s0); if(s0>M) s0=M;
+  if(!isFinite(ab)||ab<1) ab=18; ab=Math.round(ab);
+  if(!isFinite(dp)||dp<0) dp=10; if(!isFinite(mp)||mp<0) mp=60; if(!isFinite(rp)||rp<0) rp=30;
+  if(!isFinite(mk)||mk<1) mk=6; mk=Math.round(mk);
+  soldT=isFinite(soldT)?Math.min(Math.max(soldT,0),100):100;
+  init=isFinite(init)?Math.min(Math.max(init,0),100):60;
+  if(!isFinite(rate)||rate<0) rate=6.5;
+  feePct=(isFinite(feePct)&&feePct>0)?feePct:0;
+  E=(isFinite(E)&&E>0)?E:0;
+  // 분양대상 합산 (백만원)
+  var aptGross=0, units=0;
+  apt.forEach(function(r){ var n=parseNum(String(r.n||'')), pz=parseNum(String(r.p||'')); if(isFinite(n)&&n>0&&isFinite(pz)&&pz>0){ aptGross+=n*pz; units+=n; } });
+  var retNet=0;
+  ret.forEach(function(r){ var a=parseNum(String(r.a||'')), pz=parseNum(String(r.p||'')), sd=parseNum(String(r.s||''));
+    if(isFinite(a)&&a>0&&isFinite(pz)&&pz>0){ retNet+=a*pz/100*((isFinite(sd)?Math.min(Math.max(sd,0),100):100)/100); } });
+  var aptRev=aptGross*soldT/100, rev=aptRev+retNet;
+  var costBase=(isFinite(land)?land:0)+(isFinite(cons)?cons:0)+(isFinite(other)?other:0);
+  if(!(rev>0)||!(costBase>0)) return null;
+  // 월별 유입: 계약 시점별 코호트에 납부 일정 적용
+  var T=Math.max(M, s0+ab);
+  var inA=[], outA=[]; for(var z=0;z<=T;z++){ inA.push(0); outA.push(0); }
+  var mTimes=[]; for(var i2=1;i2<=mk;i2++) mTimes.push(Math.min(M, Math.round(s0+i2*(M-s0)/(mk+1))));
+  function cohort(m, amt){ // m월 계약분: 계약금 즉시, 중도금은 회차 시점(경과분은 계약 시), 잔금은 준공월
+    if(!(amt>0)) return;
+    inA[Math.min(m,T)]+=amt*dp/100;
+    for(var q=0;q<mTimes.length;q++) inA[Math.min(Math.max(m,mTimes[q]),T)]+=amt*(mp/mk)/100;
+    inA[Math.min(Math.max(m,M),T)]+=amt*rp/100;
+  }
+  var initFrac=Math.min(init,soldT)/100, restFrac=Math.max(soldT-Math.min(init,soldT),0)/100;
+  cohort(s0, aptGross*initFrac);
+  if(restFrac>0){ var per=aptGross*restFrac/ab; for(var m2=s0+1;m2<=s0+ab;m2++) cohort(m2, per); }
+  if(retNet>0){ var perR=retNet/(ab+1); for(var m3=s0;m3<=s0+ab;m3++) cohort(m3, perR); }
+  // 월별 지출: 토지비 착수 일괄, 공사비 균등 기성, 기타 균등
+  outA[0]+=(isFinite(land)?land:0);
+  if(isFinite(cons)&&cons>0){ var cm=cons/M; for(var m4=1;m4<=M;m4++) outA[m4]+=cm; }
+  if(isFinite(other)&&other>0){ var om=other/(T+1); for(var m5=0;m5<=T;m5++) outA[m5]+=om; }
+  // 자금 전개: 자기자본 선투입 → 부족분 PF 인출 → 잉여현금 PF 상환
+  var pf=0, cash=E, peak=0, intTot=0, cumIn=0, cum=0;
+  var qrows=[], qi=0, qo=0, qf=0;
+  for(var m=0;m<=T;m++){
+    var intr=pf*rate/1200; intTot+=intr;
+    cash+=inA[m]-outA[m]-intr;
+    if(cash<0){ pf+=-cash; cash=0; }
+    else if(pf>0){ var rep2=Math.min(pf,cash); pf-=rep2; cash-=rep2; }
+    if(pf>peak) peak=pf;
+    cumIn+=inA[m]; cum+=inA[m]-outA[m]-intr;
+    qi+=inA[m]; qo+=outA[m]; qf+=intr;
+    if(m%3===2||m===T){ qrows.push([(Math.floor(m/3)+1)+'Q', meok(qi), meok(qo), meok(qf), meok(qi-qo-qf), meok(cum), meok(pf)]); qi=0; qo=0; qf=0; }
+  }
+  var feeAmt=feePct>0?peak*feePct/100:0;
+  var costAll=costBase+intTot+feeAmt;
+  var profit=rev-costAll, margin=profit/rev*100, pfEnd=pf;
+  var eqEnd=cash-pfEnd-feeAmt, em=E>0?eqEnd/E:null, yrs=T/12;
+  var irr=(E>0&&eqEnd>0&&yrs>0)?(Math.pow(eqEnd/E,1/yrs)-1):null;
+  var warns=[], paySum=dp+mp+rp;
+  if(Math.abs(paySum-100)>0.01) warns.push('⚠ 계약금+중도금+잔금 = '+mfmt(paySum,0)+'% — 100%가 되어야 분양수입이 전액 회수됩니다.');
+  if(E<=0) warns.push('⚠ 자기자본 0 — 전액 PF 조달로 계산합니다.');
+  if(pfEnd>0.5) warns.push('⚠ 사업 종료 시 PF 잔액 '+meok(pfEnd)+' 미상환 — 분양률·분양가·사업비를 점검하세요.');
+  if(soldT<100) warns.push('미분양 가정: 아파트 최종 분양률 '+mfmt(soldT,0)+'% 기준.');
   var kpis=[
-    {l:'시가 배당수익률', v:(isFinite(dy)?mfmt(dy*100,2)+'%':'—'), big:true, tone:(isFinite(dy)?(dy>=0.06?'good':''):'')},
-    {l:'주당배당금(DPS)', v:(isFinite(dps)?mfmt(dps,0)+'원':'—'), big:true},
-    {l:'P/NAV', v:(isFinite(pnav)?mfmt(pnav,2)+'x':'—'), big:true},
-    {l:'분배가능이익(연)', v:meok(dist)},
-    {l:'추정 NOI(연)', v:meok(noi)},
-    {l:'연 운용보수', v:meok(feeAmt)}
+    {l:'사업이익률(매출)', v:isFinite(margin)?mfmt(margin,1)+'%':'—', big:true, tone:isFinite(margin)?(margin>=12?'good':(margin<5?'warn':'')):''},
+    {l:'연환산 IRR(자기자본)', v:irr!=null?mfmt(irr*100,1)+'%':'—', big:true},
+    {l:'Equity Multiple', v:(em!=null&&isFinite(em))?mfmt(em,2)+'x':'—', big:true, tone:(em!=null&&em<1)?'warn':''},
+    {l:'분양수입(아파트)', v:meok(aptRev)},
+    {l:'분양수입(상업시설)', v:retNet>0?meok(retNet):'—'},
+    {l:'총사업비(금융비 포함)', v:meok(costAll)},
+    {l:'사업이익', v:meok(profit)},
+    {l:'필요 PF 한도(최대 인출)', v:meok(peak)},
+    {l:'건설이자'+(feeAmt>0?'·수수료':''), v:meok(intTot+feeAmt)},
+    {l:'자기자본', v:E>0?meok(E):'—'},
+    {l:'총 세대수', v:units?(mfmt(units,0)+'세대'):'—'}
   ];
-  return {type:'kpi', kpis:kpis, table:null, caveats:['간이 추정 — 분배가능 ≈ NOI−이자−보수(감가상각 add-back 등 단순화)·도관과세.'+(drAssumed?' 차입금리 미입력 → 4.5% 가정.':'')+' 정밀 산정은 Claude in Excel.']};
+  var caveats=warns.concat(['월 단위 분양수지 — 단순화 가정: 토지비 착수 시 일괄, 공사비 균등 기성, 상업시설 흡수기간 균등 판매, 중도금 회차는 분양개시~준공 균등 배치(늦은 계약분은 경과 회차 일괄 납부), 중도금 대출이자(무이자 분양 시 시행 부담)·분양보증수수료 미반영. PF는 부족자금 자동 인출·잉여현금 자동 상환, 수수료는 최대 인출액 기준 근사.']);
+  return {type:'kpi', kpis:kpis,
+    table:{head:['분기','분양수입','사업비 지출','금융비','순현금','누적현금','PF잔액'], rows:qrows},
+    tableLabel:'분기별 분양수지 현금흐름',
+    raw:{IRR:irr, EM:(em!=null&&isFinite(em))?em:null, uses:costAll, loan:peak, rev:rev, aptRev:aptRev, retRev:retNet, cashIn:cumIn, interest:intTot, fee:feeAmt, profit:profit, margin:margin, paySum:paySum, pfEnd:pfEnd, units:units, months:T},
+    caveats:caveats};
 }
-
-function simDev(){
+function simDevBulk(){
   var tpc=mnum('tpc'),gfa=mnum('gfa'),consp=mnum('consperiod'),absorb=mnum('absorb'),ec=mnum('exitcap');
   var sp=parseNum((state['saleprice']||'').replace(/[^0-9.]/g,''));
   var mode=(state['exitmode']||'').trim();
@@ -3092,7 +3274,7 @@ function simDev(){
   return {type:'kpi', kpis:kpis, table:null, caveats:['간이 추정 — 분양/매각 단순화·건설기간 자금흐름/건설이자/단계 투입 미반영. 간이 IRR은 (회수÷투입)^(1/사업기간) 단순 환산. 정밀 모델은 Claude in Excel.']};
 }
 
-function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='dev') return simDev(); if(cur==='refi') return simRefi(); if(cur==='reit') return simReit(); return null; }
+function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='dev') return simDev(); if(cur==='refi') return simRefi(); return null; }
 
 function renderSim(){
   var card=$('simCard'); if(!card) return;
@@ -3148,7 +3330,7 @@ function renderPreview(){
   $("pvCount").textContent=sheets.length+"개 시트";
   $("pvDepth").textContent=DEPTHS[depth].label;
   // 핵심 계산·결과 시트는 강조
-  const HL=new Set(["Lease_NOI_Model","Debt_Schedule","Tax_Disposition","Equity_Cashflow","Return_Summary","Waterfall","Capital_Stack","Profitability_Summary","Refinance_Compare","NAV_Bridge","Distribution_Model","Sensitivity"]);
+  const HL=new Set(["Lease_NOI_Model","Debt_Schedule","Tax_Disposition","Equity_Cashflow","Return_Summary","Waterfall","Capital_Stack","Profitability_Summary","Refinance_Compare","Sensitivity"]);
   let html="";
   LAYER_ORDER.forEach(layer=>{
     const inLayer=sheets.filter(s=>SHEET_LAYER[s]===layer);
@@ -3172,11 +3354,12 @@ const EXAMPLES={
    stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.2",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"12"}},
  logistics:{state:{asset:"이천 물류센터",gfa:"35,000",price:"210,000",acqtax:"4.6",acqfee:"1.5",appraisal:"215,000",noimode:"임대료·관리비로 산출",rentpp:"28,000",campp:"1,700",depmult:"12",noi1:"",noig:"2.5",vacancy:"5",depassume:"반영",opfee:"0.4",fixcost:"0",hold:"5",exitcap:"5.4",salefee:"1.8"},
    stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.5",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"13"}},
- dev:{state:{asset:"안성 물류 개발",land:"12,000",gfa:"24,000",tpc:"320,000",landcost:"90,000",conscost:"180,000",consperiod:"28",saleopen:"6",absorb:"24",saleprice:"평당 1,650만",exitmode:"분양 완료",exitcap:"5.5"},
+ dev:{state:{asset:"판교 A지구 공동주택",devtype:"공동주택 분양",land:"9,500",gfa:"52,000",landcost:"180,000",conscost:"290,000",othercost:"55,000",consperiod:"32",saleopen:"3",absorb:"18",aptsold:"100",aptinit:"60",dpct:"10",mpct:"60",mcount:"6",rpct:"30",equity:"60,000",pfrate:"6.5",pffee:"1.0",tpc:"320,000",saleprice:"평당 1,650만",exitmode:"분양 완료",exitcap:"5.5",
+   aptrows:'[{"t":"59A","a":"25","n":"180","p":"780"},{"t":"84A","a":"34","n":"320","p":"1,050"},{"t":"114","a":"43","n":"80","p":"1,380"}]',
+   retrows:'[{"t":"단지내 상가","a":"600","p":"3,500","s":"70"}]'},
    stack:{senior_on:true,senior_ltv:"60",senior_rate:"5.1",mezz_on:true,mezz_ltv:"15",mezz_rate:"8.5",pref_on:false,common_on:true,common_ltv:"25",common_coc:"15"}},
  refi:{state:{asset:"분당 B빌딩",noi:"4,200",appraisal:"85,000",dscrmin:"1.2",oldbal:"46,000",oldrate:"3.6",oldmat:"0.5",prepayfee:"0.5",newfee:"0.3"},
-   refi:{a1_ltv:"50",a1_rate:"4.0",a1_mat:"3",a2_ltv:"55",a2_rate:"4.3",a2_mat:"5",a3_ltv:"60",a3_rate:"4.6",a3_mat:"7"}},
- reit:{state:{aum:"1,400,000",assets:"8",avgcap:"4.9",ltv:"48",shares:"120,000",price:"5,200",payout:"90",fee:"0.5",drate:"4.2"}}
+   refi:{a1_ltv:"50",a1_rate:"4.0",a1_mat:"3",a2_ltv:"55",a2_rate:"4.3",a2_mat:"5",a3_ltv:"60",a3_rate:"4.6",a3_mat:"7"}}
 };
 // 현재 state/stackState/refiState 값을 (재렌더된) 폼에 다시 주입
 function restoreInputs(){
@@ -5181,6 +5364,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
         var of=parseFloat(String(state['opfee']||'').replace(/,/g,'')); if(isFinite(of)&&of>0) f.push('fee');
         if((state['taxmode']||'').indexOf('비도관')>=0) f.push('bido');
         var vac=parseFloat(String(state['vacancy']||'').replace(/,/g,'')); if(isFinite(vac)&&vac>0) f.push('vac');
+        if(typeof cur!=='undefined'&&cur==='dev'&&typeof devResi==='function'&&devResi()) f.push('resi');
         var h=parseFloat(String(state['hold']||'').replace(/,/g,'')); if(isFinite(h)&&Math.round(h)!==5) f.push('hold');
       }
       if(typeof stackState!=='undefined'&&stackState&&(stackState['pref_on']===true||stackState['pref_on']==='true')) f.push('pref');

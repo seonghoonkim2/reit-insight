@@ -1,6 +1,6 @@
 /* 모델터 CI 검증 — 라이브 배포 전 깨진 코드/빠진 파일 차단
  * 실행: node tools/modelter-ci-check.js   (의존성 없음)
- * 검사: ① 앱 로드(전 script 문법) ② 5개 딜 계산 무예외 ③ 렌트롤 경로(struct/tranche/mini)
+ * 검사: ① 앱 로드(전 script 문법) ② 4개 딜 계산 무예외 ③ 렌트롤 경로(struct/tranche/mini)
  *       ④ 핵심 모듈/수정 존재 ⑤ _headers(CSP·X-Frame-Options) ⑥ og.png 존재
  */
 const fs = require('fs');
@@ -106,6 +106,13 @@ ok(html.includes('id="wsOverlay"'), '워크스페이스 패널 모달 존재');
 ok(html.includes('id="wsDirtyTag"'), '저장 안 된 변경 표시(dirty tag) 존재');
 ok(html.includes('function renderWsPanel'), '워크스페이스 패널 렌더러 존재');
 ok(html.includes('function downloadXlsx(ctx)'), '엑셀 다운로드 버전 컨텍스트 지원');
+ok(html.includes('function simDevResi'), '공동주택 분양 월별 사업수지 엔진 존재');
+ok(html.includes('function devGridsHtml'), '평형/상업시설 분양 그리드 존재');
+ok(html.includes('k:"devtype"'), '개발 사업유형 선택(공동주택 분양/통매각) 존재');
+ok(html.includes('k:"mcount"'), '중도금 횟수 입력 존재');
+ok(html.includes('k:"dpct"') && html.includes('k:"rpct"'), '계약금·잔금 비율 입력 존재');
+ok(html.includes('function simDevBulk'), '통매각·임대 간이 엔진 유지');
+ok(!html.includes("cur==='reit'") && !html.includes('리츠 · 펀드 운용') && !html.includes('function simReit'), '리츠·펀드 운용 탭 제거 확인');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
 const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
@@ -147,7 +154,7 @@ G.URL = { createObjectURL: () => 'blob:x', revokeObjectURL() {} }; G.Blob = func
 G.IntersectionObserver = function () { this.observe = () => {}; this.disconnect = () => {}; };
 
 const driver = `;(function(){
-  var deals = ["office","logistics","dev","refi","reit"];
+  var deals = ["office","logistics","dev","refi"];
   deals.forEach(function(c){
     cur = c; window.rrModel = null;
     fillExample();
@@ -284,10 +291,10 @@ const driver = `;(function(){
     try { renderCompare(); } finally { loadSlots = _origLoad; }
     if (cur !== _curB2 || state !== _stB2) throw new Error("renderCompare 후 전역 미복원");
   }
-  // IC 원페이저 강화(KPI스트립·트랜치·히트맵): 오피스(전체)·리츠(KPI만) 무예외
+  // IC 원페이저 강화(KPI스트립·트랜치·히트맵): 오피스(전체)·개발(KPI만) 무예외
   if (typeof buildPrintSummary === "function") {
     cur = "office"; window.rrModel = null; fillExample(); buildPrintSummary();
-    cur = "reit"; fillExample(); buildPrintSummary();
+    cur = "dev"; fillExample(); buildPrintSummary();
     cur = "office"; fillExample();
   }
   // 이벤트 스키마 확장: mtTrack 페이로드에 활성기능 스냅샷(feats) 포함
@@ -298,6 +305,42 @@ const driver = `;(function(){
     if (!_pb || _pb.t !== "ci_probe") throw new Error("mtTrack 비콘 미전송");
     if (!("feats" in _pb)) throw new Error("이벤트 스키마에 feats 누락");
     if (_pb.deal !== "office") throw new Error("이벤트 deal 필드 누락");
+  }
+  // 개발·PF: 공동주택 분양 월별 사업수지
+  if (typeof simDevResi === "function") {
+    cur = "dev"; window.rrModel = null; fillExample();
+    var _dr = simModel();
+    if (!(_dr && _dr.kpis && _dr.kpis.length)) throw new Error("분양수지 결과 없음");
+    var _rw = _dr.raw;
+    if (!(_rw && isFinite(_rw.rev) && _rw.rev > 0)) throw new Error("분양수입 미산출");
+    if (!(_rw.aptRev > 0 && _rw.retRev > 0)) throw new Error("아파트/상업시설 수입 분리 미산출");
+    if (Math.abs(_rw.cashIn - _rw.rev) > 0.5) throw new Error("현금유입 합계≠분양수입: " + _rw.cashIn + " vs " + _rw.rev);
+    if (!(_rw.loan > 0)) throw new Error("필요 PF 한도 미산출");
+    if (!(_rw.interest > 0)) throw new Error("건설이자 미산출");
+    if (!isFinite(_rw.margin)) throw new Error("사업이익률 미산출");
+    if (!(_rw.pfEnd < 0.5)) throw new Error("예시 딜에서 PF 미상환 잔액 발생: " + _rw.pfEnd);
+    if (!(_rw.IRR != null && isFinite(_rw.IRR) && _rw.IRR > 0)) throw new Error("자기자본 IRR 미산출");
+    if (!(_dr.table && _dr.table.rows.length >= 4)) throw new Error("분기별 현금흐름 표 미생성");
+    // 납부비율 합계≠100% → 경고 + 현금유입 감소
+    var _sv = state.rpct; state.rpct = "20";
+    var _dr2 = simModel();
+    if (!(_dr2.caveats && _dr2.caveats.join("|").indexOf("100%") >= 0)) throw new Error("납부비율 합계 경고 미표시");
+    if (!(_dr2.raw.cashIn < _rw.cashIn - 0.5)) throw new Error("납부비율 90%인데 현금유입 미감소");
+    state.rpct = _sv;
+    // 분양률 하향 → 아파트 수입 감소 + PF 한도 증가
+    var _sv2 = state.aptsold; state.aptsold = "70";
+    var _dr3 = simModel();
+    if (!(_dr3.raw.aptRev < _rw.aptRev)) throw new Error("분양률 70%인데 아파트 수입 미감소");
+    if (!(_dr3.raw.loan > _rw.loan)) throw new Error("분양률 70%인데 필요 PF 한도 미증가");
+    state.aptsold = _sv2;
+    // 통매각(간이) 경로 유지
+    state.devtype = "통매각·임대(간이)";
+    if (typeof renderForm === "function") renderForm();
+    var _dr4 = simModel();
+    if (!(_dr4 && _dr4.kpis && _dr4.kpis.length)) throw new Error("통매각 간이 엔진 미동작");
+    state.devtype = "공동주택 분양";
+    if (typeof DEALS !== "undefined" && DEALS.reit) throw new Error("DEALS에 리츠 잔존");
+    cur = "office"; window.rrModel = null; fillExample();
   }
   // 딜 워크스페이스: 해시 결정성 → 저장 → dirty → v0.2 → 복원 → 재생성 래퍼 → 내보내기/가져오기 왕복
   if (typeof wsDB === "function") {
@@ -361,7 +404,7 @@ const driver = `;(function(){
 
 try {
   new Function(main + '\n' + inj + '\n' + driver)();
-  ok(G.__CI_OK === 1, '앱 로드 + 5개 딜 계산 + 렌트롤 경로 무예외');
+  ok(G.__CI_OK === 1, '앱 로드 + 4개 딜 계산 + 렌트롤 경로 무예외');
 } catch (e) {
   fails.push('헤드리스 실행 예외: ' + (e && e.message));
 }
