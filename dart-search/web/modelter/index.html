@@ -1085,7 +1085,7 @@ html,body{overflow-x:hidden}
 
     <div class="md-sec">
       <h4>다른 탭</h4>
-      <p><b>개발 · PF(공동주택 분양)</b>: 평형별 분양가·상업시설·계약금/중도금/잔금 일정을 월별 현금흐름으로 풀어 사업이익률·필요 PF 한도·건설이자·자기자본 수익률을 산출합니다. <b>리파이낸싱</b>: 대안별 신규대출·DSCR·순인출·수수료 비교(1차연도 기준). — "간이" 배지가 붙은 항목은 빠른 감 잡기용입니다.</p>
+      <p><b>개발 · PF(공동주택 분양)</b>: 평형별 분양가·상업시설·계약금/중도금/잔금 일정을 월별 현금흐름으로 풀어 사업이익률·필요 PF 한도·건설이자·자기자본 수익률을 산출하고, 같은 계산식의 <b>분양수지 엑셀(6시트·수식 연결)</b>로 내려받을 수 있습니다. <b>리파이낸싱</b>: 대안별 신규대출·DSCR·순인출·수수료 비교(1차연도 기준). — "간이" 배지가 붙은 항목은 빠른 감 잡기용입니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1104,7 +1104,7 @@ html,body{overflow-x:hidden}
     </div>
 
     <div class="md-note">
-      <b>한계 — 반드시 확인하세요.</b> 화면 수치는 <b>간이 추정</b>입니다. 공실·CAPEX·약정 트리거 전개 등은 단순화되어 있고, 개발 분양수지도 균등 기성·일괄 토지비 등 단순화 가정을 씁니다. 13시트·세금 시트까지 담은 정밀 모델은 <b>Excel 다운로드</b>(오피스·물류)에서 확인하세요. 본 도구는 <b>투자 권유가 아닌 정보 제공</b> 목적입니다.
+      <b>한계 — 반드시 확인하세요.</b> 화면 수치는 <b>간이 추정</b>입니다. 공실·CAPEX·약정 트리거 전개 등은 단순화되어 있고, 개발 분양수지도 균등 기성·일괄 토지비 등 단순화 가정을 씁니다. 수식이 살아있는 모델은 <b>Excel 다운로드</b>(오피스·물류 13시트, 개발·공동주택 분양수지 6시트)에서 확인하세요. 본 도구는 <b>투자 권유가 아닌 정보 제공</b> 목적입니다.
     </div>
 
     <button class="wn-cta" id="mdCta" type="button">닫기</button>
@@ -3201,8 +3201,9 @@ function simRefi(){
 function simDev(){ return devResi()? simDevResi() : simDevBulk(); }
 /* 공동주택 분양 — 월 단위 사업수지: 평형별·상업시설 분양수입을 계약금/중도금/잔금 일정으로
    현금화하고, 토지비·기성·기타비 지출과 상계해 PF 인출·상환·건설이자를 전개 */
-function simDevResi(){
-  var apt=devRows('aptrows',[]), ret=devRows('retrows',[]);
+// 분양수지 입력 파싱 — 화면 엔진(simDevResi)과 엑셀 생성기(devTemplate)가 같은 값을 쓰도록 단일화
+function devResiInputs(){
+  var aptR=devRows('aptrows',[]), retR=devRows('retrows',[]);
   var land=mnum('landcost'), cons=mnum('conscost'), other=mnum('othercost');
   var M=mnum('consperiod'), s0=mnum('saleopen'), ab=mnum('absorb');
   var dp=mnum('dpct'), mp=mnum('mpct'), rp=mnum('rpct'), mk=mnum('mcount');
@@ -3218,17 +3219,28 @@ function simDevResi(){
   if(!isFinite(rate)||rate<0) rate=6.5;
   feePct=(isFinite(feePct)&&feePct>0)?feePct:0;
   E=(isFinite(E)&&E>0)?E:0;
-  // 분양대상 합산 (백만원)
+  var aptRows=aptR.map(function(r){ return {t:String(r.t||''), a:parseNum(String(r.a||'')), n:parseNum(String(r.n||'')), p:parseNum(String(r.p||''))}; });
+  var retRows=retR.map(function(r){ var sd=parseNum(String(r.s||'')); return {t:String(r.t||''), a:parseNum(String(r.a||'')), p:parseNum(String(r.p||'')), s:isFinite(sd)?Math.min(Math.max(sd,0),100):100}; });
   var aptGross=0, units=0;
-  apt.forEach(function(r){ var n=parseNum(String(r.n||'')), pz=parseNum(String(r.p||'')); if(isFinite(n)&&n>0&&isFinite(pz)&&pz>0){ aptGross+=n*pz; units+=n; } });
+  aptRows.forEach(function(r){ if(isFinite(r.n)&&r.n>0&&isFinite(r.p)&&r.p>0){ aptGross+=r.n*r.p; units+=r.n; } });
   var retNet=0;
-  ret.forEach(function(r){ var a=parseNum(String(r.a||'')), pz=parseNum(String(r.p||'')), sd=parseNum(String(r.s||''));
-    if(isFinite(a)&&a>0&&isFinite(pz)&&pz>0){ retNet+=a*pz/100*((isFinite(sd)?Math.min(Math.max(sd,0),100):100)/100); } });
+  retRows.forEach(function(r){ if(isFinite(r.a)&&r.a>0&&isFinite(r.p)&&r.p>0) retNet+=r.a*r.p/100*(r.s/100); });
   var aptRev=aptGross*soldT/100, rev=aptRev+retNet;
   var costBase=(isFinite(land)?land:0)+(isFinite(cons)?cons:0)+(isFinite(other)?other:0);
   if(!(rev>0)||!(costBase>0)) return null;
+  return {land:isFinite(land)?land:0, cons:isFinite(cons)?cons:0, other:isFinite(other)?other:0,
+    M:M, s0:s0, ab:ab, dp:dp, mp:mp, rp:rp, mk:mk, soldT:soldT, init:init, E:E, rate:rate, feePct:feePct,
+    aptRows:aptRows, retRows:retRows, aptGross:aptGross, units:units, retNet:retNet,
+    aptRev:aptRev, rev:rev, costBase:costBase, T:Math.max(M, s0+ab)};
+}
+function simDevResi(){
+  var I=devResiInputs(); if(!I) return null;
+  var land=I.land, cons=I.cons, other=I.other, M=I.M, s0=I.s0, ab=I.ab;
+  var dp=I.dp, mp=I.mp, rp=I.rp, mk=I.mk, soldT=I.soldT, init=I.init;
+  var E=I.E, rate=I.rate, feePct=I.feePct;
+  var aptGross=I.aptGross, units=I.units, retNet=I.retNet, aptRev=I.aptRev, rev=I.rev, costBase=I.costBase;
   // 월별 유입: 계약 시점별 코호트에 납부 일정 적용
-  var T=Math.max(M, s0+ab);
+  var T=I.T;
   var inA=[], outA=[]; for(var z=0;z<=T;z++){ inA.push(0); outA.push(0); }
   var mTimes=[]; for(var i2=1;i2<=mk;i2++) mTimes.push(Math.min(M, Math.round(s0+i2*(M-s0)/(mk+1))));
   function cohort(m, amt){ // m월 계약분: 계약금 즉시, 중도금은 회차 시점(경과분은 계약 시), 잔금은 준공월
@@ -4360,12 +4372,205 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var sLR={name:'Lease_Risk',hidden:false,maxcol:8,cells:lr,merges:[],widths:{}};
     return {sheets:[sRR,sMA,sLB,sLR], ov:ov, leaseMode:true};
   }
+  /* ── 공동주택 분양 사업수지 워크북(5시트·수식 연결) — 화면 엔진(simDevResi)과 동일 로직을 수식으로 재현 ── */
+  function devTemplate(ctx){
+    if(typeof devResiInputs!=='function') return null;
+    var I=devResiInputs(); if(!I) return null;
+    var A="'01_Assumptions'!";
+    var today=new Date().toISOString().slice(0,10);
+    var nm=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset):'분양사업';
+
+    /* 00_Cover */
+    var covB2='모델터 — 공동주택 분양 사업수지 (월별 현금흐름·수식 연결)';
+    if(ctx) covB2+=' · Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')));
+    var cover={name:'00_Cover', cells:[
+      {r:'B2',s:covB2,role:'ti'},
+      {r:'B4',s:'사업명',role:'lb'},{r:'C4',s:nm,role:'da'},
+      {r:'B5',s:'생성일',role:'lb'},{r:'C5',s:today,role:'da'},
+      {r:'B6',s:'생성 도구',role:'lb'},{r:'C6',s:'modelter.com · 개발 · PF(공동주택 분양)',role:'da'},
+      {r:'B8',s:'시트 구성',role:'se'},
+      {r:'B9',s:'01_Assumptions',role:'lbb'},{r:'C9',s:'사업비·일정·납부·금융 가정 (파란 값 = 수정 가능)',role:'da'},
+      {r:'B10',s:'02_Unit_Mix',role:'lbb'},{r:'C10',s:'평형별 세대수·분양가와 상업시설 분양 조건',role:'da'},
+      {r:'B11',s:'03_Monthly_CF',role:'lbb'},{r:'C11',s:'월별 분양수입(계약금·중도금·잔금)·지출·PF 인출/상환/이자 전개',role:'da'},
+      {r:'B12',s:'04_Profitability',role:'lbb'},{r:'C12',s:'사업이익률·IRR·Equity Multiple·필요 PF 한도 요약',role:'da'},
+      {r:'B13',s:'05_Sensitivity',role:'lbb'},{r:'C13',s:'분양률×분양가 사업이익률 (생성 시점 재계산 값)',role:'da'},
+      {r:'B15',s:'단순화 가정: 토지비 착수 일괄 · 공사비 균등 기성 · 상업시설 흡수기간 균등 판매 · 중도금 회차 균등 배치(늦은 계약분은 경과 회차 일괄) · 중도금 대출이자·분양보증수수료 미반영 · PF 수수료는 최대 인출액 기준.',role:'no'},
+      {r:'B16',s:'월별 행 수는 생성 시점 일정 기준 — 공사기간·분양개시·흡수기간을 바꾸면 모델터에서 다시 받으세요. 본 자료는 투자 권유가 아닌 정보 제공 목적입니다.',role:'no'}
+    ]};
+
+    /* 01_Assumptions — 다른 시트가 참조하는 고정 셀: C5토지 C6공사 C7기타 / C10공사기간 C11개시 C12흡수 /
+       C15분양률 C16초기계약 C17계약금 C18중도금 C19횟수 C20잔금 C21합계 / C24자기자본 C25금리 C26수수료 */
+    var asum={name:'01_Assumptions', cells:[
+      {r:'B2',s:'01 · Assumptions — 분양 사업수지 가정',role:'ti'},
+      {r:'B4',s:'사업비',role:'se'},
+      {r:'B5',s:'토지비',role:'lb'},{r:'C5',n:I.land,role:'vi',z:'num'},{r:'E5',s:'백만원',role:'un'},
+      {r:'B6',s:'공사비',role:'lb'},{r:'C6',n:I.cons,role:'vi',z:'num'},{r:'E6',s:'백만원',role:'un'},
+      {r:'B7',s:'기타사업비',role:'lb'},{r:'C7',n:I.other,role:'vi',z:'num'},{r:'E7',s:'백만원',role:'un'},{r:'F7',s:'설계·감리·분담금·판촉·수수료 등',role:'no'},
+      {r:'B9',s:'일정',role:'se'},
+      {r:'B10',s:'공사기간',role:'lb'},{r:'C10',n:I.M,role:'vi',z:'int'},{r:'E10',s:'개월',role:'un'},{r:'F10',s:'잔금(입주)·건설이자 기간의 기준',role:'no'},
+      {r:'B11',s:'분양 개시',role:'lb'},{r:'C11',n:I.s0,role:'vi',z:'int'},{r:'E11',s:'개월차',role:'un'},
+      {r:'B12',s:'흡수기간',role:'lb'},{r:'C12',n:I.ab,role:'vi',z:'int'},{r:'E12',s:'개월',role:'un'},
+      {r:'B14',s:'분양 · 납부',role:'se'},
+      {r:'B15',s:'아파트 최종 분양률',role:'lb'},{r:'C15',n:I.soldT,role:'vi',z:'num1'},{r:'E15',s:'%',role:'un'},
+      {r:'B16',s:'초기 계약률',role:'lb'},{r:'C16',n:I.init,role:'vi',z:'num1'},{r:'E16',s:'%',role:'un'},{r:'F16',s:'개시월 계약 비율 · 잔여는 흡수기간 균등',role:'no'},
+      {r:'B17',s:'계약금',role:'lb'},{r:'C17',n:I.dp,role:'vi',z:'num1'},{r:'E17',s:'%',role:'un'},
+      {r:'B18',s:'중도금',role:'lb'},{r:'C18',n:I.mp,role:'vi',z:'num1'},{r:'E18',s:'%',role:'un'},
+      {r:'B19',s:'중도금 횟수',role:'lb'},{r:'C19',n:I.mk,role:'vi',z:'int'},{r:'E19',s:'회',role:'un'},
+      {r:'B20',s:'잔금',role:'lb'},{r:'C20',n:I.rp,role:'vi',z:'num1'},{r:'E20',s:'%',role:'un'},
+      {r:'B21',s:'납부 합계',role:'lbb'},{r:'C21',f:'C17+C18+C20',role:'vf',z:'num1'},{r:'E21',s:'%',role:'un'},{r:'F21',f:'IF(ABS(C21-100)<0.01,"OK","100%가 되어야 분양수입 전액 회수")',role:'no'},
+      {r:'B23',s:'금융',role:'se'},
+      {r:'B24',s:'자기자본',role:'lb'},{r:'C24',n:I.E,role:'vi',z:'num'},{r:'E24',s:'백만원',role:'un'},
+      {r:'B25',s:'PF 금리',role:'lb'},{r:'C25',n:I.rate,role:'vi',z:'num1'},{r:'E25',s:'%/년',role:'un'},{r:'F25',s:'월별 인출 잔액에 월할 적용',role:'no'},
+      {r:'B26',s:'PF 수수료',role:'lb'},{r:'C26',n:I.feePct,role:'vi',z:'num1'},{r:'E26',s:'%',role:'un'},{r:'F26',s:'필요 한도(최대 인출액) 대비',role:'no'},
+      {r:'B28',s:'파란 굵은 값 = 입력(수정 가능). 03_Monthly_CF의 월 행 수는 생성 시점 일정 기준입니다.',role:'no'}
+    ]};
+
+    /* 02_Unit_Mix */
+    var um={name:'02_Unit_Mix', maxcol:7, cells:[
+      {r:'B2',s:'02 · Unit Mix — 평형별 분양가 · 상업시설',role:'ti'},
+      {r:'B4',s:'타입',role:'th'},{r:'C4',s:'공급면적(평)',role:'th'},{r:'D4',s:'세대수',role:'th'},{r:'E4',s:'분양가(백만원/세대)',role:'th'},{r:'F4',s:'평당(만원)',role:'th'},{r:'G4',s:'수입(백만원)',role:'th'}
+    ]};
+    var na=Math.max(I.aptRows.length,1), r0=5;
+    for(var i=0;i<na;i++){
+      var ar=I.aptRows[i]||{t:'',a:NaN,n:NaN,p:NaN}, rr=r0+i;
+      um.cells.push({r:'B'+rr,s:ar.t||'',role:'vt'});
+      if(isFinite(ar.a)) um.cells.push({r:'C'+rr,n:ar.a,role:'vi',z:'num'});
+      if(isFinite(ar.n)) um.cells.push({r:'D'+rr,n:ar.n,role:'vi',z:'int'});
+      if(isFinite(ar.p)) um.cells.push({r:'E'+rr,n:ar.p,role:'vi',z:'num'});
+      um.cells.push({r:'F'+rr,f:'IFERROR(E'+rr+'*100/C'+rr+',"")',role:'vn',z:'num'});
+      um.cells.push({r:'G'+rr,f:'D'+rr+'*E'+rr,role:'vf',z:'num'});
+    }
+    var rT=r0+na;
+    um.cells.push({r:'B'+rT,s:'합계',role:'lbb'},{r:'D'+rT,f:'SUM(D'+r0+':D'+(rT-1)+')',role:'vf',z:'int'},{r:'G'+rT,f:'SUM(G'+r0+':G'+(rT-1)+')',role:'vf',z:'num'});
+    var rh=rT+2;
+    um.cells.push({r:'B'+rh,s:'구분(상업시설)',role:'th'},{r:'C'+rh,s:'면적(평)',role:'th'},{r:'D'+rh,s:'평당 분양가(만원)',role:'th'},{r:'E'+rh,s:'분양률(%)',role:'th'},{r:'F'+rh,s:'수입(백만원)',role:'th'});
+    var nr=Math.max(I.retRows.length,1), q0=rh+1;
+    for(var j=0;j<nr;j++){
+      var er=I.retRows[j]||{t:'',a:0,p:0,s:100}, qr=q0+j;
+      um.cells.push({r:'B'+qr,s:er.t||'',role:'vt'});
+      um.cells.push({r:'C'+qr,n:isFinite(er.a)?er.a:0,role:'vi',z:'num'});
+      um.cells.push({r:'D'+qr,n:isFinite(er.p)?er.p:0,role:'vi',z:'num'});
+      um.cells.push({r:'E'+qr,n:isFinite(er.s)?er.s:100,role:'vi',z:'num1'});
+      um.cells.push({r:'F'+qr,f:'C'+qr+'*D'+qr+'/100*E'+qr+'/100',role:'vf',z:'num'});
+    }
+    var rF=q0+nr;
+    um.cells.push({r:'B'+rF,s:'합계',role:'lbb'},{r:'F'+rF,f:'SUM(F'+q0+':F'+(rF-1)+')',role:'vf',z:'num'});
+    var rA=rF+2;
+    um.cells.push({r:'B'+rA,s:'아파트 분양대상(분양률 반영)',role:'lbb'},{r:'C'+rA,f:'G'+rT+'*'+A+'C15/100',role:'vf',z:'num'},{r:'E'+rA,s:'백만원',role:'un'});
+    um.cells.push({r:'B'+(rA+1),s:'상업시설 분양대상',role:'lbb'},{r:'C'+(rA+1),f:'F'+rF,role:'vf',z:'num'},{r:'E'+(rA+1),s:'백만원',role:'un'});
+    var U="'02_Unit_Mix'!";
+
+    /* 03_Monthly_CF — 행 5..(5+T), 헬퍼: R/S 중도금 회차, V5~V7 월 판매 파라미터 */
+    var T=I.T, le=5+T, se=4+I.mk;
+    var mc={name:'03_Monthly_CF', maxcol:22, cells:[
+      {r:'B2',s:'03 · Monthly Cashflow — 월별 분양수입·지출·PF 전개 (0개월차 = 착수)',role:'ti'},
+      {r:'B4',s:'월',role:'th'},{r:'C4',s:'신규 계약액',role:'th'},{r:'D4',s:'계약금',role:'th'},{r:'E4',s:'중도금',role:'th'},{r:'F4',s:'잔금',role:'th'},{r:'G4',s:'분양수입 계',role:'th'},
+      {r:'H4',s:'토지비',role:'th'},{r:'I4',s:'공사비',role:'th'},{r:'J4',s:'기타',role:'th'},{r:'K4',s:'지출 계',role:'th'},
+      {r:'L4',s:'PF이자',role:'th'},{r:'M4',s:'가용현금(x)',role:'th'},{r:'N4',s:'PF잔액',role:'th'},{r:'O4',s:'현금잔액',role:'th'},{r:'P4',s:'누적 순현금',role:'th'},
+      {r:'R4',s:'중도금 회차',role:'th'},{r:'S4',s:'납부시점(개월차)',role:'th'},
+      {r:'U4',s:'월 판매 파라미터(백만원)',role:'th'},
+      {r:'U5',s:'개시월 계약액',role:'lb'},{r:'V5',f:U+'G'+rT+'*MIN('+A+'C16,'+A+'C15)/100',role:'vf',z:'num'},
+      {r:'U6',s:'월 추가 판매(아파트)',role:'lb'},{r:'V6',f:U+'G'+rT+'*MAX('+A+'C15-MIN('+A+'C16,'+A+'C15),0)/100/'+A+'C12',role:'vf',z:'num'},
+      {r:'U7',s:'월 판매(상업시설)',role:'lb'},{r:'V7',f:U+'F'+rF+'/('+A+'C12+1)',role:'vf',z:'num'}
+    ]};
+    for(var k=1;k<=I.mk;k++){
+      mc.cells.push({r:'R'+(4+k),n:k,role:'vn',z:'int'});
+      mc.cells.push({r:'S'+(4+k),f:'MIN('+A+'C$10,ROUND('+A+'C$11+R'+(4+k)+'*('+A+'C$10-'+A+'C$11)/('+A+'C$19+1),0))',role:'vf',z:'int'});
+    }
+    for(var m=0;m<=T;m++){
+      var r=5+m, first=(m===0);
+      mc.cells.push({r:'B'+r,n:m,role:'vn',z:'int'});
+      mc.cells.push({r:'C'+r,f:'IF($B'+r+'='+A+'C$11,$V$5,0)+IF(AND($B'+r+'>'+A+'C$11,$B'+r+'<='+A+'C$11+'+A+'C$12),$V$6,0)+IF(AND($B'+r+'>='+A+'C$11,$B'+r+'<='+A+'C$11+'+A+'C$12),$V$7,0)',role:'vn',z:'num'});
+      mc.cells.push({r:'D'+r,f:'C'+r+'*'+A+'C$17/100',role:'vn',z:'num'});
+      mc.cells.push({r:'E'+r,f:A+'C$18/100/'+A+'C$19*(C'+r+'*COUNTIF($S$5:$S$'+se+',"<="&$B'+r+')+COUNTIF($S$5:$S$'+se+',"="&$B'+r+')*SUMIF($B$5:$B$'+le+',"<"&$B'+r+',$C$5:$C$'+le+'))',role:'vn',z:'num'});
+      mc.cells.push({r:'F'+r,f:A+'C$20/100*IF($B'+r+'<'+A+'C$10,0,IF($B'+r+'='+A+'C$10,SUMIF($B$5:$B$'+le+',"<="&'+A+'C$10,$C$5:$C$'+le+'),C'+r+'))',role:'vn',z:'num'});
+      mc.cells.push({r:'G'+r,f:'D'+r+'+E'+r+'+F'+r,role:'vf',z:'num'});
+      mc.cells.push({r:'H'+r,f:'IF($B'+r+'=0,'+A+'C$5,0)',role:'vn',z:'num'});
+      mc.cells.push({r:'I'+r,f:'IF(AND($B'+r+'>=1,$B'+r+'<='+A+'C$10),'+A+'C$6/'+A+'C$10,0)',role:'vn',z:'num'});
+      mc.cells.push({r:'J'+r,f:A+'C$7/COUNT($B$5:$B$'+le+')',role:'vn',z:'num'});
+      mc.cells.push({r:'K'+r,f:'H'+r+'+I'+r+'+J'+r,role:'vf',z:'num'});
+      mc.cells.push({r:'L'+r,f:first?'0':('N'+(r-1)+'*'+A+'C$25/100/12'),role:'vn',z:'num'});
+      mc.cells.push({r:'M'+r,f:(first?(A+'C$24'):('O'+(r-1)))+'+G'+r+'-K'+r+'-L'+r,role:'vn',z:'num'});
+      mc.cells.push({r:'N'+r,f:first?'MAX(0,-M'+r+')':('MAX(0,N'+(r-1)+'-MAX(0,M'+r+'))+MAX(0,-M'+r+')'),role:'vf',z:'num'});
+      mc.cells.push({r:'O'+r,f:first?'MAX(0,M'+r+')':('MAX(0,M'+r+'-N'+(r-1)+')'),role:'vn',z:'num'});
+      mc.cells.push({r:'P'+r,f:first?('G'+r+'-K'+r+'-L'+r):('P'+(r-1)+'+G'+r+'-K'+r+'-L'+r),role:'vn',z:'num'});
+    }
+    var C3="'03_Monthly_CF'!";
+
+    /* 04_Profitability */
+    var pf={name:'04_Profitability', cells:[
+      {r:'B2',s:'04 · Profitability — 분양 사업수지 요약',role:'ti'},
+      {r:'B4',s:'수입',role:'se'},
+      {r:'B5',s:'분양수입 합계(현금 유입)',role:'lb'},{r:'C5',f:'SUM('+C3+'G5:G'+le+')',role:'vf',z:'num'},{r:'E5',s:'백만원',role:'un'},
+      {r:'B6',s:'분양대상 합계(아파트+상업)',role:'lb'},{r:'C6',f:U+'C'+rA+'+'+U+'C'+(rA+1),role:'vf',z:'num'},{r:'E6',s:'백만원',role:'un'},{r:'F6',f:'IF(ABS(C5-C6)<0.5,"OK — 유입=분양대상","납부 비율 합계를 확인하세요")',role:'no'},
+      {r:'B8',s:'비용',role:'se'},
+      {r:'B9',s:'사업비(토지+공사+기타)',role:'lb'},{r:'C9',f:A+'C5+'+A+'C6+'+A+'C7',role:'vf',z:'num'},{r:'E9',s:'백만원',role:'un'},
+      {r:'B10',s:'건설이자(PF)',role:'lb'},{r:'C10',f:'SUM('+C3+'L5:L'+le+')',role:'vf',z:'num'},{r:'E10',s:'백만원',role:'un'},
+      {r:'B11',s:'필요 PF 한도(최대 인출)',role:'lb'},{r:'C11',f:'MAX('+C3+'N5:N'+le+')',role:'vf',z:'num'},{r:'E11',s:'백만원',role:'un'},
+      {r:'B12',s:'PF 수수료',role:'lb'},{r:'C12',f:'C11*'+A+'C26/100',role:'vf',z:'num'},{r:'E12',s:'백만원',role:'un'},
+      {r:'B13',s:'총사업비(금융비 포함)',role:'lbb'},{r:'C13',f:'C9+C10+C12',role:'vf',z:'num'},{r:'E13',s:'백만원',role:'un'},
+      {r:'B15',s:'수익성',role:'se'},
+      {r:'B16',s:'사업이익',role:'lbb'},{r:'C16',f:'C5-C13',role:'vf',z:'num'},{r:'E16',s:'백만원',role:'un'},
+      {r:'B17',s:'사업이익률(매출 대비)',role:'lbb'},{r:'C17',f:'IFERROR(C16/C5,"")',role:'vf',z:'pct1'},
+      {r:'B19',s:'자기자본',role:'lb'},{r:'C19',f:A+'C24',role:'vf',z:'num'},{r:'E19',s:'백만원',role:'un'},
+      {r:'B20',s:'기말 현금',role:'lb'},{r:'C20',f:C3+'O'+le,role:'vf',z:'num'},{r:'E20',s:'백만원',role:'un'},
+      {r:'B21',s:'기말 PF 잔액',role:'lb'},{r:'C21',f:C3+'N'+le,role:'vf',z:'num'},{r:'E21',s:'백만원',role:'un'},{r:'F21',f:'IF('+C3+'N'+le+'<0.5,"OK — 전액 상환","미상환 — 분양률·사업비 점검")',role:'no'},
+      {r:'B22',s:'자기자본 회수액',role:'lb'},{r:'C22',f:'C20-C21-C12',role:'vf',z:'num'},{r:'E22',s:'백만원',role:'un'},
+      {r:'B23',s:'Equity Multiple',role:'lbb'},{r:'C23',f:'IFERROR(C22/C19,"")',role:'vf',z:'mult'},
+      {r:'B24',s:'연환산 IRR(자기자본)',role:'lbb'},{r:'C24',f:'IFERROR(C23^(12/(COUNT('+C3+'B5:B'+le+')-1))-1,"")',role:'vf',z:'pct1'},
+      {r:'B26',s:'화면 결과 카드와 같은 로직(월별 코호트 납부·PF 자동 인출/상환)을 수식으로 전개했습니다. 가정을 바꾸면 결과가 따라 움직입니다.',role:'no'}
+    ]};
+
+    /* 05_Sensitivity — 생성 시점 재계산 값 */
+    var sens={name:'05_Sensitivity', cells:[
+      {r:'B2',s:'05 · Sensitivity — 분양률 × 분양가 → 사업이익률',role:'ti'},
+      {r:'B4',s:'분양률＼분양가',role:'th'}
+    ]};
+    try{
+      var smx=(typeof devSens2==='function')?devSens2():null;
+      if(smx){
+        for(var cj=0;cj<smx.gSteps.length;cj++) sens.cells.push({r:String.fromCharCode(67+cj)+'4',s:(smx.gSteps[cj]>0?'+':'')+smx.gSteps[cj]+'%',role:'th'});
+        for(var ri=0;ri<smx.ecSteps.length;ri++){
+          sens.cells.push({r:'B'+(5+ri),s:smx.ecSteps[ri]+'%',role:'lbb'});
+          for(var cj2=0;cj2<smx.gSteps.length;cj2++){
+            var vv=smx.rows[ri][cj2];
+            if(vv!=null&&isFinite(vv)) sens.cells.push({r:String.fromCharCode(67+cj2)+(5+ri),n:vv,role:'vn',z:'pct1'});
+          }
+        }
+        sens.cells.push({r:'B'+(6+smx.ecSteps.length),s:'생성 시점에 월별 엔진으로 재계산한 값입니다(수식 아님). 가정을 바꾸면 모델터에서 다시 받으세요.',role:'no'});
+      }
+    }catch(eS){}
+
+    return {sheets:[cover,asum,um,mc,pf,sens]};
+  }
+  window.__devTemplate=devTemplate;
+
   function downloadXlsx(ctx){
     try{
       // 워크스페이스 컨텍스트: 활성 딜이 있으면 버전 기준 메타·파일명·이력 기록
       if(!ctx&&typeof wsOutCtx==='function') ctx=wsOutCtx();
       if(ctx&&ctx.dirty&&!ctx.explicit){
         if(!confirm('저장되지 않은 변경이 있습니다.\n이 상태로 받으면 나중에 같은 기준으로 재생성하기 어렵습니다.\n(먼저 + 새 버전 저장을 누르면 버전 기준으로 남습니다)\n\n현재 화면값으로 계속 받을까요?')) return;
+      }
+      // 개발 · 공동주택 분양: 전용 분양수지 워크북
+      if(typeof cur!=='undefined'&&cur==='dev'&&typeof devResi==='function'&&devResi()){
+        var dvt=devTemplate(ctx);
+        if(!dvt){ try{ toast('평형별 분양가와 사업비를 입력하면 받을 수 있습니다'); }catch(e0){} return; }
+        var bytesD=XLSXGEN.buildXlsx(dvt,null,null);
+        var blobD=new Blob([bytesD],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        var nmD=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset).replace(/[\\\/:*?"<>|]/g,'').trim():'분양사업';
+        var fnameD='모델터_'+(nmD||'분양사업')+'_분양수지.xlsx';
+        if(ctx&&!ctx.dirty&&ctx.label){
+          var _dnD=String(ctx.dealName).replace(/[\\\/:*?"<>|]/g,'').trim()||'딜';
+          var _dD=new Date(), _ymdD=''+_dD.getFullYear()+('0'+(_dD.getMonth()+1)).slice(-2)+('0'+_dD.getDate()).slice(-2);
+          fnameD='모델터_'+_dnD+'_'+ctx.label+'_'+_ymdD+'.xlsx';
+        }
+        if(ctx&&typeof wsLogOutput==='function') wsLogOutput(ctx.dealId, ctx.dirty?null:ctx.versionId, 'xlsx', fnameD, ctx.dirty?'unsaved':'saved');
+        var aD=document.createElement('a'); aD.href=URL.createObjectURL(blobD); aD.download=fnameD;
+        document.body.appendChild(aD); aD.click();
+        setTimeout(function(){ try{URL.revokeObjectURL(aD.href);}catch(e){} aD.remove(); },1500);
+        try{ if(typeof toast==='function') toast('분양수지 엑셀 받기 완료 (6시트·수식 연결)'); }catch(e1){}
+        return;
       }
       var ov=assumOverrides();
       var _TPL=holdTemplate(XLTMPL, mtHold());
@@ -4400,13 +4605,25 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
 
   function updateXlsxBtn(){
-    // 현재 엑셀 모델은 오피스 매입에 특화 → 다운로드는 오피스에서만 제공
+    // 엑셀 다운로드: 오피스 매입(13시트) + 개발·공동주택 분양(분양수지 6시트)
     var isOffice=(typeof cur!=='undefined')&&(cur==='office');
+    var isDev=(typeof cur!=='undefined')&&cur==='dev'&&(typeof devResi==='function')&&devResi();
     var b=$id('dlRow'), card=$id('simCard');
-    if(b){ b.hidden=!(isOffice&&card&&!card.hidden); }
-    // '다운로드 Excel과 동일' 배지는 다운로드가 있는 오피스에서만 표시
+    if(b){ b.hidden=!((isOffice||isDev)&&card&&!card.hidden); }
+    var xb=$id('xlDownload');
+    if(xb) xb.innerHTML=isDev?'⬇ 분양수지 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>':'⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>';
+    // 티저(PPT)는 오피스 매입 전용
+    var tz=$id('tzDownload'); if(tz) tz.hidden=isDev;
+    // 파리티 배지: 오피스(13시트)·개발 분양수지 모두 — 파이썬 수식 엔진 재계산으로 일치 검증됨
     var flag=$id('simFlag');
-    if(flag){ flag.style.display=isOffice?'':'none'; }
+    if(flag){
+      flag.style.display=(isOffice||isDev)?'':'none';
+      var tip=flag.querySelector&&flag.querySelector('.prt-tip');
+      if(tip){
+        if(!flag.__offTip) flag.__offTip=tip.innerHTML;
+        tip.innerHTML=isDev?'화면의 사업이익률·IRR·Equity Multiple·필요 PF 한도는 내려받는 분양수지 엑셀과 <b>같은 계산식</b>(월별 코호트 납부·PF 전개)으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 <b>전 지표 일치</b>를 검증했습니다.':flag.__offTip;
+      }
+    }
   }
 
   // 결과 갱신 때마다 버튼 노출 동기화 (renderSim 래핑)

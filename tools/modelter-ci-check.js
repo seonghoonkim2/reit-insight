@@ -113,6 +113,10 @@ ok(html.includes('k:"mcount"'), '중도금 횟수 입력 존재');
 ok(html.includes('k:"dpct"') && html.includes('k:"rpct"'), '계약금·잔금 비율 입력 존재');
 ok(html.includes('function simDevBulk'), '통매각·임대 간이 엔진 유지');
 ok(html.includes('function devSens2'), '분양률×분양가 민감도 매트릭스 존재');
+ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');
+ok(html.includes("'03_Monthly_CF'"), '분양수지 월별 CF 시트 존재');
+ok(html.includes('function devResiInputs'), '엔진·엑셀 공용 입력 파서(devResiInputs) 존재');
+ok(html.includes('분양수지 엑셀 받기 완료'), '분양수지 다운로드 경로 존재');
 ok(!html.includes("cur==='reit'") && !html.includes('리츠 · 펀드 운용') && !html.includes('function simReit'), '리츠·펀드 운용 탭 제거 확인');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
@@ -344,6 +348,22 @@ const driver = `;(function(){
       if (!(_sm.rows[3][2] < _sm.rows[0][2])) throw new Error("분양률 70%가 100%보다 이익률 높음");
       if (!(_sm.rows[0][4] > _sm.rows[0][0])) throw new Error("분양가 +5%가 -5%보다 이익률 낮음");
       if (_sm.baseI !== 0 || _sm.baseJ !== 2) throw new Error("기준 칸 좌표 오류");
+    }
+    // 분양수지 엑셀: 6시트 생성 → zip 재해석 → 수식·구조 확인
+    if (typeof window.__devTemplate === "function" && typeof XLSXREAD !== "undefined") {
+      var _tpl = window.__devTemplate(null);
+      if (!(_tpl && _tpl.sheets.length === 6)) throw new Error("분양수지 시트 수 오류: " + (_tpl && _tpl.sheets.length));
+      var _bx = XLSXGEN.buildXlsx(_tpl, null, null);
+      if (!(_bx && _bx.length > 20000)) throw new Error("분양수지 엑셀 생성 실패");
+      var _zx = XLSXREAD.readZip(_bx);
+      var _wb = XLSXREAD.entryText(_zx["xl/workbook.xml"]);
+      if ((_wb.match(/<sheet /g) || []).length !== 6) throw new Error("workbook 시트 등록 오류");
+      if (_wb.indexOf("03_Monthly_CF") < 0 || _wb.indexOf("02_Unit_Mix") < 0) throw new Error("분양수지 시트명 누락");
+      var _s4 = XLSXREAD.entryText(_zx["xl/worksheets/sheet4.xml"]);
+      if (_s4.indexOf("COUNTIF") < 0 || _s4.indexOf("SUMIF") < 0) throw new Error("월별 CF 코호트 수식 누락");
+      if (_s4.indexOf(">NaN<") >= 0) throw new Error("월별 CF에 NaN 셀");
+      var _s5 = XLSXREAD.entryText(_zx["xl/worksheets/sheet5.xml"]);
+      if (_s5.indexOf("MAX(") < 0) throw new Error("수익성 요약 수식 누락");
     }
     // 통매각(간이) 경로 유지
     state.devtype = "통매각·임대(간이)";
