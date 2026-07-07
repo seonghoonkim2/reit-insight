@@ -152,6 +152,7 @@ ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'추천'"), '미니 KPI 전 탭(분양·리파이) 확장');
 ok(html.includes('mt_nudge') && html.includes('nudge_save'), '저장 넛지(세션 1회) 존재');
 ok(html.includes('모든 딜에서 검증된 엑셀'), "What's new v3 내용 현행화");
+ok(html.includes('공유 링크 · 한 줄 보고') && html.includes('자동 판정 · 용어 도움말'), "What's new v3 내용 2차 현행화(한 줄 보고·환산)");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('ev&&ev.isTrusted&&window.__mtActivate'), '퍼널: 신뢰 입력만 활성화(예시 로드 제외)');
 ok(html.includes('function missingKeyFields') && html.includes('sim-empty'), '결과 빈 상태 안내(누락 필드) 존재');
