@@ -959,8 +959,8 @@ html,body{overflow-x:hidden}
 .md-open:hover{color:var(--ink-2)}
 
 /* 스크롤 시 떠오르는 실시간 미니 결과 (IRR·CoC) */
-.mini-kpi{position:fixed; top:66px; right:14px; z-index:60; display:flex; align-items:center; gap:13px; background:var(--panel); border:1px solid var(--line); border-radius:13px; box-shadow:0 10px 28px rgba(0,0,0,.18); padding:8px 14px 8px 11px; opacity:0; transform:translateY(-8px) scale(.95); transition:opacity .22s ease, transform .22s ease; pointer-events:none}
-.mini-kpi.show{opacity:1; transform:none}
+.mini-kpi{position:fixed; top:66px; right:14px; z-index:60; display:flex; align-items:center; gap:13px; background:var(--panel); border:1px solid var(--line); border-radius:13px; box-shadow:0 10px 28px rgba(0,0,0,.18); padding:8px 14px 8px 11px; opacity:0; transform:translateY(-8px) scale(.95); transition:opacity .22s ease, transform .22s ease; pointer-events:none; cursor:pointer}
+.mini-kpi.show{opacity:1; transform:none; pointer-events:auto}
 .mini-tag{font-size:9px; font-weight:800; letter-spacing:.04em; color:var(--on-accent); background:var(--accent-solid); padding:2px 6px; border-radius:5px; align-self:center}
 .mini-item{display:flex; flex-direction:column; align-items:flex-end; line-height:1.05}
 .mini-l{font-size:9.5px; font-weight:700; color:var(--muted); letter-spacing:.03em}
@@ -1269,7 +1269,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
   </div>
 </div>
 
-<div class="mini-kpi" id="miniKpi" aria-hidden="true">
+<div class="mini-kpi" id="miniKpi" aria-hidden="true" role="button" tabindex="-1" title="탭하면 결과로 이동">
   <span class="mini-tag">실시간</span>
   <div class="mini-item"><span class="mini-l" id="miniIrrL">IRR</span><span class="mini-v" id="miniIrr">—</span></div>
   <div class="mini-item"><span class="mini-l" id="miniCocL">CoC</span><span class="mini-v" id="miniCoc">—</span></div>
@@ -6450,6 +6450,10 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       }
     }catch(e){}
     if(window.mtTrack) try{ mtTrack('onboard',{role:role}); }catch(e){}
+    // 학습 모드: 용어 설명 진입로 안내 (결과 ? 링크 → 용어사전)
+    if(role==='learn') setTimeout(function(){
+      try{ toast('학습 모드 — 결과 지표 옆 ? 를 누르면 용어 설명(가이드)이 열립니다. 예시 숫자를 바꿔보세요.',4600); }catch(e){}
+    },1400);
     // 빌더로 부드럽게 이동 + 첫 입력 살짝 강조
     var t=document.getElementById('builder-start');
     if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth',block:'start'});
@@ -6481,7 +6485,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   // 첫 노출: 오늘 그만보기 상태가 아니면 배너 표시 + (이번 세션 처음이면) 팝업 자동
   if(!snoozedToday()){
     if(bar) bar.hidden=false;
-    if(ov && !seenSession() && !window.__mtOnboarding) openWN();   // 첫 방문 온보딩과 이중 노출 방지
+    var deepLink=/[#&][evdt]=/.test(location.hash||'');   // 공유·가이드 딥링크 진입은 목적지 우선 — 팝업으로 막지 않음
+    if(ov && !seenSession() && !window.__mtOnboarding && !deepLink) openWN();   // 첫 방문 온보딩·딥링크와 이중 노출 방지
   }
   var more=document.getElementById('annMore'); if(more) more.addEventListener('click',openWN);
   var ax=document.getElementById('annClose'); if(ax) ax.addEventListener('click',function(){ if(bar) bar.hidden=true; });
@@ -6535,6 +6540,11 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   }
   placeSim();
   var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt=setTimeout(placeSim, 150); });
+
+  // 미니 결과 탭 → 결과 카드로 스크롤 복귀
+  if(mini) mini.addEventListener('click', function(){
+    if(sim&&sim.scrollIntoView) sim.scrollIntoView({behavior:'smooth', block:'start'});
+  });
 
   // (B) 결과 카드가 화면 위로 스크롤돼 사라지면 IRR·CoC 미니 결과를 우상단에 표시
   var hasData=false, lastEntry=null;
