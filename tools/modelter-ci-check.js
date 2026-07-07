@@ -22,7 +22,8 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
   const g = fs.readFileSync(path.join(DIR, 'guide.html'), 'utf8');
   ok(g.includes('FAQPage') && g.includes('BreadcrumbList'), 'guide.html 구조화 데이터(FAQ·Breadcrumb)');
   ok(g.includes('DSCR') && g.includes('Cap rate') && g.includes('브릿지'), 'guide.html 핵심 용어 포함');
-  ok((g.match(/class="term"/g) || []).length >= 12, 'guide.html 용어 12개 이상');
+  ok((g.match(/class="term"/g) || []).length >= 20, 'guide.html 용어 20개 이상');
+  ok(g.includes('id="noc"') && g.includes('id="rentfree"') && g.includes('id="masterlease"') && g.includes('id="repay"'), 'guide.html 임대차 실무 용어(NOC·렌트프리 등)');
   ok(g.includes('/#t=dev') && g.includes('/#t=refi') && g.includes('class="try"'), 'guide.html 섹션→계산기 딥링크');
   ok(g.includes('id="irr"') && g.includes('id="dscr"') && g.includes('id="bep"') && g.includes('.term:target'), 'guide.html 용어 앵커 + 하이라이트');
 }
