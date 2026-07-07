@@ -124,6 +124,10 @@ ok(html.includes('var mtLZ=') && html.includes('function decompress'), '공유 �
 ok(html.includes('function sharePayload') && html.includes("o.name='임차인'"), '공유 페이로드·임차인명 마스킹 존재');
 ok(html.includes('id="roBanner"') && html.includes('window.__mtExitReadonly'), '읽기 전용 배너·해제 존재');
 ok(html.includes('body.mt-ro'), '읽기 전용 입력 잠금 CSS 존재');
+ok(html.includes("window.__mtActivate") && html.includes("track('activate')"), '퍼널: 활성화(activate) 이벤트 존재');
+ok(html.includes("window.__mtComputed") && html.includes("track('computed')"), '퍼널: 결과도달(computed) 이벤트 존재');
+ok(html.includes('ev&&ev.isTrusted&&window.__mtActivate'), '퍼널: 신뢰 입력만 활성화(예시 로드 제외)');
+ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
 ok(html.includes('k:"taxpct"') && html.includes('k:"salespct"') && html.includes('k:"hugpct"'), '사업비 세부(제세·판매비·분양보증) 입력 존재');
 ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');

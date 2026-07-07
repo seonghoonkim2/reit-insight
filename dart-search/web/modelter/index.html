@@ -1954,8 +1954,9 @@ function renderForm(){
 
   // bind inputs + inline validation
   $("formBody").querySelectorAll("[data-k]").forEach(el=>{
-    const handler=()=>{
+    const handler=(ev)=>{
       state[el.dataset.k]=el.value;
+      if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate();   // 사용자가 직접 값을 입력 = 활성화 신호
       if(el.type==="range"){ const o=document.getElementById("rout_"+el.dataset.k); if(o) o.textContent=el.value+(el.dataset.runit||""); }
       if(el.dataset.num) validateField(el);
       if(el.dataset.k==="noimode"||el.dataset.k==="devtype"){ renderForm(); restoreInputs(); update(); return; }
@@ -3619,6 +3620,7 @@ function renderSim(){
   var r=simModel();
   if(!r){ card.hidden=true; return; }
   card.hidden=false;
+  if(window.__mtComputed) try{ window.__mtComputed(); }catch(e){}   // 자기 딜 입력 후 결과 도달(퍼널)
   var kp=$('simKpis'), bd=$('simBody'), cv=$('simCaveat');
   if(r.type==='refi'){
     kp.innerHTML='';
@@ -6209,6 +6211,10 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     }catch(e){}
   }
   window.mtTrack=track;
+  // 퍼널 신호(세션당 1회): session(방문) → activate(직접 입력) → computed(자기 딜 결과 도달) → 산출물
+  var actFired=false, compFired=false;
+  window.__mtActivate=function(){ if(actFired) return; actFired=true; try{ track('activate'); }catch(e){} };
+  window.__mtComputed=function(){ if(compFired||!actFired) return; compFired=true; try{ track('computed'); }catch(e){} };
   track('session');
   document.addEventListener('click', function(e){
     var t=e.target; if(!t||!t.closest) return;
