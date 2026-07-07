@@ -15,6 +15,19 @@ const html = fs.readFileSync(HTML, 'utf8');
 
 /* ── 1) 정적 존재 검사 ── */
 ok(fs.existsSync(path.join(DIR, 'og.png')), 'og.png 존재 (소셜 미리보기 404 방지)');
+ok(fs.existsSync(path.join(DIR, 'robots.txt')), 'robots.txt 존재 (크롤 안내)');
+ok(fs.existsSync(path.join(DIR, 'sitemap.xml')), 'sitemap.xml 존재');
+ok(fs.existsSync(path.join(DIR, 'guide.html')), '가이드·용어사전 페이지 존재 (SEO)');
+if (fs.existsSync(path.join(DIR, 'guide.html'))) {
+  const g = fs.readFileSync(path.join(DIR, 'guide.html'), 'utf8');
+  ok(g.includes('FAQPage') && g.includes('BreadcrumbList'), 'guide.html 구조화 데이터(FAQ·Breadcrumb)');
+  ok(g.includes('DSCR') && g.includes('Cap rate') && g.includes('브릿지'), 'guide.html 핵심 용어 포함');
+  ok((g.match(/class="term"/g) || []).length >= 12, 'guide.html 용어 12개 이상');
+}
+if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
+  const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
+  ok(sm.includes('modelter.com/') && sm.includes('guide.html'), 'sitemap: 홈·가이드 URL');
+}
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
 if (fs.existsSync(headersPath)) {
@@ -126,6 +139,11 @@ ok(html.includes('id="roBanner"') && html.includes('window.__mtExitReadonly'), '
 ok(html.includes('body.mt-ro'), '읽기 전용 입력 잠금 CSS 존재');
 ok(html.includes("window.__mtActivate") && html.includes("track('activate')"), '퍼널: 활성화(activate) 이벤트 존재');
 ok(html.includes("window.__mtComputed") && html.includes("track('computed')"), '퍼널: 결과도달(computed) 이벤트 존재');
+ok(html.includes('id="obOverlay"') && html.includes("data-role=\"acq\""), '온보딩 역할 선택 모달 존재');
+ok(html.includes("localStorage.getItem('mt_onboarded')"), '온보딩 첫 방문 게이트 존재');
+ok(html.includes('!window.__mtOnboarding'), "온보딩·What's new 이중 노출 방지");
+ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
+ok(html.includes('href="/guide.html"'), '홈→가이드 내부 링크(SEO) 존재');
 ok(html.includes('ev&&ev.isTrusted&&window.__mtActivate'), '퍼널: 신뢰 입력만 활성화(예시 로드 제외)');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');

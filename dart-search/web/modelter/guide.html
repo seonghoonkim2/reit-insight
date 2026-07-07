@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>부동산 금융 용어사전 · 재무모델 가이드 | 모델터</title>
+<meta name="description" content="Cap rate·NOI·IRR·DSCR·LTC·보증금 승계·도관과세·브릿지론과 본PF·분양수지까지 — 한국 상업용 부동산(CRE) 재무모델에 쓰이는 핵심 용어를 실무 기준으로 정의합니다. 모델터에서 바로 계산해 볼 수 있습니다." />
+<link rel="canonical" href="https://modelter.com/guide.html" />
+<meta name="author" content="김성훈 (Seonghoon Kim)" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="부동산 금융 용어사전 · 재무모델 가이드 | 모델터" />
+<meta property="og:description" content="Cap rate·NOI·IRR·DSCR·LTC·보증금 승계·도관과세·브릿지론과 본PF까지, 한국 CRE 재무모델 핵심 용어를 실무 기준으로 정리했습니다." />
+<meta property="og:url" content="https://modelter.com/guide.html" />
+<meta property="og:image" content="https://modelter.com/og.png" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},
+{"@type":"ListItem","position":2,"name":"부동산 금융 용어사전","item":"https://modelter.com/guide.html"}]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"ko","mainEntity":[
+{"@type":"Question","name":"모델터는 무료인가요?","acceptedAnswer":{"@type":"Answer","text":"네. 모델터는 가입·설치 없이 무료로 쓸 수 있는 웹 도구입니다. 개인 프로젝트로 운영되며 광고나 유료 기능이 없습니다."}},
+{"@type":"Question","name":"입력한 딜 정보가 서버에 저장되나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 모든 계산은 브라우저 안에서 이뤄지고, 매입가·임대료·렌트롤 같은 딜 정보는 서버로 전송되지 않습니다. 저장은 사용자 브라우저(localStorage)에만 하며, 공유 링크도 서버 저장 없이 링크 안에 담기고 임차인 실명은 자동 마스킹됩니다."}},
+{"@type":"Question","name":"화면 숫자와 다운로드 엑셀이 정말 같나요?","acceptedAnswer":{"@type":"Answer","text":"네. 화면의 IRR·Equity Multiple·DSCR 등은 내려받는 엑셀과 같은 계산식에서 나옵니다. 엑셀 파일을 실제 수식 엔진으로 다시 계산해 화면 값과 소수점 수준까지 일치하는지 검증하며, '화면 = 다운로드 엑셀' 배지가 붙은 딜 유형이 그 대상입니다."}},
+{"@type":"Question","name":"어떤 딜 유형을 지원하나요?","acceptedAnswer":{"@type":"Answer","text":"오피스·물류센터 매입(레버드 DCF 13시트), 공동주택 분양 사업수지(브릿지→본PF·중도금 6시트), 리파이낸싱 대안 비교(텀시트·연도별 DSCR 4시트)를 지원하며, 모두 수식이 살아있는 엑셀로 내려받을 수 있습니다."}},
+{"@type":"Question","name":"DSCR은 어떻게 계산하나요?","acceptedAnswer":{"@type":"Answer","text":"DSCR(부채상환계수)은 순영업이익(NOI)을 연간 원리금 상환액(DS)으로 나눈 값입니다. DSCR = NOI ÷ 원리금. 1.2x라면 원리금의 1.2배에 해당하는 NOI가 나온다는 뜻으로, 대주는 보통 1.2x 이상을 요구합니다."}},
+{"@type":"Question","name":"브릿지론과 본PF는 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"브릿지론은 토지 계약부터 착공(인허가·사업 준비 기간)까지 쓰는 단기 고금리 차입이고, 본PF는 착공 이후 공사비를 조달하는 프로젝트 파이낸싱입니다. 착공 시점에 브릿지 잔액이 본PF로 차환(승계)되는 것이 일반적입니다."}}]}
+</script>
+<style>
+:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--serif:Georgia,'Times New Roman',serif}
+@media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:0 22px}
+header{border-bottom:1px solid var(--line-soft);background:var(--panel)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 22px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;color:var(--ink);text-decoration:none}
+.logo .m{width:26px;height:26px;border-radius:7px;background:var(--accent);display:inline-block}
+.back{font-size:13.5px;color:var(--accent-deep);text-decoration:none;font-weight:600;border:1px solid var(--line);padding:7px 14px;border-radius:9px}
+.back:hover{border-color:var(--accent)}
+.hero{padding:44px 0 26px}
+.eyebrow{font-size:12px;font-weight:700;color:var(--accent-deep);letter-spacing:.02em;text-transform:uppercase}
+h1{font-size:31px;font-weight:800;line-height:1.25;margin:10px 0 12px}
+.lead{font-size:16px;color:var(--ink-2);line-height:1.65}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 8px}
+nav.toc a{font-size:13px;color:var(--ink-2);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 13px;text-decoration:none}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent-deep)}
+section{padding:26px 0;border-top:1px solid var(--line-soft)}
+h2{font-size:22px;font-weight:800;margin-bottom:6px;scroll-margin-top:16px}
+h2 .en{font-size:14px;font-weight:600;color:var(--muted);margin-left:8px}
+.sec-intro{color:var(--ink-3);font-size:14.5px;margin-bottom:18px}
+.term{border:1px solid var(--line);background:var(--panel);border-radius:13px;padding:16px 18px;margin-bottom:12px}
+.term h3{font-size:16.5px;font-weight:800;margin-bottom:2px}
+.term h3 .en{font-size:13px;color:var(--accent-deep);font-weight:600;margin-left:7px}
+.term .formula{display:inline-block;font-family:var(--serif);font-size:14px;color:var(--ink);background:var(--line-soft);border-radius:7px;padding:3px 10px;margin:6px 0}
+.term p{font-size:14.5px;color:var(--ink-2)}
+.term .tip{font-size:13px;color:var(--ink-3);margin-top:5px}
+.faq{border-bottom:1px solid var(--line-soft);padding:14px 0}
+.faq summary{font-size:16px;font-weight:700;cursor:pointer;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"＋";color:var(--accent);font-weight:800;margin-right:10px}
+.faq[open] summary::before{content:"－"}
+.faq p{font-size:14.5px;color:var(--ink-2);padding:10px 0 2px 24px}
+.cta{margin:14px 0 8px;text-align:center;background:linear-gradient(135deg,rgba(169,121,43,.12),rgba(58,90,120,.08));border:1px solid var(--line);border-radius:16px;padding:28px 22px}
+.cta h2{border:0}
+.cta p{color:var(--ink-2);margin:8px auto 16px;max-width:480px}
+.cta a{display:inline-block;background:var(--accent);color:#fff;font-weight:700;font-size:15px;padding:12px 26px;border-radius:11px;text-decoration:none}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:12.5px}
+footer a{color:var(--ink-3)}
+@media(max-width:560px){h1{font-size:25px}.hero{padding:32px 0 20px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="/"><span class="m"></span>모델터</a>
+  <a class="back" href="/">← 모델 만들러 가기</a>
+</div></header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">가이드 · 용어사전</div>
+    <h1>한국 상업용 부동산 재무모델, 용어부터 계산까지</h1>
+    <p class="lead">IM을 받아 든 실무자든 처음 배우는 학생이든, 부동산 금융 모델에 나오는 숫자가 무엇을 뜻하는지 알아야 판단할 수 있습니다. Cap rate부터 브릿지론·본PF, 분양수지까지 — 실무에서 쓰는 그대로 정의하고, 각 지표를 <a href="/">모델터</a>에서 바로 계산해 볼 수 있게 정리했습니다.</p>
+    <nav class="toc">
+      <a href="#returns">수익 지표</a>
+      <a href="#value">가치·수입</a>
+      <a href="#debt">부채·커버리지</a>
+      <a href="#korea">국내 실무</a>
+      <a href="#dev">개발금융</a>
+      <a href="#faq">자주 묻는 질문</a>
+    </nav>
+  </div>
+
+  <section id="returns">
+    <h2>수익 지표 <span class="en">Returns</span></h2>
+    <p class="sec-intro">투자자가 “이 딜에서 얼마 버느냐”를 보는 지표들입니다. 모델터의 결과 카드 맨 위에 나오는 값이기도 합니다.</p>
+
+    <div class="term"><h3>IRR <span class="en">내부수익률 · Internal Rate of Return</span></h3>
+      <p>투자 기간의 모든 현금흐름(초기 투입 −, 매년 배당 +, 매각 회수 +)을 현재가치로 환산했을 때 순현재가치가 0이 되게 하는 할인율입니다. 돈이 언제 들어오고 나가는지(타이밍)까지 반영하는 대표 수익률로, <b>레버드 IRR</b>은 대출을 쓴 자기자본 기준, <b>언레버드 IRR</b>은 무차입 자산 자체의 수익률입니다.</p>
+      <p class="tip">기간·중간 배당이 같아도 매각 시점이 빠르면 IRR이 올라갑니다. 단순 배수(Equity Multiple)와 함께 봐야 왜곡이 없습니다.</p></div>
+
+    <div class="term"><h3>Equity Multiple <span class="en">자기자본 배수 · EM</span></h3>
+      <span class="formula">EM = 총 회수액 ÷ 총 투입 자기자본</span>
+      <p>투입한 자기자본이 몇 배가 되어 돌아오는지 보는 지표입니다. 1.8x면 100을 넣어 180을 회수한다는 뜻입니다. IRR은 시간을 반영하지만 “총 얼마”는 안 보여주므로, EM과 짝지어 봅니다.</p></div>
+
+    <div class="term"><h3>현금수익률 <span class="en">Cash-on-Cash · CoC</span></h3>
+      <span class="formula">CoC = 연간 자기자본 현금흐름 ÷ 투입 자기자본</span>
+      <p>매각을 빼고, 보유하는 동안 매년 손에 쥐는 배당이 자기자본 대비 몇 %인지를 봅니다. 인컴(운영 배당) 관점의 수익률로, 리츠·펀드의 배당가능이익 판단에 쓰입니다.</p></div>
+  </section>
+
+  <section id="value">
+    <h2>가치 · 수입 <span class="en">Value &amp; Income</span></h2>
+    <p class="sec-intro">자산이 얼마의 수입을 내고, 그 수입으로 값을 얼마로 매기느냐. 매입가와 매각가를 잇는 고리입니다.</p>
+
+    <div class="term"><h3>NOI <span class="en">순영업이익 · Net Operating Income</span></h3>
+      <span class="formula">NOI = 유효총수입(EGI) − 운영비(OPEX)</span>
+      <p>임대료·관리비 등 자산이 벌어들이는 수입에서 인건비·수선·보험·재산세 등 운영비를 뺀 순수 영업이익입니다. 대출 이자·감가상각·법인세는 아직 빼기 전 단계로, 가치평가(Cap)와 DSCR의 출발점입니다.</p></div>
+
+    <div class="term"><h3>Cap rate <span class="en">자본환원율</span></h3>
+      <span class="formula">Cap rate = NOI ÷ 자산가치　(자산가치 = NOI ÷ Cap)</span>
+      <p>자산가치를 NOI로 환산하는 비율입니다. Cap이 낮을수록 같은 NOI에 더 비싼 값이 매겨집니다(고평가). 매입 시점은 <b>진입 Cap</b>, 매각 시점은 <b>Exit Cap</b>이라 하며, Exit Cap은 보통 진입보다 보수적으로(높게) 잡습니다.</p>
+      <p class="tip">매각가 = 매각연도 forward NOI ÷ Exit Cap. Exit Cap을 0.5%p만 올려도 매각가가 크게 떨어져 IRR에 민감하게 작용합니다.</p></div>
+
+    <div class="term"><h3>WALE <span class="en">가중평균 잔여임대기간</span></h3>
+      <p>임차인별 잔여 임대기간을 면적(또는 임대료)으로 가중평균한 값입니다. WALE가 길수록 임대 안정성이 높다고 봅니다. 렌트롤을 올리면 모델터가 자동으로 산출하고, 만기 집중 구간을 함께 보여줍니다.</p></div>
+  </section>
+
+  <section id="debt">
+    <h2>부채 · 커버리지 <span class="en">Debt &amp; Coverage</span></h2>
+    <p class="sec-intro">대주(대출 기관)가 “이 대출이 안전한가”를 보는 지표들입니다. 대주 관점에서 가장 먼저 확인합니다.</p>
+
+    <div class="term"><h3>DSCR <span class="en">부채상환계수 · Debt Service Coverage Ratio</span></h3>
+      <span class="formula">DSCR = NOI ÷ 연간 원리금(DS)</span>
+      <p>NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금의 1.2배를 버는 것으로, 대주는 보통 1.2x 이상을 요구합니다. 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다.</p></div>
+
+    <div class="term"><h3>ICR <span class="en">이자보상배율</span></h3>
+      <span class="formula">ICR = NOI ÷ 연간 이자</span>
+      <p>원금 상환을 빼고 이자만으로 본 커버리지입니다. 만기일시(이자만) 상환 구조에서 특히 중요합니다.</p></div>
+
+    <div class="term"><h3>LTV · LTC <span class="en">Loan-to-Value · Loan-to-Cost</span></h3>
+      <span class="formula">LTV = 대출 ÷ 자산가치(감정가)　·　LTC = 대출 ÷ 총사업비</span>
+      <p>LTV는 담보가치 대비, LTC는 투입 원가 대비 대출 비율입니다. 매입에는 LTV, 개발사업에는 LTC를 주로 씁니다. 대주는 이 비율로 위험 노출을 제한합니다.</p></div>
+
+    <div class="term"><h3>Debt Yield <span class="en">부채수익률</span></h3>
+      <span class="formula">Debt Yield = NOI ÷ 대출 잔액</span>
+      <p>대출 1원당 자산이 얼마의 NOI를 내는지 보는 지표로, 금리·상환구조와 무관하게 대출의 안전마진을 봅니다. 낮을수록 대주에게 위험합니다.</p></div>
+  </section>
+
+  <section id="korea">
+    <h2>국내 실무 <span class="en">Korea-specific</span></h2>
+    <p class="sec-intro">해외 교과서에는 없지만 한국 상업용 부동산에서는 반드시 반영해야 하는 항목들입니다.</p>
+
+    <div class="term"><h3>보증금 승계 <span class="en">임대보증금</span></h3>
+      <p>국내 상업용 임대차는 월 임대료의 10~12개월치 수준의 무이자 보증금을 받습니다. 매입 시 이 보증금(부채)을 승계하면 취득자금(Sources)으로 잡혀 자기자본을 줄이고, 매각 때 정산합니다. 국내 실무의 표준 처리이며, 무이자 보증금의 운용수익도 수입에 더해집니다.</p></div>
+
+    <div class="term"><h3>도관과세 <span class="en">Pass-through · 위탁관리리츠·부동산펀드</span></h3>
+      <p>배당가능이익의 90% 이상을 배당하면 그 배당액을 소득공제받아 법인세가 0에 수렴하는 구조입니다(도관체 과세). 이 경우 세전≈세후가 됩니다. 반대로 <b>비도관</b>(일반 법인)은 감가상각·법인세·양도세를 반영해 세후 IRR이 세전과 달라집니다.</p></div>
+
+    <div class="term"><h3>우선주·보통주 워터폴 <span class="en">Equity Waterfall</span></h3>
+      <p>자기자본을 우선주(우선배당·원금 우선회수)와 보통주로 나눈 구조에서, 매 기간 우선주 우선배당(누적)을 먼저 지급하고 남은 현금을 보통주가 가져갑니다. 매각(청산) 시에는 우선주 원금·미지급 배당을 보통주보다 먼저 회수합니다.</p></div>
+  </section>
+
+  <section id="dev">
+    <h2>개발금융 <span class="en">Development &amp; PF</span></h2>
+    <p class="sec-intro">토지를 사서 짓고 분양하는 개발사업의 자금 흐름과, 분양수지에서 쓰는 용어입니다.</p>
+
+    <div class="term"><h3>브릿지론 → 본PF <span class="en">Bridge &amp; Project Financing</span></h3>
+      <p><b>브릿지론</b>은 토지 계약부터 착공(인허가·사업 준비 기간)까지 쓰는 단기 고금리 차입입니다. 착공 시점에 잔액이 <b>본PF</b>(공사비를 조달하는 프로젝트 파이낸싱)로 차환됩니다. 필요한 브릿지·본PF 한도는 각 구간의 최대 인출 잔액으로 산정합니다.</p></div>
+
+    <div class="term"><h3>중도금 · 무이자 대납 <span class="en">분양 납부 일정</span></h3>
+      <p>분양대금은 보통 계약금 10% → 중도금 60%(4~6회 분할) → 잔금 30%(입주 시)로 나눠 납부됩니다. 이 유입 시점이 사업 현금흐름과 필요 PF 한도를 좌우합니다. ‘무이자’ 분양이면 시행사가 수분양자의 중도금 대출이자를 대납하므로, 그만큼 비용으로 반영해야 합니다.</p></div>
+
+    <div class="term"><h3>손익분기 분양률 <span class="en">Break-even</span></h3>
+      <p>사업이익이 0이 되는 최소 분양률입니다. 이 아래로 팔리면 적자입니다. 함께 보는 <b>PF 상환한계 분양률</b>은 차입을 전액 상환할 수 있는 최소 분양률로, 대주의 안전선입니다. 모델터는 분양률을 바꿔가며 이 두 값을 역산해 보여줍니다.</p></div>
+  </section>
+
+  <section id="faq">
+    <h2>자주 묻는 질문 <span class="en">FAQ</span></h2>
+    <details class="faq"><summary>모델터는 무료인가요?</summary><p>네. 가입·설치 없이 무료로 쓸 수 있는 웹 도구입니다. 개인 프로젝트로 운영되며 광고나 유료 기능이 없습니다.</p></details>
+    <details class="faq"><summary>입력한 딜 정보가 서버에 저장되나요?</summary><p>아니요. 모든 계산은 브라우저 안에서 이뤄지고, 매입가·임대료·렌트롤 같은 딜 정보는 서버로 전송되지 않습니다. 저장은 사용자 브라우저에만 하며, 공유 링크도 서버 저장 없이 링크 안에 담기고 임차인 실명은 자동으로 마스킹됩니다.</p></details>
+    <details class="faq"><summary>화면 숫자와 다운로드 엑셀이 정말 같나요?</summary><p>네. 화면의 IRR·Equity Multiple·DSCR 등은 내려받는 엑셀과 같은 계산식에서 나옵니다. 엑셀을 실제 수식 엔진으로 다시 계산해 화면 값과 소수점 수준까지 일치하는지 검증하며, ‘화면 = 다운로드 엑셀’ 배지가 그 대상입니다.</p></details>
+    <details class="faq"><summary>어떤 딜 유형을 지원하나요?</summary><p>오피스·물류센터 매입(레버드 DCF), 공동주택 분양 사업수지(브릿지→본PF·중도금), 리파이낸싱 대안 비교(텀시트·연도별 DSCR)를 지원하며, 모두 수식이 살아있는 엑셀로 내려받을 수 있습니다.</p></details>
+    <details class="faq"><summary>만든 모델을 팀에 어떻게 공유하나요?</summary><p>공유 아이콘에서 ‘읽기 전용 결과 링크’ 또는 ‘편집용 링크’를 복사해 보내면 됩니다. 서버 없이 링크 하나로 전달되고, 받는 사람은 설치·가입 없이 결과를 봅니다. 엑셀·PPT로 내려받아 전달할 수도 있습니다.</p></details>
+  </section>
+
+  <div class="cta">
+    <h2>이제 직접 만들어 보세요</h2>
+    <p>용어를 눈으로 확인했다면, 실제 숫자를 넣어 IRR·DSCR이 어떻게 움직이는지 보는 게 가장 빠릅니다. 예시 딜이 준비돼 있어 30초면 첫 결과가 나옵니다.</p>
+    <a href="/">모델터에서 계산해 보기 →</a>
+  </div>
+</main>
+
+<footer><div class="wrap">
+  모델터는 상업용 부동산 금융 실무자가 만든 개인 프로젝트입니다. 투자 권유가 아닌 정보 제공 목적이며, 화면의 숫자는 입력값 기반 계산·추정치입니다. · <a href="/">홈</a> · © 2026 Modelter
+</div></footer>
+</body>
+</html>

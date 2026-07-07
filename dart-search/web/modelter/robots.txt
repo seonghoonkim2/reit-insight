@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /e
+
+Sitemap: https://modelter.com/sitemap.xml

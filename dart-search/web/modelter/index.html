@@ -19,7 +19,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"딜 종류를 고르고 숫자만 넣으면 결과를 바로 보여주고, 수식이 살아있는 부동산 재무모델 Excel을 그 자리에서 만들어 줍니다. 렌트롤 반영·Claude in Excel 지시문까지.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"딜 종류를 고르고 숫자만 넣으면 결과를 바로 보여주고, 수식이 살아있는 부동산 재무모델 Excel을 그 자리에서 만들어 줍니다. 렌트롤 반영·Claude in Excel 지시문까지.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"},"featureList":["오피스·물류 매입 레버드 DCF","공동주택 분양 사업수지","리파이낸싱 대안 비교","수식 살아있는 Excel 다운로드","렌트롤 반영"],"subjectOf":{"@type":"Article","name":"부동산 금융 용어사전 · 재무모델 가이드","url":"https://modelter.com/guide.html"}}
 </script>
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -398,6 +398,8 @@ footer{border-top:1px solid var(--line-soft); padding:30px 0 44px; margin-top:36
 .foot-by .by-t span{display:block; font-size:12.5px; color:var(--muted)}
 .foot-by .by-t a{color:var(--accent-deep); text-decoration:none}
 .foot-note{font-size:12.5px; color:var(--muted); max-width:400px; text-align:right; line-height:1.5}
+.foot-guide{font-size:12.5px;color:var(--ink-3);margin-top:12px;line-height:1.6}
+.foot-guide a{color:var(--accent-deep);font-weight:600}
 @media(max-width:680px){ .foot-in{flex-direction:column; align-items:flex-start} .foot-note{text-align:left} }
 
 .toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--panel); font-size:14.5px; font-weight:600; padding:11px 20px; border-radius:11px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.3s; z-index:100}
@@ -1049,6 +1051,28 @@ html,body{overflow-x:hidden}
 .ro-open:hover{filter:brightness(1.06)}
 body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
+
+/* 첫 방문 온보딩 역할 선택 */
+.ob-card{max-width:560px;text-align:center}
+.ob-eyebrow{display:inline-block;font-size:11.5px;font-weight:700;color:var(--accent-deep);background:rgba(169,121,43,.1);padding:5px 12px;border-radius:20px;margin-bottom:12px}
+.ob-h{font-family:var(--serif);font-size:26px;font-weight:500;color:var(--ink);margin-bottom:8px;line-height:1.25}
+.ob-sub{font-size:14px;color:var(--ink-3);line-height:1.55;margin-bottom:20px;max-width:440px;margin-left:auto;margin-right:auto}
+.ob-roles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px}
+.ob-role{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:13px;padding:15px 16px;cursor:pointer;transition:.16s}
+.ob-role:hover{border-color:var(--accent);background:var(--bg);transform:translateY(-1px);box-shadow:var(--soft)}
+.ob-role .ob-ic{font-size:24px;line-height:1;margin-bottom:5px}
+.ob-role b{font-size:15px;color:var(--ink);font-weight:700}
+.ob-role .ob-d{font-size:12px;color:var(--ink-3);line-height:1.4}
+.ob-skip{border:none;background:none;color:var(--muted);font-family:var(--font);font-size:13px;cursor:pointer;padding:6px 12px;border-radius:8px}
+.ob-skip:hover{color:var(--ink-2);background:var(--line-soft)}
+@media(max-width:520px){ .ob-roles{grid-template-columns:1fr} .ob-h{font-size:22px} .ob-card{max-width:none} }
+/* 핵심 입력 진행률 */
+.inp-prog{display:flex;align-items:center;gap:8px;padding:0 20px 10px;font-size:11.5px;color:var(--ink-3)}
+.inp-prog .ip-bar{flex:1;height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden}
+.inp-prog .ip-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s,background .3s}
+.inp-prog.done .ip-fill{background:var(--green)}
+.inp-prog .ip-txt{white-space:nowrap;font-variant-numeric:tabular-nums}
+.inp-prog.done .ip-txt{color:var(--green);font-weight:700}
 </style>
 </head>
 <body>
@@ -1080,6 +1104,25 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
     <span class="ann-msg"><b>모델터가 새로워졌습니다</b> — 이제 이 화면 안에서 재무모델이 바로 돌아가고, 수식이 살아있는 Excel로 받습니다.</span>
     <button class="ann-more" id="annMore" type="button">무엇이 바뀌었나 →</button>
     <button class="ann-x" id="annClose" type="button" aria-label="공지 닫기">×</button>
+  </div>
+</div>
+
+<div class="wn-overlay ob-overlay" id="obOverlay" hidden>
+  <div class="wn-card ob-card">
+    <div class="ob-eyebrow">환영합니다 · 30초면 첫 결과가 나옵니다</div>
+    <h2 class="ob-h">어떤 일을 하고 계신가요?</h2>
+    <p class="ob-sub">고르시면 맞는 딜 유형과 예시가 자동으로 준비됩니다. 숫자만 바꾸면 IRR·멀티플이 바로 나옵니다.</p>
+    <div class="ob-roles">
+      <button type="button" class="ob-role" data-role="acq">
+        <span class="ob-ic">🏢</span><b>매입 검토</b><span class="ob-d">운용사·리츠·펀드 — IM 받고 IRR·민감도 빠르게</span></button>
+      <button type="button" class="ob-role" data-role="dev">
+        <span class="ob-ic">🏗️</span><b>개발 · 시행</b><span class="ob-d">공동주택 분양 — 평형별 분양가·중도금·PF 한도</span></button>
+      <button type="button" class="ob-role" data-role="lender">
+        <span class="ob-ic">🏦</span><b>대주 · PF 심사</b><span class="ob-d">LTC·분양률 스트레스·상환 안전성 점검</span></button>
+      <button type="button" class="ob-role" data-role="learn">
+        <span class="ob-ic">🎓</span><b>학습 · 둘러보기</b><span class="ob-d">실무 재무모델 구조를 직접 만들며 익히기</span></button>
+    </div>
+    <button type="button" class="ob-skip" id="obSkip">그냥 둘러볼게요 →</button>
   </div>
 </div>
 
@@ -1292,6 +1335,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <button class="sl-btn sl-cmp" id="cmpOpen" type="button" title="저장한 딜과 현재 입력을 나란히 비교" hidden>딜 비교</button>
         <span class="ws-dirty" id="wsDirtyTag" hidden title="현재 화면값이 저장된 버전과 다릅니다">● 저장 안 된 변경</span>
       </div>
+      <div class="inp-prog" id="inpProg" hidden><span class="ip-bar"><span class="ip-fill" id="ipFill"></span></span><span class="ip-txt" id="ipTxt"></span></div>
       <div class="panel-body" id="formBody"></div>
     </div>
 
@@ -1416,6 +1460,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       </div>
       <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-07-02</p>
       <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
+      <p class="foot-guide"><a href="/guide.html">부동산 금융 용어사전 · 재무모델 가이드</a> — Cap rate·NOI·IRR·DSCR·LTC·보증금 승계·도관과세·브릿지/본PF를 실무 기준으로 정리했습니다.</p>
     </div>
   </div>
 </footer>
@@ -2262,7 +2307,33 @@ function update(){
   renderScenNote();
   updateGroupCounts();
   try{ renderWorkspace(); }catch(e){}
+  try{ renderInpProg(); }catch(e){}
   saveLocal();
+}
+/* 핵심 입력 진행률 — 딜별 필수 필드가 얼마나 채워졌는지(완성도 안심 지표) */
+function renderInpProg(){
+  var box=$('inpProg'), fill=$('ipFill'), txt=$('ipTxt'); if(!box||!fill||!txt) return;
+  var keys=(typeof QUICK_FIELDS!=='undefined'&&QUICK_FIELDS[cur])?QUICK_FIELDS[cur].slice():[];
+  if(cur==='dev'&&typeof devResi==='function'&&devResi()){
+    // 분양은 그리드가 핵심 — 평형 1행 이상 채워졌는지 포함
+    var hasApt=false; try{ var ar=devRows('aptrows',[]); hasApt=ar.some(function(r){ return parseNum(String(r.p||''))>0 && parseNum(String(r.n||''))>0; }); }catch(e){}
+    keys=['asset','landcost','conscost','equity','pfrate'];
+    var tot=keys.length+1, fl=0;
+    keys.forEach(function(k){ if(((state[k]||'')+'').trim()!=='') fl++; }); if(hasApt) fl++;
+    return _paintProg(box,fill,txt,fl,tot);
+  }
+  if(!keys.length){ box.hidden=true; return; }
+  var total=keys.length, filled=0;
+  keys.forEach(function(k){ if(((state[k]||'')+'').trim()!=='') filled++; });
+  _paintProg(box,fill,txt,filled,total);
+}
+function _paintProg(box,fill,txt,filled,total){
+  box.hidden=false;
+  var pct=total>0?Math.round(filled/total*100):0;
+  fill.style.width=pct+'%';
+  var done=(filled>=total);
+  box.classList.toggle('done',done);
+  txt.textContent=done?('핵심 입력 완료 · 결과가 준비됐어요'):('핵심 입력 '+filled+'/'+total);
 }
 /* 그룹별 입력 진행 표시 (n/m) — 어디까지 채웠는지 부담을 줄여줌 */
 function updateGroupCounts(){
@@ -6071,6 +6142,46 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
 
 /* ── 업그레이드 공지 배너 + What's new 모달 ── */
 (function(){
+/* ── 첫 방문 온보딩: 역할 선택 → 딜 탭·예시 자동 세팅 (활성화 유도) ── */
+(function(){
+  var ov=document.getElementById('obOverlay'); if(!ov) return;
+  function onboarded(){ try{ return localStorage.getItem('mt_onboarded')==='1'; }catch(e){ return true; } }
+  function markOnboarded(){ try{ localStorage.setItem('mt_onboarded','1'); }catch(e){} }
+  function close(){ ov.hidden=true; document.body.style.overflow=''; }
+  var ROLE={
+    acq:{deal:'office', view:null},
+    dev:{deal:'dev', view:'sponsor'},
+    lender:{deal:'dev', view:'lender'},
+    learn:{deal:'office', view:null}
+  };
+  function pick(role){
+    markOnboarded(); close();
+    var r=ROLE[role]||ROLE.acq;
+    try{
+      if(typeof cur!=='undefined' && r.deal && typeof DEALS!=='undefined' && DEALS[r.deal]){
+        cur=r.deal;
+        if(typeof fillExample==='function') fillExample();   // 예시 자동 로드(표준 깊이)
+        if(r.view && typeof window.__setDevView==='function') window.__setDevView(r.view);
+      }
+    }catch(e){}
+    if(window.mtTrack) try{ mtTrack('onboard',{role:role}); }catch(e){}
+    // 빌더로 부드럽게 이동 + 첫 입력 살짝 강조
+    var t=document.getElementById('builder-start');
+    if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(function(){
+      try{ var el=document.querySelector('#formBody [data-k]'); if(el&&el.focus){ el.focus({preventScroll:true}); el.select&&el.select(); } }catch(e){}
+    },650);
+  }
+  ov.querySelectorAll('.ob-role').forEach(function(b){ b.addEventListener('click',function(){ pick(b.dataset.role); }); });
+  var sk=document.getElementById('obSkip'); if(sk) sk.addEventListener('click',function(){ markOnboarded(); close(); if(window.mtTrack) try{ mtTrack('onboard',{role:'skip'}); }catch(e){} });
+  ov.addEventListener('click',function(e){ if(e.target===ov){ markOnboarded(); close(); } });
+  // 첫 방문에만 노출 (공유 링크 복원 시엔 건너뜀). 노출하면 이 세션 What's new는 억제
+  if(!onboarded() && !/[#&][evd]=/.test(location.hash||'')){
+    window.__mtOnboarding=true;
+    ov.hidden=false; document.body.style.overflow='hidden';
+  }
+})();
+
   var SNOOZE='mt_wn_snooze_v4';   // 'YYYY-M-D' 저장 → 그날 하루 배너·팝업 자동노출 안 함 (v3: 재노출 위해 키 갱신)
   var bar=document.getElementById('announce'), ov=document.getElementById('wnOverlay');
   if(!bar && !ov) return;
@@ -6085,7 +6196,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   // 첫 노출: 오늘 그만보기 상태가 아니면 배너 표시 + (이번 세션 처음이면) 팝업 자동
   if(!snoozedToday()){
     if(bar) bar.hidden=false;
-    if(ov && !seenSession()) openWN();
+    if(ov && !seenSession() && !window.__mtOnboarding) openWN();   // 첫 방문 온보딩과 이중 노출 방지
   }
   var more=document.getElementById('annMore'); if(more) more.addEventListener('click',openWN);
   var ax=document.getElementById('annClose'); if(ax) ax.addEventListener('click',function(){ if(bar) bar.hidden=true; });
