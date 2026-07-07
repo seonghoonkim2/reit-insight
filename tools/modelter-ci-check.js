@@ -23,6 +23,7 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
   ok(g.includes('FAQPage') && g.includes('BreadcrumbList'), 'guide.html 구조화 데이터(FAQ·Breadcrumb)');
   ok(g.includes('DSCR') && g.includes('Cap rate') && g.includes('브릿지'), 'guide.html 핵심 용어 포함');
   ok((g.match(/class="term"/g) || []).length >= 12, 'guide.html 용어 12개 이상');
+  ok(g.includes('/#t=dev') && g.includes('/#t=refi') && g.includes('class="try"'), 'guide.html 섹션→계산기 딥링크');
 }
 if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
@@ -151,6 +152,13 @@ ok(html.includes('mt_nudge') && html.includes('nudge_save'), '저장 넛지(세�
 ok(html.includes('모든 딜에서 검증된 엑셀'), "What's new v3 내용 현행화");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('ev&&ev.isTrusted&&window.__mtActivate'), '퍼널: 신뢰 입력만 활성화(예시 로드 제외)');
+ok(html.includes('function missingKeyFields') && html.includes('sim-empty'), '결과 빈 상태 안내(누락 필드) 존재');
+ok(html.includes("classList.add('noresult')") && html.includes("contains('noresult')"), '빈 상태에서 다운로드 행 차단');
+ok(html.includes('예시로 시작하기'), '빈 상태 → 예시 시작 버튼 존재');
+ok(html.includes('[#&]t=(office|logistics|dev|refi)'), '가이드 딥링크(#t=) 존재');
+ok(html.includes('[#&]view=lender'), '딥링크 대주 뷰(view=lender) 존재');
+ok(html.includes('[#&][evdt]='), '딥링크 시 온보딩 스킵 가드');
+ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-ae.js')), '계기판 조회 스크립트(Analytics Engine) 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');

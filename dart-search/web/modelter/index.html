@@ -614,6 +614,7 @@ header{background:rgba(253,252,249,.82)}
   #printSummary .ps-foot{margin-top:7px; padding-top:4px; border-top:1px solid #ccc; font-size:7.5pt; color:#666}
   /* KPI 스트립 */
   #printSummary .ps-kpis{display:flex; gap:8px; margin:0 0 7px}
+  #printSummary .ps-verdict{font-size:10.5px; color:#333; border:1px solid #ccc; border-radius:6px; padding:5px 8px; margin:0 0 7px}
   #printSummary .ps-kpi{flex:1; border:1px solid #ccc; border-radius:6px; padding:4px 8px; text-align:center; background:#faf9f6}
   #printSummary .ps-kpi.warn{border-color:#b3472f; background:#fbf1ee}
   #printSummary .ps-kpi.good{border-color:#2f7d57; background:#eef6f1}
@@ -1087,6 +1088,14 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .sim-verdict.mid{background:rgba(169,121,43,.07);border-color:rgba(169,121,43,.24);color:var(--ink-2)}
 .sim-verdict.mid .sv-ic{color:var(--accent-deep)}
 .sim-verdict.mid .sv-tx b{color:var(--accent-deep)}
+/* 결과 빈 상태 */
+.sim-empty{text-align:center;padding:26px 14px 22px;color:var(--ink-3)}
+.sim-empty .se-ic{font-size:30px;margin-bottom:8px}
+.sim-empty .se-t{font-size:15px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+.sim-empty .se-need{font-size:13px;line-height:1.6;margin-bottom:14px}
+.sim-empty .se-need b{color:var(--accent-deep)}
+.sim-empty .se-btn{border:1px solid var(--accent);background:none;color:var(--accent-deep);font-family:var(--font);font-weight:700;font-size:13.5px;padding:9px 18px;border-radius:10px;cursor:pointer}
+.sim-empty .se-btn:hover{background:rgba(169,121,43,.08)}
 /* 딜 비교 판정 행 */
 .cmp-vrow td{background:var(--line-soft)}
 .cmp-verdict{display:inline-block;font-size:11.5px;line-height:1.4;padding:3px 8px;border-radius:8px}
@@ -2919,6 +2928,8 @@ function buildPrintSummary(){
   if(mdl&&mdl.kpis&&mdl.kpis.length){
     var big=mdl.kpis.filter(function(k){return k.big;}); if(!big.length) big=mdl.kpis.slice(0,4);
     kpiStrip='<div class="ps-kpis">'+big.map(function(k){ var tn=(k.tone==='warn'?' warn':(k.tone==='good'?' good':'')); return '<div class="ps-kpi'+tn+'"><div class="pk-l">'+esc(String(k.l))+'</div><div class="pk-v">'+esc(String(k.v))+'</div></div>'; }).join('')+'</div>';
+    try{ var _pv=(typeof dealVerdict==='function')?dealVerdict(mdl):null;
+      if(_pv) kpiStrip+='<div class="ps-verdict">'+(_pv.tone==='warn'?'⚠ ':'✓ ')+String(_pv.html).replace(/<[^>]+>/g,'')+'</div>'; }catch(ePV){}
   }
   var rowsHtml=(r.rows||[]).map(function(x){return '<tr><td>'+esc(String(x.l))+'</td><td>'+esc(String(x.v))+(x.est?' (추정)':'')+'</td></tr>';}).join('');
   /* 체크 레지스트리 상위 4건 (오류 우선) */
@@ -3810,10 +3821,46 @@ function renderVerdict(r){
   el.className='sim-verdict '+v.tone;
   el.innerHTML='<span class="sv-ic">'+ic+'</span><span class="sv-tx">'+v.html+'</span>';
 }
+/* 결과 계산에 필요한 미입력 핵심 필드의 라벨 목록 */
+function missingKeyFields(){
+  var keys=(typeof QUICK_FIELDS!=='undefined'&&QUICK_FIELDS[cur])?QUICK_FIELDS[cur].slice():[];
+  var labs=[];
+  if(cur==='office'||cur==='logistics'){
+    var md=(state['noimode']||'').trim();
+    if(md&&md.indexOf('임대료')!==0) keys=keys.map(function(k){ return k==='rentpp'?'noi1':k; });
+  }
+  if(cur==='dev'&&typeof devResi==='function'&&devResi()){
+    keys=['landcost','conscost'];
+    var hasApt=false; try{ devRows('aptrows',[]).forEach(function(rw){ if(parseNum(String(rw.n||''))>0&&parseNum(String(rw.p||''))>0) hasApt=true; }); }catch(e){}
+    if(!hasApt) labs.push('평형별 분양가(세대수·분양가)');
+  }
+  keys.forEach(function(k){
+    if(k==='asset'||k==='devtype'||k==='exitmode') return;
+    if(((state[k]||'')+'').trim()!=='') return;
+    var lab=null; try{ DEALS[cur].groups.forEach(function(g){ g.f.forEach(function(f){ if(f.k===k) lab=f.l; }); }); }catch(e){}
+    if(lab&&labs.indexOf(lab)<0) labs.push(lab);
+  });
+  return labs;
+}
 function renderSim(){
   var card=$('simCard'); if(!card) return;
   var r=simModel();
-  if(!r){ card.hidden=true; return; }
+  if(!r){
+    // 빈 상태: 카드 자체는 보여주고, 무엇을 채우면 되는지 안내 (다운로드 게이트는 noresult로 차단)
+    card.hidden=false;
+    try{ card.classList.add('noresult'); }catch(e){}
+    var kp0=$('simKpis'), bd0=$('simBody'), cv0=$('simCaveat'), vd0=$('simVerdict');
+    var labs=[]; try{ labs=missingKeyFields(); }catch(e){}
+    if(kp0) kp0.innerHTML='';
+    if(vd0){ vd0.hidden=true; vd0.innerHTML=''; }
+    if(bd0) bd0.innerHTML='<div class="sim-empty"><div class="se-ic">📊</div><div class="se-t">숫자를 넣으면 여기서 바로 계산됩니다</div>'+
+      (labs.length?('<div class="se-need">필요한 입력: <b>'+labs.map(esc).join(', ')+'</b></div>'):'<div class="se-need">핵심 입력을 채우면 IRR·DSCR가 실시간으로 나옵니다</div>')+
+      '<button type="button" class="se-btn" onclick="fillExample()">예시로 시작하기 ↻</button></div>';
+    if(cv0) cv0.innerHTML='';
+    if(window.__miniSetData) window.__miniSetData(false);
+    return;
+  }
+  try{ card.classList.remove('noresult'); }catch(e){}
   card.hidden=false;
   if(window.__mtComputed) try{ window.__mtComputed(); }catch(e){}   // 자기 딜 입력 후 결과 도달(퍼널)
   try{ renderVerdict(r); }catch(e){}
@@ -4145,6 +4192,16 @@ function applySharedPayload(p){
 }
 function tryRestoreFromURL(){
   var h=location.hash||'';
+  // 가이드 딥링크: #t=office|logistics|dev|refi (&view=lender) → 탭 전환 + 예시 + 빌더 스크롤
+  var mT=h.match(/[#&]t=(office|logistics|dev|refi)/);
+  if(mT){
+    try{
+      cur=mT[1]; fillExample();
+      if(/[#&]view=lender/.test(h)&&cur==='dev'&&typeof window.__setDevView==='function') window.__setDevView('lender');
+      setTimeout(function(){ var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({block:'start'}); },80);
+      return true;
+    }catch(eT){ return false; }
+  }
   var mNew=h.match(/[#&][ev]=([^&]+)/), readonly=/[#&]v=/.test(h);
   if(mNew){
     try{ var p=JSON.parse(mtLZ.decompress(mNew[1])); applySharedPayload(p); if(readonly) enterReadonly(); return true; }catch(e){ return false; }
@@ -4213,7 +4270,7 @@ if(!tryRestoreFromURL() && !tryRestoreLocal()) fillExample();
 /* 재방문자는 소개를 건너뛰고 빌더로 바로 (신규 방문 서사는 유지) */
 (function(){
   try{
-    if(/[#&][evd]=/.test(location.hash||'')) return; // 공유 링크 복원 시엔 그대로
+    if(/[#&][evdt]=/.test(location.hash||'')) return; // 공유·딥링크 복원 시엔 그대로
     var seen=localStorage.getItem('mt_visited');
     localStorage.setItem('mt_visited','1');
     if(seen==='1'){
@@ -4806,6 +4863,11 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
   function _newSimDcf(){
     var rr=rrLeaseResult(); if(rr) return rr;
+    // 핵심 입력(매입가 + 임대수입원)이 비면 내장 기본값으로 몰래 계산하지 않고 빈 상태 안내로 보냄
+    var _p=mnum('price'); if(!isFinite(_p)||_p<=0) return null;
+    var _md=(state['noimode']||'').trim(); var _rb=(_md===''||_md.indexOf('임대료')===0);
+    if(_rb){ var _rp=mnum('rentpp'); if(!isFinite(_rp)||_rp<=0) return null; }
+    else { var _n1=mnum('noi1'); if(!isFinite(_n1)||_n1<=0) return null; }
     var r=calcModel(assumFull());
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
     var mk=(typeof meok==='function')?meok:function(v){return Math.round(v)+'백만';};
@@ -5371,7 +5433,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var isDev=(typeof cur!=='undefined')&&cur==='dev'&&(typeof devResi==='function')&&devResi();
     var isRefi=(typeof cur!=='undefined')&&(cur==='refi');
     var b=$id('dlRow'), card=$id('simCard');
-    if(b){ b.hidden=!((isOffice||isDev||isRefi)&&card&&!card.hidden); }
+    if(b){ var noRes=false; try{ noRes=card&&card.classList&&card.classList.contains&&card.classList.contains('noresult'); }catch(eN){} b.hidden=!((isOffice||isDev||isRefi)&&card&&!card.hidden&&!noRes); }
     var xb=$id('xlDownload');
     if(xb) xb.innerHTML=isDev?'⬇ 분양수지 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>':(isRefi?'⬇ 리파이낸싱 비교 엑셀 받기 <span class="xl-ext">.xlsx</span>':'⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>');
     // 티저(PPT)는 매입 딜(오피스·물류) 전용
@@ -6303,7 +6365,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   var sk=document.getElementById('obSkip'); if(sk) sk.addEventListener('click',function(){ markOnboarded(); close(); if(window.mtTrack) try{ mtTrack('onboard',{role:'skip'}); }catch(e){} });
   ov.addEventListener('click',function(e){ if(e.target===ov){ markOnboarded(); close(); } });
   // 첫 방문에만 노출 (공유 링크 복원 시엔 건너뜀). 노출하면 이 세션 What's new는 억제
-  if(!onboarded() && !/[#&][evd]=/.test(location.hash||'')){
+  if(!onboarded() && !/[#&][evdt]=/.test(location.hash||'')){
     window.__mtOnboarding=true;
     ov.hidden=false; document.body.style.overflow='hidden';
   }
