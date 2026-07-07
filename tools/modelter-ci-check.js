@@ -145,7 +145,8 @@ ok(html.includes('!window.__mtOnboarding'), "온보딩·What's new 이중 노출
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
 ok(html.includes('href="/guide.html"'), '홈→가이드 내부 링크(SEO) 존재');
 ok(html.includes('ev&&ev.isTrusted&&window.__mtActivate'), '퍼널: 신뢰 입력만 활성화(예시 로드 제외)');
-ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트 존재');
+ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
+ok(fs.existsSync(path.join(__dirname, 'modelter-ae.js')), '계기판 조회 스크립트(Analytics Engine) 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
 ok(html.includes('k:"taxpct"') && html.includes('k:"salespct"') && html.includes('k:"hugpct"'), '사업비 세부(제세·판매비·분양보증) 입력 존재');
 ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');
