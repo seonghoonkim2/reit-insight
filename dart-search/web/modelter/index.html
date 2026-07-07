@@ -1122,7 +1122,7 @@ html,body{overflow-x:hidden}
       <div class="md-f"><b>③ 지출(Cash-out)</b> — 토지비+취득 제세(착수 일괄) · 도급 공사비+설계감리·예비비(공사기간 균등 기성) · 기타 고정비(사업기간 균등) · 분양보증 수수료(개시월 일괄) · 판매비(계약 발생 연동) · 중도금 무이자 시 시행 대납이자(중도금 납부 누적액 × 대출금리, 준공까지).</div>
       <div class="md-f"><b>④ 조달 — 브릿지 → 본PF</b> — 자기자본을 먼저 투입하고, 부족 자금은 차입으로 자동 인출합니다. 착공 전(선행기간)에는 <b>브릿지 금리</b>, 착공 후에는 <b>본PF 금리</b>가 적용되며 착공 시점에 잔액이 본PF로 차환(승계)됩니다. 잉여현금은 차입을 자동 상환하고, 이자는 잔액에 월할로 붙습니다(부족 시 재원도 차입 = 이자 유보 효과).</div>
       <div class="md-f"><b>⑤ 지표</b> — 사업이익률 = 사업이익 ÷ 분양수입(세전). 필요 브릿지/본PF 한도 = 구간별 최대 인출 잔액. Equity Multiple = 자기자본 회수액 ÷ 투입액, 연환산 IRR = EM^(12/사업개월) − 1. <b>손익분기 분양률</b>(이익 0)과 <b>PF 상환한계 분양률</b>(차입 전액 상환 가능 최소 분양률)은 분양률만 바꿔 엔진을 반복 계산(이분법)해 구합니다.</div>
-      <div class="md-f"><b>단순화</b> — 토지비 일괄(계약금·중도금·잔금 분할 없음) · 공사비 균등 기성(S-커브 아님) · 상업시설 균등 판매 · 브릿지 차환 수수료 없음 · 세전 기준(법인세·종부세 미반영). 같은 계산식의 <b>분양수지 엑셀(수식 연결)</b>로 내려받아 검증할 수 있습니다.</div>
+      <div class="md-f"><b>단순화</b> — 토지비 계약금·잔금 2회 분할 · 기성 곡선(균등/S-커브 선택) · 상업시설 균등 판매 · 브릿지 차환 수수료 없음 · 세전 기준(법인세·종부세 미반영). 같은 계산식의 <b>분양수지 엑셀(수식 연결)</b>로 내려받아 검증할 수 있습니다.</div>
     </div>
 
     <div class="md-sec">
@@ -1559,7 +1559,8 @@ const DEALS={
       {k:"gfa",l:"연면적",u:"평",t:"num",ph:"24,000",min:0,hint:"건물 전체 바닥면적. 평당 공사비 점검의 기준."},
       {k:"tpc",l:"총사업비",u:"백만원",t:"num",ph:"320,000",min:0,hint:"토지비+공사비+금융비+기타를 모두 포함한 총투입. 자본구조 비중의 분모입니다."},
       {k:"landcost",l:"토지비",u:"백만원",t:"num",ph:"180,000",min:0,hint:"토지 매입가(제세 제외). 취득 제세는 ④사업비 세부의 비율로 얹습니다."},
-      {k:"conscost",l:"도급 공사비",u:"백만원",t:"num",ph:"290,000",min:0,hint:"직접 공사비. 공사기간 동안 균등 기성으로 투입되며, 설계·감리·예비비는 ④에서 비율로 얹습니다."}
+      {k:"conscost",l:"도급 공사비",u:"백만원",t:"num",ph:"290,000",min:0,hint:"직접 공사비. 아래 기성 곡선에 따라 공사기간에 투입되며, 설계·감리·예비비는 ④에서 비율로 얹습니다."},
+      {k:"conscurve",l:"기성 곡선",t:"select",opts:["균등 기성","S-커브(20/60/20)"],hint:"공사비 투입 패턴. S-커브는 공사기간을 3등분해 20%/60%/20%로 투입 — 초기 지출이 적어 브릿지·PF 이자가 줄어드는 효과가 실제와 가깝습니다."}
     ]},
     {h:"분양 수입", gl:"②", f:[
       {k:"saleprice",l:"분양가/임대가",u:"평당 만원·연",t:"text",ph:"평당 1,150만",hint:"분양은 평당 분양가, 임대는 평당 연임대료로 입력."},
@@ -1570,6 +1571,8 @@ const DEALS={
     ]},
     {h:"일정 · 납부", gl:"③", adv:1, f:[
       {k:"preperiod",l:"토지 선매입~착공",u:"개월",t:"num",ph:"8",min:0,max:120,hint:"토지 계약(브릿지 실행)부터 착공(본PF 전환)까지의 인허가·준비 기간. 이 기간에는 브릿지 금리가 적용됩니다. 0이면 착공과 동시 매입."},
+      {k:"landdp",l:"토지 계약금",u:"% 토지비",t:"num",ph:"10",min:0,max:100,pct:1,hint:"토지 매매 계약 시(0개월차) 지급 비율. 비워두면 100%(일괄 매입)로 계산합니다."},
+      {k:"landpay",l:"토지 잔금 시점",u:"개월차",t:"num",ph:"2",min:0,max:120,hint:"토지 잔금+취득 제세를 지급하는 시점. 0이면 계약과 동시. 잔금이 늦을수록 초기 브릿지 소요가 줄어듭니다."},
       {k:"consperiod",l:"공사기간",u:"개월",t:"num",ph:"32",min:1,max:200,hint:"착공부터 준공까지. 잔금(입주)은 준공월에 들어오고, 건설이자도 이 기간에 쌓입니다."},
       {k:"saleopen",l:"분양 개시",u:"개월차",t:"num",ph:"3",min:0,max:200,hint:"착공 후 몇 개월 차에 분양(청약·계약)을 시작하는지."},
       {k:"absorb",l:"흡수기간",u:"개월",t:"num",ph:"18",min:1,max:200,hint:"분양 개시 후 최종 분양률에 도달하기까지 걸리는 기간."},
@@ -1903,7 +1906,7 @@ function renderForm(){
       if(cur==="dev"){
         const resi=devResi();
         if(resi && ["tpc","saleprice","exitmode","exitcap"].includes(f.k)) return false;
-        if(!resi && ["othercost","aptsold","aptinit","dpct","mpct","mcount","rpct","equity","pfrate","pffee","preperiod","brate","taxpct","engpct","rsvpct","salespct","hugpct","midfree","midrate"].includes(f.k)) return false;
+        if(!resi && ["othercost","aptsold","aptinit","dpct","mpct","mcount","rpct","equity","pfrate","pffee","preperiod","brate","taxpct","engpct","rsvpct","salespct","hugpct","midfree","midrate","conscurve","landdp","landpay"].includes(f.k)) return false;
       }
       return true;
     });
@@ -3314,6 +3317,9 @@ function devResiInputs(){
   var taxpct=pct0('taxpct'), engpct=pct0('engpct'), rsvpct=pct0('rsvpct'), salespct=pct0('salespct'), hugpct=pct0('hugpct');
   var midfree=((state['midfree']||'').trim()==='반영');
   var midrate=mnum('midrate'); if(!isFinite(midrate)||midrate<0) midrate=5.5;
+  var scurve=((state['conscurve']||'').indexOf('S')===0);
+  var landdp=mnum('landdp'); if(!isFinite(landdp)||landdp<0||landdp>100) landdp=100;
+  var landpay=mnum('landpay'); if(!isFinite(landpay)||landpay<0) landpay=0; landpay=Math.round(landpay);
   var aptRows=aptR.map(function(r){ return {t:String(r.t||''), a:parseNum(String(r.a||'')), n:parseNum(String(r.n||'')), p:parseNum(String(r.p||''))}; });
   var retRows=retR.map(function(r){ var sd=parseNum(String(r.s||'')); return {t:String(r.t||''), a:parseNum(String(r.a||'')), p:parseNum(String(r.p||'')), s:isFinite(sd)?Math.min(Math.max(sd,0),100):100}; });
   var aptGross=0, units=0;
@@ -3326,7 +3332,7 @@ function devResiInputs(){
   return {land:isFinite(land)?land:0, cons:isFinite(cons)?cons:0, other:isFinite(other)?other:0,
     M:M, s0:s0, ab:ab, dp:dp, mp:mp, rp:rp, mk:mk, soldT:soldT, init:init, E:E, rate:rate, feePct:feePct,
     pre:pre, brate:brate, taxpct:taxpct, engpct:engpct, rsvpct:rsvpct, salespct:salespct, hugpct:hugpct,
-    midfree:midfree, midrate:midrate,
+    midfree:midfree, midrate:midrate, scurve:scurve, landdp:landdp, landpay:landpay,
     aptRows:aptRows, retRows:retRows, aptGross:aptGross, units:units, retNet:retNet,
     aptRev:aptRev, rev:rev, costBase:costBase, T:pre+Math.max(M, s0+ab)};
 }
@@ -3349,11 +3355,22 @@ function devResiCompute(I){
   cohort(open, I.aptGross*initFrac);
   if(restFrac>0){ var per=I.aptGross*restFrac/ab; for(var m2=open+1;m2<=open+ab;m2++) cohort(m2, per); }
   if(retNet>0){ var perR=retNet/(ab+1); for(var m3=open;m3<=open+ab;m3++) cohort(m3, perR); }
-  // ── 지출: 토지비+제세(0월 일괄) · 공사비+설계감리·예비비(기성 균등) · 기타 고정(균등) · 분양보증(개시월) · 판매비(계약 연동)
+  // ── 지출: 토지비(계약금 0월 · 잔금+제세는 잔금 시점) · 공사비+설계감리·예비비(균등/S-커브 기성) · 기타 고정(균등) · 분양보증(개시월) · 판매비(계약 연동)
   var landAll=I.land*(1+I.taxpct/100);
-  outA[0]+=landAll;
+  var lp=Math.min(I.landpay,T);
+  outA[0]+=I.land*I.landdp/100;
+  outA[lp]+=I.land*(100-I.landdp)/100+I.land*I.taxpct/100;
   var indirCons=I.cons*(I.engpct+I.rsvpct)/100;
-  if(I.cons>0){ var cm=(I.cons+indirCons)/M; for(var m4=K+1;m4<=comp;m4++) outA[m4]+=cm; }
+  if(I.cons>0){
+    var consAll=I.cons+indirCons;
+    var b1=Math.round(M/3), b2=Math.round(2*M/3);
+    for(var m4=K+1;m4<=comp;m4++){
+      var kk=m4-K, w;
+      if(!I.scurve||M<3) w=1/M;
+      else w=(kk<=b1)?(0.2/b1):((kk<=b2)?(0.6/(b2-b1)):(0.2/(M-b2)));
+      outA[m4]+=consAll*w;
+    }
+  }
   if(I.other>0){ var om=I.other/(T+1); for(var m5=0;m5<=T;m5++) outA[m5]+=om; }
   var hugAmt=rev*I.hugpct/100; if(hugAmt>0) outA[Math.min(open,T)]+=hugAmt;
   var salesTot=0;
@@ -3448,6 +3465,35 @@ function devStructHtml(I,R,solv){
   }catch(eC){ ch=''; }
   return '<div class="dv-wrap">'+tl+cb+ch+'</div>';
 }
+/* 분양수지 관점 토글: 시행(수익성) ↔ 대주(조달·상환 안전성). 같은 devResiCompute 결과를 다른 렌즈로 */
+var devView='sponsor';
+window.__setDevView=function(v){ devView=(v==='lender')?'lender':'sponsor'; try{ update(); }catch(e){} if(window.mtTrack) try{ mtTrack('dev_view',{v:devView}); }catch(e){} };
+function devViewToggle(){
+  return '<div class="hx-toggle" style="margin-bottom:8px"><span>보는 관점</span>'+
+    '<button type="button" class="hx-tg'+(devView!=='lender'?' on':'')+'" onclick="__setDevView(\'sponsor\')">시행(수익성)</button>'+
+    '<button type="button" class="hx-tg'+(devView==='lender'?' on':'')+'" onclick="__setDevView(\'lender\')">대주(PF 심사)</button></div>';
+}
+function devLenderStress(I){
+  var rows=[];
+  [100,90,80,70,60].forEach(function(sd){
+    var R2=devResiCompute(Object.assign({},I,{soldT:sd}));
+    rows.push({sd:sd, margin:R2.margin, pfEnd:R2.pfEnd, peak:R2.peakPF});
+  });
+  return rows;
+}
+function devLenderHtml(I,R,solv){
+  var st=devLenderStress(I);
+  var h='<div class="dv-sec-h">분양률 스트레스 <span>같은 월별 엔진 재계산</span></div>'+
+    '<div class="dev-grid"><table class="sens-tbl sim-tbl"><tr><th>아파트 분양률</th><th>사업이익률</th><th>필요 본PF 한도</th><th>만기 미상환</th><th>판정</th></tr>'+
+    st.map(function(x){
+      var okRepay=x.pfEnd<0.5;
+      return '<tr><td>'+x.sd+'%</td><td'+(x.margin<0?' style="color:var(--red);font-weight:700"':'')+'>'+(isFinite(x.margin)?mfmt(x.margin,1)+'%':'—')+'</td>'+
+        '<td>'+meok(x.peak)+'</td><td>'+(okRepay?'—':('<b style="color:var(--red)">'+meok(x.pfEnd)+'</b>'))+'</td>'+
+        '<td>'+(okRepay?'<span style="color:var(--green);font-weight:700">상환</span>':'<span style="color:var(--red);font-weight:700">미상환</span>')+'</td></tr>';
+    }).join('')+'</table></div>'+
+    '<div class="dv-legend" style="margin-top:8px"><span>PF 상환한계 분양률 <b>'+(solv.pfc!=null?mfmt(solv.pfc,1)+'%':'100%+')+'</b></span><span>손익분기 분양률 <b>'+(solv.bep!=null?mfmt(solv.bep,1)+'%':'100%+')+'</b></span></div>';
+  return h;
+}
 function simDevResi(){
   var I=devResiInputs(); if(!I) return null;
   var R=devResiCompute(I);
@@ -3475,7 +3521,35 @@ function simDevResi(){
     {l:'PF 상환한계 분양률', v:pfc!=null?mfmt(pfc,1)+'%':'100%+', tone:pfc==null?'warn':''}
   ];
   var caveats=warns.concat(['월 단위 분양수지 — 반영: 브릿지(선행기간, m<착공)→본PF 금리 전환, 토지 제세·설계감리·예비비·판매비(계약 연동)·분양보증·중도금 무이자 대납이자. 단순화: 토지비 착수 일괄, 공사비 균등 기성, 상업시설 균등 판매, 브릿지→본PF 차환은 잔액 승계(별도 상환 수수료 없음), PF 수수료는 본PF 최대 인출액 기준.']);
-  var struct=(typeof devStructHtml==='function')?devStructHtml(I,R,{bep:bep,pfc:pfc}):'';
+  if(typeof devView!=='undefined'&&devView==='lender'){
+    var ltc=R.costAll>0?R.peakPF/R.costAll:null;
+    var eqr=R.costAll>0?I.E/R.costAll:null;
+    var landBase=I.land*(1+I.taxpct/100);
+    var brLtv=(I.pre>0&&landBase>0)?R.peakBr/landBase:null;
+    var totalDebtCost=R.peakPF+R.intTot+R.feeAmt;
+    var cover=totalDebtCost>0?R.rev/totalDebtCost:null;
+    kpis=[
+      {l:'필요 본PF 한도(최대 인출)', v:meok(R.peakPF), big:true},
+      {l:'LTC (본PF ÷ 총사업비)', v:ltc!=null?mfmt(ltc*100,1)+'%':'—', big:true, tone:ltc!=null?(ltc<=0.6?'good':(ltc>0.75?'warn':'')):''},
+      {l:'PF 상환한계 분양률', v:pfc!=null?mfmt(pfc,1)+'%':'100%+', big:true, tone:pfc!=null?(pfc<=75?'good':(pfc>90?'warn':'')):'warn'},
+      {l:'브릿지 한도(최대)', v:I.pre>0?meok(R.peakBr):'—'},
+      {l:'브릿지 LTV(토지·제세 대비)', v:brLtv!=null?mfmt(brLtv*100,1)+'%':'—'},
+      {l:'자기자본 비율(÷총사업비)', v:eqr!=null?mfmt(eqr*100,1)+'%':'—', tone:eqr!=null?(eqr>=0.1?'good':(eqr<0.05?'warn':'')):''},
+      {l:'분양수입 ÷ 차입원리금', v:cover!=null?mfmt(cover,2)+'x':'—'},
+      {l:'금융비 계(이자·수수료·대납)', v:meok(R.intTot+R.feeAmt+R.mnapTot)},
+      {l:'손익분기 분양률', v:bep!=null?mfmt(bep,1)+'%':'100%+ (전량 분양해도 적자)', tone:bep==null?'warn':''},
+      {l:'사업이익률(참고)', v:isFinite(R.margin)?mfmt(R.margin,1)+'%':'—'}
+    ];
+    var structL=devViewToggle()+devLenderHtml(I,R,{bep:bep,pfc:pfc});
+    return {type:'kpi', kpis:kpis, struct:structL,
+      table:{head:['분기','분양수입','사업비 지출','금융비','순현금','누적현금','차입잔액'], rows:R.qrows},
+      tableLabel:'분기별 분양수지 현금흐름',
+      raw:{IRR:R.irr, EM:(R.em!=null&&isFinite(R.em))?R.em:null, uses:R.costAll, loan:R.peakPF, rev:R.rev, aptRev:R.aptRev, retRev:R.retNet,
+        cashIn:R.cumIn, interest:R.intTot, fee:R.feeAmt, profit:R.profit, margin:R.margin, paySum:paySum, pfEnd:R.pfEnd, units:I.units, months:R.T,
+        bridge:R.peakBr, intBr:R.intBr, intPF:R.intPF, mnap:R.mnapTot, sales:R.salesTot, hug:R.hugAmt, bep:bep, pfc:pfc, K:R.K},
+      caveats:caveats};
+  }
+  var struct=devViewToggle()+((typeof devStructHtml==='function')?devStructHtml(I,R,{bep:bep,pfc:pfc}):'');
   return {type:'kpi', kpis:kpis, struct:struct,
     table:{head:['분기','분양수입','사업비 지출','금융비','순현금','누적현금','차입잔액'], rows:R.qrows},
     tableLabel:'분기별 분양수지 현금흐름',
@@ -3619,7 +3693,7 @@ const EXAMPLES={
    stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.2",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"12"}},
  logistics:{state:{asset:"이천 물류센터",gfa:"35,000",price:"210,000",acqtax:"4.6",acqfee:"1.5",appraisal:"215,000",noimode:"임대료·관리비로 산출",rentpp:"33,000",campp:"1,700",depmult:"12",noi1:"",noig:"2.5",vacancy:"5",depassume:"반영",opfee:"0.4",fixcost:"0",hold:"5",exitcap:"5.4",salefee:"1.8"},
    stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.5",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"13"}},
- dev:{state:{asset:"판교 A지구 공동주택",devtype:"공동주택 분양",land:"9,500",gfa:"52,000",landcost:"180,000",conscost:"290,000",othercost:"12,000",preperiod:"8",consperiod:"32",saleopen:"3",absorb:"18",aptsold:"100",aptinit:"60",dpct:"10",mpct:"60",mcount:"6",rpct:"30",taxpct:"4.6",engpct:"4.0",rsvpct:"3.0",salespct:"3.0",hugpct:"0.4",midfree:"반영",midrate:"5.5",equity:"60,000",brate:"9.0",pfrate:"6.5",pffee:"1.0",tpc:"320,000",saleprice:"평당 1,650만",exitmode:"분양 완료",exitcap:"5.5",
+ dev:{state:{asset:"판교 A지구 공동주택",devtype:"공동주택 분양",land:"9,500",gfa:"52,000",landcost:"180,000",conscost:"290,000",conscurve:"S-커브(20/60/20)",othercost:"12,000",preperiod:"8",landdp:"10",landpay:"2",consperiod:"32",saleopen:"3",absorb:"18",aptsold:"100",aptinit:"60",dpct:"10",mpct:"60",mcount:"6",rpct:"30",taxpct:"4.6",engpct:"4.0",rsvpct:"3.0",salespct:"3.0",hugpct:"0.4",midfree:"반영",midrate:"5.5",equity:"60,000",brate:"9.0",pfrate:"6.5",pffee:"1.0",tpc:"320,000",saleprice:"평당 1,650만",exitmode:"분양 완료",exitcap:"5.5",
    aptrows:'[{"t":"59A","a":"25","n":"180","p":"830"},{"t":"84A","a":"34","n":"320","p":"1,120"},{"t":"114","a":"43","n":"80","p":"1,470"}]',
    retrows:'[{"t":"단지내 상가","a":"600","p":"3,500","s":"70"}]'},
    stack:{senior_on:true,senior_ltv:"60",senior_rate:"5.1",mezz_on:true,mezz_ltv:"15",mezz_rate:"8.5",pref_on:false,common_on:true,common_ltv:"25",common_coc:"15"}},
@@ -4711,7 +4785,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       {r:'B11',s:'03_Monthly_CF',role:'lbb'},{r:'C11',s:'월별 분양수입(계약금·중도금·잔금)·지출(제세·기성·판매비·대납이자)·브릿지→본PF 전개',role:'da'},
       {r:'B12',s:'04_Profitability',role:'lbb'},{r:'C12',s:'사업이익률·IRR·Equity Multiple·브릿지/본PF 한도·금융비 분해',role:'da'},
       {r:'B13',s:'05_Sensitivity',role:'lbb'},{r:'C13',s:'분양률×분양가 사업이익률 (생성 시점 재계산 값)',role:'da'},
-      {r:'B15',s:'반영: 브릿지(선행기간)→본PF 금리 전환·토지 제세·설계감리·예비비·판매비(계약 연동)·분양보증·중도금 무이자 대납이자. 단순화: 토지비 착수 일괄 · 공사비 균등 기성 · 상업시설 균등 판매 · 브릿지 차환 수수료 없음 · 세전 기준.',role:'no'},
+      {r:'B15',s:'반영: 브릿지(선행기간)→본PF 금리 전환·토지 제세·설계감리·예비비·판매비(계약 연동)·분양보증·중도금 무이자 대납이자. 단순화: 토지비 2회 분할 · 기성 곡선(균등/S-커브) · 상업시설 균등 판매 · 브릿지 차환 수수료 없음 · 세전 기준.',role:'no'},
       {r:'B16',s:'월별 행 수는 생성 시점 일정 기준 — 선행·공사·흡수기간을 바꾸면 모델터에서 다시 받으세요. 본 자료는 투자 권유가 아닌 정보 제공 목적입니다.',role:'no'}
     ]};
 
@@ -4750,7 +4824,10 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       {r:'B33',s:'분양보증 수수료',role:'lb'},{r:'C33',n:I.hugpct,role:'vi',z:'num1'},{r:'E33',s:'% 분양수입',role:'un'},{r:'F33',s:'분양 개시월 일괄',role:'no'},
       {r:'B34',s:'중도금 무이자(1=반영)',role:'lb'},{r:'C34',n:I.midfree?1:0,role:'vi',z:'int'},{r:'F34',s:'시행 대납이자 — 중도금 누적액 × 아래 금리, 준공까지',role:'no'},
       {r:'B35',s:'중도금대출 금리',role:'lb'},{r:'C35',n:I.midrate,role:'vi',z:'num1'},{r:'E35',s:'%/년',role:'un'},
-      {r:'B37',s:'파란 굵은 값 = 입력(수정 가능). 03_Monthly_CF의 월 행 수는 생성 시점 일정 기준입니다.',role:'no'}
+      {r:'B36',s:'토지 계약금',role:'lb'},{r:'C36',n:I.landdp,role:'vi',z:'num1'},{r:'E36',s:'% 토지비',role:'un'},{r:'F36',s:'0개월차 지급 · 잔금+제세는 아래 시점',role:'no'},
+      {r:'B37',s:'토지 잔금 시점',role:'lb'},{r:'C37',n:I.landpay,role:'vi',z:'int'},{r:'E37',s:'개월차',role:'un'},
+      {r:'B38',s:'기성 곡선(1=균등·2=S커브 20/60/20)',role:'lb'},{r:'C38',n:I.scurve?2:1,role:'vi',z:'int'},
+      {r:'B40',s:'파란 굵은 값 = 입력(수정 가능). 03_Monthly_CF의 월 행 수는 생성 시점 일정 기준입니다.',role:'no'}
     ]};
 
     /* 02_Unit_Mix */
@@ -4802,7 +4879,9 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       {r:'Y4',s:'월 판매 파라미터(백만원)',role:'th'},
       {r:'Y5',s:'개시월 계약액',role:'lb'},{r:'Z5',f:U+'G'+rT+'*MIN('+A+'C16,'+A+'C15)/100',role:'vf',z:'num'},
       {r:'Y6',s:'월 추가 판매(아파트)',role:'lb'},{r:'Z6',f:U+'G'+rT+'*MAX('+A+'C15-MIN('+A+'C16,'+A+'C15),0)/100/'+A+'C12',role:'vf',z:'num'},
-      {r:'Y7',s:'월 판매(상업시설)',role:'lb'},{r:'Z7',f:U+'F'+rF+'/('+A+'C12+1)',role:'vf',z:'num'}
+      {r:'Y7',s:'월 판매(상업시설)',role:'lb'},{r:'Z7',f:U+'F'+rF+'/('+A+'C12+1)',role:'vf',z:'num'},
+      {r:'Y9',s:'S커브 경계1(공사 1/3)',role:'lb'},{r:'Z9',f:'ROUND('+A+'C10/3,0)',role:'vf',z:'int'},
+      {r:'Y10',s:'S커브 경계2(공사 2/3)',role:'lb'},{r:'Z10',f:'ROUND(2*'+A+'C10/3,0)',role:'vf',z:'int'}
     ]};
     for(var k=1;k<=I.mk;k++){
       mc.cells.push({r:'W'+(4+k),n:k,role:'vn',z:'int'});
@@ -4816,8 +4895,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       mc.cells.push({r:'E'+r,f:A+'C$18/100/'+A+'C$19*(C'+r+'*COUNTIF($X$5:$X$'+se+',"<="&$B'+r+')+COUNTIF($X$5:$X$'+se+',"="&$B'+r+')*SUMIF($B$5:$B$'+le+',"<"&$B'+r+',$C$5:$C$'+le+'))',role:'vn',z:'num'});
       mc.cells.push({r:'F'+r,f:A+'C$20/100*IF($B'+r+'<'+COMP+',0,IF($B'+r+'=('+COMP+'),SUMIF($B$5:$B$'+le+',"<="&('+COMP+'),$C$5:$C$'+le+'),C'+r+'))',role:'vn',z:'num'});
       mc.cells.push({r:'G'+r,f:'D'+r+'+E'+r+'+F'+r,role:'vf',z:'num'});
-      mc.cells.push({r:'H'+r,f:'IF($B'+r+'=0,'+A+'C$5*(1+'+A+'C$8/100),0)',role:'vn',z:'num'});
-      mc.cells.push({r:'I'+r,f:'IF(AND($B'+r+'>='+A+'C$13+1,$B'+r+'<='+COMP+'),('+A+'C$6+'+A+'C$6*('+A+'C$30+'+A+'C$31)/100)/'+A+'C$10,0)',role:'vn',z:'num'});
+      mc.cells.push({r:'H'+r,f:'IF($B'+r+'=0,'+A+'C$5*'+A+'C$36/100,0)+IF($B'+r+'='+A+'C$37,'+A+'C$5*(100-'+A+'C$36)/100+'+A+'C$5*'+A+'C$8/100,0)',role:'vn',z:'num'});
+      mc.cells.push({r:'I'+r,f:'IF(AND($B'+r+'>='+A+'C$13+1,$B'+r+'<='+COMP+'),('+A+'C$6+'+A+'C$6*('+A+'C$30+'+A+'C$31)/100)*IF(OR('+A+'C$38=1,'+A+'C$10<3),1/'+A+'C$10,IF($B'+r+'-'+A+'C$13<=$Z$9,0.2/$Z$9,IF($B'+r+'-'+A+'C$13<=$Z$10,0.6/($Z$10-$Z$9),0.2/('+A+'C$10-$Z$10)))),0)',role:'vn',z:'num'});
       mc.cells.push({r:'J'+r,f:A+'C$7/COUNT($B$5:$B$'+le+')+IF($B'+r+'=('+OPEN+'),'+REV+'*'+A+'C$33/100,0)',role:'vn',z:'num'});
       mc.cells.push({r:'K'+r,f:'C'+r+'*'+A+'C$32/100',role:'vn',z:'num'});
       mc.cells.push({r:'L'+r,f:first?'0':('IF(AND('+A+'C$34=1,$B'+r+'<=('+COMP+')),S'+(r-1)+'*'+A+'C$35/1200,0)'),role:'vn',z:'num'});

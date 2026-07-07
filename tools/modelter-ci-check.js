@@ -117,6 +117,9 @@ ok(html.includes('function devResiCompute'), '분양수지 순수 계산 코어(
 ok(html.includes('function devSolveSold'), '손익분기·PF상환한계 분양률 솔버 존재');
 ok(html.includes('function devStructHtml'), '분양수지 시각화(타임라인·사업비·차트) 존재');
 ok(html.includes('k:"preperiod"') && html.includes('k:"brate"'), '브릿지(선행기간·금리) 입력 존재');
+ok(html.includes('k:"conscurve"') && html.includes('k:"landdp"') && html.includes('k:"landpay"'), 'v3: 기성 곡선·토지 분할 입력 존재');
+ok(html.includes('window.__setDevView'), '시행↔대주 관점 토글 존재');
+ok(html.includes('function devLenderHtml'), '대주 뷰(스트레스 표) 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
 ok(html.includes('k:"taxpct"') && html.includes('k:"salespct"') && html.includes('k:"hugpct"'), '사업비 세부(제세·판매비·분양보증) 입력 존재');
 ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');
@@ -408,6 +411,24 @@ const driver = `;(function(){
     if (!(_dr3.raw.aptRev < _rw.aptRev)) throw new Error("분양률 70%인데 아파트 수입 미감소");
     if (!(_dr3.raw.loan > _rw.loan)) throw new Error("분양률 70%인데 필요 PF 한도 미증가");
     state.aptsold = _sv2;
+    // v3: S-커브·토지분할 — 필드 비우면 v2와 동일(하위호환), S-커브는 이자 감소
+    var _bkC = [state.conscurve, state.landdp, state.landpay];
+    state.conscurve = ""; state.landdp = ""; state.landpay = "";
+    var _flat = simModel().raw;
+    state.conscurve = "S-커브(20/60/20)";
+    var _sc = simModel().raw;
+    if (!(_sc.interest < _flat.interest)) throw new Error("S-커브인데 금융이자 미감소");
+    state.conscurve = _bkC[0]; state.landdp = _bkC[1]; state.landpay = _bkC[2];
+    // 대주 관점 토글: 같은 raw, 다른 KPI 렌즈
+    if (typeof window.__setDevView === "function") {
+      var _spR = simModel().raw;
+      window.__setDevView("lender");
+      var _ld = simModel();
+      if (!_ld.kpis.some(function(k){ return k.l.indexOf("LTC") >= 0; })) throw new Error("대주 뷰 LTC 미표시");
+      if (!(_ld.struct && _ld.struct.indexOf("스트레스") >= 0)) throw new Error("분양률 스트레스 표 미생성");
+      if (Math.abs(_ld.raw.margin - _spR.margin) > 1e-12) throw new Error("관점 전환이 계산값을 바꿈");
+      window.__setDevView("sponsor");
+    }
     // 분양률×분양가 민감도: 4×5, 기준 칸=본 결과, 상태 복원, 방향성
     if (typeof devSens2 === "function") {
       var _bkA = state.aptrows, _bkS = state.aptsold;
