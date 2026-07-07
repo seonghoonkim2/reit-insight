@@ -113,6 +113,12 @@ ok(html.includes('k:"mcount"'), '중도금 횟수 입력 존재');
 ok(html.includes('k:"dpct"') && html.includes('k:"rpct"'), '계약금·잔금 비율 입력 존재');
 ok(html.includes('function simDevBulk'), '통매각·임대 간이 엔진 유지');
 ok(html.includes('function devSens2'), '분양률×분양가 민감도 매트릭스 존재');
+ok(html.includes('function devResiCompute'), '분양수지 순수 계산 코어(devResiCompute) 존재');
+ok(html.includes('function devSolveSold'), '손익분기·PF상환한계 분양률 솔버 존재');
+ok(html.includes('function devStructHtml'), '분양수지 시각화(타임라인·사업비·차트) 존재');
+ok(html.includes('k:"preperiod"') && html.includes('k:"brate"'), '브릿지(선행기간·금리) 입력 존재');
+ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
+ok(html.includes('k:"taxpct"') && html.includes('k:"salespct"') && html.includes('k:"hugpct"'), '사업비 세부(제세·판매비·분양보증) 입력 존재');
 ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');
 ok(html.includes("'03_Monthly_CF'"), '분양수지 월별 CF 시트 존재');
 ok(html.includes('function devResiInputs'), '엔진·엑셀 공용 입력 파서(devResiInputs) 존재');
@@ -325,6 +331,31 @@ const driver = `;(function(){
     if (!isFinite(_rw.margin)) throw new Error("사업이익률 미산출");
     if (!(_rw.pfEnd < 0.5)) throw new Error("예시 딜에서 PF 미상환 잔액 발생: " + _rw.pfEnd);
     if (!(_rw.IRR != null && isFinite(_rw.IRR) && _rw.IRR > 0)) throw new Error("자기자본 IRR 미산출");
+    // v2: 브릿지·대납이자·판매비·분양보증·솔버
+    if (!(_rw.bridge > 0)) throw new Error("브릿지 한도 미산출(선행기간 8개월 예시)");
+    if (!(_rw.mnap > 0)) throw new Error("중도금 무이자 대납이자 미산출");
+    if (!(_rw.sales > 0 && _rw.hug > 0)) throw new Error("판매비·분양보증 미산출");
+    if (!(_rw.bep != null && _rw.bep > 0 && _rw.bep < 100)) throw new Error("손익분기 분양률 이상: " + _rw.bep);
+    if (!(_rw.pfc != null && _rw.pfc > 0 && _rw.pfc <= _rw.bep + 0.01)) throw new Error("PF상환한계 분양률 이상: " + _rw.pfc);
+    // 손익분기 검산: BEP 분양률에서 이익≈0
+    var _Ii = devResiInputs();
+    var _Rb = devResiCompute(Object.assign({}, _Ii, { soldT: _rw.bep }));
+    if (Math.abs(_Rb.profit) > Math.max(50, _rw.rev * 0.0005)) throw new Error("BEP 검산 실패: profit=" + _Rb.profit);
+    // 브릿지 제거 → 브릿지 한도 0 + 금융이자 감소
+    var _svP = state.preperiod; state.preperiod = "0";
+    var _dr5 = simModel();
+    if (!(_dr5.raw.bridge === 0)) throw new Error("선행기간 0인데 브릿지 한도 잔존");
+    if (!(_dr5.raw.interest < _rw.interest)) throw new Error("브릿지 제거했는데 금융이자 미감소");
+    state.preperiod = _svP;
+    // 무이자 해제 → 대납이자 0
+    var _svF = state.midfree; state.midfree = "미반영";
+    if (!(simModel().raw.mnap === 0)) throw new Error("무이자 미반영인데 대납이자 발생");
+    state.midfree = _svF;
+    // 시각화 HTML
+    if (typeof devStructHtml === "function") {
+      var _sh = simModel().struct || "";
+      if (_sh.indexOf("dv-tl") < 0 || _sh.indexOf("dv-cost") < 0) throw new Error("분양수지 시각화 미생성");
+    }
     if (!(_dr.table && _dr.table.rows.length >= 4)) throw new Error("분기별 현금흐름 표 미생성");
     // 납부비율 합계≠100% → 경고 + 현금유입 감소
     var _sv = state.rpct; state.rpct = "20";
