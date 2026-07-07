@@ -1096,6 +1096,8 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .sim-empty .se-need b{color:var(--accent-deep)}
 .sim-empty .se-btn{border:1px solid var(--accent);background:none;color:var(--accent-deep);font-family:var(--font);font-weight:700;font-size:13.5px;padding:9px 18px;border-radius:10px;cursor:pointer}
 .sim-empty .se-btn:hover{background:rgba(169,121,43,.08)}
+.k-help{display:inline-block; width:13px; height:13px; line-height:12px; text-align:center; border:1px solid var(--line); border-radius:50%; font-size:9px; font-weight:700; color:var(--ink-3); text-decoration:none; vertical-align:1px; opacity:.75}
+.k-help:hover{color:var(--accent-deep); border-color:var(--accent); opacity:1}
 /* 딜 비교 판정 행 */
 .cmp-vrow td{background:var(--line-soft)}
 .cmp-verdict{display:inline-block;font-size:11.5px;line-height:1.4;padding:3px 8px;border-radius:8px}
@@ -3812,6 +3814,22 @@ function dealVerdict(r){
   }
   return null;
 }
+/* 결과 라벨 → 용어사전(guide.html) 앵커 — "이 숫자가 뭐지?"에서 한 번에 설명으로 */
+var TERM_ANCHORS=[
+  [/irr/i,'irr'],[/equity multiple|\bem\b/i,'em'],[/coc|현금수익/i,'coc'],
+  [/dscr/i,'dscr'],[/\bicr\b|이자보상/i,'icr'],[/ltv|ltc/i,'ltv'],[/debt yield/i,'dy'],
+  [/\bnoi\b/i,'noi'],[/cap\b|캡레이트/i,'caprate'],[/wale/i,'wale'],
+  [/손익분기|상환한계/,'bep'],[/브릿지|본\s*pf/i,'bridge'],[/중도금/,'midpay'],
+  [/우선주|워터폴/,'waterfall'],[/보증금/,'deposit'],[/도관/,'passthru']
+];
+function termHelp(label){
+  try{
+    var s=String(label||'');
+    for(var i=0;i<TERM_ANCHORS.length;i++){ if(TERM_ANCHORS[i][0].test(s))
+      return ' <a class="k-help" href="/guide.html#'+TERM_ANCHORS[i][1]+'" target="_blank" rel="noopener" title="용어 설명 보기" onclick="event.stopPropagation();if(window.mtTrack)try{mtTrack(\'term_help\')}catch(e){}">?</a>'; }
+  }catch(e){}
+  return '';
+}
 function renderVerdict(r){
   var el=$('simVerdict'); if(!el) return;
   var v=null; try{ v=dealVerdict(r); }catch(e){}
@@ -3886,7 +3904,7 @@ function renderSim(){
       ['만기 상환(벌룬)', function(x){ return money(x.balloon); }]
     ];
     var body=terms.map(function(t){
-      return '<tr><td>'+t[0]+'</td>'+r.rows.map(function(x){
+      return '<tr><td>'+t[0]+termHelp(t[0])+'</td>'+r.rows.map(function(x){
         var v=t[1](x); return (v&&v.html)?v.html:'<td>'+v+'</td>';
       }).join('')+'</tr>';
     }).join('');
@@ -3905,10 +3923,10 @@ function renderSim(){
       '<details class="sim-cf"><summary>연도별 DSCR 전개 ▾</summary><table class="sens-tbl sim-tbl">'+yh+yb+'</table><div class="scen-note">빨간 값 = DSCR 기준('+(isFinite(r.dmin)?mfmt(r.dmin,2)+'x':'—')+') 미달 연차</div></details>';
   } else {
     var bigs=r.kpis.filter(function(k){return k.big;});
-    function skTile(k,mn){ return '<div class="sim-kpi'+(mn?' main':'')+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div></div>'; }
+    function skTile(k,mn){ return '<div class="sim-kpi'+(mn?' main':'')+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+termHelp(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div></div>'; }
     kp.innerHTML=bigs.length?(skTile(bigs[0],true)+(bigs.length>1?('<div class="sim-kpi-sub">'+bigs.slice(1).map(function(k){return skTile(k,false);}).join('')+'</div>'):'')):'';
     var small=r.kpis.filter(function(k){return !k.big;});
-    var sh=small.length?('<div class="sim-grid">'+small.map(function(k){return '<div class="mx-item"><div class="mx-l">'+esc(k.l)+'</div><div class="mx-v">'+esc(k.v)+'</div></div>';}).join('')+'</div>'):'';
+    var sh=small.length?('<div class="sim-grid">'+small.map(function(k){return '<div class="mx-item"><div class="mx-l">'+esc(k.l)+termHelp(k.l)+'</div><div class="mx-v">'+esc(k.v)+'</div></div>';}).join('')+'</div>'):'';
     var tb='';
     if(r.table){ var _op=r.tableOpen?' open':''; var _lb=r.tableLabel||'연도별 현금흐름'; var _tc=r.tableClass?(' '+r.tableClass):'';
       /* 접힌 상태에서도 흐름이 보이도록 자기자본CF 미니 바(스파크) */
@@ -4017,7 +4035,17 @@ function mailPrompt(){
   window.location.href=`mailto:?subject=${subject}&body=${body}`;
   toast("메일 앱을 엽니다 — PC에서 받아 Claude in Excel에 붙여넣으세요");
 }
-let toastT; function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),1800); }
+let toastT; function toast(m,ms){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),ms||1800); }
+function mtNextTip(){ // 첫 산출물(엑셀) 이후 1회 — 다른 전달 수단(공유 링크·한 장 요약) 알림
+  try{
+    if(localStorage.getItem('mt_tip_next')) return;
+    localStorage.setItem('mt_tip_next','1');
+    setTimeout(function(){
+      toast('팁: 결과는 공유 링크(입력 패널의 공유 버튼·읽기 전용)와 📄 요약(IC 한 장 인쇄)으로도 전달할 수 있어요', 5200);
+      if(window.mtTrack) try{ mtTrack('tip_next'); }catch(e){}
+    },2200);
+  }catch(e){}
+}
 
 /* 피드백 전송 — Web3Forms (서버 없이 이메일로 전송)
    ▸ 배포 전 설정: web3forms.com 에서 seonghoon.kim2@gmail.com 으로 Access Key를 발급받아
@@ -5373,6 +5401,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         document.body.appendChild(aR); aR.click();
         setTimeout(function(){ try{URL.revokeObjectURL(aR.href);}catch(eR){} aR.remove(); },1500);
         try{ if(typeof toast==='function') toast('리파이낸싱 비교 엑셀 받기 완료 (4시트·수식 연결)'); }catch(eR2){}
+        try{ mtNextTip(); }catch(eT2){}
         return;
       }
       // 개발 · 공동주택 분양: 전용 분양수지 워크북
@@ -5393,6 +5422,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         document.body.appendChild(aD); aD.click();
         setTimeout(function(){ try{URL.revokeObjectURL(aD.href);}catch(e){} aD.remove(); },1500);
         try{ if(typeof toast==='function') toast('분양수지 엑셀 받기 완료 (6시트·수식 연결)'); }catch(e1){}
+        try{ mtNextTip(); }catch(eT1){}
         return;
       }
       var ov=assumOverrides();
@@ -5422,6 +5452,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       setTimeout(function(){ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },1500);
       var w=notes();
       try{ if(typeof toast==='function') toast(w.length?('엑셀 받기 완료 — 참고: '+w[0]):'엑셀 모델 받기 완료 (13시트·수식 포함)'); }catch(e){}
+      try{ mtNextTip(); }catch(eT0){}
     }catch(err){
       try{ if(typeof toast==='function') toast('엑셀 생성 중 오류: '+err.message); else alert('엑셀 생성 오류: '+err.message); }catch(e){}
     }

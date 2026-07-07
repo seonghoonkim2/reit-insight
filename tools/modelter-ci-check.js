@@ -24,6 +24,7 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
   ok(g.includes('DSCR') && g.includes('Cap rate') && g.includes('브릿지'), 'guide.html 핵심 용어 포함');
   ok((g.match(/class="term"/g) || []).length >= 12, 'guide.html 용어 12개 이상');
   ok(g.includes('/#t=dev') && g.includes('/#t=refi') && g.includes('class="try"'), 'guide.html 섹션→계산기 딥링크');
+  ok(g.includes('id="irr"') && g.includes('id="dscr"') && g.includes('id="bep"') && g.includes('.term:target'), 'guide.html 용어 앵커 + 하이라이트');
 }
 if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
@@ -159,6 +160,8 @@ ok(html.includes('[#&]t=(office|logistics|dev|refi)'), '가이드 딥링크(#t=)
 ok(html.includes('[#&]view=lender'), '딥링크 대주 뷰(view=lender) 존재');
 ok(html.includes('[#&][evdt]='), '딥링크 시 온보딩 스킵 가드');
 ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
+ok(html.includes('function termHelp') && html.includes('class="k-help"'), '결과 용어 → 가이드 앵커 링크 존재');
+ok(html.includes('function mtNextTip') && html.includes('mt_tip_next'), '산출물 다음 단계 팁(1회) 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-ae.js')), '계기판 조회 스크립트(Analytics Engine) 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
