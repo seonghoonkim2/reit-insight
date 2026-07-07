@@ -1127,7 +1127,7 @@ html,body{overflow-x:hidden}
 
     <div class="md-sec">
       <h4>다른 탭</h4>
-      <p><b>리파이낸싱</b>: 대안별 신규대출·DSCR·순인출·수수료 비교(1차연도 기준). — "간이" 배지가 붙은 항목은 빠른 감 잡기용입니다.</p>
+      <p><b>리파이낸싱</b>: 대안 3안의 텀시트(한도·순인출·일회성 비용·Debt Yield)와 상환구조별 원리금으로 <b>전 기간 연도별 DSCR</b>을 전개해 기준 충족을 판정합니다. 같은 계산식의 비교 엑셀(4시트·수식 연결)로 내려받을 수 있습니다. 만기 상환(벌룬)은 차환 가정으로 DSCR에서 제외하며, 변동금리·약정 트리거는 미반영입니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1427,7 +1427,7 @@ const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const SHEET_LAYER={
   Control_Index:"입력", Source_Data:"입력", Assumptions:"입력", Sources_Uses:"입력", Capital_Stack:"입력", Rent_Roll:"입력",
   Lease_NOI_Model:"엔진", Debt_Schedule:"엔진", Tax_Disposition:"엔진", Equity_Cashflow:"엔진", Cashflow_Model:"엔진", Waterfall:"엔진",
-  Unit_Mix_Pricing:"입력", Payment_Cashin:"엔진",
+  Unit_Mix_Pricing:"입력", Payment_Cashin:"엔진", Term_Sheets:"결과",
   Construction_Schedule:"엔진", PF_Drawdown:"엔진", Interest_Capitalization:"엔진", Sales_Absorption:"엔진",
   DSCR_ICR_Test:"엔진", Covenant_Check:"엔진",
   Return_Summary:"결과", Sensitivity:"결과", Profitability_Summary:"결과", Refinance_Compare:"결과", Scenario_Manager:"결과",
@@ -1460,6 +1460,7 @@ const SHEET_INFO={
  Breakeven_Analysis:"임대율·임대료·금리 기준 손익분기 역산",
  Unit_Mix_Pricing:"평형별 세대수·분양가와 상업시설 분양 조건 명세",
  Payment_Cashin:"계약금·중도금·잔금 납부 일정에 따른 월별 분양수입 유입",
+ Term_Sheets:"대안별 한도·순인출·비용·전기간 DSCR·벌룬 비교와 기준 충족 판정",
  Construction_Schedule:"공정·기성·공사비 투입 일정과 누적 투입 관리",
  PF_Drawdown:"PF 인출 스케줄과 약정·인출·미인출 잔액 관리",
  Interest_Capitalization:"건설기간 이자 자본화와 준공 후 비용화 전환",
@@ -1595,13 +1596,14 @@ const DEALS={
     ]}
    ]},
 
- refi:{label:"리파이낸싱", lite:true, baseAsset:"리파이낸싱",
-   sheets:["Debt_Schedule","DSCR_ICR_Test","Covenant_Check","Refinance_Compare","Return_Summary"],
+ refi:{label:"리파이낸싱", baseAsset:"리파이낸싱",
+   sheets:["Term_Sheets","Debt_Schedule","DSCR_ICR_Test","Covenant_Check","Refinance_Compare"],
    stack:false, refi:true, tax:false,
    groups:[
     {h:"대상 자산", gl:"①", f:[
       {k:"asset",l:"자산명",t:"text",ph:"분당 B빌딩",def:"분당 B빌딩"},
       {k:"noi",l:"현재 NOI",u:"백만원",t:"num",ph:"4,200",min:0,hint:"현재 순영업이익. DSCR(=NOI÷연부채상환액) 산정의 분자입니다."},
+      {k:"noig",l:"연 NOI 성장률",u:"%/년",t:"num",ph:"1.5",min:-20,max:30,pct:1,hint:"임대료 상승·재계약을 반영한 연간 성장률. 연도별 DSCR 전개에 사용됩니다."},
       {k:"appraisal",l:"감정평가액",u:"백만원",t:"num",ph:"85,000",min:0,hint:"현재 자산가치. 신규 LTV 한도의 기준액."},
       {k:"dscrmin",l:"DSCR 기준",u:"x",t:"num",ph:"1.2",min:0,max:10,hint:"대주가 요구하는 최소 부채상환비율. 보통 1.2x 이상."}
     ]},
@@ -2113,7 +2115,7 @@ function purposeText(){
   const base={office:"오피스 매입 후보의 취득·운영·금융·매각을 반영해 세전·세후 자기자본 수익률과 투자 판단 지표를 산출",
     logistics:"물류센터 매입 후보의 취득·임대운영·금융·매각을 반영해 세전·세후 자기자본 수익률과 투자 판단 지표를 산출",
     dev:"평형별 분양가·상업시설·중도금 납부 일정을 반영한 월별 분양수지로 사업이익률·필요 PF 한도·자기자본수익률을 산출",
-    refi:"기존 대출 만기에 대비해 리파이낸싱 대안을 비교하고 DSCR·약정 충족 여부를 점검"};
+    refi:"기존 대출 만기에 대비해 대안별 텀시트와 전 기간 연도별 DSCR을 전개하고 기준 충족·순조달·총이자를 비교"};
   return base[cur]||base.office;
 }
 
@@ -3228,27 +3230,61 @@ function simDcf(){
   return {type:'kpi', kpis:kpis, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows}, caveats:cav};
 }
 
-function simRefi(){
-  var noi=mnum('noi'),app=mnum('appraisal'),dmin=mnum('dscrmin'),oldbal=mnum('oldbal'),oldrate=mnum('oldrate'),prepay=mnum('prepayfee'),newfee=mnum('newfee');
+/* 리파이낸싱 입력 파싱 — 화면 엔진과 엑셀 생성기(refiTemplate)가 같은 값을 쓰도록 단일화 */
+function refiInputs(){
+  var noi=mnum('noi'), app=mnum('appraisal');
   if(!isFinite(noi)||!isFinite(app)) return null;
-  var oldInt=(isFinite(oldbal)&&isFinite(oldrate))?oldbal*oldrate/100:NaN;
-  var rows=[], best=null;
+  var g=mnum('noig'); if(!isFinite(g)) g=0;
+  var dmin=mnum('dscrmin');
+  var oldbal=mnum('oldbal'), oldrate=mnum('oldrate'), prepay=mnum('prepayfee'), newfee=mnum('newfee');
+  var alts=[];
   [1,2,3].forEach(function(n){
-    var ltv=parseNum(refiState['a'+n+'_ltv']), rate=parseNum(refiState['a'+n+'_rate']), mat=parseNum(refiState['a'+n+'_mat']), rep=(refiState['a'+n+'_repay']||'만기일시');
+    var ltv=parseNum(refiState['a'+n+'_ltv']), rate=parseNum(refiState['a'+n+'_rate']), mat=parseNum(refiState['a'+n+'_mat']);
+    var rep=(refiState['a'+n+'_repay']||'만기일시');
     if(!isFinite(ltv)||!isFinite(rate)) return;
-    var loan=ltv/100*app, r=rate/100, ds;
-    if(rep.indexOf('원리금')>=0 && isFinite(mat)&&mat>0&&r>0) ds=loan*r/(1-Math.pow(1+r,-mat));
-    else if(rep.indexOf('원금')>=0 && isFinite(mat)&&mat>0) ds=loan/mat+loan*r;
-    else ds=loan*r;
-    var dscr=ds>0?noi/ds:null, newInt=loan*r, co=isFinite(oldbal)?loan-oldbal:NaN;
-    var fees=(isFinite(oldbal)&&isFinite(prepay)?oldbal*prepay/100:0)+(isFinite(newfee)?loan*newfee/100:0);
-    var pass=(dscr!=null&&isFinite(dmin))?(dscr>=dmin):null;
-    var row={n:n,ltv:ltv,dscr:dscr,pass:pass,newInt:newInt,dInt:(isFinite(oldInt)?newInt-oldInt:NaN),co:co,fees:fees};
-    rows.push(row);
-    if(dscr!=null && pass!==false && (best===null||dscr>best.dscr)) best=row;
+    if(!isFinite(mat)||mat<1) mat=5; mat=Math.min(10,Math.round(mat));
+    alts.push({n:n, ltv:ltv, rate:rate, mat:mat, rep:rep, code:rep.indexOf('원리금')>=0?2:(rep.indexOf('원금')>=0?3:1)});
+  });
+  if(!alts.length) return null;
+  return {noi:noi, g:g, app:app, dmin:dmin, oldbal:isFinite(oldbal)?oldbal:0, oldrate:oldrate,
+    prepay:isFinite(prepay)?prepay:0, newfee:isFinite(newfee)?newfee:0, alts:alts};
+}
+/* 대안별 연도 전개 — 03_Debt_Schedule 수식과 동일: 상환구조별 원리금, NOI 성장, 연도별 DSCR */
+function refiSchedule(I, a){
+  var loan=a.ltv/100*I.app, r=a.rate/100;
+  var pay=(a.code===2&&r>0)?loan*r/(1-Math.pow(1+r,-a.mat)):null;
+  var open=loan, yrs=[];
+  for(var y=1;y<=a.mat;y++){
+    var intr=open*r;
+    var prin=(a.code===1)?0:((a.code===2)?(pay-intr):(loan/a.mat));
+    var ds=intr+prin, close=open-prin;
+    var noiY=I.noi*Math.pow(1+I.g/100,y-1);
+    yrs.push({y:y, open:open, intr:intr, prin:prin, ds:ds, close:close, noi:noiY, dscr:ds>0?noiY/ds:null});
+    open=close;
+  }
+  var fees=I.oldbal*I.prepay/100+loan*I.newfee/100;
+  var minD=null, totInt=0;
+  yrs.forEach(function(x){ totInt+=x.intr; if(x.dscr!=null&&(minD===null||x.dscr<minD)) minD=x.dscr; });
+  return {loan:loan, yrs:yrs, fees:fees, minDSCR:minD, totInt:totInt, balloon:yrs[yrs.length-1].close,
+    net:loan-I.oldbal-fees, co:loan-I.oldbal, dy:loan>0?I.noi/loan:null, y1:yrs[0].dscr,
+    pass:(minD!=null&&isFinite(I.dmin))?(minD>=I.dmin):null};
+}
+function simRefi(){
+  var I=refiInputs(); if(!I) return null;
+  var oldInt=(I.oldbal&&isFinite(I.oldrate))?I.oldbal*I.oldrate/100:NaN;
+  var rows=[], best=null, maxY=0;
+  I.alts.forEach(function(a){
+    var sc=refiSchedule(I,a);
+    var row={n:a.n, ltv:a.ltv, rate:a.rate, rep:a.rep, mat:a.mat, loan:sc.loan, dscr:sc.y1, minDSCR:sc.minDSCR, pass:sc.pass,
+      newInt:sc.yrs[0].intr, dInt:isFinite(oldInt)?sc.yrs[0].intr-oldInt:NaN, co:sc.co, net:sc.net, fees:sc.fees,
+      dy:sc.dy, totInt:sc.totInt, balloon:sc.balloon, yrs:sc.yrs};
+    rows.push(row); if(a.mat>maxY) maxY=a.mat;
+    if(sc.minDSCR!=null && sc.pass!==false && (best===null||sc.minDSCR>best.minDSCR)) best=row;
   });
   if(!rows.length) return null;
-  return {type:'refi', rows:rows, best:(best?best.n:null), caveats:['간이 추정 — 1차연도 DSCR(상환방식 반영)·연이자 기준. 약정 트리거·전 기간 전개는 Claude in Excel에서 정밀 산정.']};
+  return {type:'refi', rows:rows, best:(best?best.n:null), maxY:maxY, dmin:I.dmin,
+    raw:{minDSCR:(best?best.minDSCR:null), loan:(best?best.loan:null)},
+    caveats:['대안별 텀시트 비교 — 연도별 NOI(성장률 반영)와 상환구조별 원리금으로 전 기간 DSCR을 전개합니다. 만기 상환(벌룬)은 차환 가정으로 DSCR에서 제외. 화면 수치는 아래에서 받는 엑셀과 같은 계산식입니다. 약정 트리거(LTV 재평가)·변동금리는 미반영.']};
 }
 
 function simDev(){ return devResi()? simDevResi() : simDevBulk(); }
@@ -3488,17 +3524,42 @@ function renderSim(){
   var kp=$('simKpis'), bd=$('simBody'), cv=$('simCaveat');
   if(r.type==='refi'){
     kp.innerHTML='';
-    var labels=['DSCR','신규 연이자','기존대비 이자','순인출','일회성 비용'];
-    var th='<tr><th>구분</th>'+r.rows.map(function(x){return '<th'+(r.best===x.n?' class="base"':'')+'>'+x.n+'안 ('+mfmt(x.ltv,0)+'%)</th>';}).join('')+'</tr>';
-    function cell(x,L){
-      if(L==='DSCR'){ var st=x.pass===false?' style="color:var(--red);font-weight:800"':(x.pass===true?' style="color:var(--green);font-weight:800"':''); return '<td'+st+'>'+(x.dscr!=null?mfmt(x.dscr,2)+'x':'—')+'</td>'; }
-      if(L==='신규 연이자') return '<td>'+meok(x.newInt)+'</td>';
-      if(L==='기존대비 이자') return '<td>'+(isFinite(x.dInt)?((x.dInt<=0?'−':'+')+meok(Math.abs(x.dInt))):'—')+'</td>';
-      if(L==='순인출') return '<td>'+(isFinite(x.co)?((x.co>=0?'+':'−')+meok(Math.abs(x.co))):'—')+'</td>';
-      return '<td>'+meok(x.fees)+'</td>';
+    var th='<tr><th>텀시트</th>'+r.rows.map(function(x){return '<th'+(r.best===x.n?' class="base"':'')+'>'+x.n+'안</th>';}).join('')+'</tr>';
+    function fx2(v,d){ return isFinite(v)?mfmt(v,d==null?2:d):'—'; }
+    function money(v){ return isFinite(v)?meok(v):'—'; }
+    function signed(v){ return isFinite(v)?((v>=0?'+':'−')+meok(Math.abs(v))):'—'; }
+    var terms=[
+      ['조건 (LTV · 금리)', function(x){ return 'LTV '+mfmt(x.ltv,0)+'% · '+mfmt(x.rate,1)+'%'; }],
+      ['한도', function(x){ return money(x.loan); }],
+      ['상환 · 만기', function(x){ return esc(x.rep)+' · '+x.mat+'년'; }],
+      ['순인출(기존 상환 후)', function(x){ return signed(x.co); }],
+      ['일회성 비용', function(x){ return money(x.fees); }],
+      ['순 조달(비용 차감)', function(x){ return signed(x.net); }],
+      ['Y1 이자(기존대비)', function(x){ return money(x.newInt)+(isFinite(x.dInt)?(' ('+(x.dInt<=0?'−':'+')+meok(Math.abs(x.dInt))+')'):''); }],
+      ['Debt Yield', function(x){ return x.dy!=null?mfmt(x.dy*100,1)+'%':'—'; }],
+      ['Y1 DSCR', function(x){ return x.dscr!=null?fx2(x.dscr)+'x':'—'; }],
+      ['최소 DSCR(전 기간)', function(x){ var st=x.pass===false?' style="color:var(--red);font-weight:800"':(x.pass===true?' style="color:var(--green);font-weight:800"':''); return {html:'<td'+st+'>'+(x.minDSCR!=null?fx2(x.minDSCR)+'x':'—')+'</td>'}; }],
+      ['총이자(만기까지)', function(x){ return money(x.totInt); }],
+      ['만기 상환(벌룬)', function(x){ return money(x.balloon); }]
+    ];
+    var body=terms.map(function(t){
+      return '<tr><td>'+t[0]+'</td>'+r.rows.map(function(x){
+        var v=t[1](x); return (v&&v.html)?v.html:'<td>'+v+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+    // 연도별 DSCR 전개
+    var yh='<tr><th>연차</th>'+r.rows.map(function(x){return '<th'+(r.best===x.n?' class="base"':'')+'>'+x.n+'안</th>';}).join('')+'</tr>';
+    var yb='';
+    for(var yy=1;yy<=r.maxY;yy++){
+      yb+='<tr><td>Y'+yy+'</td>'+r.rows.map(function(x){
+        var yr=x.yrs[yy-1]; if(!yr) return '<td>—</td>';
+        var bad=(yr.dscr!=null&&isFinite(r.dmin)&&yr.dscr<r.dmin);
+        return '<td'+(bad?' style="color:var(--red);font-weight:700"':'')+'>'+(yr.dscr!=null?mfmt(yr.dscr,2)+'x':'—')+'</td>';
+      }).join('')+'</tr>';
     }
-    var body=labels.map(function(L){ return '<tr><td>'+L+'</td>'+r.rows.map(function(x){return cell(x,L);}).join('')+'</tr>'; }).join('');
-    bd.innerHTML=(r.best?('<div class="sim-rec">추천: '+r.best+'안 (기준 충족·DSCR 최고)</div>'):'')+'<table class="sens-tbl sim-tbl">'+th+body+'</table>';
+    bd.innerHTML=(r.best?('<div class="sim-rec">추천: '+r.best+'안 — 기준 충족 대안 중 전 기간 최소 DSCR 최고</div>'):'')+
+      '<table class="sens-tbl sim-tbl">'+th+body+'</table>'+
+      '<details class="sim-cf"><summary>연도별 DSCR 전개 ▾</summary><table class="sens-tbl sim-tbl">'+yh+yb+'</table><div class="scen-note">빨간 값 = DSCR 기준('+(isFinite(r.dmin)?mfmt(r.dmin,2)+'x':'—')+') 미달 연차</div></details>';
   } else {
     var bigs=r.kpis.filter(function(k){return k.big;});
     function skTile(k,mn){ return '<div class="sim-kpi'+(mn?' main':'')+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div></div>'; }
@@ -3562,8 +3623,8 @@ const EXAMPLES={
    aptrows:'[{"t":"59A","a":"25","n":"180","p":"830"},{"t":"84A","a":"34","n":"320","p":"1,120"},{"t":"114","a":"43","n":"80","p":"1,470"}]',
    retrows:'[{"t":"단지내 상가","a":"600","p":"3,500","s":"70"}]'},
    stack:{senior_on:true,senior_ltv:"60",senior_rate:"5.1",mezz_on:true,mezz_ltv:"15",mezz_rate:"8.5",pref_on:false,common_on:true,common_ltv:"25",common_coc:"15"}},
- refi:{state:{asset:"분당 B빌딩",noi:"4,200",appraisal:"85,000",dscrmin:"1.2",oldbal:"46,000",oldrate:"3.6",oldmat:"0.5",prepayfee:"0.5",newfee:"0.3"},
-   refi:{a1_ltv:"50",a1_rate:"4.0",a1_mat:"3",a2_ltv:"55",a2_rate:"4.3",a2_mat:"5",a3_ltv:"60",a3_rate:"4.6",a3_mat:"7"}}
+ refi:{state:{asset:"분당 B빌딩",noi:"4,200",noig:"1.5",appraisal:"85,000",dscrmin:"1.2",oldbal:"46,000",oldrate:"3.6",oldmat:"0.5",prepayfee:"0.5",newfee:"0.3"},
+   refi:{a1_ltv:"50",a1_rate:"4.0",a1_mat:"3",a1_repay:"만기일시",a2_ltv:"55",a2_rate:"4.3",a2_mat:"5",a2_repay:"만기일시",a3_ltv:"60",a3_rate:"4.6",a3_mat:"7",a3_repay:"원리금균등"}}
 };
 // 현재 state/stackState/refiState 값을 (재렌더된) 폼에 다시 주입
 function restoreInputs(){
@@ -4518,6 +4579,116 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var sLR={name:'Lease_Risk',hidden:false,maxcol:8,cells:lr,merges:[],widths:{}};
     return {sheets:[sRR,sMA,sLB,sLR], ov:ov, leaseMode:true};
   }
+  /* ── 리파이낸싱 비교 워크북(4시트·수식 연결) — 화면 엔진(refiSchedule)과 동일 로직 ── */
+  function refiTemplate(ctx){
+    if(typeof refiInputs!=='function') return null;
+    var I=refiInputs(); if(!I) return null;
+    var A="'01_Assumptions'!";
+    var today=new Date().toISOString().slice(0,10);
+    var nm=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset):'대상 자산';
+    var covB2='모델터 — 리파이낸싱 대안 비교 (텀시트·연도별 DSCR·수식 연결)';
+    if(ctx) covB2+=' · Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')));
+    var cover={name:'00_Cover', cells:[
+      {r:'B2',s:covB2,role:'ti'},
+      {r:'B4',s:'자산명',role:'lb'},{r:'C4',s:nm,role:'da'},
+      {r:'B5',s:'생성일',role:'lb'},{r:'C5',s:today,role:'da'},
+      {r:'B6',s:'생성 도구',role:'lb'},{r:'C6',s:'modelter.com · 리파이낸싱',role:'da'},
+      {r:'B8',s:'시트 구성',role:'se'},
+      {r:'B9',s:'01_Assumptions',role:'lbb'},{r:'C9',s:'현재 NOI·성장률·감정가·기존 대출·대안 3안 조건 (파란 값 = 수정 가능)',role:'da'},
+      {r:'B10',s:'02_Term_Sheets',role:'lbb'},{r:'C10',s:'대안별 한도·순인출·비용·DSCR·총이자·벌룬 비교와 기준 충족 판정',role:'da'},
+      {r:'B11',s:'03_Debt_Schedule',role:'lbb'},{r:'C11',s:'대안별 연도 전개 — 기초/이자/원금/원리금/기말·NOI·DSCR',role:'da'},
+      {r:'B13',s:'단순화: 고정금리 · 약정 트리거(LTV 재평가 등) 미반영 · 만기 상환(벌룬)은 차환 가정으로 DSCR 제외. 본 자료는 투자 권유가 아닌 정보 제공 목적입니다.',role:'no'}
+    ]};
+    var asum={name:'01_Assumptions', cells:[
+      {r:'B2',s:'01 · Assumptions — 리파이낸싱 가정',role:'ti'},
+      {r:'B4',s:'대상 자산',role:'se'},
+      {r:'B5',s:'현재 NOI',role:'lb'},{r:'C5',n:I.noi,role:'vi',z:'num'},{r:'E5',s:'백만원/년',role:'un'},
+      {r:'B6',s:'연 NOI 성장률',role:'lb'},{r:'C6',n:I.g,role:'vi',z:'num1'},{r:'E6',s:'%/년',role:'un'},
+      {r:'B7',s:'감정평가액',role:'lb'},{r:'C7',n:I.app,role:'vi',z:'num'},{r:'E7',s:'백만원',role:'un'},
+      {r:'B8',s:'DSCR 기준',role:'lb'},{r:'C8',n:isFinite(I.dmin)?I.dmin:1.2,role:'vi',z:'mult'},{r:'E8',s:'x',role:'un'},
+      {r:'B10',s:'기존 대출',role:'se'},
+      {r:'B11',s:'잔액',role:'lb'},{r:'C11',n:I.oldbal,role:'vi',z:'num'},{r:'E11',s:'백만원',role:'un'},
+      {r:'B12',s:'금리',role:'lb'},{r:'C12',n:isFinite(I.oldrate)?I.oldrate:0,role:'vi',z:'num1'},{r:'E12',s:'%',role:'un'},
+      {r:'B15',s:'중도상환수수료',role:'lb'},{r:'C15',n:I.prepay,role:'vi',z:'num1'},{r:'E15',s:'% 잔액',role:'un'},
+      {r:'B16',s:'신규 취급수수료',role:'lb'},{r:'C16',n:I.newfee,role:'vi',z:'num1'},{r:'E16',s:'% 한도',role:'un'},
+      {r:'B18',s:'신규 대출 대안',role:'se'},
+      {r:'B19',s:'구분',role:'th'},{r:'C19',s:'A안',role:'th'},{r:'D19',s:'B안',role:'th'},{r:'E19',s:'C안',role:'th'},
+      {r:'B20',s:'LTV (%)',role:'lb'},{r:'B21',s:'금리 (%)',role:'lb'},{r:'B22',s:'만기 (년)',role:'lb'},
+      {r:'B23',s:'상환구조 (1만기일시·2원리금균등·3원금균등)',role:'lb'},
+      {r:'B25',s:'파란 굵은 값 = 입력(수정 가능). 만기는 최대 10년(03 시트 열 수 기준).',role:'no'}
+    ]};
+    var COLS=['C','D','E'];
+    for(var ai=0;ai<3;ai++){
+      var a=I.alts[ai], X=COLS[ai];
+      if(!a) continue;
+      asum.cells.push({r:X+'20',n:a.ltv,role:'vi',z:'num1'});
+      asum.cells.push({r:X+'21',n:a.rate,role:'vi',z:'num1'});
+      asum.cells.push({r:X+'22',n:a.mat,role:'vi',z:'int'});
+      asum.cells.push({r:X+'23',n:a.code,role:'vi',z:'int'});
+    }
+    /* 03_Debt_Schedule — r4 연차(1..10), r5 NOI, 대안 블록: open/int/prin/DS/close/DSCR */
+    var C3="'03_Debt_Schedule'!";
+    var sch={name:'03_Debt_Schedule', maxcol:12, cells:[
+      {r:'B2',s:'03 · Debt Schedule — 대안별 연도 전개',role:'ti'},
+      {r:'B4',s:'연차',role:'th'},
+      {r:'B5',s:'NOI (성장 반영)',role:'lb'}
+    ]};
+    var YC=['C','D','E','F','G','H','I','J','K','L'];
+    for(var yy=0;yy<10;yy++){
+      sch.cells.push({r:YC[yy]+'4',n:yy+1,role:'vn',z:'int'});
+      sch.cells.push({r:YC[yy]+'5',f:A+'C$5*(1+'+A+'C$6/100)^('+YC[yy]+'$4-1)',role:'vn',z:'num'});
+    }
+    var blocks={};
+    for(var bi=0;bi<3;bi++){
+      var ab=I.alts[bi]; if(!ab) continue;
+      var X2=COLS[bi], b=7+bi*9;
+      blocks[bi]={open:b+1,int:b+2,prin:b+3,ds:b+4,close:b+5,dscr:b+6};
+      sch.cells.push({r:'B'+b,s:(['A','B','C'][bi])+'안 — LTV '+ab.ltv+'% · '+ab.rate+'% · '+ab.rep,role:'se'});
+      sch.cells.push({r:'B'+(b+1),s:'기초잔액',role:'lb'},{r:'B'+(b+2),s:'이자',role:'lb'},{r:'B'+(b+3),s:'원금상환',role:'lb'},
+        {r:'B'+(b+4),s:'원리금(DS)',role:'lb'},{r:'B'+(b+5),s:'기말잔액',role:'lb'},{r:'B'+(b+6),s:'DSCR',role:'lbb'});
+      var LOAN=A+X2+'$20/100*'+A+'C$7', MAT=A+X2+'$22', RT=A+X2+'$21', CD=A+X2+'$23';
+      for(var y2=0;y2<10;y2++){
+        var c=YC[y2], pc=y2>0?YC[y2-1]:null, gate='IF('+c+'$4>'+MAT+',"",';
+        sch.cells.push({r:c+(b+1),f:gate+(y2===0?LOAN:(pc+(b+5)))+')',role:'vn',z:'num'});
+        sch.cells.push({r:c+(b+2),f:gate+c+(b+1)+'*'+RT+'/100)',role:'vn',z:'num'});
+        sch.cells.push({r:c+(b+3),f:gate+'IF('+CD+'=1,0,IF('+CD+'=2,-PMT('+RT+'/100,'+MAT+','+LOAN+')-'+c+(b+2)+','+LOAN+'/'+MAT+')))',role:'vn',z:'num'});
+        sch.cells.push({r:c+(b+4),f:gate+c+(b+2)+'+'+c+(b+3)+')',role:'vf',z:'num'});
+        sch.cells.push({r:c+(b+5),f:gate+c+(b+1)+'-'+c+(b+3)+')',role:'vn',z:'num'});
+        sch.cells.push({r:c+(b+6),f:'IF('+c+(b+4)+'="","",IF('+c+(b+4)+'>0,'+c+'$5/'+c+(b+4)+',""))',role:'vf',z:'mult'});
+      }
+    }
+    /* 02_Term_Sheets */
+    var ts={name:'02_Term_Sheets', cells:[
+      {r:'B2',s:'02 · Term Sheets — 대안 비교',role:'ti'},
+      {r:'B4',s:'항목',role:'th'},{r:'C4',s:'A안',role:'th'},{r:'D4',s:'B안',role:'th'},{r:'E4',s:'C안',role:'th'},
+      {r:'B5',s:'한도',role:'lb'},{r:'B6',s:'기존 대출 상환',role:'lb'},{r:'B7',s:'중도상환수수료',role:'lb'},
+      {r:'B8',s:'취급수수료',role:'lb'},{r:'B9',s:'순인출(기존 상환 후)',role:'lb'},{r:'B10',s:'순 조달(비용 차감)',role:'lbb'},
+      {r:'B11',s:'Y1 이자',role:'lb'},{r:'B12',s:'Debt Yield',role:'lb'},{r:'B13',s:'Y1 DSCR',role:'lb'},
+      {r:'B14',s:'최소 DSCR(전 기간)',role:'lbb'},{r:'B15',s:'총이자(만기까지)',role:'lb'},{r:'B16',s:'만기 상환(벌룬)',role:'lb'},
+      {r:'B17',s:'DSCR 기준 충족',role:'lbb'},
+      {r:'B19',s:'화면 결과 카드와 같은 계산식입니다. 01 가정을 바꾸면 전체가 다시 계산됩니다.',role:'no'}
+    ]};
+    for(var ti=0;ti<3;ti++){
+      var at=I.alts[ti]; if(!at) continue;
+      var X3=COLS[ti], bk=blocks[ti];
+      ts.cells.push({r:X3+'5',f:A+X3+'20/100*'+A+'C$7',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'6',f:A+'C$11',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'7',f:A+'C$11*'+A+'C$15/100',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'8',f:X3+'5*'+A+'C$16/100',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'9',f:X3+'5-'+X3+'6',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'10',f:X3+'9-'+X3+'7-'+X3+'8',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'11',f:X3+'5*'+A+X3+'21/100',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'12',f:'IFERROR('+A+'C$5/'+X3+'5,"")',role:'vf',z:'pct1'});
+      ts.cells.push({r:X3+'13',f:C3+'C'+bk.dscr,role:'vf',z:'mult'});
+      ts.cells.push({r:X3+'14',f:'MIN('+C3+'C'+bk.dscr+':L'+bk.dscr+')',role:'vf',z:'mult'});
+      ts.cells.push({r:X3+'15',f:'SUM('+C3+'C'+bk.int+':L'+bk.int+')',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'16',f:'INDEX('+C3+'C'+bk.close+':L'+bk.close+',1,'+A+X3+'22)',role:'vf',z:'num'});
+      ts.cells.push({r:X3+'17',f:'IF('+X3+'14>='+A+'C$8,"충족","미달")',role:'vf'});
+    }
+    return {sheets:[cover,asum,ts,sch]};
+  }
+  window.__refiTemplate=refiTemplate;
+
   /* ── 공동주택 분양 사업수지 워크북(5시트·수식 연결) — 화면 엔진(simDevResi)과 동일 로직을 수식으로 재현 ── */
   function devTemplate(ctx){
     if(typeof devResiInputs!=='function') return null;
@@ -4722,6 +4893,26 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       if(ctx&&ctx.dirty&&!ctx.explicit){
         if(!confirm('저장되지 않은 변경이 있습니다.\n이 상태로 받으면 나중에 같은 기준으로 재생성하기 어렵습니다.\n(먼저 + 새 버전 저장을 누르면 버전 기준으로 남습니다)\n\n현재 화면값으로 계속 받을까요?')) return;
       }
+      // 리파이낸싱: 텀시트 비교 워크북
+      if(typeof cur!=='undefined'&&cur==='refi'&&typeof refiTemplate==='function'){
+        var rft=refiTemplate(ctx);
+        if(!rft){ try{ toast('NOI·감정가와 대안 조건을 입력하면 받을 수 있습니다'); }catch(eR0){} return; }
+        var bytesR=XLSXGEN.buildXlsx(rft,null,null);
+        var blobR=new Blob([bytesR],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        var nmR=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset).replace(/[\\\/:*?"<>|]/g,'').trim():'자산';
+        var fnameR='모델터_'+(nmR||'자산')+'_리파이낸싱비교.xlsx';
+        if(ctx&&!ctx.dirty&&ctx.label){
+          var _dnR=String(ctx.dealName).replace(/[\\\/:*?"<>|]/g,'').trim()||'딜';
+          var _dR=new Date(), _ymdR=''+_dR.getFullYear()+('0'+(_dR.getMonth()+1)).slice(-2)+('0'+_dR.getDate()).slice(-2);
+          fnameR='모델터_'+_dnR+'_'+ctx.label+'_'+_ymdR+'.xlsx';
+        }
+        if(ctx&&typeof wsLogOutput==='function') wsLogOutput(ctx.dealId, ctx.dirty?null:ctx.versionId, 'xlsx', fnameR, ctx.dirty?'unsaved':'saved');
+        var aR=document.createElement('a'); aR.href=URL.createObjectURL(blobR); aR.download=fnameR;
+        document.body.appendChild(aR); aR.click();
+        setTimeout(function(){ try{URL.revokeObjectURL(aR.href);}catch(eR){} aR.remove(); },1500);
+        try{ if(typeof toast==='function') toast('리파이낸싱 비교 엑셀 받기 완료 (4시트·수식 연결)'); }catch(eR2){}
+        return;
+      }
       // 개발 · 공동주택 분양: 전용 분양수지 워크북
       if(typeof cur!=='undefined'&&cur==='dev'&&typeof devResi==='function'&&devResi()){
         var dvt=devTemplate(ctx);
@@ -4778,20 +4969,21 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     // 엑셀 다운로드: 매입(오피스·물류 13시트) + 개발·공동주택 분양(분양수지 6시트)
     var isOffice=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics');
     var isDev=(typeof cur!=='undefined')&&cur==='dev'&&(typeof devResi==='function')&&devResi();
+    var isRefi=(typeof cur!=='undefined')&&(cur==='refi');
     var b=$id('dlRow'), card=$id('simCard');
-    if(b){ b.hidden=!((isOffice||isDev)&&card&&!card.hidden); }
+    if(b){ b.hidden=!((isOffice||isDev||isRefi)&&card&&!card.hidden); }
     var xb=$id('xlDownload');
-    if(xb) xb.innerHTML=isDev?'⬇ 분양수지 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>':'⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>';
+    if(xb) xb.innerHTML=isDev?'⬇ 분양수지 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>':(isRefi?'⬇ 리파이낸싱 비교 엑셀 받기 <span class="xl-ext">.xlsx</span>':'⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>');
     // 티저(PPT)는 매입 딜(오피스·물류) 전용
-    var tz=$id('tzDownload'); if(tz) tz.hidden=isDev;
+    var tz=$id('tzDownload'); if(tz) tz.hidden=(isDev||isRefi);
     // 파리티 배지: 매입(오피스·물류 13시트)·개발 분양수지 — 파이썬 수식 엔진 재계산으로 일치 검증됨
     var flag=$id('simFlag');
     if(flag){
-      flag.style.display=(isOffice||isDev)?'':'none';
+      flag.style.display=(isOffice||isDev||isRefi)?'':'none';
       var tip=flag.querySelector&&flag.querySelector('.prt-tip');
       if(tip){
         if(!flag.__offTip) flag.__offTip=tip.innerHTML;
-        tip.innerHTML=isDev?'화면의 사업이익률·IRR·Equity Multiple·필요 PF 한도는 내려받는 분양수지 엑셀과 <b>같은 계산식</b>(월별 코호트 납부·PF 전개)으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 <b>전 지표 일치</b>를 검증했습니다.':flag.__offTip;
+        tip.innerHTML=isDev?'화면의 사업이익률·IRR·Equity Multiple·필요 PF 한도는 내려받는 분양수지 엑셀과 <b>같은 계산식</b>(월별 코호트 납부·PF 전개)으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 <b>전 지표 일치</b>를 검증했습니다.':(isRefi?'화면의 대안별 한도·순인출·연도별 DSCR·총이자는 내려받는 리파이낸싱 비교 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 <b>전 지표 일치</b>를 검증했습니다.':flag.__offTip);
       }
     }
   }

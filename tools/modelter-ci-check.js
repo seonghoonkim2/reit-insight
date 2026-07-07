@@ -121,6 +121,11 @@ ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무�
 ok(html.includes('k:"taxpct"') && html.includes('k:"salespct"') && html.includes('k:"hugpct"'), '사업비 세부(제세·판매비·분양보증) 입력 존재');
 ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');
 ok(html.includes('물류는 책임임대차 관행'), '물류 엑셀 다운로드(저운영비 기본값 안내) 존재');
+ok(html.includes('function refiTemplate'), '리파이낸싱 비교 엑셀 생성기 존재');
+ok(html.includes('function refiSchedule'), '리파이낸싱 연도 전개(refiSchedule) 존재');
+ok(html.includes("'02_Term_Sheets'"), '텀시트 비교 시트 존재');
+ok(html.includes('리파이낸싱 비교 엑셀 받기 완료'), '리파이낸싱 다운로드 경로 존재');
+ok(!html.includes('refi:{label:"리파이낸싱", lite:true'), '리파이낸싱 간이 배지 졸업');
 ok(html.includes("var isOffice=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics');"), '엑셀 다운로드 게이트: 오피스+물류');
 ok(html.includes("'03_Monthly_CF'"), '분양수지 월별 CF 시트 존재');
 ok(html.includes('function devResiInputs'), '엔진·엑셀 공용 입력 파서(devResiInputs) 존재');
@@ -318,6 +323,33 @@ const driver = `;(function(){
     if (!_pb || _pb.t !== "ci_probe") throw new Error("mtTrack 비콘 미전송");
     if (!("feats" in _pb)) throw new Error("이벤트 스키마에 feats 누락");
     if (_pb.deal !== "office") throw new Error("이벤트 deal 필드 누락");
+  }
+  // 리파이낸싱: 다년 전개·텀시트·엑셀 생성
+  if (typeof refiSchedule === "function") {
+    cur = "refi"; window.rrModel = null; fillExample();
+    var _rf = simModel();
+    if (!(_rf && _rf.rows && _rf.rows.length === 3)) throw new Error("리파이 3안 미산출");
+    if (!(_rf.rows[0].yrs.length === 3 && _rf.rows[2].yrs.length === 7)) throw new Error("연도 전개 길이 오류");
+    if (!(_rf.rows[0].minDSCR > 2.4 && _rf.rows[0].minDSCR < 2.5)) throw new Error("1안 minDSCR 이상: " + _rf.rows[0].minDSCR);
+    if (_rf.rows[2].pass !== false) throw new Error("3안(원리금균등 7년) DSCR 미달 판정 실패");
+    if (_rf.best !== 1) throw new Error("추천 대안 오류: " + _rf.best);
+    if (!(Math.abs(_rf.rows[2].balloon) < 0.5)) throw new Error("원리금균등 만기 잔액≠0");
+    // 원금균등 경로
+    var _svR = refiState.a1_repay; refiState.a1_repay = "원금균등";
+    var _rf2 = simModel();
+    if (!(_rf2.rows[0].balloon < 0.5 && _rf2.rows[0].yrs[0].prin > 0)) throw new Error("원금균등 전개 오류");
+    refiState.a1_repay = _svR;
+    // 엑셀 생성 → zip 재해석
+    if (typeof window.__refiTemplate === "function" && typeof XLSXREAD !== "undefined") {
+      var _rt = window.__refiTemplate(null);
+      if (!(_rt && _rt.sheets.length === 4)) throw new Error("리파이 시트 수 오류");
+      var _rb = XLSXGEN.buildXlsx(_rt, null, null);
+      var _rz = XLSXREAD.readZip(_rb);
+      var _rw2 = XLSXREAD.entryText(_rz["xl/workbook.xml"]);
+      if (_rw2.indexOf("02_Term_Sheets") < 0 || _rw2.indexOf("03_Debt_Schedule") < 0) throw new Error("리파이 시트명 누락");
+      var _rs4 = XLSXREAD.entryText(_rz["xl/worksheets/sheet4.xml"]);
+      if (_rs4.indexOf("PMT") < 0) throw new Error("원리금균등 PMT 수식 누락");
+    }
   }
   // 물류: 화면=엑셀 동일 엔진 경로 (다운로드 개방)
   cur = "logistics"; window.rrModel = null; fillExample();
