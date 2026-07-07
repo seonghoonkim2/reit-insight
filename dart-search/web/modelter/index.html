@@ -1108,6 +1108,8 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 /* 입력 참고 범위 */
 .f-ref{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
 .f-range+.f-ref{margin-top:1px}
+.f-conv{display:block;font-size:11.5px;font-weight:700;color:var(--accent-deep);margin-top:3px;line-height:1.3}
+.f-conv+.f-ref{margin-top:1px}
 </style>
 </head>
 <body>
@@ -1801,6 +1803,24 @@ const FIELD_REF={
   dpct:"참고 10~20%",
   rpct:"참고 20~30%"
 };
+function wonConv(v){ // 백만원 → 읽기 쉬운 억/조 표기
+  if(!isFinite(v)||v<=0) return '';
+  var e=v/100;
+  if(e>=10000) return mfmt(e/10000,2)+'조';
+  if(e>=1) return mfmt(e,(e>=100?0:1))+'억';
+  return mfmt(v,0)+'백만원';
+}
+function updateConvHint(el){
+  var cv=document.getElementById('conv_'+el.dataset.k); if(!cv) return;
+  var n=parseNum(el.value);
+  if(isFinite(n)&&n>0){ cv.textContent='= '+wonConv(n); cv.hidden=false; }
+  else cv.hidden=true;
+}
+function refreshConvHints(){
+  try{ document.querySelectorAll('.f-conv').forEach(function(cv){
+    var k=cv.id.slice(5); var el=$('f_'+k); if(el) updateConvHint(el);
+  }); }catch(e){}
+}
 function fieldHtml(f){
   const id="f_"+f.k;
   const unit=(f.u && f.t!=="range")?`<span class="unit">${f.u}</span>`:"";
@@ -1819,7 +1839,10 @@ function fieldHtml(f){
   }
   const err=f.t==="num"?`<span class="err" id="err_${f.k}"></span>`:"";
   const ref=(FIELD_REF[f.k]&&f.t==="num")?`<span class="f-ref">${FIELD_REF[f.k]}</span>`:"";
-  return `<div class="f ${f.full?'full':''}" data-field="${f.k}"><div class="f-lab"><label for="${id}">${f.l} ${unit}</label>${help}</div>${input}${ref}${err}</div>`;
+  // 백만원 단위 필드: 입력 즉시 억/조 환산 표시 — 단위 착오(억을 그대로 입력) 방어
+  const isWon=f.t==="num"&&/^백만원/.test(f.u||"");
+  const conv=isWon?`<span class="f-conv" id="conv_${f.k}" hidden></span>`:"";
+  return `<div class="f ${f.full?'full':''}" data-field="${f.k}"><div class="f-lab"><label for="${id}">${f.l} ${unit}</label>${help}</div>${input}${conv}${ref}${err}</div>`;
 }
 
 function stackHtml(mode){
@@ -2060,7 +2083,7 @@ function renderForm(){
       state[el.dataset.k]=el.value;
       if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate();   // 사용자가 직접 값을 입력 = 활성화 신호
       if(el.type==="range"){ const o=document.getElementById("rout_"+el.dataset.k); if(o) o.textContent=el.value+(el.dataset.runit||""); }
-      if(el.dataset.num) validateField(el);
+      if(el.dataset.num){ validateField(el); updateConvHint(el); }
       if(el.dataset.k==="noimode"||el.dataset.k==="devtype"){ renderForm(); restoreInputs(); update(); return; }
       update();
     };
@@ -4002,6 +4025,7 @@ const EXAMPLES={
 // 현재 state/stackState/refiState 값을 (재렌더된) 폼에 다시 주입
 function restoreInputs(){
   Object.entries(state).forEach(([k,v])=>{ const el=$("f_"+k); if(el){ el.value=v; if(el.type==="range"){ const o=document.getElementById("rout_"+k); if(o) o.textContent=el.value+(el.dataset.runit||""); } } });
+  refreshConvHints();
   TRANCHES.forEach(t=>{
     const c=$("formBody").querySelector(`[data-sk="${t.id}_on"]`);
     if(c){ const on=stackState[t.id+"_on"]; if(on!==undefined){ c.checked=!!on; const tr=c.closest(".tranche"); if(tr) tr.classList.toggle("off",!on);} }
