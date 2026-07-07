@@ -120,6 +120,8 @@ ok(html.includes('k:"preperiod"') && html.includes('k:"brate"'), '브릿지(선�
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
 ok(html.includes('k:"taxpct"') && html.includes('k:"salespct"') && html.includes('k:"hugpct"'), '사업비 세부(제세·판매비·분양보증) 입력 존재');
 ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');
+ok(html.includes('물류는 책임임대차 관행'), '물류 엑셀 다운로드(저운영비 기본값 안내) 존재');
+ok(html.includes("var isOffice=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics');"), '엑셀 다운로드 게이트: 오피스+물류');
 ok(html.includes("'03_Monthly_CF'"), '분양수지 월별 CF 시트 존재');
 ok(html.includes('function devResiInputs'), '엔진·엑셀 공용 입력 파서(devResiInputs) 존재');
 ok(html.includes('분양수지 엑셀 받기 완료'), '분양수지 다운로드 경로 존재');
@@ -317,6 +319,11 @@ const driver = `;(function(){
     if (!("feats" in _pb)) throw new Error("이벤트 스키마에 feats 누락");
     if (_pb.deal !== "office") throw new Error("이벤트 deal 필드 누락");
   }
+  // 물류: 화면=엑셀 동일 엔진 경로 (다운로드 개방)
+  cur = "logistics"; window.rrModel = null; fillExample();
+  var _lg = simModel();
+  if (!(_lg && _lg.raw && isFinite(_lg.raw.IRR) && _lg.raw.IRR > 0)) throw new Error("물류 IRR 미산출");
+  if (!(_lg.caveats && _lg.caveats.join("").indexOf("같은 계산식") >= 0)) throw new Error("물류 파리티 문구 누락");
   // 개발·PF: 공동주택 분양 월별 사업수지
   if (typeof simDevResi === "function") {
     cur = "dev"; window.rrModel = null; fillExample();

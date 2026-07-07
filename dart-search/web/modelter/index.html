@@ -3556,7 +3556,7 @@ function renderPreview(){
 const EXAMPLES={
  office:{state:{asset:"강남 A타워",gfa:"8,400",price:"120,000",acqtax:"4.6",acqfee:"1.5",appraisal:"123,500",noimode:"임대료·관리비로 산출",rentpp:"62,000",campp:"21,000",depmult:"12",noi1:"",noig:"2.0",vacancy:"5",depassume:"반영",opfee:"0.4",fixcost:"0",hold:"5",exitcap:"4.8",salefee:"1.8"},
    stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.2",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"12"}},
- logistics:{state:{asset:"이천 물류센터",gfa:"35,000",price:"210,000",acqtax:"4.6",acqfee:"1.5",appraisal:"215,000",noimode:"임대료·관리비로 산출",rentpp:"28,000",campp:"1,700",depmult:"12",noi1:"",noig:"2.5",vacancy:"5",depassume:"반영",opfee:"0.4",fixcost:"0",hold:"5",exitcap:"5.4",salefee:"1.8"},
+ logistics:{state:{asset:"이천 물류센터",gfa:"35,000",price:"210,000",acqtax:"4.6",acqfee:"1.5",appraisal:"215,000",noimode:"임대료·관리비로 산출",rentpp:"33,000",campp:"1,700",depmult:"12",noi1:"",noig:"2.5",vacancy:"5",depassume:"반영",opfee:"0.4",fixcost:"0",hold:"5",exitcap:"5.4",salefee:"1.8"},
    stack:{senior_on:true,senior_ltv:"55",senior_rate:"4.5",mezz_on:false,pref_on:true,pref_ltv:"30",pref_coc:"6.0",common_on:true,common_ltv:"15",common_coc:"13"}},
  dev:{state:{asset:"판교 A지구 공동주택",devtype:"공동주택 분양",land:"9,500",gfa:"52,000",landcost:"180,000",conscost:"290,000",othercost:"12,000",preperiod:"8",consperiod:"32",saleopen:"3",absorb:"18",aptsold:"100",aptinit:"60",dpct:"10",mpct:"60",mcount:"6",rpct:"30",taxpct:"4.6",engpct:"4.0",rsvpct:"3.0",salespct:"3.0",hugpct:"0.4",midfree:"반영",midrate:"5.5",equity:"60,000",brate:"9.0",pfrate:"6.5",pffee:"1.0",tpc:"320,000",saleprice:"평당 1,650만",exitmode:"분양 완료",exitcap:"5.5",
    aptrows:'[{"t":"59A","a":"25","n":"180","p":"830"},{"t":"84A","a":"34","n":"320","p":"1,120"},{"t":"114","a":"43","n":"80","p":"1,470"}]',
@@ -4364,9 +4364,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     for(y=0;y<r.dist.length;y++) rows.push(['Y'+(y+1), mk(r.NOI[y]), mk(r.DS[y]), mk(r.dist[y]), isFinite(r.DSCR[y])?r.DSCR[y].toFixed(2)+'x':'—']);
     var taxNote=(r.passthru===false)?(' 비도관 선택 → 세전·세후 IRR을 함께 표시합니다(감가상각 건물분 30%·40년, 법인세 '+(r.taxrate*100).toFixed(0)+'% 반영, 엑셀 06/08/09시트와 동일).'):'';
     return {type:'kpi', kpis:kpis, tranche:_trancheBlock(r), cov:_covBlock(r), raw:r, mini:{irr:_fp(r.IRR), coc:_fp(r.coc)}, table:{head:['연차','NOI','부채상환','자기자본CF','DSCR'], rows:rows},
-      caveats:[((typeof cur!=='undefined'&&cur==='office')
-        ? '화면 수치는 아래에서 받는 엑셀 모델과 같은 계산식에서 나옵니다. 자본구조, 우선주 배당, 도관과세, 보증금, 감가, 매각까지 반영한 값입니다.'
-        : '자본구조·우선주 배당·도관과세·감가·매각을 반영한 레버드 DCF 간이 결과입니다. 더 정밀한 모델은 아래 AI 지시문을 Claude in Excel에서 이어가세요.')+taxNote]};
+      caveats:['화면 수치는 아래에서 받는 엑셀 모델과 같은 계산식에서 나옵니다. 자본구조, 우선주 배당, 도관과세, 보증금, 감가, 매각까지 반영한 값입니다.'+((typeof cur!=='undefined'&&cur==='logistics')?' 물류는 책임임대차 관행에 맞춘 저운영비·고효율 기본값(가정 시트에서 수정 가능)을 사용합니다.':'')+taxNote]};
   }
   try{ if(typeof simDcf==='function') simDcf=_newSimDcf; }catch(e){}
 
@@ -4777,16 +4775,16 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
 
   function updateXlsxBtn(){
-    // 엑셀 다운로드: 오피스 매입(13시트) + 개발·공동주택 분양(분양수지 6시트)
-    var isOffice=(typeof cur!=='undefined')&&(cur==='office');
+    // 엑셀 다운로드: 매입(오피스·물류 13시트) + 개발·공동주택 분양(분양수지 6시트)
+    var isOffice=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics');
     var isDev=(typeof cur!=='undefined')&&cur==='dev'&&(typeof devResi==='function')&&devResi();
     var b=$id('dlRow'), card=$id('simCard');
     if(b){ b.hidden=!((isOffice||isDev)&&card&&!card.hidden); }
     var xb=$id('xlDownload');
     if(xb) xb.innerHTML=isDev?'⬇ 분양수지 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>':'⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>';
-    // 티저(PPT)는 오피스 매입 전용
+    // 티저(PPT)는 매입 딜(오피스·물류) 전용
     var tz=$id('tzDownload'); if(tz) tz.hidden=isDev;
-    // 파리티 배지: 오피스(13시트)·개발 분양수지 모두 — 파이썬 수식 엔진 재계산으로 일치 검증됨
+    // 파리티 배지: 매입(오피스·물류 13시트)·개발 분양수지 — 파이썬 수식 엔진 재계산으로 일치 검증됨
     var flag=$id('simFlag');
     if(flag){
       flag.style.display=(isOffice||isDev)?'':'none';
