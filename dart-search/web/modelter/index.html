@@ -1073,6 +1073,23 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .inp-prog.done .ip-fill{background:var(--green)}
 .inp-prog .ip-txt{white-space:nowrap;font-variant-numeric:tabular-nums}
 .inp-prog.done .ip-txt{color:var(--green);font-weight:700}
+
+/* 결과 자동 판정 코멘트 */
+.sim-verdict{display:flex;align-items:flex-start;gap:9px;margin:2px 0 12px;padding:11px 14px;border-radius:11px;font-size:13.5px;line-height:1.5;border:1px solid var(--line)}
+.sim-verdict .sv-ic{font-weight:800;flex-shrink:0;font-size:14px;line-height:1.4}
+.sim-verdict .sv-tx b{font-weight:700}
+.sim-verdict.good{background:rgba(47,125,87,.08);border-color:rgba(47,125,87,.28);color:var(--ink-2)}
+.sim-verdict.good .sv-ic{color:var(--green)}
+.sim-verdict.good .sv-tx b{color:var(--green)}
+.sim-verdict.warn{background:rgba(179,71,47,.07);border-color:rgba(179,71,47,.26);color:var(--ink-2)}
+.sim-verdict.warn .sv-ic{color:var(--red)}
+.sim-verdict.warn .sv-tx b{color:var(--red)}
+.sim-verdict.mid{background:rgba(169,121,43,.07);border-color:rgba(169,121,43,.24);color:var(--ink-2)}
+.sim-verdict.mid .sv-ic{color:var(--accent-deep)}
+.sim-verdict.mid .sv-tx b{color:var(--accent-deep)}
+/* 입력 참고 범위 */
+.f-ref{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+.f-range+.f-ref{margin-top:1px}
 </style>
 </head>
 <body>
@@ -1343,6 +1360,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       <div class="metrics" id="simCard" hidden>
         <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관·보유 3~10년 전 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
         <div class="sim-kpis" id="simKpis"></div>
+        <div class="sim-verdict" id="simVerdict" hidden></div>
         <div id="simBody"></div>
         <div class="sim-cav" id="simCaveat"></div>
         <div class="dl-row" id="dlRow" hidden>
@@ -1745,6 +1763,26 @@ function renderTabs(){
 }
 
 /* ---------- 입력 폼 ---------- */
+// 핵심 입력 참고 범위 — 통상 실무 눈높이(참고용, 딜마다 다름). 호버 없이 바로 보이게
+const FIELD_REF={
+  exitcap:"참고 4~6% (자산·입지별)",
+  vacancy:"참고 오피스 3~8% · 물류 2~5%",
+  noig:"참고 1~3%/년",
+  acqtax:"참고 일반 4.6% · 중과 시 최대 9.4%",
+  opfee:"참고 0.3~0.5%",
+  salefee:"참고 1~2%",
+  depmult:"참고 10~12개월",
+  pfrate:"참고 5.5~8%/년",
+  brate:"참고 8~11%/년",
+  salespct:"참고 2~4%",
+  hugpct:"참고 0.3~0.6%",
+  engpct:"참고 3~5%",
+  rsvpct:"참고 2~5%",
+  taxpct:"참고 4.6%",
+  dscrmin:"참고 1.2x 이상",
+  dpct:"참고 10~20%",
+  rpct:"참고 20~30%"
+};
 function fieldHtml(f){
   const id="f_"+f.k;
   const unit=(f.u && f.t!=="range")?`<span class="unit">${f.u}</span>`:"";
@@ -1762,7 +1800,8 @@ function fieldHtml(f){
     input=`<input id="${id}" data-k="${f.k}" ${it} ${vattr} placeholder="${f.ph||''}" />`;
   }
   const err=f.t==="num"?`<span class="err" id="err_${f.k}"></span>`:"";
-  return `<div class="f ${f.full?'full':''}" data-field="${f.k}"><div class="f-lab"><label for="${id}">${f.l} ${unit}</label>${help}</div>${input}${err}</div>`;
+  const ref=(FIELD_REF[f.k]&&f.t==="num")?`<span class="f-ref">${FIELD_REF[f.k]}</span>`:"";
+  return `<div class="f ${f.full?'full':''}" data-field="${f.k}"><div class="f-lab"><label for="${id}">${f.l} ${unit}</label>${help}</div>${input}${ref}${err}</div>`;
 }
 
 function stackHtml(mode){
@@ -3686,12 +3725,79 @@ function simDevBulk(){
 
 function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='dev') return simDev(); if(cur==='refi') return simRefi(); return null; }
 
+/* 결과 자동 판정 — 계산된 KPI를 읽어 한 줄 코멘트로(계산 안 바꿈, raw 해석만). 통상 실무 눈높이 기준 */
+function dealVerdict(r){
+  if(!r||!r.raw) return null;
+  var raw=r.raw;
+  function fp(x){ return mfmt(x*100,1)+'%'; }
+  function fx(x){ return mfmt(x,2)+'x'; }
+  // ── 매입(오피스·물류): IRR·DSCR·Exit 스프레드 ──
+  if(cur==='office'||cur==='logistics'){
+    if(raw.IRR==null||!isFinite(raw.IRR)) return null;
+    var parts=[], tone='good';
+    var irr=raw.IRR;
+    if(irr>=0.08){ parts.push('레버드 IRR '+fp(irr)+' — 통상 매입 기준(8%+) <b>충족</b>'); }
+    else if(irr<0.05){ parts.push('레버드 IRR '+fp(irr)+' — 통상 기준(8%) 대비 <b>낮음</b>'); tone='warn'; }
+    else { parts.push('레버드 IRR '+fp(irr)+' — 통상 기준 8%에 다소 <b>못 미침</b>'); if(tone==='good') tone='mid'; }
+    if(raw.minDSCR!=null&&isFinite(raw.minDSCR)){
+      if(raw.minDSCR>=1.2) parts.push('최소 DSCR '+fx(raw.minDSCR)+'로 상환 여력 충분');
+      else { parts.push('최소 DSCR '+fx(raw.minDSCR)+' — 대주 기준(1.2x) <b>주의</b>'); tone='warn'; }
+    }
+    var price=parseNum(state.price), noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null, ec=raw.exitCap;
+    if(isFinite(price)&&price>0&&noi0!=null&&isFinite(ec)){
+      var entry=noi0/price, sp=(ec-entry)*100;
+      if(sp>=0.1) parts.push('Exit Cap이 진입 대비 +'+mfmt(sp,1)+'%p 보수적');
+      else if(sp>=-0.5) parts.push('Exit Cap이 진입과 유사');   // 앱 검증 허용치(±0.5%p) 이내
+      else { parts.push('Exit Cap이 진입보다 '+mfmt(-sp,1)+'%p 낮음(공격적) — <b>역스프레드 주의</b>'); tone='warn'; }
+    }
+    return {tone:tone, html:parts.join(' · ')};
+  }
+  // ── 개발·분양: 이익률·손익분기·PF 상환 ──
+  if(cur==='dev'&&typeof devResi==='function'&&devResi()){
+    if(raw.margin==null||!isFinite(raw.margin)) return null;
+    var p2=[], t2='good', m=raw.margin;
+    if(m>=10) p2.push('사업이익률 '+mfmt(m,1)+'% — 통상 개발 목표(10%+) <b>충족</b>');
+    else if(m<5){ p2.push('사업이익률 '+mfmt(m,1)+'% — 목표 대비 <b>낮음</b>'); t2='warn'; }
+    else { p2.push('사업이익률 '+mfmt(m,1)+'% — 통상 목표 10%에 <b>못 미침</b>'); t2='mid'; }
+    if(raw.bep!=null&&isFinite(raw.bep)){
+      var sold=parseNum(state.aptsold); if(!isFinite(sold)) sold=100;
+      p2.push('손익분기 분양률 '+mfmt(raw.bep,1)+'%'+(sold<raw.bep?(' — 가정('+mfmt(sold,0)+'%)이 이 아래 <b>주의</b>'):' (가정이 여유)'));
+      if(sold<raw.bep) t2='warn';
+    } else { p2.push('전량 분양해도 손익분기 미달 <b>주의</b>'); t2='warn'; }
+    if(raw.pfEnd!=null) p2.push(raw.pfEnd<0.5?'가정 분양률에서 PF 전액 상환':('PF 잔액 '+meok(raw.pfEnd)+' 미상환 <b>주의</b>'));
+    if(raw.pfEnd>=0.5) t2='warn';
+    return {tone:t2, html:p2.join(' · ')};
+  }
+  // ── 리파이낸싱: 추천안·DSCR 충족 ──
+  if(cur==='refi'&&r.rows){
+    if(r.best){
+      var bestRow=null; for(var i=0;i<r.rows.length;i++) if(r.rows[i].n===r.best) bestRow=r.rows[i];
+      var seg='<b>'+r.best+'안 추천</b> — 기준 충족 대안 중 전 기간 최소 DSCR 최고';
+      if(bestRow&&bestRow.minDSCR!=null) seg+=' ('+fx(bestRow.minDSCR)+')';
+      var netMsg='';
+      if(bestRow&&isFinite(bestRow.net)) netMsg=(bestRow.net>=0?'순 조달 +'+meok(bestRow.net):'비용 반영 시 순유출 '+meok(-bestRow.net));
+      return {tone:'good', html:seg+(netMsg?(' · '+netMsg):'')};
+    }
+    return {tone:'warn', html:'모든 대안이 <b>DSCR 기준 미달</b> — LTV·금리·상환구조를 재검토하세요'};
+  }
+  return null;
+}
+function renderVerdict(r){
+  var el=$('simVerdict'); if(!el) return;
+  var v=null; try{ v=dealVerdict(r); }catch(e){}
+  if(!v){ el.hidden=true; el.innerHTML=''; return; }
+  var ic=v.tone==='warn'?'⚠':(v.tone==='good'?'✓':'•');
+  el.hidden=false;
+  el.className='sim-verdict '+v.tone;
+  el.innerHTML='<span class="sv-ic">'+ic+'</span><span class="sv-tx">'+v.html+'</span>';
+}
 function renderSim(){
   var card=$('simCard'); if(!card) return;
   var r=simModel();
   if(!r){ card.hidden=true; return; }
   card.hidden=false;
   if(window.__mtComputed) try{ window.__mtComputed(); }catch(e){}   // 자기 딜 입력 후 결과 도달(퍼널)
+  try{ renderVerdict(r); }catch(e){}
   var kp=$('simKpis'), bd=$('simBody'), cv=$('simCaveat');
   if(r.type==='refi'){
     kp.innerHTML='';
