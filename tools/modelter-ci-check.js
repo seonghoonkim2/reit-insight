@@ -120,6 +120,10 @@ ok(html.includes('k:"preperiod"') && html.includes('k:"brate"'), '브릿지(선�
 ok(html.includes('k:"conscurve"') && html.includes('k:"landdp"') && html.includes('k:"landpay"'), 'v3: 기성 곡선·토지 분할 입력 존재');
 ok(html.includes('window.__setDevView'), '시행↔대주 관점 토글 존재');
 ok(html.includes('function devLenderHtml'), '대주 뷰(스트레스 표) 존재');
+ok(html.includes('var mtLZ=') && html.includes('function decompress'), '공유 링크 압축(mtLZ) 존재');
+ok(html.includes('function sharePayload') && html.includes("o.name='임차인'"), '공유 페이로드·임차인명 마스킹 존재');
+ok(html.includes('id="roBanner"') && html.includes('window.__mtExitReadonly'), '읽기 전용 배너·해제 존재');
+ok(html.includes('body.mt-ro'), '읽기 전용 입력 잠금 CSS 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
 ok(html.includes('k:"taxpct"') && html.includes('k:"salespct"') && html.includes('k:"hugpct"'), '사업비 세부(제세·판매비·분양보증) 입력 존재');
 ok(html.includes('function devTemplate'), '분양수지 엑셀 생성기(devTemplate) 존재');
@@ -521,6 +525,25 @@ const driver = `;(function(){
     delete _wdb.deals[_did]; delete _wdb.deals[_im.id];
     WS = {dealId:null, versionId:null, savedHash:null};
     cur = "office"; window.rrModel = null; fillExample();
+  }
+  // 공유 링크: LZW 왕복 무손실 + 렌트롤 마스킹 + 읽기전용/편집 분기
+  if (typeof mtLZ !== "undefined") {
+    var _samples = ["", "office", JSON.stringify({c:"office",d:"standard",s:{price:"120000",asset:"강남 A타워"},k:{senior_on:true}}),
+                    "가".repeat(500), JSON.stringify({rr:{leases:Array.from({length:30},function(_,i){return {name:"실명"+i,area:1200,rentPP:62000};})}})];
+    _samples.forEach(function(x){ if (mtLZ.decompress(mtLZ.compress(x)) !== x) throw new Error("mtLZ 왕복 실패: len " + x.length); });
+    // 페이로드에 실명 미포함(마스킹)
+    cur = "office"; window.rrModel = { on:true, leases:[{name:"진짜임차인명주식회사",area:1200,rentPP:62000,camPP:0,deposit:0}], mkt:{} };
+    if (typeof sharePayload === "function") {
+      var _pl = sharePayload();
+      if (JSON.stringify(_pl).indexOf("진짜임차인명") >= 0) throw new Error("공유 페이로드에 실명 노출");
+      if (!(_pl.rr && _pl.rr.leases[0].area === 1200)) throw new Error("공유 페이로드 렌트롤 수치 누락");
+      // 압축→해제→적용 왕복
+      var _enc = mtLZ.compress(JSON.stringify(_pl));
+      var _dec = JSON.parse(mtLZ.decompress(_enc));
+      if (_dec.rr.leases[0].name.indexOf("임차인") !== 0) throw new Error("마스킹 이름 복원 실패");
+    }
+    window.rrModel = null;
+    cur = "office"; fillExample();
   }
   globalThis.__CI_OK = 1;
 })();`;
