@@ -162,6 +162,8 @@ ok(html.includes('[#&][evdt]='), '딥링크 시 온보딩 스킵 가드');
 ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
 ok(html.includes('function termHelp') && html.includes('class="k-help"'), '결과 용어 → 가이드 앵커 링크 존재');
 ok(html.includes('function mtNextTip') && html.includes('mt_tip_next'), '산출물 다음 단계 팁(1회) 존재');
+ok(html.includes('function oneLineReport') && html.includes('한 줄 보고 복사'), '한 줄 보고(카톡용 요약+링크) 존재');
+ok(html.includes('cmp-hi'), '딜 비교 최적값 하이라이트 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-ae.js')), '계기판 조회 스크립트(Analytics Engine) 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');

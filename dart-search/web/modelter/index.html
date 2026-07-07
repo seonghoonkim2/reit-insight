@@ -577,6 +577,7 @@ header{background:rgba(253,252,249,.82)}
 .cmp-tbl tr.cmp-diff td.cmp-lab{background:color-mix(in srgb, var(--accent) 14%, var(--bg)); color:var(--accent-deep)}
 .cmp-tbl tr.cmp-diff td.cmp-lab::before{content:"Δ "; font-weight:800}
 .cmp-delta{display:block; font-size:10.5px; font-weight:600; color:var(--red); line-height:1.2; margin-top:1px}
+.cmp-tbl td.cmp-hi{color:var(--green); font-weight:800}
 .cmp-note{font-size:11px; color:var(--muted); line-height:1.5; margin:12px 0 0}
 
 /* 한 장 요약(인쇄/PDF) */
@@ -2805,14 +2806,23 @@ function renderCompare(){
       return '<td><span class="cmp-verdict '+t+'"><b>'+ic+'</b> '+esc(first)+'</span></td>';
     }).join('')+'</tr>';
   }
+  // 높을수록 좋은 지표는 행별 최적값을 강조 (동점·전원 동일이면 생략)
+  var HIB=[/irr/i,/equity multiple|\bem\b/i,/coc|현금수익/i,/dscr/i,/이익률/,/debt yield/i];
   var body=labels.map(function(lab){
     var cells=cols.map(function(c){ var v='—',i; for(i=0;i<c.kpis.length;i++){ if(c.kpis[i].l===lab){ v=c.kpis[i].v; break; } } return v; });
     var diff=false,j; for(j=1;j<cells.length;j++){ if(cells[j]!==cells[0]) diff=true; }
     var isIrrRow=(lab===irrLab)&&showBadge;
+    var hiSet=null;
+    if(HIB.some(function(re){ return re.test(lab); })){
+      var nums=cells.map(function(v){ var n=parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isFinite(n)?n:NaN; });
+      var bv2=-Infinity; nums.forEach(function(n){ if(isFinite(n)&&n>bv2) bv2=n; });
+      if(isFinite(bv2)){ var set=nums.map(function(n){ return isFinite(n)&&Math.abs(n-bv2)<0.005; });
+        var nb=set.filter(Boolean).length; if(nb>0&&nb<cells.length) hiSet=set; }
+    }
     return '<tr'+(diff?' class="cmp-diff"':'')+'><td class="cmp-lab">'+esc(lab)+'</td>'+cells.map(function(v,ci2){
       var dHtml='';
       if(isIrrRow&&isFinite(irrVals[ci2])&&!bestSet[ci2]){ var dd=irrVals[ci2]-bestV; dHtml='<span class="cmp-delta">'+(Math.round(dd*100)/100).toFixed(2)+'%p</span>'; }
-      return '<td>'+esc(String(v))+dHtml+'</td>';
+      return '<td'+((hiSet&&hiSet[ci2])?' class="cmp-hi"':'')+'>'+esc(String(v))+dHtml+'</td>';
     }).join('')+'</tr>';
   }).join('');
   $('cmpBody').innerHTML='<div class="cmp-wrap"><table class="cmp-tbl">'+head+vRow+body+'</table></div><p class="cmp-note">입력값으로 직접 계산한 추정치이며 투자 권유가 아닙니다. 딜별 세부는 해당 딜을 불러와 확인하세요.</p>';
@@ -4190,6 +4200,27 @@ function copyShare(url, label){
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(function(){ prompt("이 링크를 복사하세요:",url); }); }
   else{ prompt("이 링크를 복사하세요:",url); }
 }
+/* 한 줄 보고 — 카톡·메일에 그대로 붙이는 KPI 요약 + 읽기 전용 링크 */
+function oneLineReport(){
+  var r=null; try{ r=simModel(); }catch(e){}
+  if(!r) return null;
+  var name=((state.asset||'').trim())||DEALS[cur].label;
+  var parts=[];
+  if(r.type==='refi'){
+    if(r.best) parts.push('추천 '+r.best+'안');
+    try{ var bx=(r.rows||[]).filter(function(x){return x.n===r.best;})[0];
+      if(bx&&bx.minDSCR!=null&&isFinite(bx.minDSCR)) parts.push('최소 DSCR '+mfmt(bx.minDSCR,2)+'x');
+      if(bx&&bx.net!=null&&isFinite(bx.net)) parts.push('순 조달 '+(bx.net>=0?'+':'−')+meok(Math.abs(bx.net))); }catch(e){}
+  } else {
+    (r.kpis||[]).filter(function(k){return k.big;}).slice(0,3).forEach(function(k){
+      parts.push(String(k.l).replace(/\s*\([^)]*\)\s*$/,'')+' '+k.v);
+    });
+  }
+  var vd=null; try{ vd=dealVerdict(r); }catch(e){}
+  var vTxt=''; if(vd){ var seg=String(vd.html).replace(/<[^>]+>/g,'').split(' · ')[0]; vTxt=' — '+(vd.tone==='warn'?'⚠ ':'✓ ')+seg; }
+  var url=shareLink(true)||'';
+  return '[모델터] '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+'\n'+url;
+}
 function shareInputs(){
   // 공유 방식 선택 팝오버
   var old=document.getElementById('sharePop'); if(old){ old.remove(); return; }
@@ -4198,12 +4229,22 @@ function shareInputs(){
   pop.innerHTML='<div class="sp-h">공유 링크</div>'+
     '<button type="button" class="sp-opt" data-ro="1"><b>📊 결과 링크 (읽기 전용)</b><span>받는 사람은 결과·민감도를 보고, 값은 수정 못 합니다</span></button>'+
     '<button type="button" class="sp-opt" data-ro="0"><b>✏️ 편집용 링크</b><span>받는 사람이 값을 이어서 수정할 수 있습니다</span></button>'+
+    '<button type="button" class="sp-opt" data-ol="1"><b>💬 한 줄 보고 복사</b><span>딜명 · 핵심 KPI · 판정 · 결과 링크 — 카톡·메일에 그대로 붙여넣기</span></button>'+
     '<div class="sp-note">서버에 저장하지 않습니다 — 딜 정보는 링크 안에만 담기고, 임차인 실명은 링크에서 마스킹됩니다.</div>';
   document.body.appendChild(pop);
   var r=btn.getBoundingClientRect();
   pop.style.top=(r.bottom+window.scrollY+6)+'px';
   pop.style.left=Math.max(8,Math.min(r.left+window.scrollX, window.innerWidth-pop.offsetWidth-8))+'px';
   pop.querySelectorAll('.sp-opt').forEach(function(o){ o.addEventListener('click',function(){
+    if(o.dataset.ol==='1'){
+      var txt=oneLineReport();
+      if(!txt){ toast('결과가 없어 요약을 만들 수 없습니다 — 핵심 입력을 먼저 채워주세요'); pop.remove(); return; }
+      var done=function(){ toast('한 줄 보고가 복사되었습니다 — 카톡·메일에 붙여넣으세요',2600); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(function(){ prompt('아래 내용을 복사하세요:',txt); }); }
+      else prompt('아래 내용을 복사하세요:',txt);
+      if(window.mtTrack) try{ mtTrack('share_link',{ro:1,ol:1}); }catch(e){}
+      pop.remove(); return;
+    }
     var ro=o.dataset.ro==='1'; var url=shareLink(ro); if(url) copyShare(url, ro?'결과(읽기 전용)':'편집용');
     if(window.mtTrack) try{ mtTrack('share_link',{ro:ro?1:0}); }catch(e){}
     pop.remove();
