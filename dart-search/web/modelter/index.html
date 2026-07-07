@@ -3103,7 +3103,9 @@ function sens2Data(mode){
 /* 개발·공동주택 분양 민감도: 분양률(행) × 분양가 조정(열) → 사업이익률. 실제 월별 엔진 재계산 */
 function devSens2(){
   if(!(cur==='dev'&&devResi())) return null;
-  var base=simDevResi(); if(!(base&&base.raw&&isFinite(base.raw.margin))) return null;
+  // 셀·베이스 모두 순수 코어(devResiCompute)만 사용 — 솔버까지 도는 simDevResi를 셀마다 부르면 입력이 수 초씩 멈춤
+  var R0=null; try{ R0=devResiCompute(devResiInputs()); }catch(e){}
+  if(!(R0&&isFinite(R0.margin))) return null;
   var soldRows=[100,90,80,70], adjCols=[-5,-2.5,0,2.5,5];
   var bkSold=state.aptsold, bkApt=state.aptrows, bkRet=state.retrows;
   function scaled(json, adj){
@@ -3120,8 +3122,8 @@ function devSens2(){
       for(var j=0;j<adjCols.length;j++){
         state.aptsold=String(soldRows[i]);
         state.aptrows=scaled(bkApt, adjCols[j]); state.retrows=scaled(bkRet, adjCols[j]);
-        var r2=null; try{ r2=simDevResi(); }catch(e){}
-        var v=(r2&&r2.raw&&isFinite(r2.raw.margin))?(r2.raw.margin/100):null;
+        var r2=null; try{ r2=devResiCompute(devResiInputs()); }catch(e){}
+        var v=(r2&&isFinite(r2.margin))?(r2.margin/100):null;
         row.push(v);
         if(v!=null&&isFinite(v)){ any=true; if(v<min)min=v; if(v>max)max=v; }
       }
@@ -3613,7 +3615,8 @@ function devSolveSold(I, test){
   var Rlo=devResiCompute(Object.assign({},I,{soldT:0}));
   if(test(Rlo)) return 0;
   var lo=0, hi=100;
-  for(var i=0;i<28;i++){ var mid=(lo+hi)/2; if(test(devResiCompute(Object.assign({},I,{soldT:mid})))) hi=mid; else lo=mid; }
+  // 16회 이분법 = 0.0015%p 정밀도 — 표시(소수 1자리)와 엑셀 검산(rev×0.05%)에 충분, 입력 반응성 확보
+  for(var i=0;i<16;i++){ var mid=(lo+hi)/2; if(test(devResiCompute(Object.assign({},I,{soldT:mid})))) hi=mid; else lo=mid; }
   return hi;
 }
 /* 분양수지 결과 시각화 — 단계 타임라인 · 사업비 구성 스택 바 · 누적현금/차입잔액 차트 */
