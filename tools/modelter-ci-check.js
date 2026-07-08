@@ -37,6 +37,8 @@ if (fs.existsSync(headersPath)) {
   const h = fs.readFileSync(headersPath, 'utf8');
   ok(/content-security-policy/i.test(h), '_headers: CSP 포함');
   ok(/x-frame-options/i.test(h), '_headers: X-Frame-Options 포함');
+  // 앱이 api.anthropic.com을 호출(BYOK)하면 CSP connect-src에도 반드시 있어야 함 — 로컬 QA엔 CSP가 없어 프로덕션에서만 터지는 유형
+  if (html.includes('api.anthropic.com')) ok(/connect-src[^;]*api\.anthropic\.com/.test(h), '_headers: CSP connect-src에 api.anthropic.com (BYOK 차단 방지)');
 }
 ok(/\.xl-dl\[hidden\]\{display:none\}/.test(html), 'CSS: .xl-dl[hidden] 가드(엑셀버튼 숨김 버그 방지)');
 ok(/_hesc\(h\)/.test(html) && /_hesc\(samples/.test(html) && /_hesc\(w\.msg\)/.test(html), '렌트롤 헤더·샘플·경고 XSS 이스케이프 유지');
