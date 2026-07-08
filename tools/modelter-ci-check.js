@@ -173,6 +173,8 @@ ok(html.includes("var deepLink=/[#&][evdt]=/.test(location.hash||'')"), "딥링�
 ok(html.includes('window.__wizOpen') && html.includes('id="wizBtn"') && html.includes('wiz-sheet'), '모바일 빠른 입력 위저드 존재');
 ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.includes("['asset','noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 핵심 필드 세트');
 ok(html.includes("_gf=mnum('gfa')"), '임대료 기준 연면적 필수 가드(침묵 기본값 차단)');
+ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
+ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-ae.js')), '계기판 조회 스크립트(Analytics Engine) 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');

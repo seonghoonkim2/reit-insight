@@ -3884,14 +3884,14 @@ var TERM_ANCHORS=[
   [/irr/i,'irr'],[/equity multiple|\bem\b/i,'em'],[/coc|현금수익/i,'coc'],
   [/dscr/i,'dscr'],[/\bicr\b|이자보상/i,'icr'],[/ltv|ltc/i,'ltv'],[/debt yield/i,'dy'],
   [/\bnoi\b/i,'noi'],[/cap\b|캡레이트/i,'caprate'],[/wale/i,'wale'],
-  [/손익분기|상환한계/,'bep'],[/브릿지|본\s*pf/i,'bridge'],[/중도금/,'midpay'],
+  [/손익분기|상환한계/,'bep'],[/상환 · 만기|만기 상환|원리금균등|원금균등/,'repay'],[/브릿지|본\s*pf/i,'bridge'],[/중도금/,'midpay'],
   [/우선주|워터폴/,'waterfall'],[/보증금/,'deposit'],[/도관/,'passthru']
 ];
 function termHelp(label){
   try{
     var s=String(label||'');
     for(var i=0;i<TERM_ANCHORS.length;i++){ if(TERM_ANCHORS[i][0].test(s))
-      return ' <a class="k-help" href="/guide.html#'+TERM_ANCHORS[i][1]+'" target="_blank" rel="noopener" title="용어 설명 보기" onclick="event.stopPropagation();if(window.mtTrack)try{mtTrack(\'term_help\')}catch(e){}">?</a>'; }
+      return ' <a class="k-help" href="/guide.html#'+TERM_ANCHORS[i][1]+'" target="_blank" rel="noopener" title="용어 설명 보기" aria-label="용어 설명 보기" onclick="event.stopPropagation();if(window.mtTrack)try{mtTrack(\'term_help\')}catch(e){}">?</a>'; }
   }catch(e){}
   return '';
 }
@@ -6525,10 +6525,22 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       setTimeout(function(){ try{ inp.focus(); }catch(e){} },60);
     }
   }
+  function wizInvalid(){
+    // 현재 스텝 숫자 필드의 형식·최소값 검사 — 빈 값은 허용(폼에서 이어서 입력 가능)
+    var f=W.fs[W.i]; if(!f||f.t!=='num'||!W.ov) return null;
+    var inp=W.ov.querySelector('#wizIn'); var v=(inp&&inp.value||'').trim(); if(v==='') return null;
+    var n=parseNum(v);
+    if(!isFinite(n)) return '숫자로 입력해주세요';
+    if(f.min!==undefined&&n<f.min) return f.min+' 이상이어야 합니다';
+    if(f.max!==undefined&&n>f.max) return f.max+' 이하로 입력해주세요';
+    return null;
+  }
   function nav(w){
     if(w==='close'){ close(); return; }
     if(w==='prev'){ W.i=Math.max(0,W.i-1); try{ update(); }catch(e){} render(); return; }
     if(w==='next'){
+      var err=wizInvalid();
+      if(err){ var rf=W.ov&&W.ov.querySelector('.wiz-ref'); if(rf){ rf.textContent='⚠ '+err; rf.style.color='var(--red)'; } var ii=W.ov&&W.ov.querySelector('#wizIn'); if(ii){ ii.style.borderColor='var(--red)'; ii.focus(); } return; }
       W.i=Math.min(W.fs.length,W.i+1); try{ update(); }catch(e){} render();
       if(W.i===W.fs.length&&window.mtTrack) try{ mtTrack('wizard',{done:1}); }catch(e){}
       return;
