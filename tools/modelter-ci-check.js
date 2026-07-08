@@ -99,6 +99,8 @@ ok(html.includes('id="tzDownload"'), '티저 버튼 존재(엑셀 옆 1/3)');
 ok(html.includes('TPL_B64'), '티저 PPT 양식 내장');
 ok(html.includes('global.ICPPT=') && html.includes('id="icDownload"'), 'IC 패키지(멀티슬라이드 PPT) 존재');
 ok(html.includes("mtTrack('ic_ppt')"), 'IC 패키지 이벤트 추적');
+ok(html.includes('function heatFill') && html.includes('function tile'), 'IC 패키지 v2: KPI 타일·민감도 히트맵');
+ok(html.includes('IC 패키지 7장'), 'IC 패키지 7장 구성(표지·요약·구조·가정·CF·민감도·점검)');
 ok(html.includes('window.MTIM=') && html.includes('class="im-btn"'), 'IM 가정 추출(BYOK) 존재');
 ok(html.includes('anthropic-dangerous-direct-browser-access'), 'BYOK: 브라우저 직접 호출(서버 무경유)');
 ok(html.includes("tool_choice:{type:'tool', name:'extract'}"), 'BYOK: tool_choice로 구조화 추출 강제');

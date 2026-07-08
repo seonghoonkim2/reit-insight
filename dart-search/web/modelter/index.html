@@ -5915,20 +5915,26 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   global.__mtZip=zipStore;   // IC 패키지(PPT) 등 다른 출력 레이어가 재사용
 })(typeof window!=='undefined'?window:globalThis);
 
-/* ── IC 패키지 (멀티슬라이드 PPTX) — 화면 결과·가정·민감도·체크를 심의용 6장으로 (재계산 없음) ── */
+/* ── IC 패키지 (멀티슬라이드 PPTX) — 화면 결과·가정·자본구조·민감도·체크를 심의용 7장으로 (재계산 없음) ── */
 (function(global){
 'use strict';
 var EMU_W=12192000, EMU_H=6858000;   // 16:9
-var C={ink:'1B2230', mut:'6A7280', acc:'8F6220', acc2:'A9792B', line:'E3E0D8', bg:'F7F5F0', red:'B3472F', green:'2F7D57', wh:'FFFFFF'};
+var C={ink:'1B2230', ink2:'46505F', mut:'6A7280', acc:'8F6220', acc2:'A9792B', line:'E3E0D8', bg:'F7F5F0', band:'F5F1E8', red:'B3472F', green:'2F7D57', wh:'FFFFFF', cwh:'D8DCE4', dk2:'2A3242'};
 function xe(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function cm(v){ return Math.round(v*360000); }   // cm → EMU
 var _id=1; function nid(){ return ++_id; }
+function lerpHex(a,b,t){ function h(x,i){return parseInt(x.substr(i,2),16);} function c2(x){var v=Math.round(x).toString(16); return v.length<2?'0'+v:v;}
+  return (c2(h(a,0)+(h(b,0)-h(a,0))*t)+c2(h(a,2)+(h(b,2)-h(a,2))*t)+c2(h(a,4)+(h(b,4)-h(a,4))*t)).toUpperCase(); }
+function heatFill(v,min,max){ if(v==null||!isFinite(v)||!(max>min)) return C.band;
+  var t=Math.max(0,Math.min(1,(v-min)/(max-min)));
+  return t<0.5? lerpHex('E2A171','F5F1E8',t*2) : lerpHex('F5F1E8','93B7DC',(t-0.5)*2); }
 
 /* 텍스트 상자 — paras: [{runs:[{t,sz,b,color}], align, spcB}] */
 function box(x,y,w,h,paras,opt){
   opt=opt||{};
   var fill=opt.fill?('<a:solidFill><a:srgbClr val="'+opt.fill+'"/></a:solidFill>'):'<a:noFill/>';
   var ln=opt.line?('<a:ln w="9525"><a:solidFill><a:srgbClr val="'+opt.line+'"/></a:solidFill></a:ln>'):'';
+  var geom=opt.rounded?('<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 8000"/></a:avLst></a:prstGeom>'):'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>';
   var body=paras.map(function(p){
     var runs=(p.runs||[]).map(function(r){
       return '<a:r><a:rPr lang="ko-KR" sz="'+(r.sz||1400)+'"'+(r.b?' b="1"':'')+' dirty="0"><a:solidFill><a:srgbClr val="'+(r.color||C.ink)+'"/></a:solidFill></a:rPr><a:t>'+xe(r.t)+'</a:t></a:r>';
@@ -5936,20 +5942,33 @@ function box(x,y,w,h,paras,opt){
     return '<a:p><a:pPr'+(p.align?(' algn="'+p.align+'"'):'')+(p.spcB?('><a:spcBef><a:spcPts val="'+p.spcB+'"/></a:spcBef></a:pPr>'):'/>')+runs+'</a:p>';
   }).join('');
   return '<p:sp><p:nvSpPr><p:cNvPr id="'+nid()+'" name="tx"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>'
-    +'<p:spPr><a:xfrm><a:off x="'+x+'" y="'+y+'"/><a:ext cx="'+w+'" cy="'+h+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'+fill+ln+'</p:spPr>'
+    +'<p:spPr><a:xfrm><a:off x="'+x+'" y="'+y+'"/><a:ext cx="'+w+'" cy="'+h+'"/></a:xfrm>'+geom+fill+ln+'</p:spPr>'
     +'<p:txBody><a:bodyPr wrap="square" lIns="72000" tIns="36000" rIns="72000" bIns="36000"'+(opt.anchor?(' anchor="'+opt.anchor+'"'):'')+'><a:normAutofit/></a:bodyPr><a:lstStyle/>'+body+'</p:txBody></p:sp>';
 }
-/* 표 — rows: [[{t,b,color,fill,align,sz}...]], colW: EMU 배열 */
+/* KPI 타일 — 라벨(작게) + 값(크게), 톤 색 */
+function tile(x,y,w,h,label,value,tone){
+  var vc=tone==='warn'?C.red:(tone==='good'?C.green:C.ink);
+  return box(x,y,w,h,[
+    {runs:[{t:label,sz:950,color:C.mut}]},
+    {runs:[{t:value,sz:2000,b:1,color:vc}],spcB:300}
+  ],{fill:C.bg,line:C.line,rounded:true});
+}
+/* 표 — rows: [[{t,b,color,fill,align,sz}...]], colW: EMU 배열
+ * opt: rowH, headFill(bool), headFillColor, band(줄무늬, 기본 true), rAlign(첫 열 제외 우측 정렬, 기본 true) */
 function tbl(x,y,colW,rows,opt){
   opt=opt||{};
   var rh=opt.rowH||cm(0.72);
+  var band=(opt.band!==false), rAl=(opt.rAlign!==false);
   var grid=colW.map(function(w){ return '<a:gridCol w="'+w+'"/>'; }).join('');
   var trs=rows.map(function(row,ri){
-    var tcs=row.map(function(c){
+    var tcs=row.map(function(c,ciX){
       c=(c&&typeof c==='object')?c:{t:c};
-      var fill=c.fill?('<a:solidFill><a:srgbClr val="'+c.fill+'"/></a:solidFill>'):(ri===0&&opt.headFill!==false?('<a:solidFill><a:srgbClr val="'+(opt.headFillColor||C.ink)+'"/></a:solidFill>'):'');
-      var color=c.color||((ri===0&&opt.headFill!==false)?C.wh:C.ink);
-      return '<a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:pPr'+(c.align?(' algn="'+c.align+'"'):'')+'/>'
+      var isHead=(ri===0&&opt.headFill!==false);
+      var fillHex=c.fill||(isHead?(opt.headFillColor||C.ink):(band&&ri%2===0?C.band:null));
+      var fill=fillHex?('<a:solidFill><a:srgbClr val="'+fillHex+'"/></a:solidFill>'):'';
+      var color=c.color||(isHead?C.wh:C.ink);
+      var algn=c.align||(isHead?'ctr':(rAl&&ciX>0?'r':null));
+      return '<a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:pPr'+(algn?(' algn="'+algn+'"'):'')+'/>'
         +'<a:r><a:rPr lang="ko-KR" sz="'+(c.sz||(ri===0?1000:1050))+'"'+((c.b||ri===0)?' b="1"':'')+' dirty="0"><a:solidFill><a:srgbClr val="'+color+'"/></a:solidFill></a:rPr><a:t>'+xe(c.t)+'</a:t></a:r></a:p></a:txBody>'
         +'<a:tcPr marL="54000" marR="54000" marT="18000" marB="18000" anchor="ctr">'+fill+'</a:tcPr></a:tc>';
     }).join('');
@@ -5966,18 +5985,21 @@ function slideXml(shapes){
     +'<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>'
     +shapes.join('')+'</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>';
 }
-/* 공통 프레임: 상단 타이틀 바 + 하단 푸터 */
+/* 공통 프레임: 좌측 악센트 바 + 타이틀 + 하단 룰·푸터 */
 function frame(title, sub, pageNo, total){
   var s=[];
-  s.push(box(cm(0.9),cm(0.55),cm(24),cm(1.3),[{runs:[{t:title,sz:2000,b:1,color:C.ink}]}]));
-  if(sub) s.push(box(cm(0.9),cm(1.55),cm(28),cm(0.8),[{runs:[{t:sub,sz:1100,color:C.mut}]}]));
-  s.push(box(cm(0.9),cm(2.28),cm(32.06),cm(0.06),[{runs:[{t:' ',sz:100}]}],{fill:C.acc}));
-  s.push(box(cm(0.9),cm(18.0),cm(32.06),cm(0.7),[{runs:[{t:'modelter.com · 입력값 기반 직접계산·추정치 · 투자 권유가 아닌 정보 제공 목적',sz:850,color:C.mut}]}]));
-  s.push(box(cm(31.2),cm(18.0),cm(1.8),cm(0.7),[{runs:[{t:pageNo+' / '+total,sz:850,color:C.mut}],align:'r'}]));
+  s.push(box(cm(0.9),cm(0.62),cm(0.16),cm(1.5),[{runs:[{t:' ',sz:100}]}],{fill:C.acc}));
+  s.push(box(cm(1.35),cm(0.55),cm(24),cm(1.05),[{runs:[{t:title,sz:2000,b:1,color:C.ink}]}]));
+  if(sub) s.push(box(cm(1.35),cm(1.52),cm(28),cm(0.75),[{runs:[{t:sub,sz:1050,color:C.mut}]}]));
+  s.push(box(cm(0.9),cm(2.34),cm(32.06),cm(0.045),[{runs:[{t:' ',sz:100}]}],{fill:C.line}));
+  s.push(box(cm(0.9),cm(17.86),cm(32.06),cm(0.03),[{runs:[{t:' ',sz:100}]}],{fill:C.line}));
+  s.push(box(cm(0.9),cm(18.05),cm(28),cm(0.66),[{runs:[{t:'modelter.com · 입력값 기반 직접계산·추정치 · 투자 권유가 아닌 정보 제공 목적',sz:850,color:C.mut}]}]));
+  s.push(box(cm(30.6),cm(18.05),cm(2.4),cm(0.66),[{runs:[{t:pageNo+' / '+total,sz:850,color:C.mut}],align:'r'}]));
   return s;
 }
 function fpct(x,d){ return (x!=null&&isFinite(x))?(mfmt(x*100,d==null?1:d)+'%'):'—'; }
 function fx2(x){ return (x!=null&&isFinite(x))?(mfmt(x,2)+'x'):'—'; }
+function fm(x){ return (x!=null&&isFinite(x))?meok(x):'—'; }
 
 function icData(){
   var r=null; try{ r=simModel(); }catch(e){}
@@ -5988,7 +6010,6 @@ function icData(){
   var d=DEALS[cur];
   var name=((state.asset||'').trim())||d.label;
   var date=new Date().toISOString().slice(0,10);
-  /* 핵심 가정: 화면 인쇄 요약과 동일 규칙 — 미입력은 표준가정 표기 */
   var asRows=[];
   d.groups.forEach(function(g){ g.f.forEach(function(f){
     if(f.t==='textarea') return;
@@ -5998,133 +6019,246 @@ function icData(){
   }); });
   return {r:r, vd:vd, cm:cmx, checks:checks, name:name, deal:d.label, date:date, asRows:asRows};
 }
+/* KPI 목록 정규화: [{l,v,tone}] — refi는 추천안 기준으로 구성 */
+function kpiList(r){
+  var out=[];
+  if(r.kpis&&r.kpis.length){ r.kpis.forEach(function(k){ out.push({l:String(k.l).replace(/<[^>]+>/g,''), v:String(k.v), tone:k.tone||''}); }); }
+  else if(r.type==='refi'&&r.rows){
+    var bx=(r.rows||[]).filter(function(x){return x.n===r.best;})[0];
+    out.push({l:'추천 대안', v:r.best?(r.best+'안'):'—', tone:'good'});
+    if(bx){
+      out.push({l:'한도', v:fm(bx.loan)});
+      out.push({l:'순 조달(비용 차감)', v:isFinite(bx.net)?((bx.net>=0?'+':'−')+meok(Math.abs(bx.net))):'—'});
+      out.push({l:'최소 DSCR(전 기간)', v:fx2(bx.minDSCR), tone:(bx.pass===false?'warn':(bx.pass?'good':''))});
+      out.push({l:'Y1 Debt Yield', v:bx.dy!=null?fpct(bx.dy,1):'—'});
+      out.push({l:'총이자(만기까지)', v:fm(bx.totInt)});
+    }
+  }
+  return out;
+}
 
 function buildIcPptx(){
   var D=icData(); if(!D) return null;
-  var r=D.r, total=6, slides=[];
+  var r=D.r, raw=r.raw||{}, total=7, slides=[];
   _id=1;
+  var kps=kpiList(r);
 
-  /* S1 표지 */
-  slides.push(slideXml([
-    box(cm(0.9),cm(6.2),cm(30),cm(1.0),[{runs:[{t:'Investment Committee Package',sz:1300,b:1,color:C.acc}]}]),
-    box(cm(0.9),cm(7.1),cm(31),cm(2.6),[{runs:[{t:D.name,sz:4400,b:1,color:C.ink}]}]),
-    box(cm(0.9),cm(9.9),cm(30),cm(1.0),[{runs:[{t:D.deal+' · '+D.date+' · 모델터에서 생성',sz:1400,color:C.mut}]}]),
-    box(cm(0.9),cm(16.8),cm(32),cm(1.6),[{runs:[{t:'본 자료의 수치는 모델터 화면과 동일한 계산 엔진에서 산출한 입력값 기반 추정치이며, 재계산 없이 그대로 옮겨졌습니다. 투자 권유가 아닌 정보 제공 목적입니다.',sz:1000,color:C.mut}]}]),
-    box(cm(0.9),cm(5.7),cm(6),cm(0.14),[{runs:[{t:' ',sz:100}]}],{fill:C.acc})
-  ]));
-
-  /* S2 투자 요약 */
+  /* ── S1 표지 (다크) ── */
   (function(){
-    var s=frame('투자 요약','Executive Summary — 핵심 지표와 자동 판정',2,total);
-    var kp=[];
-    if(r.kpis&&r.kpis.length){ r.kpis.slice(0,6).forEach(function(k){ kp.push([String(k.l).replace(/<[^>]+>/g,''), String(k.v)]); }); }
-    else if(r.type==='refi'&&r.rows){ kp.push(['추천 대안', r.best?(r.best+'안'):'—']);
-      var bx=(r.rows||[]).filter(function(x){return x.n===r.best;})[0];
-      if(bx){ kp.push(['한도', meok(bx.loan)]); kp.push(['최소 DSCR(전 기간)', fx2(bx.minDSCR)]); kp.push(['총이자(만기까지)', meok(bx.totInt)]); }
-    }
-    if(kp.length) s.push(tbl(cm(0.9),cm(3.0),[cm(7.5),cm(7.5)],[['지표','값']].concat(kp)));
-    if(D.vd){ var vtxt=String(D.vd.html).replace(/<[^>]+>/g,'');
-      s.push(box(cm(17.0),cm(3.0),cm(16.0),cm(3.2),[{runs:[{t:(D.vd.tone==='warn'?'⚠ 자동 판정':'✓ 자동 판정'),sz:1150,b:1,color:(D.vd.tone==='warn'?C.red:C.green)}]},{runs:[{t:vtxt,sz:1050,color:C.ink}],spcB:600}],{fill:C.bg,line:C.line}));
+    var s=[];
+    s.push(box(0,0,EMU_W,EMU_H,[{runs:[{t:' ',sz:100}]}],{fill:C.ink}));
+    s.push(box(cm(0.9),cm(4.6),cm(6),cm(0.14),[{runs:[{t:' ',sz:100}]}],{fill:C.acc2}));
+    s.push(box(cm(0.9),cm(5.1),cm(30),cm(1.0),[{runs:[{t:'Investment Committee Package',sz:1300,b:1,color:C.acc2}]}]));
+    s.push(box(cm(0.9),cm(6.0),cm(31),cm(2.7),[{runs:[{t:D.name,sz:4400,b:1,color:C.wh}]}]));
+    s.push(box(cm(0.9),cm(8.9),cm(12),cm(0.95),[{runs:[{t:'  '+D.deal+'  ',sz:1150,b:1,color:C.wh}]}],{fill:C.acc,rounded:true,anchor:'ctr'}));
+    s.push(box(cm(13.3),cm(8.9),cm(12),cm(0.95),[{runs:[{t:D.date+' · 모델터에서 생성',sz:1100,color:C.cwh}]}],{anchor:'ctr'}));
+    // KPI 미리보기 타일 3개 (다크 톤)
+    var pv=kps.slice(0,3);
+    pv.forEach(function(k,i){
+      s.push(box(cm(0.9+i*7.6),cm(11.3),cm(7.1),cm(2.6),[
+        {runs:[{t:k.l,sz:950,color:C.cwh}]},
+        {runs:[{t:k.v,sz:2200,b:1,color:C.wh}],spcB:300}
+      ],{fill:C.dk2,rounded:true}));
+    });
+    s.push(box(cm(0.9),cm(16.6),cm(32),cm(1.7),[{runs:[{t:'본 자료의 수치는 모델터 화면과 동일한 계산 엔진에서 산출한 입력값 기반 추정치이며, 재계산 없이 그대로 옮겨졌습니다. 화면 결과와 다운로드 엑셀은 동일 계산식(파리티 검증)입니다. 투자 권유가 아닌 정보 제공 목적입니다.',sz:950,color:C.mut}]}]));
+    slides.push(slideXml(s));
+  })();
+
+  /* ── S2 투자 요약: KPI 타일 그리드 + 판정 + 즉시 점검 ── */
+  (function(){
+    var s=frame('투자 요약','Executive Summary — 핵심 지표 · 자동 판정 · 즉시 점검',2,total);
+    var six=kps.slice(0,6);
+    six.forEach(function(k,i){
+      var col=i%3, row=Math.floor(i/3);
+      s.push(tile(cm(0.9+col*5.85),cm(2.85+row*2.5),cm(5.6),cm(2.25),k.l,k.v,k.tone));
+    });
+    if(D.vd){
+      var vtxt=String(D.vd.html).replace(/<[^>]+>/g,'');
+      s.push(box(cm(0.9),cm(8.1),cm(17.3),cm(3.4),[
+        {runs:[{t:(D.vd.tone==='warn'?'⚠ 자동 판정':'✓ 자동 판정'),sz:1150,b:1,color:(D.vd.tone==='warn'?C.red:C.green)}]},
+        {runs:[{t:vtxt,sz:1050,color:C.ink2}],spcB:500}
+      ],{fill:C.bg,line:C.line,rounded:true}));
     }
     if(D.cm&&D.cm.rows&&D.cm.rows.length){
-      var mr=D.cm.rows.slice(0,6).map(function(x){ return [String(x.l), String(x.v)+(x.est?' (추정)':'')]; });
-      s.push(box(cm(17.0),cm(6.8),cm(10),cm(0.7),[{runs:[{t:'즉시 점검',sz:1100,b:1,color:C.ink}]}]));
-      s.push(tbl(cm(17.0),cm(7.6),[cm(8.0),cm(8.0)],[['항목','값']].concat(mr)));
+      var mr=D.cm.rows.slice(0,9).map(function(x){ return [String(x.l), String(x.v)+(x.est?' (추정)':'')]; });
+      s.push(box(cm(19.0),cm(2.85),cm(10),cm(0.7),[{runs:[{t:'즉시 점검 · 입력값 기반',sz:1050,b:1,color:C.ink}]}]));
+      s.push(tbl(cm(19.0),cm(3.6),[cm(7.0),cm(7.0)],[['항목','값']].concat(mr),{rowH:cm(0.62)}));
     }
     slides.push(slideXml(s));
   })();
 
-  /* S3 핵심 가정 (두 열 분할) */
+  /* ── S3 자본 구조 · 수익 분해 (딜별) ── */
   (function(){
-    var s=frame('핵심 가정','Assumptions — 미입력 항목은 표준가정을 적용해 계산',3,total);
-    var rows=D.asRows.slice(0,28);
-    var half=Math.ceil(rows.length/2);
-    var L=rows.slice(0,half), R=rows.slice(half);
-    if(L.length) s.push(tbl(cm(0.9),cm(3.0),[cm(7.6),cm(7.9)],[['가정','값']].concat(L),{rowH:cm(0.62)}));
-    if(R.length) s.push(tbl(cm(17.2),cm(3.0),[cm(7.6),cm(7.9)],[['가정','값']].concat(R),{rowH:cm(0.62)}));
-    slides.push(slideXml(s));
-  })();
-
-  /* S4 현금흐름 / 대안 비교 */
-  (function(){
-    var title=(r.type==='refi')?'대안 비교':'현금흐름';
-    var s=frame(title,(r.type==='refi')?'Term Sheets — 화면 비교표와 동일 값':'연차별 전개 — 화면 표와 동일 값',4,total);
-    if(r.type==='refi'&&r.rows){
+    var title='자본 구조 · 수익 분해', sub='Sources & Uses · 트랜치별 수익 — 단위: 백만원';
+    if(cur==='dev'&&typeof devResi==='function'&&devResi()){ title='사업비 · 조달 구조'; sub='분양수입 구성 · 사업비 세부 · 차입 한도 — 단위: 백만원'; }
+    else if(cur==='refi'){ title='대안 구조 상세'; sub='한도·비용·상환 구조 — 단위: 백만원'; }
+    var s=frame(title,sub,3,total);
+    if(cur==='office'||cur==='logistics'){
+      var uses=[['Uses (취득원가)','금액','비중'],
+        ['매입가', fm(raw.price), fpct(raw.price/raw.uses,1)],
+        ['취득 부대비(세금·중개 등)', fm(raw.acqSideAmt), fpct(raw.acqSideAmt/raw.uses,1)],
+        ['금융 수수료', fm(raw.finFeeAmt), fpct(raw.finFeeAmt/raw.uses,1)],
+        [{t:'총 취득원가',b:1}, {t:fm(raw.uses),b:1}, {t:'100%',b:1}]];
+      var src=[['Sources (조달)','금액','비중'],
+        ['선순위 대출', fm(raw.loan), fpct(raw.loan/raw.uses,1)],
+        ['보증금 승계', fm(raw.depSrcAmt), fpct(raw.depSrcAmt/raw.uses,1)],
+        ['우선주', fm(raw.prefAmt), fpct(raw.prefAmt/raw.uses,1)],
+        ['보통주(자기자본)', fm(raw.common), fpct(raw.common/raw.uses,1)],
+        [{t:'합계',b:1}, {t:fm(raw.loan+raw.depSrcAmt+raw.prefAmt+raw.common),b:1}, {t:'100%',b:1}]];
+      s.push(tbl(cm(0.9),cm(2.85),[cm(7.6),cm(4.4),cm(3.4)],uses,{rowH:cm(0.68)}));
+      s.push(tbl(cm(17.2),cm(2.85),[cm(7.6),cm(4.4),cm(3.4)],src,{rowH:cm(0.68)}));
+      var tr=[['트랜치','금액','평균 CoC','IRR','EM'],
+        ['우선주', fm(raw.prefAmt), fpct(raw.prefCoc,1), fpct(raw.prefIRR,2), fx2(raw.prefEM)],
+        ['보통주', fm(raw.common), fpct(raw.commonCoC,1), fpct(raw.commonIRR,2), fx2(raw.commonEM)],
+        [{t:'총자기자본',b:1}, {t:fm(raw.prefAmt+raw.common),b:1}, {t:fpct(raw.coc,1),b:1}, {t:fpct(raw.IRR,2),b:1}, {t:fx2(raw.EM),b:1}]];
+      s.push(box(cm(0.9),cm(8.3),cm(14),cm(0.65),[{runs:[{t:'트랜치별 수익 (세전)',sz:1050,b:1,color:C.ink}]}]));
+      s.push(tbl(cm(0.9),cm(9.0),[cm(6.4),cm(4.8),cm(4.2),cm(4.2),cm(3.6)],tr,{rowH:cm(0.7)}));
+      var noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null;
+      var dm=[['부채 지표','값','기준·비고'],
+        ['최소 DSCR (전 기간)', fx2(raw.minDSCR), '통상 1.2x 이상'],
+        ['Y1 Debt Yield', (noi0!=null&&raw.loan>0)?fpct(noi0/raw.loan,1):'—', 'NOI ÷ 대출'],
+        ['진입 Cap', (noi0!=null&&raw.price>0)?fpct(noi0/raw.price,2):'—', 'Y1 NOI ÷ 매입가'],
+        ['Exit Cap', fpct(raw.exitCap,2), '매각가 = fwd NOI ÷ Cap'],
+        ['순매각가(부대비 차감)', fm(raw.netSale), '보유 만기 시점']];
+      s.push(box(cm(0.9),cm(12.6),cm(14),cm(0.65),[{runs:[{t:'부채 · 매각 지표',sz:1050,b:1,color:C.ink}]}]));
+      s.push(tbl(cm(0.9),cm(13.3),[cm(6.4),cm(4.8),cm(12.0)],dm,{rowH:cm(0.66)}));
+    } else if(cur==='dev'&&typeof devResi==='function'&&devResi()){
+      var rev=[['분양수입','금액','비중'],
+        ['아파트', fm(raw.aptRev), fpct(raw.aptRev/raw.rev,1)],
+        ['상업시설(순)', fm(raw.retRev), fpct(raw.retRev/raw.rev,1)],
+        [{t:'총 분양수입',b:1},{t:fm(raw.rev),b:1},{t:'100%',b:1}]];
+      var cost=[['사업비','금액','수입 대비'],
+        ['토지비', (state.landcost?mfmt(parseNum(state.landcost),0):'—'), fpct(parseNum(state.landcost)/raw.rev,1)],
+        ['공사비', (state.conscost?mfmt(parseNum(state.conscost),0):'—'), fpct(parseNum(state.conscost)/raw.rev,1)],
+        ['판매·마케팅', fm(raw.sales), fpct(raw.sales/raw.rev,1)],
+        ['분양보증(HUG)', fm(raw.hug), fpct(raw.hug/raw.rev,1)],
+        ['중도금 무이자 대납', fm(raw.mnap), fpct(raw.mnap/raw.rev,1)],
+        ['금융비 — 브릿지 이자', fm(raw.intBr), fpct(raw.intBr/raw.rev,1)],
+        ['금융비 — 본PF 이자', fm(raw.intPF), fpct(raw.intPF/raw.rev,1)],
+        ['금융 수수료', fm(raw.fee), fpct(raw.fee/raw.rev,1)],
+        [{t:'총사업비',b:1},{t:fm(raw.uses),b:1},{t:fpct(raw.uses/raw.rev,1),b:1}],
+        [{t:'사업이익',b:1},{t:fm(raw.profit),b:1},{t:fpct(raw.profit/raw.rev,1),b:1}]];
+      s.push(tbl(cm(0.9),cm(2.85),[cm(7.4),cm(4.6),cm(3.4)],rev,{rowH:cm(0.66)}));
+      s.push(box(cm(0.9),cm(5.9),cm(14),cm(0.65),[{runs:[{t:'차입 구조',sz:1050,b:1,color:C.ink}]}]));
+      var loan=[['구간','최대 잔액(한도 산정)','비고'],
+        ['브릿지론', fm(raw.bridge), '착공 시 본PF로 차환'],
+        ['본PF', fm(raw.loan), '공사비 조달 · 분양수입으로 상환'],
+        ['종료 시 미상환', fm(raw.pfEnd), raw.pfEnd>0.5?'⚠ 상환 미완':'전액 상환']];
+      s.push(tbl(cm(0.9),cm(6.6),[cm(5.4),cm(6.0),cm(4.0)],loan,{rowH:cm(0.66)}));
+      s.push(box(cm(0.9),cm(9.7),cm(15),cm(0.65),[{runs:[{t:'분양률 안전선',sz:1050,b:1,color:C.ink}]}]));
+      var bep=[['지표','값','의미'],
+        ['현재 분양률 가정', (raw.units!=null? mfmt(parseNum(state.aptsold||'100'),0)+'%':'—'), '아파트 최종 분양률'],
+        ['손익분기 분양률', raw.bep!=null?mfmt(raw.bep,1)+'%':'—', '이익 0이 되는 최소선'],
+        ['PF 상환한계 분양률', raw.pfc!=null?mfmt(raw.pfc,1)+'%':'—', '차입 전액 상환 최소선']];
+      s.push(tbl(cm(0.9),cm(10.4),[cm(5.4),cm(4.0),cm(6.0)],bep,{rowH:cm(0.66)}));
+      s.push(tbl(cm(17.2),cm(2.85),[cm(7.4),cm(4.6),cm(3.4)],cost,{rowH:cm(0.66)}));
+    } else if(cur==='refi'&&r.rows){
       var head=['항목'].concat(r.rows.map(function(x){ return x.n+'안'+(r.best===x.n?' ★':''); }));
       var rws=[
         ['조건 (LTV·금리)'].concat(r.rows.map(function(x){ return 'LTV '+mfmt(x.ltv,0)+'% · '+mfmt(x.rate,1)+'%'; })),
-        ['한도'].concat(r.rows.map(function(x){ return meok(x.loan); })),
+        ['상환 · 만기'].concat(r.rows.map(function(x){ return String(x.rep)+' · '+x.mat+'년'; })),
+        ['한도'].concat(r.rows.map(function(x){ return fm(x.loan); })),
         ['순인출(기존 상환 후)'].concat(r.rows.map(function(x){ return isFinite(x.co)?((x.co>=0?'+':'−')+meok(Math.abs(x.co))):'—'; })),
+        ['일회성 비용(수수료 등)'].concat(r.rows.map(function(x){ return fm(x.fees); })),
         ['순 조달(비용 차감)'].concat(r.rows.map(function(x){ return isFinite(x.net)?((x.net>=0?'+':'−')+meok(Math.abs(x.net))):'—'; })),
+        ['Y1 이자(기존 대비)'].concat(r.rows.map(function(x){ return fm(x.newInt)+(isFinite(x.dInt)?(' ('+(x.dInt<=0?'−':'+')+meok(Math.abs(x.dInt))+')'):''); })),
+        ['Y1 Debt Yield'].concat(r.rows.map(function(x){ return x.dy!=null?fpct(x.dy,1):'—'; })),
         ['Y1 DSCR'].concat(r.rows.map(function(x){ return fx2(x.dscr); })),
         ['최소 DSCR(전 기간)'].concat(r.rows.map(function(x){ return fx2(x.minDSCR); })),
-        ['총이자(만기까지)'].concat(r.rows.map(function(x){ return meok(x.totInt); })),
-        ['만기 상환(벌룬)'].concat(r.rows.map(function(x){ return meok(x.balloon); }))
+        ['총이자(만기까지)'].concat(r.rows.map(function(x){ return fm(x.totInt); })),
+        ['만기 상환(벌룬)'].concat(r.rows.map(function(x){ return fm(x.balloon); }))
       ];
-      var cw=[cm(8)]; r.rows.forEach(function(){ cw.push(cm(24/r.rows.length)); });
-      s.push(tbl(cm(0.9),cm(3.0),cw,[head].concat(rws)));
+      var cw=[cm(7.5)]; r.rows.forEach(function(){ cw.push(cm(24.5/r.rows.length)); });
+      s.push(tbl(cm(0.9),cm(2.85),cw,[head].concat(rws),{rowH:cm(0.68)}));
+    }
+    slides.push(slideXml(s));
+  })();
+
+  /* ── S4 핵심 가정 (두 열, 줄무늬) ── */
+  (function(){
+    var s=frame('핵심 가정','Assumptions — 미입력 항목은 표준가정을 적용해 계산',4,total);
+    var rows=D.asRows.slice(0,32);
+    var half=Math.ceil(rows.length/2);
+    var L=rows.slice(0,half), R=rows.slice(half);
+    if(L.length) s.push(tbl(cm(0.9),cm(2.85),[cm(7.6),cm(7.9)],[['가정','값']].concat(L),{rowH:cm(0.6)}));
+    if(R.length) s.push(tbl(cm(17.2),cm(2.85),[cm(7.6),cm(7.9)],[['가정','값']].concat(R),{rowH:cm(0.6)}));
+    slides.push(slideXml(s));
+  })();
+
+  /* ── S5 현금흐름 / 연도별 DSCR ── */
+  (function(){
+    var title=(r.type==='refi')?'연도별 DSCR 전개':'현금흐름';
+    var s=frame(title,(r.type==='refi')?'대안별 상환 여력의 시간 흐름 — 기준 미달 연차는 화면에서 확인':'연차별 전개 — 화면 표·엑셀과 동일 값 (단위: 백만원)',5,total);
+    if(r.type==='refi'&&r.rows&&r.rows[0]&&r.rows[0].yrs){
+      var Y=Math.max.apply(null,r.rows.map(function(x){return x.yrs.length;}));
+      var head3=['연차'].concat(r.rows.map(function(x){ return x.n+'안 DSCR'; })).concat(r.rows.map(function(x){ return x.n+'안 기말잔액'; }));
+      var rows3=[];
+      for(var y=0;y<Math.min(Y,14);y++){
+        rows3.push(['Y'+(y+1)]
+          .concat(r.rows.map(function(x){ var yy=x.yrs[y]; return yy&&yy.dscr!=null?fx2(yy.dscr):'—'; }))
+          .concat(r.rows.map(function(x){ var yy=x.yrs[y]; return yy?fm(yy.close):'—'; })));
+      }
+      var cw3=[cm(2.8)]; for(var i2=0;i2<r.rows.length*2;i2++) cw3.push(cm(29.2/(r.rows.length*2)));
+      s.push(tbl(cm(0.9),cm(2.85),cw3,[head3].concat(rows3),{rowH:cm(0.58)}));
     } else if(r.table&&r.table.rows&&r.table.rows.length){
       var head2=r.table.head.map(String);
-      var rows2=r.table.rows.slice(0,14).map(function(row){ return row.map(String); });
-      var n=head2.length, w0=cm(4.4), wRest=cm((32-4.4)/(n-1));
+      var rows2=r.table.rows.slice(0,16).map(function(row){ return row.map(String); });
+      var n=head2.length, w0=cm(4.2), wRest=cm((32-4.2)/(n-1));
       var cw2=[w0]; for(var i=1;i<n;i++) cw2.push(wRest);
-      s.push(tbl(cm(0.9),cm(3.0),cw2,[head2].concat(rows2),{rowH:cm(0.62)}));
-      if(r.table.rows.length>14) s.push(box(cm(0.9),cm(3.0+0.62*16),cm(20),cm(0.7),[{runs:[{t:'… 이후 연차는 엑셀 모델 참조',sz:950,color:C.mut}]}]));
+      s.push(tbl(cm(0.9),cm(2.85),cw2,[head2].concat(rows2),{rowH:cm(0.6)}));
+      if(r.table.rows.length>16) s.push(box(cm(0.9),cm(2.85+0.6*17+0.2),cm(20),cm(0.7),[{runs:[{t:'… 이후 연차는 엑셀 모델 참조',sz:950,color:C.mut}]}]));
     }
     slides.push(slideXml(s));
   })();
 
-  /* S5 민감도 */
+  /* ── S6 민감도 (실제 히트맵 색) ── */
   (function(){
-    var s=frame('민감도','Sensitivity — 화면 히트맵과 동일 엔진으로 산출',5,total);
-    var m=null, fmt=fpct, corner='';
-    if(cur==='office'||cur==='logistics'){ try{ m=sens2Data((typeof sensAxis!=='undefined'&&sensAxis)?sensAxis:'growth'); }catch(e){} corner=m?('Exit Cap＼'+m.gLabel):''; }
-    else if(cur==='dev'&&typeof devSens2==='function'){ try{ m=devSens2(); }catch(e){} corner=m?m.corner:''; }
+    var s=frame('민감도','Sensitivity — 화면 히트맵과 동일 엔진 · 파랑=높음 · 주황=낮음 · 테두리 칸=현재 가정',6,total);
+    var m=null, isDev=(cur==='dev'&&typeof devResi==='function'&&devResi());
+    if(cur==='office'||cur==='logistics'){ try{ m=sens2Data((typeof sensAxis!=='undefined'&&sensAxis)?sensAxis:'growth'); }catch(e){} }
+    else if(isDev){ try{ m=devSens2(); }catch(e){} }
     if(m){
-      var head=[corner].concat(m.gSteps.map(function(g){ return mfmt(g,1)+(cur==='dev'?'%':'%'); }));
+      var vmin=Infinity,vmax=-Infinity;
+      m.rows.forEach(function(row){ row.forEach(function(v){ if(v!=null&&isFinite(v)){ if(v<vmin)vmin=v; if(v>vmax)vmax=v; } }); });
+      var corner=isDev?(m.corner||'분양률＼분양가'):('Exit Cap＼'+m.gLabel);
+      var head=[{t:corner,sz:950}].concat(m.gSteps.map(function(g){ return {t:mfmt(g,1)+'%'}; }));
       var rows=m.rows.map(function(row,i){
-        return [{t:mfmt(m.ecSteps[i],1)+'%',b:1}].concat(row.map(function(v,j){
+        return [{t:mfmt(m.ecSteps[i],1)+'%',b:1,fill:C.band,align:'ctr'}].concat(row.map(function(v,j){
           var isBase=(i===m.baseI&&j===m.baseJ);
-          return {t:fmt(v,1), fill:isBase?'F2DFB8':null, b:isBase?1:0, align:'ctr'};
+          return {t:fpct(v,1), fill:heatFill(v,vmin,vmax), b:isBase?1:0, align:'ctr', color:isBase?C.ink:C.ink2};
         }));
       });
-      var cw=[cm(4.6)]; m.gSteps.forEach(function(){ cw.push(cm(4.6)); });
-      s.push(tbl(cm(0.9),cm(3.2),cw,[head].concat(rows),{rowH:cm(0.85)}));
-      s.push(box(cm(0.9),cm(3.2+0.85*(m.rows.length+1)+0.3),cm(30),cm(0.8),[{runs:[{t:(cur==='dev'?'각 칸 = 해당 분양률×분양가 조정에서의 사업이익률. ':'각 칸 = 해당 조합에서의 레버드 IRR. ')+'음영 칸이 현재 가정입니다.',sz:950,color:C.mut}]}]));
-    } else if(r.type==='refi'&&r.rows&&r.rows[0]&&r.rows[0].yrs){
-      var Y=r.rows[0].yrs.length;
-      var head3=['연차'].concat(r.rows.map(function(x){ return x.n+'안'; }));
-      var rows3=[]; for(var y=0;y<Math.min(Y,12);y++){ rows3.push(['Y'+(y+1)].concat(r.rows.map(function(x){ var yy=x.yrs[y]; return yy&&yy.dscr!=null?fx2(yy.dscr):'—'; }))); }
-      var cw3=[cm(4)]; r.rows.forEach(function(){ cw3.push(cm(6.5)); });
-      s.push(tbl(cm(0.9),cm(3.0),cw3,[head3].concat(rows3),{rowH:cm(0.6)}));
-      s.push(box(cm(0.9),cm(16.6),cm(30),cm(0.8),[{runs:[{t:'연도별 DSCR 전개 — 대안별 상환 여력의 시간 흐름.',sz:950,color:C.mut}]}]));
+      var cw=[cm(5.2)]; m.gSteps.forEach(function(){ cw.push(cm(5.2)); });
+      s.push(tbl(cm(0.9),cm(3.1),cw,[head].concat(rows),{rowH:cm(1.05),band:false}));
+      var note=isDev?'각 칸 = 해당 분양률×분양가 조정(상업시설 동시 조정)에서의 사업이익률 — 월별 엔진 재계산.':'각 칸 = 해당 Exit Cap×'+m.gLabel+'에서의 레버드 IRR — 모델 전체 재계산.';
+      s.push(box(cm(0.9),cm(3.1+1.05*(m.rows.length+1)+0.35),cm(31),cm(0.8),[{runs:[{t:note,sz:950,color:C.mut}]}]));
     } else {
-      s.push(box(cm(0.9),cm(3.2),cm(30),cm(1),[{runs:[{t:'이 딜 유형은 민감도 대신 화면의 상세 표를 참조하세요.',sz:1100,color:C.mut}]}]));
+      s.push(box(cm(0.9),cm(3.1),cm(30),cm(1),[{runs:[{t:'이 딜 유형의 상세 전개는 앞 장의 연도별 표를 참조하세요.',sz:1100,color:C.mut}]}]));
     }
     slides.push(slideXml(s));
   })();
 
-  /* S6 리스크 · 유의 */
+  /* ── S7 리스크 · 점검 ── */
   (function(){
-    var s=frame('리스크 · 점검','Checks — 검증 규칙이 자동 점검한 항목',6,total);
-    var y=3.0;
+    var s=frame('리스크 · 점검','Checks — 검증 규칙이 자동 점검한 항목',7,total);
+    var y=2.9;
     if(D.checks&&D.checks.length){
-      D.checks.slice(0,9).forEach(function(c){
-        s.push(box(cm(0.9),cm(y),cm(32),cm(0.85),[{runs:[
+      D.checks.slice(0,10).forEach(function(c){
+        s.push(box(cm(0.9),cm(y),cm(32),cm(0.82),[{runs:[
           {t:(c.sev==='error'?'● ':'○ '),sz:1050,b:1,color:(c.sev==='error'?C.red:C.acc2)},
-          {t:String(c.msg),sz:1050,color:C.ink}]}]));
-        y+=0.85;
+          {t:String(c.msg),sz:1050,color:C.ink2}]}]));
+        y+=0.82;
       });
     } else {
       s.push(box(cm(0.9),cm(y),cm(30),cm(1),[{runs:[{t:'자동 점검에서 발견된 경고가 없습니다.',sz:1100,color:C.green}]}]));
       y+=1.2;
     }
-    s.push(box(cm(0.9),cm(Math.max(y+0.5,12.6)),cm(32),cm(3.6),[
+    s.push(box(cm(0.9),cm(Math.max(y+0.4,12.9)),cm(32),cm(3.9),[
       {runs:[{t:'방법론 · 신뢰성',sz:1100,b:1,color:C.ink}]},
       {runs:[{t:'· 본 패키지의 모든 수치는 modelter.com 화면과 동일한 계산 엔진에서 나왔으며, 엑셀 다운로드와도 같은 계산식입니다(파리티 검증).',sz:1000,color:C.mut}],spcB:400},
       {runs:[{t:'· 딜 데이터는 서버에 저장·전송되지 않고 브라우저 안에서만 계산됩니다.',sz:1000,color:C.mut}],spcB:200},
       {runs:[{t:'· 수치는 입력 가정 기반 추정치로, 감정평가·실사 결과를 대체하지 않습니다.',sz:1000,color:C.mut}],spcB:200}
-    ],{fill:C.bg,line:C.line}));
+    ],{fill:C.bg,line:C.line,rounded:true}));
     slides.push(slideXml(s));
   })();
 
@@ -6195,7 +6329,7 @@ function download(ctx){
   if(ctx&&typeof wsLogOutput==='function') wsLogOutput(ctx.dealId, ctx.dirty?null:ctx.versionId, 'pptx', fname, ctx.dirty?'unsaved':'saved');
   var blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
-  if(typeof toast==='function') toast('IC 패키지 6장(표지·요약·가정·현금흐름·민감도·점검)을 내려받았습니다');
+  if(typeof toast==='function') toast('IC 패키지 7장(표지·요약·구조·가정·현금흐름·민감도·점검)을 내려받았습니다');
   if(window.mtTrack) try{ mtTrack('ic_ppt'); }catch(e){}
 }
 global.ICPPT={build:buildIcPptx, download:download};
