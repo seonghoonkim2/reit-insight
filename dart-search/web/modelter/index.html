@@ -1127,6 +1127,33 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .wiz-kpi b{display:block; font-size:17px; color:var(--ink); margin-top:1px}
 .wiz-kpi span{font-size:11px; color:var(--muted)}
 .wiz-note{font-size:12.5px; color:var(--ink-3); line-height:1.55; margin-top:8px}
+/* ── IM 가정 추출 (BYOK) ── */
+.im-entry{display:flex; align-items:center; gap:10px; flex-wrap:wrap; border:1px dashed var(--line); border-radius:11px; padding:9px 12px; margin:0 0 14px; background:var(--bg)}
+.im-btn{border:1px solid var(--accent); background:none; color:var(--accent-deep); font-family:var(--font); font-weight:700; font-size:13px; padding:7px 13px; border-radius:9px; cursor:pointer; white-space:nowrap}
+.im-btn:hover{background:rgba(169,121,43,.08)}
+.im-btn i{font-style:normal; font-size:10px; background:var(--accent-solid); color:var(--on-accent); border-radius:4px; padding:1px 4px; margin-left:3px; vertical-align:1px}
+.im-note{font-size:11.5px; color:var(--muted); line-height:1.45; flex:1; min-width:220px}
+.imx-ov{position:fixed; inset:0; background:rgba(20,16,9,.5); z-index:220; display:flex; align-items:center; justify-content:center; padding:14px}
+.imx{background:var(--panel); border:1px solid var(--line); border-radius:16px; max-width:780px; width:100%; max-height:92vh; overflow:auto; padding:20px 22px 18px; box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.imx h3{font-size:18px; font-weight:800; color:var(--ink); margin:0 0 4px}
+.imx .imx-sub{font-size:12.5px; color:var(--ink-3); line-height:1.5; margin:0 0 12px}
+.imx textarea{width:100%; min-height:170px; box-sizing:border-box; font-family:var(--font); font-size:12.5px; line-height:1.55; padding:11px 12px; border:1.5px solid var(--line); border-radius:11px; background:var(--bg); color:var(--ink); resize:vertical}
+.imx textarea:focus, .imx input:focus, .imx select:focus{outline:none; border-color:var(--accent)}
+.imx-row{display:flex; gap:9px; flex-wrap:wrap; margin-top:10px; align-items:center}
+.imx-row input[type=password]{flex:2; min-width:220px; font-family:ui-monospace,Menlo,monospace; font-size:12.5px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink); box-sizing:border-box}
+.imx-row select{flex:1; min-width:150px; font-family:var(--font); font-size:12.5px; padding:10px 10px; border:1.5px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink)}
+.imx-rem{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-3); margin-top:7px}
+.imx-priv{font-size:11px; color:var(--muted); line-height:1.55; border-top:1px dashed var(--line-soft); margin-top:12px; padding-top:9px}
+.imx-act{display:flex; gap:9px; margin-top:13px}
+.imx-act button{flex:1; border:1px solid var(--line); background:none; color:var(--ink-2); font-family:var(--font); font-size:14px; font-weight:700; padding:12px; border-radius:11px; cursor:pointer}
+.imx-act button.pri{background:var(--accent-solid); border-color:var(--accent-solid); color:var(--on-accent)}
+.imx-act button[disabled]{opacity:.55; cursor:default}
+.imx-err{font-size:12.5px; color:var(--red); line-height:1.5; margin-top:9px; min-height:0}
+.imx-tbl{width:100%; border-collapse:collapse; margin-top:6px; font-size:12.5px}
+.imx-tbl th{text-align:left; font-size:11px; color:var(--muted); font-weight:700; padding:6px 8px; border-bottom:1px solid var(--line)}
+.imx-tbl td{padding:7px 8px; border-bottom:1px solid var(--line-soft); color:var(--ink)}
+.imx-tbl td.v{font-weight:700}
+.imx-tbl td.cur{color:var(--muted)}
 /* 딜 비교 판정 행 */
 .cmp-vrow td{background:var(--line-soft)}
 .cmp-verdict{display:inline-block;font-size:11.5px;line-height:1.4;padding:3px 8px;border-radius:8px}
@@ -2064,6 +2091,9 @@ function renderForm(){
   let quickKeys = QUICK_FIELDS[cur]||[];
   if(cur==="dev") quickKeys = devResi()? ["asset","devtype","landcost","conscost","othercost","equity","pfrate"] : ["asset","devtype","tpc","saleprice","exitcap","exitmode"];
   let html=depthHtml();  // 깊이 선택을 폼 최상단에
+  // IM 가정 추출(BYOK) — 매입 딜 전용, 읽기 전용에서는 숨김
+  if(rrEligible && !(document.body&&document.body.classList.contains('mt-ro')))
+    html+='<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()">🤖 IM에서 가정 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>본인 Anthropic API 키</b>로 매입가·임대료·Exit Cap 등을 추출해 채웁니다 — 모델터 서버 무경유</span></div>';
   if(isQuick){
     // 빠른 검토: 핵심 필드만 한 그룹으로 모아 노출
     const allFields=[];
@@ -6749,6 +6779,164 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
 
 /* ── 업그레이드 공지 배너 + What's new 모달 ── */
 (function(){
+/* ── IM 가정 추출 (BYOK): IM 텍스트 + 본인 Anthropic API 키 → 매입 딜 가정 자동 채움 ──
+ * 원칙: 텍스트·키는 브라우저에서 api.anthropic.com으로만 직접 전송(모델터 서버 무경유).
+ *       키는 메모리 보관(선택 시 이 탭 세션스토리지) — localStorage·state·공유 링크에 절대 저장하지 않음. */
+(function(){
+  var KEY='';                       // 메모리 보관
+  var SS_KEY='mt_byok_k';           // 선택 시 sessionStorage(탭 닫으면 소멸)
+  var MAXLEN=150000;
+  var FIELDS=[
+    {k:'asset',   l:'자산명',        t:'text', d:'건물/자산 이름'},
+    {k:'price',   l:'매입가',        u:'백만원', d:'매입가·매매대금. 반드시 백만원 단위 숫자로 (예: 1,200억원 → 120000)', r:0},
+    {k:'appraisal',l:'감정평가액',   u:'백만원', d:'감정평가액. 백만원 단위 숫자', r:0},
+    {k:'gfa',     l:'연면적',        u:'평',    d:'연면적(평). ㎡만 있으면 3.3058로 나눠 평으로 환산', r:0},
+    {k:'rentpp',  l:'평당 월 임대료', u:'원/평·월', d:'임대면적 평당 월 임대료(원). 명목 임대료 기준', r:0},
+    {k:'campp',   l:'평당 월 관리비', u:'원/평·월', d:'임대면적 평당 월 관리비(원)', r:0},
+    {k:'vacancy', l:'공실률',        u:'%',    d:'현재 또는 가정 공실률(%)', r:1},
+    {k:'noig',    l:'임대료 상승률',  u:'%/년',  d:'연간 임대료(NOI) 상승률(%)', r:1},
+    {k:'hold',    l:'보유기간',      u:'년',    d:'투자 보유기간(년)', r:0},
+    {k:'exitcap', l:'Exit Cap',     u:'%',    d:'매각 시 적용 Cap rate(%)', r:2},
+    {k:'acqtax',  l:'취득세율',      u:'%',    d:'취득세율(%). 통상 4.6', r:2},
+    {k:'opfee',   l:'운용보수율',    u:'%/년',  d:'AMC 운용보수율(%/년)', r:2}
+  ];
+  var ov=null, extracted=null;
+  function el(sel){ return ov?ov.querySelector(sel):null; }
+  function close(){ if(ov){ ov.remove(); ov=null; extracted=null; } document.body.style.overflow=''; }
+  function fieldLabel(k){ var f=FIELDS.filter(function(x){return x.k===k;})[0]; return f?f.l:k; }
+  function schema(){
+    var props={}, req=[];
+    FIELDS.forEach(function(f){
+      props[f.k]={type:(f.t==='text'?['string','null']:['number','null']), description:f.d};
+      req.push(f.k);
+    });
+    return {type:'object', properties:props, required:req};
+  }
+  function sysPrompt(){
+    return '너는 한국 상업용 부동산 IM(투자설명서)에서 재무모델 가정을 추출하는 도구다. 반드시 extract 도구를 호출해 결과를 반환하라.\n'
+      +'규칙:\n· 문서에 명시된 값만 추출한다. 문서에 없으면 null (추측 금지).\n'
+      +'· 금액은 백만원 단위 숫자로 환산한다 (1,200억원 → 120000, 3조 → 3000000).\n'
+      +'· 면적이 ㎡뿐이면 3.3058로 나눠 평으로 환산한다.\n'
+      +'· 임대료·관리비는 임대면적(GLA) 평당 월 기준 원 단위 숫자.\n'
+      +'· 비율은 % 숫자만 (5.2% → 5.2).\n'
+      +'· 범위로 적혀 있으면 중간값이 아니라 기준(base) 값을 쓴다.';
+  }
+  async function extract(){
+    var ta=el('.imx textarea'), ki=el('#imxKey'), md=el('#imxModel'), err=el('.imx-err'), go=el('#imxGo');
+    var txt=(ta&&ta.value||'').trim();
+    KEY=(ki&&ki.value||'').trim();
+    if(!txt){ err.textContent='IM 텍스트를 붙여넣어 주세요.'; return; }
+    if(!KEY){ err.textContent='Anthropic API 키를 입력해 주세요 (console.anthropic.com → API keys).'; return; }
+    if(el('#imxRem')&&el('#imxRem').checked){ try{ sessionStorage.setItem(SS_KEY,KEY); }catch(e){} }
+    else { try{ sessionStorage.removeItem(SS_KEY); }catch(e){} }
+    var cut=txt.length>MAXLEN;
+    if(cut) txt=txt.slice(0,MAXLEN);
+    err.textContent=''; go.disabled=true; go.textContent='추출 중… (10~30초)';
+    try{
+      var res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{ 'x-api-key':KEY, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true', 'content-type':'application/json' },
+        body:JSON.stringify({
+          model:(md&&md.value)||'claude-sonnet-5', max_tokens:1024,
+          system:sysPrompt(),
+          messages:[{role:'user', content:[{type:'text', text:'다음 IM에서 가정을 추출하라.\n\n<im>\n'+txt+'\n</im>'}]}],
+          tools:[{name:'extract', description:'IM에서 추출한 재무모델 가정을 반환', input_schema:schema()}],
+          tool_choice:{type:'tool', name:'extract'}
+        })
+      });
+      if(!res.ok){
+        var t=''; try{ t=await res.text(); }catch(e){}
+        var msg=res.status===401?'API 키가 올바르지 않습니다. console.anthropic.com에서 키를 확인하세요.'
+          :(res.status===429?'요청 한도를 초과했습니다 — 잠시 후 다시 시도하세요.'
+          :('요청 실패 (HTTP '+res.status+') '+t.slice(0,160)));
+        err.textContent=msg; go.disabled=false; go.textContent='추출하기'; return;
+      }
+      var j=await res.json();
+      var tu=(j.content||[]).filter(function(c){ return c.type==='tool_use'; })[0];
+      if(!tu||!tu.input){ err.textContent='응답에서 추출 결과를 찾지 못했습니다 — 다시 시도해 주세요.'; go.disabled=false; go.textContent='추출하기'; return; }
+      extracted=tu.input;
+      renderReview(cut);
+    }catch(e){
+      err.textContent='호출 실패: '+e.message+' — 네트워크·CORS 차단(사내 프록시) 여부를 확인하세요.';
+      go.disabled=false; go.textContent='추출하기';
+    }
+  }
+  function fmtV(f,v){
+    if(v==null||v==='') return null;
+    if(f.t==='text') return String(v).trim()||null;
+    var n=Number(v); if(!isFinite(n)) return null;
+    var d=(f.r==null)?2:f.r;
+    return String(Math.round(n*Math.pow(10,d))/Math.pow(10,d));
+  }
+  function renderReview(cut){
+    var rows=[], n=0;
+    FIELDS.forEach(function(f){
+      var v=fmtV(f, extracted?extracted[f.k]:null);
+      if(v==null) return;
+      n++;
+      var curV=(state[f.k]||'').trim()||'—';
+      rows.push('<tr><td><input type="checkbox" class="imx-ck" data-k="'+f.k+'" checked></td>'
+        +'<td>'+esc(f.l)+(f.u?(' <span style="color:var(--muted);font-size:11px">'+esc(f.u)+'</span>'):'')+'</td>'
+        +'<td class="v">'+esc(v)+((f.u==='백만원'&&isFinite(parseNum(v)))?(' <span style="color:var(--accent-deep);font-size:11px">= '+wonConv(parseNum(v))+'</span>'):'')+'</td>'
+        +'<td class="cur">'+esc(curV)+'</td></tr>');
+    });
+    var box=el('#imxBody');
+    if(!n){ box.innerHTML='<div class="imx-err">문서에서 추출할 수 있는 가정을 찾지 못했습니다 — IM 본문(매매 개요·임대차 현황) 부분을 붙여넣어 보세요.</div>'
+      +'<div class="imx-act"><button type="button" data-im="back">← 다시</button></div>'; return; }
+    box.innerHTML='<div class="imx-sub" style="margin-top:4px">추출 '+n+'개 — <b>적용 전 원문과 대조하세요.</b> 체크한 항목만 폼에 채워집니다.'+(cut?' (텍스트가 길어 앞 15만 자만 사용)':'')+'</div>'
+      +'<table class="imx-tbl"><tr><th></th><th>가정</th><th>추출값</th><th>현재값</th></tr>'+rows.join('')+'</table>'
+      +'<div class="imx-act"><button type="button" data-im="back">← 다시</button><button type="button" class="pri" data-im="apply">체크한 항목 적용</button></div>';
+  }
+  function apply(){
+    if(!extracted) return;
+    var n=0;
+    ov.querySelectorAll('.imx-ck').forEach(function(ck){
+      if(!ck.checked) return;
+      var k=ck.dataset.k, f=FIELDS.filter(function(x){return x.k===k;})[0];
+      var v=fmtV(f, extracted[k]); if(v==null) return;
+      state[k]=v; n++;
+    });
+    close();
+    try{ renderForm(); restoreInputs(); update(); }catch(e){}
+    if(typeof toast==='function') toast('IM 추출값 '+n+'개를 적용했습니다 — 결과가 갱신되었습니다',2600);
+    if(window.mtTrack) try{ mtTrack('im_extract',{n:n}); }catch(e){}
+    var c=document.getElementById('simCard'); if(c&&c.scrollIntoView) c.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function open(){
+    if(document.body.classList.contains('mt-ro')){ if(typeof toast==='function') toast('읽기 전용 모드에서는 사용할 수 없습니다'); return; }
+    if(!(cur==='office'||cur==='logistics')){ if(typeof toast==='function') toast('IM 추출은 오피스·물류 매입 딜에서 지원합니다'); return; }
+    var saved=''; try{ saved=sessionStorage.getItem(SS_KEY)||''; }catch(e){}
+    ov=document.createElement('div'); ov.className='imx-ov';
+    ov.innerHTML='<div class="imx">'
+      +'<h3>🤖 IM에서 가정 추출 <span style="font-size:11px;background:var(--accent-solid);color:var(--on-accent);border-radius:4px;padding:2px 6px;vertical-align:3px">β</span></h3>'
+      +'<div class="imx-sub">IM의 <b>매매 개요·자산 개요·임대차 현황</b> 부분을 복사해 붙여넣으세요. 표는 그대로 붙여넣어도 됩니다.</div>'
+      +'<div id="imxBody">'
+      +'<textarea placeholder="예) 본 건은 서울 강남구 소재 오피스로, 매매대금은 1,200억원… 연면적 8,400평, 평당 임대료 95,000원…"></textarea>'
+      +'<div class="imx-row">'
+      +'<input type="password" id="imxKey" placeholder="Anthropic API 키 (sk-ant-…)" autocomplete="off" value="'+esc(saved)+'">'
+      +'<select id="imxModel"><option value="claude-sonnet-5">Claude Sonnet 5 (권장)</option><option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (빠름·저렴)</option></select>'
+      +'</div>'
+      +'<label class="imx-rem"><input type="checkbox" id="imxRem"'+(saved?' checked':'')+'> 이 탭을 닫을 때까지 키 기억 (세션 저장 — 탭을 닫으면 삭제)</label>'
+      +'<div class="imx-err"></div>'
+      +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" id="imxGo" data-im="go">추출하기</button></div>'
+      +'</div>'
+      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. Anthropic API 사용량은 본인 계정에 과금됩니다.</div>'
+      +'</div>';
+    document.body.appendChild(ov); document.body.style.overflow='hidden';
+    ov.addEventListener('click',function(e){
+      if(e.target===ov){ close(); return; }
+      var b=e.target.closest('[data-im]'); if(!b) return;
+      var a=b.dataset.im;
+      if(a==='close') close();
+      else if(a==='go') extract();
+      else if(a==='apply') apply();
+      else if(a==='back'){ var saved2=el('#imxKey')?el('#imxKey').value:KEY; close(); open(); var k2=el('#imxKey'); if(k2&&saved2) k2.value=saved2; }
+    });
+    if(window.mtTrack) try{ mtTrack('im_open'); }catch(e){}
+  }
+  window.MTIM={open:open};
+})();
+
 /* ── 모바일 빠른 입력 위저드: 딜별 핵심 입력만 한 개씩, 큰 글씨·참고 범위·억조 환산과 함께 ── */
 (function(){
   var W={i:0, fs:[], ov:null};
