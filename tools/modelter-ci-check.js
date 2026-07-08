@@ -95,6 +95,8 @@ ok(html.includes('function mtChecks'), '체크 레지스트리(mtChecks) 존재'
 ok(html.includes('global.TEASER='), '원페이지 티저 모듈 존재');
 ok(html.includes('id="tzDownload"'), '티저 버튼 존재(엑셀 옆 1/3)');
 ok(html.includes('TPL_B64'), '티저 PPT 양식 내장');
+ok(html.includes('global.ICPPT=') && html.includes('id="icDownload"'), 'IC 패키지(멀티슬라이드 PPT) 존재');
+ok(html.includes("mtTrack('ic_ppt')"), 'IC 패키지 이벤트 추적');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
