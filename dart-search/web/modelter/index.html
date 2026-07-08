@@ -1099,6 +1099,34 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .sim-empty .se-btn:hover{background:rgba(169,121,43,.08)}
 .k-help{display:inline-block; width:13px; height:13px; line-height:12px; text-align:center; border:1px solid var(--line); border-radius:50%; font-size:9px; font-weight:700; color:var(--ink-3); text-decoration:none; vertical-align:1px; opacity:.75}
 .k-help:hover{color:var(--accent-deep); border-color:var(--accent); opacity:1}
+/* ── 모바일 빠른 입력 위저드 ── */
+.panel-head .ex.ghost.wiz-launch, .wiz-launch{display:none}
+.se-wiz{display:none; margin-left:8px}
+@media(max-width:920px){ .panel-head .ex.ghost.wiz-launch, .wiz-launch{display:inline-flex} .se-wiz{display:inline-block} }
+.wiz-ov{position:fixed; inset:0; background:rgba(20,16,9,.46); z-index:210; display:flex; align-items:flex-end; justify-content:center}
+.wiz-sheet{background:var(--panel); border-radius:18px 18px 0 0; width:100%; max-width:560px; padding:18px 20px calc(16px + env(safe-area-inset-bottom,0px)); box-shadow:0 -12px 40px rgba(0,0,0,.28)}
+.wiz-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px}
+.wiz-head{font-size:12px; font-weight:800; letter-spacing:.04em; color:var(--accent-deep)}
+.wiz-x{border:none; background:none; font-size:22px; line-height:1; color:var(--muted); cursor:pointer; padding:2px 6px}
+.wiz-step{font-size:11.5px; font-weight:700; color:var(--muted); margin-bottom:3px}
+.wiz-lab{font-size:17.5px; font-weight:800; color:var(--ink); margin-bottom:2px}
+.wiz-lab .unit{font-size:12.5px; color:var(--muted); font-weight:600; margin-left:5px}
+.wiz-hint{font-size:12.5px; color:var(--ink-3); line-height:1.5; margin:4px 0 10px}
+.wiz-in{width:100%; font-size:18px; font-weight:700; padding:13px 14px; border:1.5px solid var(--line); border-radius:12px; background:var(--bg); color:var(--ink); font-family:var(--font); box-sizing:border-box}
+.wiz-in:focus{outline:none; border-color:var(--accent)}
+.wiz-conv{display:block; font-size:12.5px; font-weight:700; color:var(--accent-deep); min-height:18px; margin-top:6px}
+.wiz-ref{display:block; font-size:11.5px; color:var(--muted); min-height:16px}
+.wiz-nav{display:flex; gap:9px; margin-top:13px}
+.wiz-btn{flex:1; border:1px solid var(--line); background:none; color:var(--ink-2); font-family:var(--font); font-size:14.5px; font-weight:700; padding:12px; border-radius:11px; cursor:pointer}
+.wiz-btn.pri{background:var(--accent-solid); border-color:var(--accent-solid); color:var(--on-accent)}
+.wiz-dots{display:flex; gap:5px; justify-content:center; margin-top:12px}
+.wiz-dot{width:6px; height:6px; border-radius:50%; background:var(--line)}
+.wiz-dot.on{background:var(--accent)}
+.wiz-kpis{display:flex; gap:9px; margin:10px 0 2px}
+.wiz-kpi{flex:1; border:1px solid var(--line-soft); border-radius:11px; padding:9px 11px; background:var(--bg)}
+.wiz-kpi b{display:block; font-size:17px; color:var(--ink); margin-top:1px}
+.wiz-kpi span{font-size:11px; color:var(--muted)}
+.wiz-note{font-size:12.5px; color:var(--ink-3); line-height:1.55; margin-top:8px}
 /* 딜 비교 판정 행 */
 .cmp-vrow td{background:var(--line-soft)}
 .cmp-verdict{display:inline-block;font-size:11.5px;line-height:1.4;padding:3px 8px;border-radius:8px}
@@ -1359,6 +1387,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <div class="ph-actions">
           <button class="ex ghost ico" id="shareBtn" title="현재 입력값을 링크로 복사" aria-label="공유"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></button>
           <button class="ex ghost ico" id="clearBtn" title="입력값 전체 지우기" aria-label="비우기"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/></svg></button>
+          <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
         </div>
@@ -3882,6 +3911,7 @@ function missingKeyFields(){
   if(cur==='office'||cur==='logistics'){
     var md=(state['noimode']||'').trim();
     if(md&&md.indexOf('임대료')!==0) keys=keys.map(function(k){ return k==='rentpp'?'noi1':k; });
+    else if(keys.indexOf('gfa')<0) keys.splice(Math.max(0,keys.indexOf('price'))+1,0,'gfa');   // 임대료 기준이면 연면적도 필수
   }
   if(cur==='dev'&&typeof devResi==='function'&&devResi()){
     keys=['landcost','conscost'];
@@ -3909,7 +3939,8 @@ function renderSim(){
     if(vd0){ vd0.hidden=true; vd0.innerHTML=''; }
     if(bd0) bd0.innerHTML='<div class="sim-empty"><div class="se-ic">📊</div><div class="se-t">숫자를 넣으면 여기서 바로 계산됩니다</div>'+
       (labs.length?('<div class="se-need">필요한 입력: <b>'+labs.map(esc).join(', ')+'</b></div>'):'<div class="se-need">핵심 입력을 채우면 IRR·DSCR가 실시간으로 나옵니다</div>')+
-      '<button type="button" class="se-btn" onclick="fillExample()">예시로 시작하기 ↻</button></div>';
+      '<button type="button" class="se-btn" onclick="fillExample()">예시로 시작하기 ↻</button>'+
+      '<button type="button" class="se-btn se-wiz" onclick="if(window.__wizOpen)__wizOpen()">⚡ 핵심만 입력</button></div>';
     if(cv0) cv0.innerHTML='';
     if(window.__miniSetData) window.__miniSetData(false);
     return;
@@ -4962,7 +4993,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     // 핵심 입력(매입가 + 임대수입원)이 비면 내장 기본값으로 몰래 계산하지 않고 빈 상태 안내로 보냄
     var _p=mnum('price'); if(!isFinite(_p)||_p<=0) return null;
     var _md=(state['noimode']||'').trim(); var _rb=(_md===''||_md.indexOf('임대료')===0);
-    if(_rb){ var _rp=mnum('rentpp'); if(!isFinite(_rp)||_rp<=0) return null; }
+    if(_rb){ var _rp=mnum('rentpp'), _gf=mnum('gfa'); if(!isFinite(_rp)||_rp<=0||!isFinite(_gf)||_gf<=0) return null; }
     else { var _n1=mnum('noi1'); if(!isFinite(_n1)||_n1<=0) return null; }
     var r=calcModel(assumFull());
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
@@ -6430,6 +6461,98 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
 
 /* ── 업그레이드 공지 배너 + What's new 모달 ── */
 (function(){
+/* ── 모바일 빠른 입력 위저드: 딜별 핵심 입력만 한 개씩, 큰 글씨·참고 범위·억조 환산과 함께 ── */
+(function(){
+  var W={i:0, fs:[], ov:null};
+  function fieldDef(k){
+    var f=null; try{ DEALS[cur].groups.forEach(function(g){ g.f.forEach(function(x){ if(x.k===k) f=x; }); }); }catch(e){}
+    return f;
+  }
+  function fieldsFor(){
+    var ks;
+    if(cur==='office'||cur==='logistics'){
+      var md=(state['noimode']||'').trim();
+      ks=(md&&md.indexOf('임대료')!==0)?['asset','price','noi1','hold','exitcap']:['asset','price','gfa','rentpp','hold','exitcap'];
+    }
+    else if(cur==='dev'&&typeof devResi==='function'&&devResi()) ks=['asset','landcost','conscost','equity','pfrate'];
+    else if(cur==='dev') ks=['asset','tpc','saleprice','exitcap'];
+    else if(cur==='refi') ks=['asset','noi','oldbal','oldrate','dscrmin'];
+    else ks=[];
+    return ks.map(fieldDef).filter(Boolean);
+  }
+  function close(){
+    if(W.ov){ W.ov.remove(); W.ov=null; }
+    document.body.style.overflow='';
+    try{ restoreInputs(); update(); }catch(e){}
+  }
+  function stepHtml(){
+    var f=W.fs[W.i];
+    return '<div class="wiz-step">'+(W.i+1)+' / '+W.fs.length+(f.k==='asset'?' · 건너뛰어도 됩니다':'')+'</div>'
+      +'<div class="wiz-lab">'+esc(f.l)+(f.u?'<span class="unit">'+esc(f.u)+'</span>':'')+'</div>'
+      +(f.hint?'<div class="wiz-hint">'+esc(f.hint)+'</div>':'')
+      +'<input class="wiz-in" id="wizIn" '+(f.t==='num'?'inputmode="decimal"':'')+' placeholder="'+esc(String(f.ph||''))+'" value="'+esc(String(state[f.k]||''))+'">'
+      +'<span class="wiz-conv" id="wizConv"></span>'
+      +'<span class="wiz-ref">'+((typeof FIELD_REF!=='undefined'&&FIELD_REF[f.k])?FIELD_REF[f.k]:'')+'</span>'
+      +'<div class="wiz-nav">'
+      +(W.i>0?'<button type="button" class="wiz-btn" data-w="prev">← 이전</button>':'<button type="button" class="wiz-btn" data-w="close">닫기</button>')
+      +'<button type="button" class="wiz-btn pri" data-w="next">다음 →</button></div>';
+  }
+  function finishHtml(){
+    var r=null; try{ r=simModel(); }catch(e){}
+    var h='<div class="wiz-step">입력 완료</div><div class="wiz-lab">핵심 입력이 끝났습니다</div>';
+    if(r&&r.kpis&&r.kpis.length){
+      var big=r.kpis.filter(function(k){return k.big;}).slice(0,2);
+      h+='<div class="wiz-kpis">'+big.map(function(k){ return '<div class="wiz-kpi"><span>'+esc(String(k.l))+'</span><b>'+esc(String(k.v))+'</b></div>'; }).join('')+'</div>';
+      try{ var vd=dealVerdict(r); if(vd) h+='<div class="wiz-note">'+(vd.tone==='warn'?'⚠ ':'✓ ')+String(vd.html).replace(/<[^>]+>/g,'')+'</div>'; }catch(eV){}
+    } else if(r&&r.type==='refi'){ h+='<div class="wiz-note">'+(r.best?('추천 '+esc(String(r.best))+'안 — 자세한 비교는 결과 표에서 확인하세요.'):'대안별 비교는 결과 표에서 확인하세요.')+'</div>'; }
+    else h+='<div class="wiz-note">아직 결과가 안 나왔어요 — 남은 항목은 폼에서 채우면 바로 계산됩니다.</div>';
+    if(cur==='dev'&&typeof devResi==='function'&&devResi()) h+='<div class="wiz-note">평형별 세대수·분양가는 폼의 <b>분양 수입</b> 표에서 입력하세요 — 분양수지의 핵심입니다.</div>';
+    return h+'<div class="wiz-nav"><button type="button" class="wiz-btn" data-w="prev">← 이전</button><button type="button" class="wiz-btn pri" data-w="done">결과 보기 ↓</button></div>';
+  }
+  function render(){
+    if(!W.ov) return;
+    var sheet=W.ov.querySelector('.wiz-sheet'), isDone=W.i>=W.fs.length;
+    var dots='<div class="wiz-dots">'+Array.apply(null,{length:W.fs.length+1}).map(function(_,j){ return '<span class="wiz-dot'+(j===W.i?' on':'')+'"></span>'; }).join('')+'</div>';
+    sheet.innerHTML='<div class="wiz-top"><span class="wiz-head">⚡ 핵심 입력 · '+esc(DEALS[cur].label)+'</span><button type="button" class="wiz-x" data-w="close" aria-label="닫기">×</button></div>'
+      +(isDone?finishHtml():stepHtml())+dots;
+    var inp=sheet.querySelector('#wizIn');
+    if(inp){
+      var f=W.fs[W.i];
+      var conv=function(){ if(f.t==='num'&&/^백만원/.test(f.u||'')){ var n=parseNum(inp.value); var c=sheet.querySelector('#wizConv'); if(c) c.textContent=(isFinite(n)&&n>0)?('= '+wonConv(n)):''; } };
+      inp.addEventListener('input',function(ev){ state[f.k]=inp.value; conv(); if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); });
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); nav('next'); } });
+      conv();
+      setTimeout(function(){ try{ inp.focus(); }catch(e){} },60);
+    }
+  }
+  function nav(w){
+    if(w==='close'){ close(); return; }
+    if(w==='prev'){ W.i=Math.max(0,W.i-1); try{ update(); }catch(e){} render(); return; }
+    if(w==='next'){
+      W.i=Math.min(W.fs.length,W.i+1); try{ update(); }catch(e){} render();
+      if(W.i===W.fs.length&&window.mtTrack) try{ mtTrack('wizard',{done:1}); }catch(e){}
+      return;
+    }
+    if(w==='done'){ close(); var c=document.getElementById('simCard'); if(c&&c.scrollIntoView) c.scrollIntoView({behavior:'smooth',block:'start'}); }
+  }
+  function open(){
+    if(document.body.classList.contains('mt-ro')){ toast('읽기 전용 모드에서는 입력할 수 없습니다 — 상단 "내 모델로 열기"를 누르세요'); return; }
+    W.fs=fieldsFor(); if(!W.fs.length){ toast('이 딜 유형은 폼에서 직접 입력해주세요'); return; }
+    W.i=0;
+    W.ov=document.createElement('div'); W.ov.className='wiz-ov';
+    W.ov.innerHTML='<div class="wiz-sheet"></div>';
+    document.body.appendChild(W.ov); document.body.style.overflow='hidden';
+    W.ov.addEventListener('click',function(e){
+      if(e.target===W.ov){ close(); return; }
+      var b=e.target.closest('[data-w]'); if(b) nav(b.dataset.w);
+    });
+    render();
+    if(window.mtTrack) try{ mtTrack('wizard',{open:1}); }catch(e){}
+  }
+  window.__wizOpen=open;
+  var btn=document.getElementById('wizBtn'); if(btn) btn.addEventListener('click',open);
+})();
+
 /* ── 첫 방문 온보딩: 역할 선택 → 딜 탭·예시 자동 세팅 (활성화 유도) ── */
 (function(){
   var ov=document.getElementById('obOverlay'); if(!ov) return;
