@@ -34,6 +34,7 @@ function arg(name, def) {
   return def;
 }
 const FLAG_SQL = process.argv.includes('--sql');
+const FLAG_SNAPSHOT = process.argv.includes('--snapshot');   // 집계를 data/ae-snapshots/<날짜>.json 으로 누적 저장
 const ACCOUNT = arg('account', process.env.CF_ACCOUNT_ID || '');
 const TOKEN = arg('token', process.env.CF_API_TOKEN || '');
 const DAYS = parseInt(arg('days', '7'), 10) || 7;
@@ -48,6 +49,8 @@ const Q = {
   ref: `SELECT blob5 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob5 != '' GROUP BY k ORDER BY n DESC LIMIT 8`,
   feats: `SELECT blob7 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob7 != '' GROUP BY k`,
 };
+// 일자별 핵심 이벤트 시계열 — 한 번의 스냅샷 안에서도 추세를 보이게 (best-effort: AE 날짜함수 실패 시 생략)
+const Q_DAILY = `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, blob1 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} GROUP BY d, k ORDER BY d`;
 
 // ── AE SQL API 호출 ──
 async function runSQL(sql) {
@@ -119,6 +122,29 @@ function render(data) {
   return L.join('\n');
 }
 
+// ── 스냅샷 누적 저장 — AE는 ~90일만 보관하므로 집계를 git에 커밋해 영구 이력화 ──
+function funnelOf(ev) {
+  const outputs = OUTPUT_EVENTS.reduce((s, e) => s + (ev[e] || 0), 0);
+  return { session: ev.session || 0, activate: ev.activate || 0, computed: ev.computed || 0, output: outputs };
+}
+async function writeSnapshot(data, daily) {
+  const path = require('path'), fs = require('fs');
+  const dir = path.join(__dirname, '..', 'data', 'ae-snapshots');
+  fs.mkdirSync(dir, { recursive: true });
+  const end = new Date();
+  const endDate = end.toISOString().slice(0, 10);
+  const snap = {
+    endDate, days: DAYS, generatedAt: end.toISOString(),
+    funnel: funnelOf(data.events),
+    events: data.events, deals: data.deals, device: data.device,
+    ref: data.ref, feats: data.feats, depth: data.depth,
+    daily: daily || null,
+  };
+  const file = path.join(dir, endDate + '.json');
+  fs.writeFileSync(file, JSON.stringify(snap, null, 1));
+  return path.relative(path.join(__dirname, '..'), file);
+}
+
 async function main() {
   if (FLAG_SQL) {
     console.log('# Analytics Engine SQL (대시보드 Query Builder 또는 curl에 붙여 사용)\n');
@@ -138,6 +164,21 @@ async function main() {
     const data = {};
     for (const [name, sql] of Object.entries(Q)) data[name] = toMap(await runSQL(sql));
     console.log(render(data));
+    if (FLAG_SNAPSHOT) {
+      let daily = null;
+      try {                                            // 일자별 시계열은 best-effort
+        const rows = await runSQL(Q_DAILY);
+        const byDay = {};
+        for (const r of rows) {
+          const d = String(r.d || '').slice(0, 10); if (!d) continue;
+          (byDay[d] = byDay[d] || {})[String(r.k || '')] = Number(r.n || 0);
+        }
+        daily = Object.keys(byDay).sort().map(d => Object.assign({ day: d }, byDay[d]));
+      } catch (_) { /* 날짜함수 미지원 시 시계열 없이 저장 */ }
+      const rel = await writeSnapshot(data, daily);
+      console.log('\n📸 스냅샷 저장: ' + rel + '  (git에 커밋하면 영구 누적)');
+      console.log('   대시보드 생성:  node tools/modelter-report.js');
+    }
   } catch (e) {
     console.error('조회 실패: ' + e.message + '\n\n' +
       '· 계정 ID·토큰과 토큰 권한(Account Analytics : Read)을 확인하세요.\n' +
