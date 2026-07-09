@@ -1,0 +1,67 @@
+# 모델터 사용 패턴 보고서 — 매일 아침 자동 갱신 (#20 도구의 자동화)
+#
+# 왜: tools/modelter-patterns.js 는 "매일 아침 갱신용"으로 만들어졌지만 로컬 실행 전제였음.
+#     매일 KST 아침에 자동 생성해 두면 토큰 없이도 아침에 바로 열어볼 수 있습니다.
+#
+# 어디서 보나: 저장소 → Actions → "Modelter patterns" → 최신 실행 → Artifacts →
+#     modelter-usage-report 다운로드(패턴 + 누적 대시보드 HTML 2장).
+#     트래픽 지표라 사이트·저장소에 올리지 않고(gitignore 유지) 아티팩트로만 —
+#     저장소 접근 권한이 있는 사람만 내려받을 수 있습니다.
+#
+# 준비: 주간 스냅샷과 같은 시크릿(CF_ACCOUNT_ID · CF_API_TOKEN). 없으면 조용히 건너뜁니다.
+
+name: Modelter patterns
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 21 * * *"   # 매일 21:30 UTC = 06:30 KST — 출근 전 최신 하루치 반영
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modelter-patterns
+  cancel-in-progress: true
+
+jobs:
+  patterns:
+    runs-on: ubuntu-latest
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 시크릿 확인 (없으면 이후 단계 건너뜀)
+        id: guard
+        run: |
+          if [ -z "$CF_ACCOUNT_ID" ] || [ -z "$CF_API_TOKEN" ]; then
+            echo "::notice::CF_ACCOUNT_ID / CF_API_TOKEN 시크릿이 없어 건너뜁니다. Settings → Secrets 에 추가하면 매일 아침 보고서가 쌓입니다."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        with:
+          node-version: "20"
+
+      - name: 사용 패턴 보고서 생성 (라이브 AE → data/patterns.html)
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        run: node tools/modelter-patterns.js
+
+      - name: 누적 대시보드 생성 (커밋된 스냅샷 → data/dashboard.html)
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        run: node tools/modelter-report.js
+
+      - name: 보고서 아티팩트 업로드 (저장소 접근자만 열람)
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modelter-usage-report
+          path: |
+            data/patterns.html
+            data/dashboard.html
+          retention-days: 14

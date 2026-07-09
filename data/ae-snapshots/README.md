@@ -26,6 +26,8 @@ node tools/modelter-report.js
 #   → data/dashboard.html 을 브라우저로 열기
 
 # 2b) 사용 패턴 보고서 (누가·언제·어떻게 — 주간 모멘텀·기기·딜×산출물·시간대)
+#     매일 06:30 KST 자동 생성됨 → GitHub Actions → "Modelter patterns" 최신 실행 → Artifacts 다운로드
+#     (토큰 있으면 로컬 즉시 생성도 가능)
 node tools/modelter-patterns.js
 #   → data/patterns.html 을 브라우저로 열기
 
