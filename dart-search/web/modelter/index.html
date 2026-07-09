@@ -166,6 +166,9 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .deal-tab .badge-base{font-size:10px; background:var(--accent-solid); color:var(--on-accent); padding:2px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
 .deal-tab.on .badge-base{background:var(--accent)}
 .deal-tab .badge-lite{font-size:10px; background:var(--bg); color:var(--muted); border:1px solid var(--line-soft); padding:1px 6px; border-radius:5px; font-weight:600}
+.deal-tab.deal-soon{opacity:.6; border-style:dashed; color:var(--muted); font-weight:500}
+.deal-tab.deal-soon:hover{opacity:.9; border-color:var(--accent); color:var(--accent-deep)}
+.deal-tab .badge-soon{font-size:9.5px; background:var(--line-soft); color:var(--muted); padding:1px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
 .deal-tab.on .badge-lite{background:rgba(255,255,255,.18); color:var(--on-accent); border-color:transparent}
 
 .builder{padding:14px 0 60px}
@@ -1950,11 +1953,18 @@ let refiState={};
 let depth="standard";
 
 /* ---------- 딜 탭 ---------- */
+/* 수요 가짜 문 — 아직 안 만든 딜 유형을 "준비 중"으로 보여주고, 클릭 시 딜 유형명만 익명 집계.
+   어떤 딜 유형 수요가 실재하는지 데이터로 보고 커버리지 확장 여부를 정하기 위함(수치·PII 없음). */
+const DEAL_SOON=[{k:'hotel',label:'호텔'},{k:'retail',label:'리테일'},{k:'rental',label:'임대주택'},{k:'datacenter',label:'데이터센터'}];
 function renderTabs(){
-  $("dealTabs").innerHTML=Object.entries(DEALS).map(([k,d])=>
+  const real=Object.entries(DEALS).map(([k,d])=>
     `<button class="deal-tab ${k===cur?'on':''}" data-k="${k}">${d.label}${d.base?'<span class="badge-base">기본</span>':''}${d.lite?'<span class="badge-lite" title="간이 체크 — 빠른 감 잡기용">간이</span>':''}</button>`
   ).join("");
-  $("dealTabs").querySelectorAll(".deal-tab").forEach(b=>b.addEventListener("click",()=>{ cur=b.dataset.k; fillExample(); }));
+  const soon=DEAL_SOON.map(x=>
+    `<button class="deal-tab deal-soon" data-want="${x.k}" title="준비 중 — 클릭하면 이 딜 유형에 관심 있다고 익명으로 알려집니다">${x.label}<span class="badge-soon">준비중</span></button>`
+  ).join("");
+  $("dealTabs").innerHTML=real+soon;
+  $("dealTabs").querySelectorAll(".deal-tab:not(.deal-soon)").forEach(b=>b.addEventListener("click",()=>{ cur=b.dataset.k; fillExample(); }));
   $("dtLabel").textContent=DEALS[cur].label;
 }
 
@@ -10930,6 +10940,8 @@ var qrcode = function() {
         depth:(typeof depth!=='undefined'?depth:''),
         rr:!!(window.rrModel&&window.rrModel.on),
         feats:featSnapshot() };
+      var _s=''; try{ _s=sessionStorage.getItem('mt_src')||''; }catch(_e){}
+      if(_s) b.src=_s;   // 채널 어트리뷰션 — 이 탭 세션 동안 착지 채널을 모든 이벤트에 부착(퍼널 채널 분해용)
       if(extra){ for(var k in extra) b[k]=extra[k]; }
       var body=JSON.stringify(b);
       if(navigator.sendBeacon){ navigator.sendBeacon('/e', body); }
@@ -10955,10 +10967,19 @@ var qrcode = function() {
       }, 25000);
     }catch(e3){}
   };
+  // 채널 어트리뷰션 — 착지 URL의 src= 태그(공유·산출물 회수·검색 착지가 부착)를 이 탭 세션 동안 유지.
+  //  sessionStorage = 탭을 닫으면 소멸(교차세션 추적 아님), 값은 채널명 화이트리스트뿐(수치·PII 없음).
+  var _freshSrc='';
+  try{
+    var _sm=(location.search+location.hash).match(/[?#&]src=([A-Za-z0-9_]{1,8})/);
+    if(_sm){ _freshSrc=_sm[1]; sessionStorage.setItem('mt_src', _freshSrc); }
+  }catch(_e){}
   track('session');
+  if(_freshSrc){ try{ track('landing'); }catch(_e){} }   // src 태그를 달고 들어온 유입 1건
   document.addEventListener('click', function(e){
     var t=e.target; if(!t||!t.closest) return;
     var el;
+    if((el=t.closest('.deal-soon'))){ track('deal_want',{deal:(el.dataset&&el.dataset.want)||''}); if(typeof toast==='function') toast('관심 감사합니다 — 수요가 모이면 이 딜 유형을 먼저 만들겠습니다'); return; }
     if((el=t.closest('.deal-tab'))){ track('deal_select',{deal:(el.dataset&&el.dataset.k)||''}); return; }
     if(t.closest('#fillExample')){ track('example_fill'); return; }
     if(t.closest('#fillStd')){ track('fill_std'); return; }

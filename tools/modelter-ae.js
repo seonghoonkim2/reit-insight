@@ -17,8 +17,11 @@
  * 수집 원칙(불변): 이벤트명·딜유형·활성기능 플래그·기기·유입 호스트만. 수치·PII 없음.
  *
  * AE 스키마 (worker.js writeDataPoint 기준):
- *   blob1=이벤트  blob2=딜  blob3=깊이  blob4=기기  blob5=유입호스트  blob6=국가  blob7=feats  blob8=axis
+ *   blob1=이벤트  blob2=딜  blob3=깊이  blob4=기기  blob5=유입호스트  blob6=국가  blob7=feats  blob8=axis  blob9=src(채널)
  *   double1=rr    double2=featN    index1=이벤트    _sample_interval=표본가중치(합이 추정 실건수)
+ *
+ * 채널 어트리뷰션:
+ *   node tools/modelter-ae.js --attribution   # src·유입호스트별 session→activate→computed→output 퍼널 분해
  */
 'use strict';
 
@@ -35,6 +38,7 @@ function arg(name, def) {
 }
 const FLAG_SQL = process.argv.includes('--sql');
 const FLAG_SNAPSHOT = process.argv.includes('--snapshot');   // 집계를 data/ae-snapshots/<날짜>.json 으로 누적 저장
+const FLAG_ATTR = process.argv.includes('--attribution');    // src·유입호스트별 퍼널 분해 추가 출력
 const ACCOUNT = arg('account', process.env.CF_ACCOUNT_ID || '');
 const TOKEN = arg('token', process.env.CF_API_TOKEN || '');
 const DAYS = parseInt(arg('days', '7'), 10) || 7;
@@ -48,7 +52,11 @@ const Q = {
   device: `SELECT blob4 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob4 != '' GROUP BY k ORDER BY n DESC`,
   ref: `SELECT blob5 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob5 != '' GROUP BY k ORDER BY n DESC LIMIT 8`,
   feats: `SELECT blob7 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob7 != '' GROUP BY k`,
+  src: `SELECT blob9 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob9 != '' GROUP BY k ORDER BY n DESC LIMIT 12`,
 };
+// 채널별 퍼널 — (채널, 이벤트) 2차원 집계. blob9=src / blob5=유입호스트 기준으로 각각 분해.
+const Q_ATTR_SRC = `SELECT blob9 AS g, blob1 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} GROUP BY g, k`;
+const Q_ATTR_REF = `SELECT blob5 AS g, blob1 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} GROUP BY g, k`;
 // 일자별 핵심 이벤트 시계열 — 한 번의 스냅샷 안에서도 추세를 보이게 (best-effort: AE 날짜함수 실패 시 생략)
 const Q_DAILY = `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, blob1 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} GROUP BY d, k ORDER BY d`;
 
@@ -114,6 +122,7 @@ function render(data) {
   L.push('  [깊이] ' + (Object.entries(data.depth).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + Math.round(v)).join(' · ') || '—'));
   L.push('  [기기] ' + (Object.entries(data.device).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + Math.round(v) + ' (' + pct(v, S) + ')').join(' · ') || '—'));
   L.push('  [유입] ' + (Object.entries(data.ref).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => k + ' ' + Math.round(v)).join(' · ') || '직접/미상'));
+  if (data.src) L.push('  [채널] ' + (Object.entries(data.src).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => k + ' ' + Math.round(v)).join(' · ') || '태그 없음'));
 
   L.push('');
   L.push('■ 전체 이벤트');
@@ -122,22 +131,57 @@ function render(data) {
   return L.join('\n');
 }
 
+// ── 채널 어트리뷰션 — (채널, 이벤트) 2차원 집계를 채널별 퍼널로 접기 ──
+function attrByGroup(rows) {
+  const g = {};
+  for (const r of rows) {
+    const key = (r.g == null || r.g === '') ? '(직접/미상)' : String(r.g);
+    const ev = String(r.k || ''); const n = Number(r.n || 0);
+    (g[key] = g[key] || {})[ev] = (g[key][ev] || 0) + n;
+  }
+  const out = {};
+  for (const key in g) out[key] = funnelOf(g[key]);
+  return out;
+}
+function renderAttr(title, byGroup) {
+  const L = ['', '■ ' + title];
+  const groups = Object.entries(byGroup).sort((a, b) => (b[1].session || 0) - (a[1].session || 0));
+  if (!groups.length) { L.push('   (없음)'); return L.join('\n'); }
+  L.push('   ' + '채널'.padEnd(14) + '  방문   입력   결과   산출    전환(방문→산출)');
+  for (const [k, f] of groups) {
+    L.push('   ' + String(k).slice(0, 14).padEnd(14) +
+      String(Math.round(f.session)).padStart(5) + String(Math.round(f.activate)).padStart(7) +
+      String(Math.round(f.computed)).padStart(7) + String(Math.round(f.output)).padStart(7) +
+      '     ' + pct(f.output, f.session));
+  }
+  return L.join('\n');
+}
+
 // ── 스냅샷 누적 저장 — AE는 ~90일만 보관하므로 집계를 git에 커밋해 영구 이력화 ──
 function funnelOf(ev) {
   const outputs = OUTPUT_EVENTS.reduce((s, e) => s + (ev[e] || 0), 0);
   return { session: ev.session || 0, activate: ev.activate || 0, computed: ev.computed || 0, output: outputs };
 }
-async function writeSnapshot(data, daily) {
+// ISO 주차(YYYY-Www) — 주간 스냅샷 식별용
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const yStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  const wk = Math.ceil((((t - yStart) / 86400000) + 1) / 7);
+  return t.getUTCFullYear() + '-W' + String(wk).padStart(2, '0');
+}
+async function writeSnapshot(data, daily, attribution) {
   const path = require('path'), fs = require('fs');
   const dir = path.join(__dirname, '..', 'data', 'ae-snapshots');
   fs.mkdirSync(dir, { recursive: true });
   const end = new Date();
   const endDate = end.toISOString().slice(0, 10);
   const snap = {
-    endDate, days: DAYS, generatedAt: end.toISOString(),
+    endDate, week: isoWeek(end), days: DAYS, generatedAt: end.toISOString(),
     funnel: funnelOf(data.events),
     events: data.events, deals: data.deals, device: data.device,
-    ref: data.ref, feats: data.feats, depth: data.depth,
+    ref: data.ref, feats: data.feats, depth: data.depth, src: data.src || {},
+    attribution: attribution || null,
     daily: daily || null,
   };
   const file = path.join(dir, endDate + '.json');
@@ -149,6 +193,8 @@ async function main() {
   if (FLAG_SQL) {
     console.log('# Analytics Engine SQL (대시보드 Query Builder 또는 curl에 붙여 사용)\n');
     for (const [name, sql] of Object.entries(Q)) console.log('-- ' + name + '\n' + sql + '\n');
+    console.log('-- attribution_src\n' + Q_ATTR_SRC + '\n');
+    console.log('-- attribution_ref\n' + Q_ATTR_REF + '\n');
     console.log('# curl 예:\n#   curl "https://api.cloudflare.com/client/v4/accounts/<계정ID>/analytics_engine/sql" \\\n#     -H "Authorization: Bearer <토큰>" --data "' + Q.events + '"');
     return;
   }
@@ -164,6 +210,20 @@ async function main() {
     const data = {};
     for (const [name, sql] of Object.entries(Q)) data[name] = toMap(await runSQL(sql));
     console.log(render(data));
+    // 채널 어트리뷰션 — src·유입호스트별 퍼널 분해
+    let attribution = null;
+    if (FLAG_ATTR || FLAG_SNAPSHOT) {
+      try {
+        const bySrc = attrByGroup(await runSQL(Q_ATTR_SRC));
+        const byRef = attrByGroup(await runSQL(Q_ATTR_REF));
+        attribution = { bySrc, byRef };
+        if (FLAG_ATTR) {
+          console.log(renderAttr('채널(src)별 퍼널 — 어떤 링크가 산출물까지 가나', bySrc));
+          console.log(renderAttr('유입 호스트별 퍼널 — 어디서 와서 산출물까지 가나', byRef));
+          console.log('');
+        }
+      } catch (e) { console.error('어트리뷰션 조회 건너뜀: ' + e.message); }
+    }
     if (FLAG_SNAPSHOT) {
       let daily = null;
       try {                                            // 일자별 시계열은 best-effort
@@ -175,7 +235,7 @@ async function main() {
         }
         daily = Object.keys(byDay).sort().map(d => Object.assign({ day: d }, byDay[d]));
       } catch (_) { /* 날짜함수 미지원 시 시계열 없이 저장 */ }
-      const rel = await writeSnapshot(data, daily);
+      const rel = await writeSnapshot(data, daily, attribution);
       console.log('\n📸 스냅샷 저장: ' + rel + '  (git에 커밋하면 영구 누적)');
       console.log('   대시보드 생성:  node tools/modelter-report.js');
     }
@@ -189,4 +249,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { Q, render, toMap };
+module.exports = { Q, render, toMap, attrByGroup, renderAttr, funnelOf, isoWeek };

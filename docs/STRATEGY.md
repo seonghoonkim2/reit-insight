@@ -119,7 +119,28 @@ grep -c "__mtCalc" dart-search/web/modelter/index.html   # 0이어야 함
 세부 우선순위는 계기판 실사용 데이터(`node tools/modelter-ae.js --days 7`)로 조정한다 — 신규 이벤트: im_quick, memo_copy, png_card, pipeline_copy, inquiry_copy, ws_diff, ws_status,
 mydef_*, adj_open, xlsx_restore, src_tag, house_set, qr_open, coach_ok.
 
-## 5. 불변 원칙 (CLAUDE.md와 동일 — 완화 금지)
+## 5. 획득·채널 월간 리뷰 루틴 (E5 — 시간 배분의 데이터화)
+
+1인 운영이므로 "어디에 시간을 쓸지"를 감이 아니라 데이터로 정한다. 월 1회, 아래 한 줄을 돌린다:
+
+```bash
+CF_ACCOUNT_ID=xxxx CF_API_TOKEN=yyyy node tools/modelter-ae.js --days 30 --attribution --snapshot
+git add data/ae-snapshots && git commit -m "계기판 월간 스냅샷"   # AE 90일 보존 극복 → 영구 추세
+node tools/modelter-report.js   # data/dashboard.html 갱신(로컬 확인용, 커밋 안 함)
+```
+
+**무엇을 보고 무엇을 정하나 (채널 → 산출물 전환 기준)**
+
+| 신호 | 본다 | 결정 |
+|---|---|---|
+| `--attribution` 채널(src)별 퍼널 | 어느 링크(`src=xlsx`·`notes`·`hero` 등)가 방문→산출물까지 가나 | 전환 높은 채널에 시간 집중, 낮은 채널(E2·E3·E8 산출물)은 문구·CTA 교체 또는 중단 |
+| 유입 호스트별 퍼널 | 검색·직접·특정 사이트 중 실사용 채널 | E3(검색 착지) 지속·확대 여부 |
+| `deal_want` 딜 유형 분포 | 준비 중 타일에서 어떤 유형 수요가 실재하나 | 특정 유형 수요 누적 시에만 그 딜 커버리지 착수(데이터 전 선착수 금지) |
+| 모바일 비중·이탈 | 기기별 세션·전환 | 모바일 이탈 확인 시에만 성능 투자(아키텍처 정책 재검토 트리거) |
+
+**src 태그 규약:** 산출물 회수 링크·검색 착지·노트 CTA가 `#…&src=<채널>` 를 붙인다(영문·숫자 8자, 화이트리스트). `xlsx`·`ppt`·`png`·`qr`·`notes`·`hero`·`team` 등. **채널명뿐 — 수치·PII 절대 금지**(worker.js 정화 + trust.html 표기 + CI 게이트로 3중 강제).
+
+## 6. 불변 원칙 (CLAUDE.md와 동일 — 완화 금지)
 
 딜 데이터 서버 전송 금지 · 임차인명 마스킹 · `__mtCalc` 훅 배포 금지 · What's new 라벨 v3 고정 ·
-"투자 권유 아님" 문구 유지 · 숫자 예시는 샘플.
+"투자 권유 아님" 문구 유지 · 숫자 예시는 샘플 · **채널 어트리뷰션 src·deal_want 는 채널명/딜유형명만**.

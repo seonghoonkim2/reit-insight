@@ -21,7 +21,8 @@ export default {
           const feats = s(d.feats, 48);                       // "rr,bido,scen" 형태의 활성기능 플래그
           const axis = s(d.axis, 12);                          // sens_axis 이벤트의 축(growth|rate)
           const featN = feats ? feats.split(",").filter(Boolean).length : 0;
-          const rec = { ev, deal: s(d.deal, 16), depth: s(d.depth, 12), rr: d.rr ? 1 : 0, feats, featN, axis, dev, ref: refHost, cc };
+          const src = s(d.src, 8).replace(/[^A-Za-z0-9_]/g, ""); // 채널 어트리뷰션 태그(화이트리스트 문자만) — 채널명뿐, 수치·PII 없음
+          const rec = { ev, deal: s(d.deal, 16), depth: s(d.depth, 12), rr: d.rr ? 1 : 0, feats, featN, axis, dev, ref: refHost, cc, src };
           // Workers Logs 로 남김 (대시보드 Observability → Query Builder 에서 필드로 필터·그룹 조회)
           //  · 순수 JSON 객체로 로깅해야 Cloudflare가 ev·deal·dev 등을 개별 필드로 파싱함
           //    ("mtevent {json}" 처럼 접두어가 붙으면 파싱이 안 돼 필드 필터가 막힘)
@@ -31,7 +32,7 @@ export default {
           if (env.AE) {
             env.AE.writeDataPoint({
               indexes: [ev],
-              blobs: [ev, rec.deal, rec.depth, dev, refHost, s(cc, 4), feats, axis],
+              blobs: [ev, rec.deal, rec.depth, dev, refHost, s(cc, 4), feats, axis, src],  // blob9=src(채널)
               doubles: [rec.rr, featN],
             });
           }

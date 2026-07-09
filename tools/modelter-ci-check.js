@@ -90,6 +90,18 @@ if (fs.existsSync(path.join(DIR, 'trust.html'))) {
   // 앱 본체에서 신뢰 센터로 가는 링크(푸터·온보딩·BYOK)
   ok((html.match(/href="\/trust\.html"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·온보딩·BYOK) 존재');
 }
+
+/* ── 1c) 채널 어트리뷰션(E5) — src 태그·수요 가짜 문 ── */
+ok(html.includes("sessionStorage.setItem('mt_src'") && html.includes("/[?#&]src="), '채널 어트리뷰션: 착지 src= 태그 파싱·세션 유지');
+ok(html.includes("if(_s) b.src=_s;"), '채널 어트리뷰션: 이벤트에 src 채널 부착(퍼널 분해용)');
+ok(html.includes("track('landing')"), '채널 어트리뷰션: landing 이벤트(src 유입 1건)');
+ok(html.includes('const DEAL_SOON=') && html.includes('deal-soon'), '수요 가짜 문: 준비 중 딜 타일(DEAL_SOON) 존재');
+ok(html.includes("track('deal_want'"), '수요 가짜 문: deal_want 수집(딜 유형명만)');
+{
+  // 무전송 불변 재확인 — src·deal_want 는 채널명/딜유형명만, 수치·PII 금지
+  const workerSrc = fs.existsSync(path.join(__dirname, '..', 'worker.js')) ? fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8') : '';
+  ok(/const\s+src\s*=\s*s\(d\.src,\s*8\)\.replace\(\/\[\^A-Za-z0-9_\]/.test(workerSrc), 'worker.js: src 화이트리스트(영문·숫자·_ 8자) 정화');
+}
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
 if (fs.existsSync(headersPath)) {
