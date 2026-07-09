@@ -3499,13 +3499,14 @@ function sens2Data(mode){
   return { ecSteps:ecSteps, gSteps:gSteps, rows:rows, baseI:2, baseJ:2, gLabel:isRate?'선순위 금리':(base.gLabel||'NOI 성장률'), min:min, max:max };
 }
 /* 개발·공동주택 분양 민감도: 분양률(행) × 분양가 조정(열) → 사업이익률. 실제 월별 엔진 재계산 */
-function devSens2(){
+function devSens2(mode){
   if(!(cur==='dev'&&devResi())) return null;
   // 셀·베이스 모두 순수 코어(devResiCompute)만 사용 — 솔버까지 도는 simDevResi를 셀마다 부르면 입력이 수 초씩 멈춤
   var R0=null; try{ R0=devResiCompute(devResiInputs()); }catch(e){}
   if(!(R0&&isFinite(R0.margin))) return null;
-  var soldRows=[100,90,80,70], adjCols=[-5,-2.5,0,2.5,5];
-  var bkSold=state.aptsold, bkApt=state.aptrows, bkRet=state.retrows;
+  var isCost=(mode==='cost');
+  var soldRows=[100,90,80,70], adjCols=isCost?[-10,-5,0,5,10]:[-5,-2.5,0,2.5,5];
+  var bkSold=state.aptsold, bkApt=state.aptrows, bkRet=state.retrows, bkCons=state.conscost;
   function scaled(json, adj){
     var rows=[]; try{ rows=JSON.parse(json||'[]'); }catch(e){ rows=[]; }
     return JSON.stringify(rows.map(function(r){
@@ -3519,7 +3520,8 @@ function devSens2(){
     for(var i=0;i<soldRows.length;i++){ var row=[];
       for(var j=0;j<adjCols.length;j++){
         state.aptsold=String(soldRows[i]);
-        state.aptrows=scaled(bkApt, adjCols[j]); state.retrows=scaled(bkRet, adjCols[j]);
+        if(isCost){ var cv0=parseNum(String(bkCons||'')); if(isFinite(cv0)) state.conscost=String(Math.round(cv0*(1+adjCols[j]/100))); }
+        else { state.aptrows=scaled(bkApt, adjCols[j]); state.retrows=scaled(bkRet, adjCols[j]); }
         var r2=null; try{ r2=devResiCompute(devResiInputs()); }catch(e){}
         var v=(r2&&isFinite(r2.margin))?(r2.margin/100):null;
         row.push(v);
@@ -3527,12 +3529,14 @@ function devSens2(){
       }
       rows.push(row);
     }
-  } finally{ state.aptsold=bkSold; if(bkApt===undefined) delete state.aptrows; else state.aptrows=bkApt; if(bkRet===undefined) delete state.retrows; else state.retrows=bkRet; }
+  } finally{ state.aptsold=bkSold; if(bkApt===undefined) delete state.aptrows; else state.aptrows=bkApt; if(bkRet===undefined) delete state.retrows; else state.retrows=bkRet; if(bkCons===undefined) delete state.conscost; else state.conscost=bkCons; }
   if(!any) return null;
   var curSold=parseNum(String(bkSold||'')); if(!isFinite(curSold)) curSold=100;
   var bi=soldRows.indexOf(Math.round(curSold));
-  return {ecSteps:soldRows, gSteps:adjCols, rows:rows, baseI:bi, baseJ:2, gLabel:'분양가 조정', corner:'분양률＼분양가', min:min, max:max};
+  return {ecSteps:soldRows, gSteps:adjCols, rows:rows, baseI:bi, baseJ:2, gLabel:isCost?'공사비 조정':'분양가 조정', corner:isCost?'분양률＼\uACF5사비':'분양률＼\uBD84양가', min:min, max:max};
 }
+var devSensAxis='price';
+window.__setDevSensAxis=function(m){ devSensAxis=m; try{ renderSens(); }catch(e){} if(window.mtTrack) try{ mtTrack('sens_axis',{axis:'dev_'+m}); }catch(e){} };
 var sensAxis='growth';
 window.__setSensAxis=function(m){ sensAxis=m; try{ renderSens(); }catch(e){} if(window.mtTrack) try{ mtTrack('sens_axis',{axis:m}); }catch(e){} };
 function _sensMix(a,b,u){ return [Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]+(b[1]-a[1])*u),Math.round(a[2]+(b[2]-a[2])*u)]; }
@@ -3762,13 +3766,19 @@ function renderSens(){
     }
   }
   if(cur==='dev'&&typeof devResi==='function'&&devResi()){
-    var dm=null; try{ dm=devSens2(); }catch(e){}
+    var dm=null; try{ dm=devSens2(devSensAxis); }catch(e){}
     if(dm){
       card.hidden=false;
+      var isCost=(devSensAxis==='cost');
       $('sensTitle').textContent='민감도 — 사업이익률';
-      if(sub) sub.textContent='분양률 × 분양가';
-      $('sensBody').innerHTML=renderHeat(dm);
-      $('sensNote').textContent='각 칸 = 해당 아파트 분양률 × 분양가 조정(상업시설 분양가 동시 조정)에서의 사업이익률(매출 대비). 월별 엔진으로 다시 계산한 값이며, 진한 테두리 칸이 현재 가정입니다. 파랑=높음·주황=낮음.';
+      if(sub) sub.textContent='분양률 × '+(isCost?'공사비':'분양가');
+      var dtg='<div class="hx-toggle"><span>2번째 축</span>'
+        +'<button type="button" class="hx-tg'+(!isCost?' on':'')+'" onclick="__setDevSensAxis(\'price\')">분양가</button>'
+        +'<button type="button" class="hx-tg'+(isCost?' on':'')+'" onclick="__setDevSensAxis(\'cost\')">공사비</button></div>';
+      $('sensBody').innerHTML=dtg+renderHeat(dm);
+      $('sensNote').textContent=isCost
+        ?'각 칸 = 해당 아파트 분양률 × 도급 공사비 조정(설계·감리·예비비도 공사비 비율로 연동)에서의 사업이익률(매출 대비). 월별 엔진 재계산, 진한 테두리 칸이 현재 가정. 파랑=높음·주황=낮음.'
+        :'각 칸 = 해당 아파트 분양률 × 분양가 조정(상업시설 분양가 동시 조정)에서의 사업이익률(매출 대비). 월별 엔진으로 다시 계산한 값이며, 진한 테두리 칸이 현재 가정입니다. 파랑=높음·주황=낮음.';
       return;
     }
   }
@@ -4216,6 +4226,35 @@ function simDevBulk(){
 function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='dev') return simDev(); if(cur==='refi') return simRefi(); return null; }
 
 /* 결과 자동 판정 — 계산된 KPI를 읽어 한 줄 코멘트로(계산 안 바꿈, raw 해석만). 통상 실무 눈높이 기준 */
+/* 하우스 기준(내 허들) — 판정·커버넌트·차환·대주 뷰가 통상값 대신 내 기준 사용 */
+function houseLoad(){ try{ return JSON.parse(localStorage.getItem('mt_house')||'{}')||{}; }catch(e){ return {}; } }
+function houseGet(k,d){ var h=houseLoad(); var v=parseFloat(h[k]); return isFinite(v)&&v>0?v:d; }
+function housePop(){
+  var h=houseLoad();
+  var ov2=document.createElement('div'); ov2.className='imx-ov';
+  ov2.innerHTML='<div class="imx"><h3>🎯 내 판정 기준 (하우스 허들)</h3>'
+    +'<div class="imx-sub">자동 판정·커버넌트·차환 갭·대주 뷰가 통상값 대신 <b>우리 회사 기준</b>으로 판정합니다. 비워두면 통상값(IRR 8% · DSCR 1.2x · LTV 60%)을 씁니다.</div>'
+    +'<table class="imx-tbl">'
+    +'<tr><td><b>목표 레버드 IRR</b> <span style="color:var(--muted);font-size:11px">%</span></td><td><input data-house="irr" inputmode="decimal" placeholder="8" value="'+esc(h.irr||'')+'"></td></tr>'
+    +'<tr><td><b>최소 DSCR</b> <span style="color:var(--muted);font-size:11px">x</span></td><td><input data-house="dscr" inputmode="decimal" placeholder="1.2" value="'+esc(h.dscr||'')+'"></td></tr>'
+    +'<tr><td><b>최대 내재 LTV</b> <span style="color:var(--muted);font-size:11px">%</span></td><td><input data-house="ltv" inputmode="decimal" placeholder="60" value="'+esc(h.ltv||'')+'"></td></tr>'
+    +'</table>'
+    +'<div class="imx-act"><button type="button" data-hs="clear">기준 지우기 (통상값)</button><button type="button" class="pri" data-hs="save">저장</button></div>'
+    +'<div class="imx-priv">이 브라우저에만 저장됩니다 — 서버 전송 없음. 딜별로 다른 기준이 필요하면 커버넌트 표의 기준 입력을 쓰세요(딜별 값이 우선).</div></div>';
+  document.body.appendChild(ov2); document.body.style.overflow='hidden';
+  function closeH(){ ov2.remove(); document.body.style.overflow=''; try{ update(); }catch(e){} }
+  ov2.addEventListener('click',function(e){
+    if(e.target===ov2){ closeH(); return; }
+    var b=e.target.closest?e.target.closest('[data-hs]'):null; if(!b) return;
+    if(b.dataset.hs==='clear'){ try{ localStorage.removeItem('mt_house'); }catch(e2){} toast('내 기준을 지웠습니다 — 통상값으로 판정'); closeH(); return; }
+    var o={}; ov2.querySelectorAll('[data-house]').forEach(function(i2){ if(String(i2.value).trim()!=='') o[i2.dataset.house]=String(i2.value).trim(); });
+    try{ localStorage.setItem('mt_house', JSON.stringify(o)); }catch(e3){}
+    toast('내 판정 기준 저장됨 — 판정·커버넌트·대주 뷰에 반영');
+    if(window.mtTrack) try{ mtTrack('house_set'); }catch(e4){}
+    closeH();
+  });
+}
+window.housePop=housePop;
 function dealVerdict(r){
   if(!r||!r.raw) return null;
   var raw=r.raw;
@@ -4226,12 +4265,14 @@ function dealVerdict(r){
     if(raw.IRR==null||!isFinite(raw.IRR)) return null;
     var parts=[], tone='good';
     var irr=raw.IRR;
-    if(irr>=0.08){ parts.push('레버드 IRR '+fp(irr)+' — 통상 매입 기준(8%+) <b>충족</b>'); }
-    else if(irr<0.05){ parts.push('레버드 IRR '+fp(irr)+' — 통상 기준(8%) 대비 <b>낮음</b>'); tone='warn'; }
-    else { parts.push('레버드 IRR '+fp(irr)+' — 통상 기준 8%에 다소 <b>못 미침</b>'); if(tone==='good') tone='mid'; }
+    var hIrr=houseGet('irr',8)/100, hDscr=houseGet('dscr',1.2);
+    var hLb=(houseGet('irr',0)>0||houseGet('dscr',0)>0||houseGet('ltv',0)>0)?'내 기준':'통상 기준';
+    if(irr>=hIrr){ parts.push('레버드 IRR '+fp(irr)+' — '+hLb+'('+mfmt(hIrr*100,1)+'%+) <b>충족</b>'); }
+    else if(irr<hIrr-0.03){ parts.push('레버드 IRR '+fp(irr)+' — '+hLb+'('+mfmt(hIrr*100,1)+'%) 대비 <b>낮음</b>'); tone='warn'; }
+    else { parts.push('레버드 IRR '+fp(irr)+' — '+hLb+' '+mfmt(hIrr*100,1)+'%에 다소 <b>못 미침</b>'); if(tone==='good') tone='mid'; }
     if(raw.minDSCR!=null&&isFinite(raw.minDSCR)){
-      if(raw.minDSCR>=1.2) parts.push('최소 DSCR '+fx(raw.minDSCR)+'로 상환 여력 충분');
-      else { parts.push('최소 DSCR '+fx(raw.minDSCR)+' — 대주 기준(1.2x) <b>주의</b>'); tone='warn'; }
+      if(raw.minDSCR>=hDscr) parts.push('최소 DSCR '+fx(raw.minDSCR)+'로 상환 여력 충분');
+      else { parts.push('최소 DSCR '+fx(raw.minDSCR)+' — 기준('+mfmt(hDscr,2)+'x) <b>주의</b>'); tone='warn'; }
     }
     var price=parseNum(state.price), noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null, ec=raw.exitCap;
     if(isFinite(price)&&price>0&&noi0!=null&&isFinite(ec)){
@@ -5564,6 +5605,13 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       if(!r||!r.DSCR||!r.DSCR.length||!r.INT||!r.endBal) return '';
       var H=r.DSCR.length;
       var minD=parseNum(state['covdscr']), maxL=parseNum(state['covltv']); if(isFinite(maxL)) maxL=maxL/100;
+      // 딜별 입력이 없으면 하우스 기준(내 허들)을 기본으로
+      try{
+        if(typeof houseGet==='function'){
+          if(!isFinite(minD)&&houseGet('dscr',0)>0) minD=houseGet('dscr',0);
+          if(!isFinite(maxL)&&houseGet('ltv',0)>0) maxL=houseGet('ltv',0)/100;
+        }
+      }catch(eH){}
       var judge=isFinite(minD)||isFinite(maxL);
       var rows='', lastDY=null, lastLTV=null, lastIV=null;
       for(var y=0;y<H;y++){
@@ -5620,7 +5668,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       }catch(eLd){}
       var opn=judge?' open':'';
       return '<details class="sim-cf cov-d"'+opn+'><summary>부채 커버넌트 · 리파이 참고 ▾</summary>'
-        +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><span>기준을 안 넣으면 판정 없이 숫자만 보여줍니다 (엑셀 05_Debt_Schedule에도 같은 행이 있음)</span></div>'
+        +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><button type="button" class="sl-btn" onclick="if(window.housePop)housePop()" title="브라우저 공통 허들 — 판정·차환·대주 뷰에 반영">🎯 내 기준</button><span>기준을 안 넣으면 내 기준(설정 시) 또는 판정 없이 숫자만 보여줍니다</span></div>'
         +'<div class="cov-wrap"><table class="sens-tbl cov-tbl"><tr><th>연차</th><th>NOI</th><th>원리금</th><th>DSCR</th><th>ICR</th><th>Debt Yield</th><th>내재 LTV</th><th>판정</th></tr>'+rows+'</table></div>'+refi+lender+'</details>';
     }catch(e){ return ''; }
   }
