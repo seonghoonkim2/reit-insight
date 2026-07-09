@@ -560,6 +560,8 @@ header{background:rgba(253,252,249,.82)}
 .ws-diff-t th,.ws-diff-t td{border:1px solid var(--line-soft); padding:4px 7px; text-align:left}
 .ws-diff-t th{color:var(--ink-3); font-weight:600; background:var(--bg)}
 .ws-diff-t td.wd-new{font-weight:700; color:var(--accent-deep)}
+.ws-lcmp{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:8px}
+.ws-lcmp input{flex:1 1 220px; min-width:0; border:1px solid var(--line); border-radius:9px; padding:7px 10px; font-size:12px; background:var(--panel); color:var(--ink)}
 .sc-h{font-size:12.5px; font-weight:700; color:var(--ink-2); margin:12px 0 6px}
 .sc-h span{font-weight:500; color:var(--muted); font-size:11px; margin-left:6px}
 .sc-tbl td:first-child{font-weight:700}
@@ -3088,6 +3090,27 @@ function wsDiffSnaps(pa,pb){
   if((pa.c||'')!==(pb.c||'')) rows.unshift({sec:'딜 유형', label:'딜 유형', a:(DEALS[pa.c]||{}).label||pa.c||'—', b:(DEALS[pb.c]||{}).label||pb.c||'—'});
   return rows;
 }
+function wsParseLink(str){
+  try{
+    var m=String(str||'').match(/[#&][ev]=([^&\s]+)/); if(!m) return null;
+    var p=JSON.parse(mtLZ.decompress(m[1])); return (p&&p.s)?p:null;
+  }catch(e){ return null; }
+}
+function wsLinkDiff(){
+  var a=document.getElementById('wsLnkA'), b=document.getElementById('wsLnkB'), box=document.getElementById('wsLnkDiff');
+  if(!box) return;
+  var pa=wsParseLink(a&&a.value), pb=wsParseLink(b&&b.value);
+  if(!pa||!pb){ box.innerHTML='<div class="ws-diff"><p class="md-sub">링크를 해석하지 못했습니다 — 모델터 공유 링크(#v=… 또는 #e=…) 2개를 순서대로 붙여넣으세요.</p></div>'; return; }
+  var rows=wsDiffSnaps(pa,pb);
+  var sa=null, sb=null; try{ sa=wsSummary(pa); sb=wsSummary(pb); }catch(e){}
+  var head='<div class="ws-diff-h">이전 링크 → 이후 링크 · 가정 변경 '+rows.length+'건</div>'
+    +((sa&&sb)?('<div class="ws-diff-s">결과 '+esc(_wsFmtSum(sa))+' → '+esc(_wsFmtSum(sb))+'</div>'):'');
+  if(!rows.length){ box.innerHTML='<div class="ws-diff">'+head+'<p class="md-sub">입력 가정 변경 없음 — 두 링크는 동일한 입력입니다.</p></div>'; return; }
+  var tb='<table class="ws-diff-t"><tr><th>항목</th><th>이전</th><th>이후</th></tr>'
+    +rows.map(function(d){ return '<tr><td>'+esc((d.sec!=='가정'?(d.sec+' · '):'')+d.label)+'</td><td>'+esc(d.a)+'</td><td class="wd-new">'+esc(d.b)+'</td></tr>'; }).join('')+'</table>';
+  box.innerHTML='<div class="ws-diff">'+head+tb+'</div>';
+  if(window.mtTrack) try{ mtTrack('ws_diff',{lnk:1}); }catch(e2){}
+}
 function wsDiffBlock(deal, v){
   var idx=deal.versions.indexOf(v);
   if(idx<1) return '<div class="ws-diff"><p class="md-sub">첫 버전이라 비교할 이전 버전이 없습니다.</p></div>';
@@ -3143,6 +3166,10 @@ function renderWsPanel(){
       return '<div class="ws-out"><span class="ws-out-t">'+(o.type==='xlsx'?'📊 Excel':'📄 티저')+'</span><span class="ws-out-v">'+(v?v.label:(o.mode==='unsaved'?'미저장 상태':'—'))+'</span><span class="ws-out-f">'+esc(o.fileName)+'</span><span class="ws-date">'+_wsFmtDT(o.at)+'</span></div>';
     }).join('')+'</div>'):'<p class="md-sub">아직 산출물 이력이 없습니다 — 엑셀·티저를 내려받으면 어떤 버전 기준인지 기록됩니다.</p>';
   }
+  // 공유 링크 2개 비교 — 협상 라운드 간 변경점
+  html+='<div class="ws-sec-h">공유 링크 2개 비교 <span>협상 라운드 간 무엇이 바뀌었는지 — 링크는 서버로 가지 않습니다</span></div>'
+    +'<div class="ws-lcmp"><input id="wsLnkA" placeholder="이전 링크 붙여넣기 (#v=… / #e=…)"><input id="wsLnkB" placeholder="이후 링크 붙여넣기"><button class="sl-btn" data-ws="lcmp" type="button">비교</button></div>'
+    +'<div id="wsLnkDiff"></div>';
   // 백업
   html+='<div class="ws-sec-h">백업 · 가져오기</div>'+
     '<div class="ws-backup"><label class="sl-btn ws-import">딜 가져오기 (.modelter)<input type="file" id="wsImport" accept=".modelter,application/json" hidden></label>'+
@@ -3165,6 +3192,7 @@ function renderWsPanel(){
     else if(act==='load'){ wsLoadVersion(dealId, verId); close(); }
     else if(act==='dup'){ wsDupDeal(dealId); }
     else if(act==='diff'){ WSDIFF=(WSDIFF&&WSDIFF.verId===verId)?null:{dealId:dealId,verId:verId}; renderWsPanel(); if(WSDIFF&&window.mtTrack) try{ mtTrack('ws_diff'); }catch(eD){} }
+    else if(act==='lcmp'){ wsLinkDiff(); }
     else if(act==='deldeal'){ wsDeleteDeal(dealId); }
     else if(act==='delver'){ wsDeleteVersion(dealId, verId); }
     else if(act==='export'){ wsExportDownload(dealId); }
