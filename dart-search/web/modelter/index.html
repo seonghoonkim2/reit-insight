@@ -4508,6 +4508,68 @@ function oneLineReport(){
   var exTag=(typeof exMixed==='function'&&exMixed())?' · (일부 가정은 예시값)':'';
   return '[모델터] '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+exTag+'\n'+url;
 }
+/* 검토 메모 초안 — 카톡 한 줄과 IC 패키지 사이의 '메일 본문 10줄' */
+function reviewMemo(){
+  var r=null; try{ r=simModel(); }catch(e){}
+  if(!r) return null;
+  var name=((state.asset||'').trim())||DEALS[cur].label;
+  var fp=function(x,d){ return (x!=null&&isFinite(x))?(x*100).toFixed(d==null?1:d)+'%':'—'; };
+  var fx=function(x){ return (x!=null&&isFinite(x))?x.toFixed(2)+'x':'—'; };
+  var L=[];
+  L.push('[검토 메모] '+name+' — '+DEALS[cur].label);
+  L.push('기준일 '+new Date().toISOString().slice(0,10)+' · 모델터로 작성');
+  L.push('');
+  if((cur==='office'||cur==='logistics')&&r.raw){
+    var w=r.raw, gfa=parseNum(state.gfa);
+    var pp=(isFinite(w.price)&&isFinite(gfa)&&gfa>0)?(' (평당 '+Math.round(w.price/gfa*100).toLocaleString()+'만원)'):'';
+    L.push('1) 딜 개요 — 매입가 '+meok(w.price)+pp+' · 총투자 '+meok(w.uses)+' · 보유 '+w.NOI.length+'년 · Exit Cap '+fp(w.exitCap,1));
+    L.push('2) 자본구조 — 대출 '+meok(w.loan)+(w.prefAmt>0?(' · 우선주 '+meok(w.prefAmt)):'')+' · 자기자본 '+meok(w.common>0?w.common:w.equity));
+    L.push('3) 수익성 — 세전 IRR '+fp(w.IRR)+(w.passthru===false?(' · 세후 IRR '+fp(w.IRRat)):'')+' · EM '+fx(w.EM)+' · 평균 배당률 '+fp(w.coc,2)+' · 언레버드 '+fp(w.unlev));
+    var H=w.DSCR.length, bal=w.endBal[H-1];
+    var dy=(bal>0)?w.NOI[H-1]/bal:null;
+    var fwd=(w.NOI[H]!=null)?w.NOI[H]:w.NOI[H-1], iv=(w.exitCap>0)?fwd/w.exitCap:null;
+    var mLtv=(iv&&bal>0)?bal/iv:null;
+    L.push('4) 부채 안정성 — 최소 DSCR '+fx(w.minDSCR)+(dy!=null?(' · 만기 Debt Yield '+fp(dy,1)):'')+(mLtv!=null?(' · 만기 내재 LTV '+fp(mLtv,0)):''));
+    if(iv&&bal>0){
+      var mL=parseNum(state['covltv']), lim=isFinite(mL)?mL/100:0.60;
+      var cap=iv*lim, gap=cap-bal;
+      L.push('5) 만기 차환 — 잔액 '+meok(bal)+' vs 차환 가능액 '+meok(cap)+' ('+(isFinite(mL)?('기준 LTV '+Math.round(lim*100)+'%'):'통상 60% 가정')+') → '+(gap>=0?('여유 '+meok(gap)):('부족 '+meok(-gap)+' — 만기 전 대응 필요')));
+    }
+    try{
+      if(window.__mtSensBase&&window.__mtSens2){
+        var b=window.__mtSensBase();
+        if(b){ var dsr=window.__mtSens2(b.ec+1.0, b.g-1.0, 'growth');
+          if(dsr!=null) L.push('6) 다운사이드 — 보수 코너(Exit '+(b.ec+1).toFixed(1)+'%·'+(b.gLabel||'성장')+' '+(b.g-1).toFixed(1)+'%) 기준 IRR '+fp(dsr)); }
+      }
+    }catch(e2){}
+  } else if(r.type==='refi'){
+    var ri=1;
+    if(r.best){
+      L.push((ri++)+') 추천 — '+r.best+'안');
+      try{ var bx=(r.rows||[]).filter(function(x){return x.n===r.best;})[0];
+        if(bx){
+          if(bx.minDSCR!=null&&isFinite(bx.minDSCR)) L.push((ri++)+') 전 기간 최소 DSCR — '+mfmt(bx.minDSCR,2)+'x');
+          if(bx.net!=null&&isFinite(bx.net)) L.push((ri++)+') 순 조달(수수료 반영) — '+(bx.net>=0?'+':'−')+meok(Math.abs(bx.net)));
+        } }catch(e4){}
+    }
+    (r.kpis||[]).slice(0,4).forEach(function(k){ L.push((ri++)+') '+String(k.l).replace(/\s*\([^)]*\)\s*$/,'')+' — '+k.v); });
+  } else {
+    var idx=1;
+    (r.kpis||[]).slice(0,6).forEach(function(k){ L.push((idx++)+') '+String(k.l).replace(/\s*\([^)]*\)\s*$/,'')+' — '+k.v); });
+  }
+  var vd=null; try{ vd=dealVerdict(r); }catch(e3){}
+  if(vd){
+    var segs=String(vd.html).replace(/<[^>]+>/g,'').split(' · ').filter(function(s){ return s.indexOf('보수 코너')<0; });
+    L.push((vd.tone==='warn'?'⚠':'✓')+' 자동 판정 — '+segs.join(' · '));
+  }
+  var url=shareLink(true)||'';
+  if(url){ L.push(''); L.push('결과 링크(읽기 전용): '+url); }
+  L.push('');
+  var exs=(typeof exRemaining==='function')?exRemaining():[];
+  if(exs.length) L.push(exUserEdited?'※ 일부 가정은 예시값입니다 — 확정 전 실제 값으로 교체가 필요합니다.':'※ 가정 전체가 예시값입니다 — 실제 딜 값으로 교체한 뒤 회람하세요.');
+  L.push('※ 입력 가정에 따른 추정치이며, 투자 권유가 아닌 정보 제공 목적입니다.');
+  return L.join('\n');
+}
 function shareInputs(){
   // 공유 방식 선택 팝오버
   var old=document.getElementById('sharePop'); if(old){ old.remove(); return; }
@@ -4517,6 +4579,7 @@ function shareInputs(){
     '<button type="button" class="sp-opt" data-ro="1"><b>📊 결과 링크 (읽기 전용)</b><span>받는 사람은 결과·민감도를 보고, 값은 수정 못 합니다</span></button>'+
     '<button type="button" class="sp-opt" data-ro="0"><b>✏️ 편집용 링크</b><span>받는 사람이 값을 이어서 수정할 수 있습니다</span></button>'+
     '<button type="button" class="sp-opt" data-ol="1"><b>💬 한 줄 보고 복사</b><span>딜명 · 핵심 KPI · 판정 · 결과 링크 — 카톡·메일에 그대로 붙여넣기</span></button>'+
+    '<button type="button" class="sp-opt" data-memo="1"><b>📝 검토 메모 초안 복사</b><span>딜 개요·수익성·부채·차환·다운사이드 10줄 — 메일 본문에 그대로</span></button>'+
     (navigator.share?'<button type="button" class="sp-opt" data-sh="1"><b>📲 공유 시트로 바로 보내기</b><span>카톡·메시지 앱으로 한 줄 보고 + 결과 링크를 한 번에</span></button>':'')+
     '<div class="sp-note">서버에 저장하지 않습니다 — 딜 정보는 링크 안에만 담기고, 임차인 실명은 링크에서 마스킹됩니다.</div>';
   document.body.appendChild(pop);
@@ -4524,6 +4587,16 @@ function shareInputs(){
   pop.style.top=(r.bottom+window.scrollY+6)+'px';
   pop.style.left=Math.max(8,Math.min(r.left+window.scrollX, window.innerWidth-pop.offsetWidth-8))+'px';
   pop.querySelectorAll('.sp-opt').forEach(function(o){ o.addEventListener('click',function(){
+    if(o.dataset.memo==='1'){
+      if(typeof exConfirmOutput==='function'&&!exConfirmOutput('검토 메모')){ pop.remove(); return; }
+      var mm=reviewMemo();
+      if(!mm){ toast('결과가 없어 메모를 만들 수 없습니다 — 핵심 입력을 먼저 채워주세요'); pop.remove(); return; }
+      var mDone=function(){ toast('검토 메모 초안이 복사되었습니다 — 메일 본문에 붙여넣고 다듬어 쓰세요',2800); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(mm).then(mDone).catch(function(){ prompt('아래 내용을 복사하세요:',mm); }); }
+      else prompt('아래 내용을 복사하세요:',mm);
+      if(window.mtTrack) try{ mtTrack('memo_copy'); }catch(e){}
+      pop.remove(); return;
+    }
     if(o.dataset.sh==='1'){
       if(typeof exConfirmOutput==='function'&&!exConfirmOutput('공유')){ pop.remove(); return; }
       var st2=oneLineReport();

@@ -135,6 +135,7 @@ ok(html.includes('차환 갭 테스트: 만기 잔액(벌룬)') && html.includes
 ok(html.includes('function wsDupDeal') && html.includes('data-ws="dup"'), '딜 복제(새 딜 시작) 존재');
 ok(html.includes('function myDefSave') && html.includes("localStorage.getItem('mt_mydef')"), '내 기본값 프리셋(딜 유형별) 존재');
 ok(html.includes('data-sh="1"') && html.includes('navigator.share'), 'Web Share 공유 시트 옵션 존재');
+ok(html.includes('function reviewMemo') && html.includes('data-memo="1"'), '검토 메모 초안(메일 본문) 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
