@@ -553,6 +553,13 @@ header{background:rgba(253,252,249,.82)}
 .ws-sec-h span{font-weight:500; color:var(--muted); font-size:11px}
 .ws-deals,.ws-vers,.ws-outs{display:flex; flex-direction:column; gap:7px}
 .ws-deal,.ws-ver{border:1px solid var(--line-soft); border-radius:11px; padding:9px 12px; background:var(--bg)}
+.ws-diff{border:1px dashed var(--line); border-radius:10px; padding:9px 12px; margin:2px 0 4px; background:var(--panel)}
+.ws-diff-h{font-size:12px; font-weight:700; color:var(--ink-2)}
+.ws-diff-s{font-size:11.5px; color:var(--ink-3); margin:3px 0 7px}
+.ws-diff-t{width:100%; border-collapse:collapse; font-size:11.5px}
+.ws-diff-t th,.ws-diff-t td{border:1px solid var(--line-soft); padding:4px 7px; text-align:left}
+.ws-diff-t th{color:var(--ink-3); font-weight:600; background:var(--bg)}
+.ws-diff-t td.wd-new{font-weight:700; color:var(--accent-deep)}
 .ws-deal.on,.ws-ver.on{border-color:var(--accent); background:rgba(169,121,43,.05)}
 .ws-deal-t,.ws-ver-t{display:flex; align-items:baseline; gap:8px; font-size:13px; color:var(--ink); flex-wrap:wrap}
 .ws-deal-t span,.ws-date{font-size:11px; color:var(--muted); font-weight:500}
@@ -3030,6 +3037,52 @@ function _wsFmtSum(su){
   function fx(x){ return (x!=null&&isFinite(x))?x.toFixed(2)+'x':'—'; }
   return 'IRR '+fp(su.IRR)+' · EM '+fx(su.EM)+' · DSCR '+fx(su.minDSCR)+(su.price!=null?(' · 매입가 '+meok(su.price)):'');
 }
+/* 버전 간 가정 diff — "지난 보고 대비 뭐가 바뀌었나" 자동 표 */
+var WSDIFF=null;
+function wsFieldLabels(dealType){
+  var map={}; ((DEALS[dealType]||{}).groups||[]).forEach(function(g){ (g.f||[]).forEach(function(f){ map[f.k]=f.l+(f.u?(' ('+f.u+')'):''); }); });
+  return map;
+}
+function wsDiffSnaps(pa,pb){
+  var rows=[], lm=wsFieldLabels(pb.c||pa.c||cur);
+  function add(sec,k,va,vb,label){
+    va=(va==null?'':String(va)); vb=(vb==null?'':String(vb));
+    if(va===vb||(va===''&&vb==='')) return;
+    rows.push({sec:sec, label:label||k, a:va===''?'—':va, b:vb===''?'—':vb});
+  }
+  var ks={}; Object.keys(pa.s||{}).concat(Object.keys(pb.s||{})).forEach(function(k){ks[k]=1;});
+  Object.keys(ks).forEach(function(k){ add('가정',k,(pa.s||{})[k],(pb.s||{})[k],lm[k]); });
+  var tn={}; if(typeof TRANCHES!=='undefined') TRANCHES.forEach(function(t){ tn[t.id]=t.name; });
+  var kk={}; Object.keys(pa.k||{}).concat(Object.keys(pb.k||{})).forEach(function(k){kk[k]=1;});
+  Object.keys(kk).forEach(function(k){
+    var m=k.match(/^([a-z]+)_(ltv|rate|extra|on|coc)$/), lb=k;
+    if(m) lb=(tn[m[1]]||m[1])+' '+({ltv:'비중%',rate:'금리%',extra:'상환·조건',on:'사용',coc:'배당%'}[m[2]]||m[2]);
+    add('자본 스택',k,(pa.k||{})[k],(pb.k||{})[k],lb);
+  });
+  var rk={}; Object.keys(pa.r||{}).concat(Object.keys(pb.r||{})).forEach(function(k){rk[k]=1;});
+  Object.keys(rk).forEach(function(k){
+    var m2=k.match(/^a(\d)_(ltv|rate|mat|repay)$/), lb2=k;
+    if(m2) lb2=m2[1]+'안 '+({ltv:'LTV%',rate:'금리%',mat:'만기(년)',repay:'상환방식'}[m2[2]]||m2[2]);
+    add('리파이 대안',k,(pa.r||{})[k],(pb.r||{})[k],lb2);
+  });
+  var ra=(pa.rr&&pa.rr.leases)?pa.rr.leases.length:0, rb=(pb.rr&&pb.rr.leases)?pb.rr.leases.length:0;
+  if(ra!==rb) rows.push({sec:'렌트롤', label:'임차인 수', a:ra?(ra+'개'):'미반영', b:rb?(rb+'개'):'미반영'});
+  else if(ra&&JSON.stringify(pa.rr)!==JSON.stringify(pb.rr)) rows.push({sec:'렌트롤', label:'내용', a:'이전 렌트롤', b:'변경됨'});
+  if((pa.c||'')!==(pb.c||'')) rows.unshift({sec:'딜 유형', label:'딜 유형', a:(DEALS[pa.c]||{}).label||pa.c||'—', b:(DEALS[pb.c]||{}).label||pb.c||'—'});
+  return rows;
+}
+function wsDiffBlock(deal, v){
+  var idx=deal.versions.indexOf(v);
+  if(idx<1) return '<div class="ws-diff"><p class="md-sub">첫 버전이라 비교할 이전 버전이 없습니다.</p></div>';
+  var pv=deal.versions[idx-1];
+  var rows=wsDiffSnaps(pv.snap, v.snap);
+  var head='<div class="ws-diff-h">'+pv.label+' → '+v.label+' · 가정 변경 '+rows.length+'건</div>'
+    +'<div class="ws-diff-s">결과 '+esc(_wsFmtSum(pv.summary))+' → '+esc(_wsFmtSum(v.summary))+'</div>';
+  if(!rows.length) return '<div class="ws-diff">'+head+'<p class="md-sub">입력 가정 변경 없음 — 동일한 입력입니다.</p></div>';
+  var tb='<table class="ws-diff-t"><tr><th>항목</th><th>'+pv.label+'</th><th>'+v.label+'</th></tr>'
+    +rows.map(function(d){ return '<tr><td>'+esc((d.sec!=='가정'?(d.sec+' · '):'')+d.label)+'</td><td>'+esc(d.a)+'</td><td class="wd-new">'+esc(d.b)+'</td></tr>'; }).join('')+'</table>';
+  return '<div class="ws-diff">'+head+tb+'</div>';
+}
 function renderWsPanel(){
   var body=$('wsBody'); if(!body) return;
   var db=wsDB(), ids=Object.keys(db.deals);
@@ -3061,8 +3114,9 @@ function renderWsPanel(){
         '<div class="ws-ver-a">'+(isCur?'':('<button class="sl-btn" data-ws="load" data-deal="'+deal.id+'" data-ver="'+v.id+'">불러오기</button>'))+
         '<button class="sl-btn" data-ws="regenx" data-deal="'+deal.id+'" data-ver="'+v.id+'">엑셀 재생성</button>'+
         '<button class="sl-btn" data-ws="regent" data-deal="'+deal.id+'" data-ver="'+v.id+'">티저 재생성</button>'+
+        (deal.versions.indexOf(v)>0?('<button class="sl-btn" data-ws="diff" data-deal="'+deal.id+'" data-ver="'+v.id+'">'+((WSDIFF&&WSDIFF.verId===v.id)?'비교 닫기':'이전과 비교')+'</button>'):'')+
         (deal.versions.length>1?('<button class="sl-btn" data-ws="delver" data-deal="'+deal.id+'" data-ver="'+v.id+'">삭제</button>'):'')+
-        '</div></div>';
+        '</div></div>'+((WSDIFF&&WSDIFF.verId===v.id)?wsDiffBlock(deal,v):'');
     }).join('')+'</div>';
     // 산출물 이력
     var outs=(deal.outputs||[]).slice().reverse().slice(0,12);
@@ -3093,6 +3147,7 @@ function renderWsPanel(){
     if(act==='open'){ wsLoadVersion(dealId); renderWsPanel(); }
     else if(act==='load'){ wsLoadVersion(dealId, verId); close(); }
     else if(act==='dup'){ wsDupDeal(dealId); }
+    else if(act==='diff'){ WSDIFF=(WSDIFF&&WSDIFF.verId===verId)?null:{dealId:dealId,verId:verId}; renderWsPanel(); if(WSDIFF&&window.mtTrack) try{ mtTrack('ws_diff'); }catch(eD){} }
     else if(act==='deldeal'){ wsDeleteDeal(dealId); }
     else if(act==='delver'){ wsDeleteVersion(dealId, verId); }
     else if(act==='export'){ wsExportDownload(dealId); }
