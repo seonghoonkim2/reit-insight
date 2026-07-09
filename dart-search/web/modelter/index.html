@@ -2251,7 +2251,7 @@ function devGridsRefresh(){
 function bindDevGrids(){
   var host=$('devGrids'); if(!host) return;
   host.querySelectorAll('.dg-in').forEach(function(el){
-    el.addEventListener('input',function(){ devGridWrite(); exTouch('aptrows'); exTouch('retrows'); exTouch('aptsold'); devGridCalc(); update(); });
+    el.addEventListener('input',function(ev){ devGridWrite(); exTouch('aptrows'); exTouch('retrows'); exTouch('aptsold'); if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); devGridCalc(); update(); });   // 분양 면적표 직접 입력 = 활성화 신호
   });
   host.querySelectorAll('[data-dgdel]').forEach(function(b){
     b.addEventListener('click',function(){
@@ -2340,16 +2340,17 @@ function renderForm(){
     if(el.dataset.num) el.addEventListener("blur",()=>{ validateField(el); formatNumField(el); update(); });
   });
   $("formBody").querySelectorAll("[data-sk]").forEach(el=>{
-    el.addEventListener(el.type==="checkbox"?"change":"input",()=>{
+    el.addEventListener(el.type==="checkbox"?"change":"input",(ev)=>{
       const key=el.dataset.sk;
       stackState[key]= el.type==="checkbox"?el.checked:el.value;
       exMarkEdited();
+      if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate();   // 승계 트랜치 직접 입력 = 활성화 신호
       if(el.type==="checkbox"){ const tr=el.closest(".tranche"); tr.classList.toggle("off",!el.checked); }
       update();
     });
   });
-  $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{ refiState[el.dataset.rk]=el.value; exMarkEdited(); update(); }); });
-  $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",()=>{ scenState[el.dataset.scen]=el.value; update(); }); });
+  $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",(ev)=>{ refiState[el.dataset.rk]=el.value; exMarkEdited(); if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 리파이 텀시트 직접 입력 = 활성화 신호
+  $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",(ev)=>{ scenState[el.dataset.scen]=el.value; if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 시나리오 직접 입력 = 활성화 신호
   bindDevGrids();
   var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
   ["c_freq"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",update); });
@@ -10615,6 +10616,7 @@ var qrcode = function() {
       try{ if(typeof srcTags==='object') srcTags[k]={s:'IM 기재', d:new Date().toISOString().slice(0,10)}; }catch(eS2){}
     });
     close();
+    if(n>0&&window.__mtActivate) try{ window.__mtActivate(); }catch(eA){}   // IM에서 온 값 = 사용자 제공 값 → 활성화 신호
     try{ renderForm(); restoreInputs(); update(); }catch(e){}
     if(typeof toast==='function') toast('IM 추출값 '+n+'개를 적용했습니다 — 결과가 갱신되었습니다',2600);
     if(window.mtTrack) try{ mtTrack('im_extract',{n:n}); }catch(e){}
@@ -11155,7 +11157,7 @@ var qrcode = function() {
     if(t.closest('#fillExample')){ track('example_fill'); return; }
     if(t.closest('#fillStd')){ track('fill_std'); return; }
     if(t.closest('#xlDownload')){ track('xlsx_download'); return; }
-    if(t.closest('#rrApply')){ track('rentroll_upload'); return; }
+    if(t.closest('#rrApply')){ track('rentroll_upload'); if(e.isTrusted&&window.__mtActivate) window.__mtActivate(); return; }   // 자기 렌트롤 적용 = 활성화 신호
     if(t.closest('#rrSample')){ track('sample_download'); return; }
     if(t.closest('#copyBtn')){ track('prompt_copy'); return; }
     if(t.closest('#shareBtn')){ track('share_link'); return; }
