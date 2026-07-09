@@ -1735,7 +1735,8 @@ const DEALS={
       {k:"exitcap",l:"Exit Cap",u:"%",t:"num",ph:"4.8",min:0,max:30,pct:1,hint:"매각 시점 자본환원율(매각가 대비 NOI 비율). 매각가 = 매각연도 NOI ÷ Exit Cap. 진입 Cap보다 보수적으로(높게) 잡는 것이 일반적이며, 최근 거래사례 Cap을 참고합니다."},
       {k:"salefee",l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 시 중개·자문 수수료를 매각가 대비 %로. 보통 1~2%."},
       {k:"prepayfee",l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
-      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 차익(순매각가 − 총투자액)에 대해 자산운용사(AM)에 지급하는 성과보수를 %로. 차익이 있을 때만 적용됩니다. 없으면 0."}
+      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 차익(순매각가 − 총투자액)에 대해 자산운용사(AM)에 지급하는 성과보수를 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
+      {k:"sellerirr",l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다. 없으면 비워두세요."}
     ]}
    ]},
 
@@ -1768,7 +1769,8 @@ const DEALS={
       {k:"exitcap",l:"Exit Cap",u:"%",t:"num",ph:"5.4",min:0,max:30,pct:1,hint:"매각 시점 자본환원율. 매각가 = 매각연도 NOI ÷ Exit Cap. 물류는 입지·임차인 신용에 따라 차이가 큽니다."},
       {k:"salefee",l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 중개·자문 수수료를 매각가 대비 %로."},
       {k:"prepayfee",l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
-      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 차익(순매각가 − 총투자액)에 대해 자산운용사(AM)에 지급하는 성과보수를 %로. 차익이 있을 때만 적용됩니다. 없으면 0."}
+      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 차익(순매각가 − 총투자액)에 대해 자산운용사(AM)에 지급하는 성과보수를 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
+      {k:"sellerirr",l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다."}
     ]}
    ]},
 
@@ -4282,6 +4284,16 @@ function dealVerdict(r){
       else if(sp>=-0.5) parts.push('Exit Cap이 진입과 유사');   // 앱 검증 허용치(±0.5%p) 이내
       else { parts.push('Exit Cap이 진입보다 '+mfmt(-sp,1)+'%p 낮음(공격적) — <b>역스프레드 주의</b>'); tone='warn'; }
     }
+    // 매도자 제시 IRR 대조(#28) — IM 제시치 vs 내 계산
+    try{
+      var _si=parseNum(state.sellerirr);
+      if(isFinite(_si)&&_si>0){
+        var _d=(irr-_si/100)*100;
+        if(_d<=-1) { parts.push('매도자 제시 IRR '+mfmt(_si,1)+'% vs 내 계산 '+fp(irr)+' — <b>'+mfmt(-_d,1)+'%p 낮음</b>: 제시 가정(임대료·Exit Cap) 확인 필요'); tone='warn'; }
+        else if(_d<0) parts.push('매도자 제시 IRR '+mfmt(_si,1)+'% vs 내 계산 '+fp(irr)+' ('+mfmt(_d,1)+'%p)');
+        else parts.push('매도자 제시 IRR '+mfmt(_si,1)+'% vs 내 계산 '+fp(irr)+' (+'+mfmt(_d,1)+'%p)');
+      }
+    }catch(eSi){}
     // 다운사이드 한 줄 — 민감도 히트맵의 보수 코너(Exit +1.0%p × 성장 −1.0%p)를 문장으로
     try{
       if(typeof window!=='undefined'&&typeof window.__mtSens2==='function'&&typeof window.__mtSensBase==='function'){
@@ -7945,9 +7957,29 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     {k:'hold',    l:'보유기간',      u:'년',    d:'투자 보유기간(년)', r:0},
     {k:'exitcap', l:'Exit Cap',     u:'%',    d:'매각 시 적용 Cap rate(%)', r:2},
     {k:'acqtax',  l:'취득세율',      u:'%',    d:'취득세율(%). 통상 4.6', r:2},
-    {k:'opfee',   l:'운용보수율',    u:'%/년',  d:'AMC 운용보수율(%/년)', r:2}
+    {k:'opfee',   l:'운용보수율',    u:'%/년',  d:'AMC 운용보수율(%/년)', r:2},
+    {k:'sellerirr',l:'매도자 제시 IRR',u:'%',   d:'매도자/자문사가 제시한 목표·예상 IRR 또는 수익률(%)', r:1}
   ];
-  var ov=null, extracted=null;
+  var ov=null, extracted=null, IMGS=[]; // {mt, b64}
+  function imgToB64(file){
+    return new Promise(function(res, rej){
+      var fr=new FileReader();
+      fr.onload=function(){
+        var img=new Image();
+        img.onload=function(){
+          var MAX=1568, w=img.width, h=img.height, sc=Math.min(1, MAX/Math.max(w,h));
+          var cv=document.createElement('canvas'); cv.width=Math.round(w*sc); cv.height=Math.round(h*sc);
+          cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+          var url=cv.toDataURL('image/jpeg',0.85);
+          res({mt:'image/jpeg', b64:url.split(',')[1]});
+        };
+        img.onerror=function(){ rej(new Error('이미지를 읽을 수 없습니다')); };
+        img.src=fr.result;
+      };
+      fr.onerror=function(){ rej(new Error('파일을 읽을 수 없습니다')); };
+      fr.readAsDataURL(file);
+    });
+  }
   function el(sel){ return ov?ov.querySelector(sel):null; }
   function close(){ if(ov){ ov.remove(); ov=null; extracted=null; } document.body.style.overflow=''; }
   function fieldLabel(k){ var f=FIELDS.filter(function(x){return x.k===k;})[0]; return f?f.l:k; }
@@ -7957,6 +7989,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       props[f.k]={type:(f.t==='text'?['string','null']:['number','null']), description:f.d};
       req.push(f.k);
     });
+    props['evidence']={type:['object','null'], description:'각 추출 필드의 근거 원문 인용. 키=필드명, 값=문서에서 그대로 옮긴 근거 문구(40자 이내). 추출한 필드만 포함'};
     return {type:'object', properties:props, required:req};
   }
   function sysPrompt(){
@@ -7966,13 +7999,13 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       +'· 면적이 ㎡뿐이면 3.3058로 나눠 평으로 환산한다.\n'
       +'· 임대료·관리비는 임대면적(GLA) 평당 월 기준 원 단위 숫자.\n'
       +'· 비율은 % 숫자만 (5.2% → 5.2).\n'
-      +'· 범위로 적혀 있으면 중간값이 아니라 기준(base) 값을 쓴다.';
+      +'· 범위로 적혀 있으면 중간값이 아니라 기준(base) 값을 쓴다.\n· 추출한 각 필드의 근거 원문을 evidence 객체에 그대로 인용해 담는다(필드당 40자 이내).';
   }
   async function extract(){
     var ta=el('.imx textarea'), ki=el('#imxKey'), md=el('#imxModel'), err=el('.imx-err'), go=el('#imxGo');
     var txt=(ta&&ta.value||'').trim();
     KEY=(ki&&ki.value||'').trim();
-    if(!txt){ err.textContent='IM 텍스트를 붙여넣어 주세요.'; return; }
+    if(!txt&&!IMGS.length){ err.textContent='IM 텍스트를 붙여넣거나 사진을 추가해 주세요.'; return; }
     if(!KEY){ err.textContent='Anthropic API 키를 입력해 주세요 (console.anthropic.com → API keys).'; return; }
     if(el('#imxRem')&&el('#imxRem').checked){ try{ sessionStorage.setItem(SS_KEY,KEY); }catch(e){} }
     else { try{ sessionStorage.removeItem(SS_KEY); }catch(e){} }
@@ -7986,7 +8019,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
         body:JSON.stringify({
           model:(md&&md.value)||'claude-sonnet-5', max_tokens:1024,
           system:sysPrompt(),
-          messages:[{role:'user', content:[{type:'text', text:'다음 IM에서 가정을 추출하라.\n\n<im>\n'+txt+'\n</im>'}]}],
+          messages:[{role:'user', content:IMGS.map(function(im){ return {type:'image', source:{type:'base64', media_type:im.mt, data:im.b64}}; }).concat([{type:'text', text:(IMGS.length?'첨부한 IM 사진'+(txt?'과 아래 텍스트':'')+'에서 가정을 추출하라.':'다음 IM에서 가정을 추출하라.')+(txt?('\n\n<im>\n'+txt+'\n</im>'):'')}])}],
           tools:[{name:'extract', description:'IM에서 추출한 재무모델 가정을 반환', input_schema:schema()}],
           tool_choice:{type:'tool', name:'extract'}
         })
@@ -8022,16 +8055,18 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       if(v==null) return;
       n++;
       var curV=(state[f.k]||'').trim()||'—';
+      var evd=''; try{ evd=(extracted&&extracted.evidence&&extracted.evidence[f.k])?String(extracted.evidence[f.k]).slice(0,44):''; }catch(eEv){}
       rows.push('<tr><td><input type="checkbox" class="imx-ck" data-k="'+f.k+'" checked></td>'
         +'<td>'+esc(f.l)+(f.u?(' <span style="color:var(--muted);font-size:11px">'+esc(f.u)+'</span>'):'')+'</td>'
         +'<td class="v">'+esc(v)+((f.u==='백만원'&&isFinite(parseNum(v)))?(' <span style="color:var(--accent-deep);font-size:11px">= '+wonConv(parseNum(v))+'</span>'):'')+'</td>'
-        +'<td class="cur">'+esc(curV)+'</td></tr>');
+        +'<td class="cur">'+esc(curV)+'</td>'
+        +'<td style="font-size:11px;color:var(--muted)">'+esc(evd)+'</td></tr>');
     });
     var box=el('#imxBody');
     if(!n){ box.innerHTML='<div class="imx-err">문서에서 추출할 수 있는 가정을 찾지 못했습니다 — IM 본문(매매 개요·임대차 현황) 부분을 붙여넣어 보세요.</div>'
       +'<div class="imx-act"><button type="button" data-im="back">← 다시</button></div>'; return; }
     box.innerHTML='<div class="imx-sub" style="margin-top:4px">추출 '+n+'개 — <b>적용 전 원문과 대조하세요.</b> 체크한 항목만 폼에 채워집니다.'+(cut?' (텍스트가 길어 앞 15만 자만 사용)':'')+'</div>'
-      +'<table class="imx-tbl"><tr><th></th><th>가정</th><th>추출값</th><th>현재값</th></tr>'+rows.join('')+'</table>'
+      +'<table class="imx-tbl"><tr><th></th><th>가정</th><th>추출값</th><th>현재값</th><th>근거 원문</th></tr>'+rows.join('')+'</table>'
       +'<div class="imx-act"><button type="button" data-im="back">← 다시</button><button type="button" class="pri" data-im="apply">체크한 항목 적용</button></div>';
   }
   function apply(){
@@ -8100,7 +8135,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   }
   /* ── 무키 로컬 자동 인식: 붙여넣은 텍스트에서 정규식으로 가정 후보를 찾음 — 네트워크·API 키 불필요 ── */
   var PLAUS={price:[1000,10000000], appraisal:[1000,10000000], gfa:[100,1000000], rentpp:[3000,1000000], campp:[300,300000],
-    vacancy:[0,50], noig:[0,10], hold:[3,10], exitcap:[2,12], acqtax:[1,10], opfee:[0.05,3]};
+    vacancy:[0,50], noig:[0,10], hold:[3,10], exitcap:[2,12], acqtax:[1,10], opfee:[0.05,3], sellerirr:[2,30]};
   function _pl(k,v){ var p=PLAUS[k]; return !p||(v>=p[0]&&v<=p[1]); }
   function localExtract(txt){
     var t=String(txt||''), out={}, ev={};
@@ -8132,6 +8167,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     pct('exit\\s*cap(?:\\s*rate)?|엑시트\\s*캡|매각\\s*cap|캡\\s*레이트|환원(?:이)?율','exitcap');
     pct('임대료\\s*상승률|임대료\\s*인상률|상승률','noig');
     pct('취득세(?:율)?','acqtax');
+    pct('(?:\uC81C\uC2DC|\uBAA9\uD45C|\uC608\uC0C1)\\s*(?:\uB808\uBC84\uB4DC\\s*)?IRR|(?:\uC81C\uC2DC|\uBAA9\uD45C)\\s*\uC218\uC775\uB960','sellerirr');
     pct('운용\\s*보수(?:율)?','opfee');
     (function(){ var m=/(?:보유|투자)\s*기간[^0-9\n]{0,15}(\d{1,2})\s*년/i.exec(t); if(m) put('hold',parseInt(m[1],10),m); })();
     (function(){ var m=/(?:자산명|건물명|물건명|대상\s*자산)\s*[:：]?\s*([가-힣A-Za-z0-9·\s]{2,25}?(?:타워|빌딩|센터|스퀘어|프라자|플라자))/.exec(t);
@@ -8211,11 +8247,13 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     if(!(cur==='office'||cur==='logistics')){ if(typeof toast==='function') toast('IM 추출은 오피스·물류 매입 딜에서 지원합니다'); return; }
     var saved=''; try{ saved=sessionStorage.getItem(SS_KEY)||''; }catch(e){}
     ov=document.createElement('div'); ov.className='imx-ov';
+    IMGS=[];
     ov.innerHTML='<div class="imx">'
       +'<h3>🤖 AI 정밀 추출 <span style="font-size:11px;background:var(--accent-solid);color:var(--on-accent);border-radius:4px;padding:2px 6px;vertical-align:3px">β</span></h3>'
       +'<div class="imx-sub">IM의 <b>매매 개요·자산 개요·임대차 현황</b> 부분을 복사해 붙여넣으세요. 표는 그대로 붙여넣어도 됩니다. API 키가 없거나 문서 반출이 부담스러우면 <button type="button" data-im="q" style="border:0;background:none;color:var(--accent-deep);font-weight:700;cursor:pointer;padding:0;font-size:inherit">📥 무키 자동 인식</button>부터 써보세요 — 전송 없이 브라우저 안에서 찾습니다.</div>'
       +'<div id="imxBody">'
       +'<textarea placeholder="예) 본 건은 서울 강남구 소재 오피스로, 매매대금은 1,200억원… 연면적 8,400평, 평당 임대료 95,000원…"></textarea>'
+      +'<div class="imx-row" style="margin-bottom:6px"><label class="sl-btn" style="cursor:pointer">📷 IM 사진 추가 (선택 · 최대 4장)<input type="file" id="imxImg" accept="image/*" multiple hidden></label><span id="imxImgN" style="font-size:11.5px;color:var(--muted)">사진 없이 텍스트만도 됩니다 — 표·스캔본은 사진이 더 정확</span></div>'
       +'<div class="imx-row">'
       +'<input type="password" id="imxKey" placeholder="Anthropic API 키 (sk-ant-…)" autocomplete="off" value="'+esc(saved)+'">'
       +'<select id="imxModel"><option value="claude-sonnet-5">Claude Sonnet 5 (권장)</option><option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (빠름·저렴)</option></select>'
@@ -8236,6 +8274,16 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       else if(a==='apply') apply();
       else if(a==='q'){ close(); quick(); }
       else if(a==='back'){ var saved2=el('#imxKey')?el('#imxKey').value:KEY; close(); open(); var k2=el('#imxKey'); if(k2&&saved2) k2.value=saved2; }
+    });
+    ov.addEventListener('change',function(e){
+      var t2=e.target; if(!t2||t2.id!=='imxImg') return;
+      var fs2=Array.prototype.slice.call(t2.files||[]).slice(0,4);
+      if(!fs2.length) return;
+      var lb=el('#imxImgN'); if(lb) lb.textContent='사진 변환 중…';
+      Promise.all(fs2.map(imgToB64)).then(function(arr){
+        IMGS=arr;
+        if(lb) lb.textContent='사진 '+IMGS.length+'장 첨부됨 — 브라우저에서 축소(1568px) 후 api.anthropic.com으로만 전송';
+      }).catch(function(err2){ IMGS=[]; if(lb) lb.textContent='사진 처리 실패: '+err2.message; });
     });
     if(window.mtTrack) try{ mtTrack('im_open'); }catch(e){}
   }
