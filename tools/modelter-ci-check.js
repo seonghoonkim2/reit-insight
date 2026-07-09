@@ -46,7 +46,209 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
 }
 if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
-  ok(sm.includes('modelter.com/') && sm.includes('guide.html') && sm.includes('howto.html'), 'sitemap: 홈·가이드·활용 가이드 URL');
+  ok(sm.includes('modelter.com/') && sm.includes('guide.html') && sm.includes('howto.html') && sm.includes('trust.html'), 'sitemap: 홈·가이드·활용 가이드·신뢰센터 URL');
+}
+
+/* ── 1b) 신뢰 센터(trust.html) ↔ worker.js /e 수집 필드 1:1 강제 ──
+ *  화면에 "이것만 수집한다"고 써 붙인 표와 코드가 실제로 보내는 필드가 어긋나면 배포 차단.
+ *  (신뢰 문서가 코드보다 뒤처지거나 앞서가는 것을 CI가 막음) */
+ok(fs.existsSync(path.join(DIR, 'trust.html')), '신뢰 센터(trust.html) 존재 (정보보호 검토 문서)');
+if (fs.existsSync(path.join(DIR, 'trust.html'))) {
+  const trust = fs.readFileSync(path.join(DIR, 'trust.html'), 'utf8');
+  const workerPath = path.join(__dirname, '..', 'worker.js');
+  const workerSrc = fs.existsSync(workerPath) ? fs.readFileSync(workerPath, 'utf8') : '';
+  ok(!!workerSrc, 'worker.js 존재 (/e 수집 필드 원본)');
+  // worker.js가 /e로 실제 보내는 필드 집합 = rec 객체 리터럴의 키
+  const recM = workerSrc.match(/const\s+rec\s*=\s*\{([\s\S]*?)\};/);
+  ok(!!recM, 'worker.js에서 rec 객체 리터럴 파싱');
+  let recKeys = [];
+  if (recM) {
+    // 괄호 깊이를 추적해 최상위 콤마로만 분리(값 안의 콤마 s(d.deal,16) 오분리 방지)
+    let dep = 0, buf = ''; const parts = [];
+    for (const ch of recM[1]) {
+      if (ch === '(' || ch === '[') dep++;
+      else if (ch === ')' || ch === ']') dep--;
+      if (ch === ',' && dep === 0) { parts.push(buf); buf = ''; }
+      else buf += ch;
+    }
+    if (buf.trim()) parts.push(buf);
+    recKeys = parts.map(p => (p.split(':')[0] || '').trim()).filter(Boolean);
+  }
+  const shown = [...trust.matchAll(/data-field="([^"]+)"/g)].map(m => m[1]);
+  const shownSet = new Set(shown), recSet = new Set(recKeys);
+  const missing = recKeys.filter(k => !shownSet.has(k));   // 코드는 보내는데 문서에 없음
+  const extra = shown.filter(k => !recSet.has(k));         // 문서엔 있는데 코드가 안 보냄(유령)
+  ok(recKeys.length > 0, 'worker.js 수집 필드 추출 (' + recKeys.join(',') + ')');
+  ok(missing.length === 0, 'trust.html: worker.js가 보내는 필드 전부 표기 (누락: ' + (missing.join(',') || '없음') + ')');
+  ok(extra.length === 0, 'trust.html: 표기 외 유령 필드 없음 (초과: ' + (extra.join(',') || '없음') + ')');
+  ok(shown.length === shownSet.size, 'trust.html: 필드 중복 표기 없음');
+  // 내용·인쇄 마커 — "믿지 말고 직접 확인" 절차와 정보보호 검토용 인쇄 스타일
+  ok(trust.includes('F12') && trust.includes('네트워크'), 'trust.html: 직접 확인(F12·네트워크 탭) 절차');
+  ok(/@media\s*print/.test(trust), 'trust.html: 인쇄(검토 제출)용 스타일');
+  ok(trust.includes('api.anthropic.com') && trust.includes('서버'), 'trust.html: BYOK 데이터 흐름(서버 무경유) 명시');
+  ok(trust.includes('투자 권유가 아닌'), 'trust.html: 고지 문구');
+  // 앱 본체에서 신뢰 센터로 가는 링크(푸터·온보딩·BYOK)
+  ok((html.match(/href="\/trust\.html"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·온보딩·BYOK) 존재');
+}
+
+/* ── 1c) 채널 어트리뷰션(E5) — src 태그·수요 가짜 문 ── */
+ok(html.includes("sessionStorage.setItem('mt_src'") && html.includes("/[?#&]src="), '채널 어트리뷰션: 착지 src= 태그 파싱·세션 유지');
+ok(html.includes("if(_s) b.src=_s;"), '채널 어트리뷰션: 이벤트에 src 채널 부착(퍼널 분해용)');
+ok(html.includes("track('landing')"), '채널 어트리뷰션: landing 이벤트(src 유입 1건)');
+ok(html.includes('const DEAL_SOON=') && html.includes('deal-soon'), '수요 가짜 문: 준비 중 딜 타일(DEAL_SOON) 존재');
+ok(html.includes("track('deal_want'"), '수요 가짜 문: deal_want 수집(딜 유형명만)');
+{
+  // 무전송 불변 재확인 — src·deal_want 는 채널명/딜유형명만, 수치·PII 금지
+  const workerSrc = fs.existsSync(path.join(__dirname, '..', 'worker.js')) ? fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8') : '';
+  ok(/const\s+src\s*=\s*s\(d\.src,\s*8\)\.replace\(\/\[\^A-Za-z0-9_\]/.test(workerSrc), 'worker.js: src 화이트리스트(영문·숫자·_ 8자) 정화');
+}
+
+/* ── 1d) 산출물 회수 루프(E2) — 회수 링크·QR·착지 CTA ── */
+ok(html.includes('function shareLink(readonly, src)') && html.includes('var SRC_CHANNELS='), '회수: shareLink(readonly,src) 채널 태그 화이트리스트');
+ok(html.includes('function recoverUrl(src)') && html.includes("function recoverOn()"), '회수: 옵트인(recoverOn)·회수 URL 생성기');
+ok(html.includes('id="recoverChk"') && html.includes('id="recoverOpt"'), '회수: 산출물 링크 옵트인 체크박스(기본 켜짐)');
+ok(html.includes('if(c.link){ links.push') && html.includes('officeDocument/2006/relationships/hyperlink') && html.includes('TargetMode="External"'), '회수: XLSXGEN 하이퍼링크(시트 rels·External) 지원');
+ok(html.includes("recoverUrl('xlsx')") && html.includes('modelter.com에서 이 모델 열기'), '회수: 엑셀 표지 「이 모델 열기」 하이퍼링크 셀(&src=xlsx)');
+ok(html.includes("recoverUrl('png')") && html.includes('스캔 → 이 모델 열기'), '회수: PNG 요약 카드 QR(&src=png)');
+ok(html.includes("shareLink(false,'qr')"), '회수: QR 이어가기 링크 &src=qr');
+ok(html.includes('id="roCta"') && html.includes('id="roCtaBtn"') && html.includes('이 가정으로 내 딜 시작하기'), '회수: 읽기전용 착지 하단 CTA 바');
+ok(html.includes("mtTrack('recover_cta'"), '회수: recover_cta 이벤트(착지→편집 전환)');
+ok(html.includes('이 모델을 바로 열어 보기:') && html.includes('요약 카드(PNG)의 QR'), '회수: IC PPT 마지막 장 회수 안내(라이브·QR 경로)');
+
+/* ── 1e) 팀 기준 배포 링크(E4) — #h= 내보내기·미리보기·적용·표기 ── */
+ok(html.includes('function houseShareLink()') && html.includes("location.pathname+'#h='+enc"), '팀 기준: #h= 배포 링크 생성(회사 표준 파라미터만)');
+ok(html.includes('function houseImportPreview(pay)') && html.includes("data-hi=\"apply\""), '팀 기준: 설치 미리보기 모달(자동 적용 금지)');
+ok(html.includes('var mHouse=h.match(/[#&]h=([^&]+)/)'), '팀 기준: #h= 착지 파싱(딜 복원과 분리)');
+ok(html.includes("data-hs=\"share\"") && html.includes("mtTrack('house_share')"), '팀 기준: 팀에 배포 버튼 + house_share 이벤트');
+ok(html.includes("mtTrack('house_apply')"), '팀 기준: 적용 시 house_apply 이벤트');
+ok(html.includes('function houseName()') && html.includes('function houseTag()'), '팀 기준: 팀명 라벨·산출물 표기 헬퍼');
+ok(html.includes("_b2h.s+=' · '+_ht") || html.includes("+' · '+_ht"), '팀 기준: 엑셀 표지에 팀 기준 표기');
+ok(html.includes("'✓ '+_ptag") || html.includes('✓ '+"'+_ptag"), '팀 기준: IC PPT 표지에 팀 기준 배지');
+ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 팀명 격상(사내 기준 하드코딩 제거)');
+
+/* ── 1f) 검색 착지 페이지(E3) — 생성기 최신성·링크 무결성·JSON-LD ── */
+{
+  const genPath = path.join(__dirname, 'gen-pages.js');
+  ok(fs.existsSync(genPath), '검색 착지: 생성기(gen-pages.js) 존재');
+  // 생성 결과가 guide.html·TERM_META 와 어긋나지 않는지(빌드 없이 커밋 원칙 강제)
+  if (fs.existsSync(genPath)) {
+    let fresh = true, out = '';
+    try { out = require('child_process').execSync('node ' + JSON.stringify(genPath) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); }
+    catch (e) { fresh = false; out = (e.stdout || '') + (e.stderr || ''); }
+    ok(fresh, '검색 착지: 생성 페이지가 최신(gen-pages --check) — 실패 시 `node tools/gen-pages.js` 재생성 후 커밋' + (fresh ? '' : '\n     ' + out.trim().split('\n').slice(0, 4).join('\n     ')));
+  }
+  const tDir = path.join(DIR, 't'), cDir = path.join(DIR, 'calc');
+  const tFiles = fs.existsSync(tDir) ? fs.readdirSync(tDir).filter(f => f.endsWith('.html')) : [];
+  const cFiles = fs.existsSync(cDir) ? fs.readdirSync(cDir).filter(f => f.endsWith('.html')) : [];
+  ok(tFiles.length >= 24, '검색 착지: 용어 페이지 24+ (' + tFiles.length + '개)');
+  ok(cFiles.length === 4, '검색 착지: 계산기 페이지 4개 (' + cFiles.length + '개)');
+  // sitemap 에 새 URL 등록 수 일치
+  if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
+    const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
+    const locN = (sm.match(/<loc>/g) || []).length;
+    const baseN = 5;  // 홈·guide·howto·trust·verification
+    const nDir = path.join(DIR, 'notes');
+    const nN = fs.existsSync(nDir) ? fs.readdirSync(nDir).filter(f => f.endsWith('.html')).length : 0;
+    ok(locN === baseN + tFiles.length + cFiles.length + nN, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = ' + baseN + '기본+' + tFiles.length + '용어+' + cFiles.length + '계산기+' + nN + '노트)');
+    ok(sm.includes('/t/irr.html') && sm.includes('/calc/office.html'), 'sitemap: 용어·계산기 URL 포함');
+  }
+  // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
+  let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0;
+  const allPages = tFiles.map(f => 't/' + f).concat(cFiles.map(f => 'calc/' + f));
+  const existsPage = p => fs.existsSync(path.join(DIR, p));
+  for (const rp of allPages) {
+    const ph = fs.readFileSync(path.join(DIR, rp), 'utf8');
+    const jm = ph.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    try { JSON.parse(jm[1]); } catch (e) { jsonBad++; }
+    if (!/rel="canonical" href="https:\/\/modelter\.com\//.test(ph)) canonBad++;
+    if (!/href="\/#t=(office|logistics|dev|refi)&src=seo"/.test(ph)) ctaBad++;
+    for (const mm of ph.matchAll(/href="\/(t|calc)\/([a-z0-9]+)\.html"/g)) if (!existsPage(mm[1] + '/' + mm[2] + '.html')) linkBad++;
+  }
+  ok(jsonBad === 0, '검색 착지: 전 페이지 JSON-LD 유효 (' + jsonBad + ' 실패)');
+  ok(canonBad === 0, '검색 착지: 전 페이지 canonical (' + canonBad + ' 누락)');
+  ok(ctaBad === 0, '검색 착지: 전 페이지 앱 CTA(#t=…&src=seo) (' + ctaBad + ' 누락)');
+  ok(linkBad === 0, '검색 착지: 내부 링크 무결성 (' + linkBad + ' 깨짐)');
+}
+
+/* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */
+ok(html.includes("window.MT_BUILD=") && html.includes('function mtBuild()'), '재현성: 빌드 스탬프 상수(MT_BUILD)·헬퍼');
+ok(fs.existsSync(path.join(__dirname, 'stamp-build.js')), '재현성: 빌드 스탬프 스크립트(stamp-build.js)');
+ok(fs.existsSync(path.join(__dirname, 'gen-verification.js')), '재현성: 파리티 공표 생성기(gen-verification.js)');
+ok(fs.existsSync(path.join(DIR, 'verification.html')), '재현성: /verification 페이지 존재');
+// 4산출물 스탬프 표기 코드 경로
+ok(html.includes("'  ·  build '+mtBuild()"), '재현성: PNG 요약 카드 빌드 스탬프');
+ok(html.includes("' · 빌드 '+mtBuild()"), '재현성: 엑셀 자가검증 시트 빌드 스탬프');
+ok(html.includes("' · 빌드 '+mtBuild())") || html.includes("(' · 빌드 '+mtBuild())"), '재현성: IC PPT 표지 빌드 스탬프');
+ok(html.includes("'※ 생성 빌드 '+mtBuild()"), '재현성: 검토 메모 빌드 스탬프');
+if (fs.existsSync(path.join(DIR, 'verification.html'))) {
+  const vf = fs.readFileSync(path.join(DIR, 'verification.html'), 'utf8');
+  ok(/rel="canonical" href="https:\/\/modelter\.com\/verification\.html"/.test(vf), '재현성: verification canonical');
+  ok(vf.includes('gen-xlsx.js') && vf.includes('check.py') && vf.includes('formulas'), '재현성: verification 재현 절차(gen-xlsx·check.py·formulas)');
+  ok(vf.includes('빌드 <b>'), '재현성: verification 빌드 식별자 표기');
+}
+// 빌드 스탬프 무결성 — 스탬프됐다면 콘텐츠 해시와 일치해야 함(스탬프 후 변조 방지). DEV(미스탬프)는 통과.
+{
+  let stampOK = true, stampMsg = '';
+  try { stampMsg = require('child_process').execSync('node ' + JSON.stringify(path.join(__dirname, 'stamp-build.js')) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
+  catch (e) { stampOK = false; stampMsg = ((e.stdout || '') + (e.stderr || '')).trim(); }
+  ok(stampOK, '재현성: 빌드 스탬프 무결성 — ' + stampMsg.split('\n')[0]);
+}
+
+/* ── 1h) 참고치 v3(E7) — 데이터셋 유래·출처·기준일 ── */
+ok(fs.existsSync(path.join(__dirname, '..', 'data', 'market-ref.json')), '참고치: 데이터셋(data/market-ref.json) 존재');
+ok(fs.existsSync(path.join(__dirname, 'gen-marketref.js')), '참고치: 인라인 생성기(gen-marketref.js) 존재');
+ok(html.includes('/*__MKTREF_START__*/') && html.includes('/*__MKTREF_END__*/'), '참고치: 인라인 마커(런타임 fetch 아님)');
+ok(html.includes('const MARKET_REF_ASOF=') && html.includes('const FIELD_REF_META='), '참고치: 기준일·출처 메타(FIELD_REF_META) 인라인');
+ok(html.includes('function fieldRefMeta(k)') && html.includes('class="f-src"'), '참고치: 칩 출처·기준일 뱃지(fieldRefMeta·f-src)');
+ok(!/https?:\/\/[^"']*market-ref\.json/.test(html), '참고치: 런타임 외부 fetch 0(데이터셋 URL 미참조)');
+if (fs.existsSync(path.join(__dirname, 'gen-marketref.js'))) {
+  let mrOK = true, mrMsg = '';
+  try { mrMsg = require('child_process').execSync('node ' + JSON.stringify(path.join(__dirname, 'gen-marketref.js')) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
+  catch (e) { mrOK = false; mrMsg = ((e.stdout || '') + (e.stderr || '')).trim(); }
+  ok(mrOK, '참고치: 인라인이 데이터셋과 일치(gen-marketref --check) — ' + mrMsg.split('\n')[0]);
+  // 출처가 공개 기준·관행 표기인지(임의 URL·시세 표현 아님) 가벼운 확인
+  try {
+    const mr = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'market-ref.json'), 'utf8'));
+    const srcs = []; const collect = o => Object.values(o).forEach(v => v && v.src && srcs.push(v.src));
+    collect(mr.common || {}); Object.values(mr.deal || {}).forEach(collect);
+    ok(srcs.length > 0 && srcs.every(s => !/https?:\/\//.test(s)), '참고치: 출처는 공개 기준·관행 표기(외부 URL·시세 아님)');
+  } catch (e) { ok(false, '참고치: market-ref.json 파싱'); }
+}
+
+/* ── 1i) 분기 시장 노트(E8) — 데이터셋 동기화 콘텐츠 퍼널 ── */
+ok(fs.existsSync(path.join(__dirname, 'gen-notes.js')), '분기 노트: 생성기(gen-notes.js) 존재');
+{
+  const nDir = path.join(DIR, 'notes');
+  const notes = fs.existsSync(nDir) ? fs.readdirSync(nDir).filter(f => f.endsWith('.html')) : [];
+  ok(notes.length >= 1, '분기 노트: notes/*.html 존재 (' + notes.length + '개)');
+  let nBad = 0, nSrc = 0, nCanon = 0, nDisc = 0;
+  for (const f of notes) {
+    const nh = fs.readFileSync(path.join(nDir, f), 'utf8');
+    try { JSON.parse((nh.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/) || [])[1]); } catch (e) { nBad++; }
+    if (/href="https:\/\/modelter\.com\/#v=[A-Za-z0-9_-]+&src=notes"/.test(nh)) nSrc++;
+    if (/rel="canonical" href="https:\/\/modelter\.com\/notes\//.test(nh)) nCanon++;
+    if (nh.includes('투자 권유가 아닌')) nDisc++;
+  }
+  ok(nBad === 0, '분기 노트: JSON-LD(Article) 유효 (' + nBad + ' 실패)');
+  ok(nSrc === notes.length, '분기 노트: 사전 입력 링크(#v=…&src=notes) 존재');
+  ok(nCanon === notes.length, '분기 노트: canonical');
+  ok(nDisc === notes.length, '분기 노트: 투자 권유 아님 고지');
+  // 사전 입력 링크가 앱 코덱으로 실제 디코드되는지(브라우저 호환) — mtLZ 추출 왕복
+  if (notes.length) {
+    try {
+      const appHtml = fs.readFileSync(HTML, 'utf8');
+      const mLZ = appHtml.match(/var mtLZ=(\(function\(\)\{[\s\S]*?return \{compress:compress, decompress:decompress\};\s*\}\)\(\));/);
+      const mtLZ = new Function('return ' + mLZ[1])();
+      const enc = fs.readFileSync(path.join(nDir, notes[0]), 'utf8').match(/#v=([A-Za-z0-9_-]+)&src=notes/)[1];
+      const p = JSON.parse(mtLZ.decompress(enc));
+      ok(p && p.c && p.s && Object.keys(p.s).length > 3, '분기 노트: 사전 입력 링크가 앱 코덱으로 디코드(딜=' + p.c + ')');
+    } catch (e) { ok(false, '분기 노트: 사전 입력 링크 디코드 — ' + e.message); }
+  }
+  // 최신성(데이터셋 동기화) 게이트
+  let gnOK = true, gnMsg = '';
+  try { gnMsg = require('child_process').execSync('node ' + JSON.stringify(path.join(__dirname, 'gen-notes.js')) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
+  catch (e) { gnOK = false; gnMsg = ((e.stdout || '') + (e.stderr || '')).trim(); }
+  ok(gnOK, '분기 노트: 데이터셋과 동기화(gen-notes --check) — ' + gnMsg.split('\n')[0]);
 }
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
@@ -228,7 +430,7 @@ ok(html.includes("classList.add('noresult')") && html.includes("contains('noresu
 ok(html.includes('예시로 시작하기'), '빈 상태 → 예시 시작 버튼 존재');
 ok(html.includes('[#&]t=(office|logistics|dev|refi)'), '가이드 딥링크(#t=) 존재');
 ok(html.includes('[#&]view=lender'), '딥링크 대주 뷰(view=lender) 존재');
-ok(html.includes('[#&][evdt]='), '딥링크 시 온보딩 스킵 가드');
+ok(html.includes('[#&][evdth]='), '딥링크 시 온보딩 스킵 가드(#h= 포함)');
 ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
 ok(html.includes('function termHelp') && html.includes('class="k-help"'), '결과 용어 → 가이드 앵커 링크 존재');
 ok(html.includes('function mtNextTip') && html.includes('mt_tip_next'), '산출물 다음 단계 팁(1회) 존재');
@@ -237,7 +439,7 @@ ok(html.includes('cmp-hi'), '딜 비교 최적값 하이라이트 존재');
 ok(html.includes('function wonConv') && html.includes('class="f-conv"'), '원화 환산 라이브 힌트(억/조) 존재');
 ok(html.includes('탭하면 결과로 이동'), '미니 KPI 탭 → 결과 스크롤 존재');
 ok(html.includes('학습 모드 — 결과 지표 옆'), 'learn 온보딩 용어사전 안내 존재');
-ok(html.includes("var deepLink=/[#&][evdt]=/.test(location.hash||'')"), "딥링크 진입 시 What's new 자동 팝업 억제");
+ok(html.includes("var deepLink=/[#&][evdth]=/.test(location.hash||'')"), "딥링크 진입 시 What's new 자동 팝업 억제");
 ok(html.includes('window.__wizOpen') && html.includes('id="wizBtn"') && html.includes('wiz-sheet'), '모바일 빠른 입력 위저드 존재');
 ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.includes("['asset','noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 핵심 필드 세트');
 ok(html.includes("_gf=mnum('gfa')"), '임대료 기준 연면적 필수 가드(침묵 기본값 차단)');

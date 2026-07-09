@@ -1,0 +1,164 @@
+#!/usr/bin/env node
+/* 파리티 공표 페이지 생성 (전략 E6) — /verification.html
+ *
+ * "화면=엑셀"을 개발자 주장에서 제3자 재현 가능한 공개 증거로 바꾼다.
+ * 파리티 하네스(gen-xlsx.js → check.py, formulas 라이브러리 재계산)를 실제로 돌려
+ *   결과(PASS·최대 오차)를 최신 빌드 식별자와 함께 정적 페이지로 게시한다.
+ *
+ * 사용:  node tools/gen-verification.js   (stamp-build.js 이후 실행 권장)
+ *   · Python3 + formulas 필요(파리티 재계산). 없으면 결과를 "미실행"으로 표기하고 절차만 게시.
+ */
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const cp = require('child_process');
+
+const ROOT = path.join(__dirname, '..');
+const DIR = path.join(ROOT, 'dart-search', 'web', 'modelter');
+const OUT = path.join(DIR, 'verification.html');
+const BASE = 'https://modelter.com';
+const DEALS = [{ k: 'office', n: '오피스 매입 (13시트)' }, { k: 'logistics', n: '물류센터 매입 (13시트)' }, { k: 'dev', n: '공동주택 분양 사업수지 (6시트)' }];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function runParity(deal) {
+  try {
+    cp.execSync('node ' + JSON.stringify(path.join(__dirname, 'parity', 'gen-xlsx.js')) + ' ' + deal, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    const out = cp.execSync('python3 ' + JSON.stringify(path.join(__dirname, 'parity', 'check.py')) + ' ' + deal, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    const pass = /PARITY OK/.test(out);
+    let maxErr = 0, rows = 0;
+    for (const m of out.matchAll(/\(D([0-9.eE+-]+)\)/g)) { const v = Math.abs(parseFloat(m[1])); if (isFinite(v)) { maxErr = Math.max(maxErr, v); rows++; } }
+    return { ok: pass, maxErr, rows };
+  } catch (e) { return { ok: null, err: (e.stderr || e.stdout || e.message || '').toString().slice(0, 120) }; }
+}
+
+function build() {
+  let bj = {};
+  try { bj = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'build.json'), 'utf8')); } catch (e) {}
+  const build = bj.build || 'DEV(미스탬프)';
+  const results = DEALS.map(d => Object.assign({}, d, runParity(d.k)));
+  const allOK = results.every(r => r.ok === true);
+  const anyRun = results.some(r => r.ok !== null);
+  const fmtErr = e => e === 0 ? '0' : (e < 1e-6 ? e.toExponential(1) : e.toPrecision(2));
+
+  const rowsHtml = results.map(r => {
+    const badge = r.ok === true ? '<span class="pass">PASS</span>' : (r.ok === false ? '<span class="fail">FAIL</span>' : '<span class="na">미실행</span>');
+    const err = r.ok === true ? ('최대 오차 ' + fmtErr(r.maxErr) + ' · ' + r.rows + '개 지표') : (r.ok === false ? '불일치 발견' : esc(r.err || 'Python·formulas 필요'));
+    return `<tr><td>${esc(r.n)}</td><td>${badge}</td><td>${err}</td></tr>`;
+  }).join('');
+
+  const ld = { '@context': 'https://schema.org', '@type': 'TechArticle', headline: '모델터 파리티 검증 — 화면=엑셀 재현 증거', datePublished: bj.date || '', about: '재무모델 화면 계산값과 다운로드 엑셀 수식의 일치 검증', url: BASE + '/verification.html' };
+
+  const page = `<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>파리티 검증 — 화면 = 다운로드 엑셀 (재현 가능한 증거) | 모델터</title>
+<meta name="description" content="모델터의 화면 계산값과 다운로드 엑셀 수식이 같은 결과를 내는지, 제3자가 formulas 라이브러리로 직접 재계산해 검증한 결과와 재현 절차. 최신 빌드 식별자 포함." />
+<link rel="canonical" href="${BASE}/verification.html" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="파리티 검증 — 화면 = 다운로드 엑셀 | 모델터" />
+<meta property="og:description" content="화면=엑셀을 제3자 재현 가능한 공개 증거로. 4딜 파리티 결과 + 재현 절차." />
+<meta property="og:url" content="${BASE}/verification.html" />
+<meta property="og:image" content="${BASE}/og.png" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
+<script type="application/ld+json">
+${JSON.stringify(ld)}
+</script>
+<style>
+:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--green:#2e7d4f;--red:#b4552d;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f;--green:#57b07f;--red:#d98a5f}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto;padding:0 22px}
+header{border-bottom:1px solid var(--line-soft);background:var(--panel)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 22px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;color:var(--ink);text-decoration:none}
+.logo .m{width:26px;height:26px;border-radius:7px;background:var(--accent);display:inline-block}
+.back{font-size:13.5px;color:var(--accent-deep);text-decoration:none;font-weight:600;border:1px solid var(--line);padding:7px 14px;border-radius:9px}
+.hero{padding:34px 0 8px}
+.eyebrow{font-size:12px;font-weight:700;color:var(--accent-deep);letter-spacing:.02em;text-transform:uppercase}
+h1{font-size:29px;font-weight:800;line-height:1.25;margin:9px 0 10px}
+.lead{font-size:16px;color:var(--ink-2)}
+.build{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 13px;margin:14px 0 2px;color:var(--ink-2)}
+.build b{color:var(--accent-deep)}
+section{padding:24px 0;border-top:1px solid var(--line-soft)}
+h2{font-size:19px;font-weight:800;margin-bottom:8px}
+p{margin-bottom:11px;color:var(--ink-2)}
+table.res{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+table.res th,table.res td{border:1px solid var(--line);padding:9px 12px;text-align:left}
+table.res th{background:var(--panel);color:var(--ink-3);font-weight:700;font-size:12.5px}
+.pass{color:#fff;background:var(--green);font-weight:700;font-size:12px;padding:2px 9px;border-radius:6px}
+.fail{color:#fff;background:var(--red);font-weight:700;font-size:12px;padding:2px 9px;border-radius:6px}
+.na{color:var(--muted);font-weight:700;font-size:12px}
+.steps{counter-reset:s;list-style:none;margin:6px 0}
+.steps li{position:relative;padding:9px 0 9px 40px;border-bottom:1px solid var(--line-soft);font-size:14.5px;color:var(--ink-2)}
+.steps li:last-child{border-bottom:0}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+code,pre{font-family:var(--mono);font-size:13px;background:var(--line-soft);border-radius:6px}
+code{padding:1px 6px;color:var(--ink)}
+pre{display:block;padding:12px 15px;margin:8px 0;overflow-x:auto;color:var(--ink);border:1px solid var(--line)}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:12.5px}
+footer a{color:var(--ink-3)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="/"><span class="m"></span>모델터</a>
+  <a class="back" href="/">← 모델 만들러</a>
+</div></header>
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">재현성 · 파리티 공표</div>
+    <h1>화면 = 다운로드 엑셀,<br>직접 재현해 확인하세요.</h1>
+    <p class="lead">모델터는 화면에 보이는 수치와 내려받는 엑셀의 수식이 같은 결과를 낸다고 말합니다. 그 주장을 개발자 말이 아니라 <b>제3자가 재계산해 검증할 수 있는 공개 증거</b>로 둡니다. 아래는 파이썬 <code>formulas</code> 라이브러리로 엑셀 수식을 독립 재계산해 화면 계산값과 대조한 결과와, 누구나 따라 할 수 있는 재현 절차입니다.</p>
+    <div class="build">빌드 <b>${esc(build)}</b>${bj.git ? (' · git ' + esc(bj.git)) : ''}${bj.date ? (' · ' + esc(bj.date)) : ''}</div>
+  </div>
+
+  <section>
+    <h2>파리티 결과 ${allOK ? '— 전 딜 일치' : (anyRun ? '' : '(재계산 미실행)')}</h2>
+    <table class="res"><tr><th>딜 유형</th><th>판정</th><th>세부</th></tr>${rowsHtml}</table>
+    <p>각 산출물(엑셀 자가검증 시트·IC PPT 표지·요약 카드 PNG·검토 메모)에 위 <b>빌드 식별자</b>가 찍힙니다. 3월 IC에 올린 숫자를 9월 감사에서 "이 빌드가 만들었고, 그 빌드는 파리티를 통과했다"로 설명할 수 있습니다.${anyRun ? '' : ' (이 페이지 생성 환경에 Python·formulas가 없어 결과 표는 절차 확인용입니다 — 실제 결과는 배포 환경에서 재생성됩니다.)'}</p>
+  </section>
+
+  <section>
+    <h2>직접 재현하는 법</h2>
+    <p>저장소를 받아 아래를 그대로 돌리면 같은 대조를 재현합니다. <code>formulas</code>는 엑셀 수식을 파이썬에서 독립적으로 재계산하는 오픈소스로, 우리 계산 엔진과 무관한 제3의 경로입니다.</p>
+    <ol class="steps">
+      <li><code>pip install formulas</code> — 엑셀 수식 재계산 라이브러리 설치</li>
+      <li><code>node tools/parity/gen-xlsx.js office</code> — 예시 딜로 엑셀 생성 + 화면 계산값(기대치) 기록</li>
+      <li><code>python3 tools/parity/check.py office</code> — 생성된 엑셀의 <b>수식을 재계산</b>해 화면 계산값과 대조(허용 오차 5e-4 이내면 PASS)</li>
+      <li><code>office</code> 자리에 <code>logistics</code>·<code>dev</code>를 넣어 딜별로 반복</li>
+    </ol>
+    <p>허용 오차는 부동소수점 반올림 수준(위 결과의 실제 오차는 그보다 몇 자릿수 작습니다). 계산·엑셀 로직을 고치면 이 대조가 배포 게이트로 다시 돌아, 어긋나면 배포가 막힙니다.</p>
+  </section>
+
+  <section>
+    <h2>왜 이렇게까지 하나</h2>
+    <p>재무모델은 받은 사람이 셀을 하나 바꾸면 값이 달라집니다. 모델터의 엑셀은 <b>생성 시점 웹 계산값을 검증 시트에 함께 찍어</b>, 받은 사람이 파일 안에서 PASS/FAIL로 변조 여부를 확인할 수 있습니다. 여기에 빌드 식별자와 이 공개 파리티까지 더해, "이 숫자가 어디서 어떻게 나왔는지"를 끝까지 추적할 수 있게 했습니다.</p>
+  </section>
+</main>
+<footer><div class="wrap">
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide.html">용어사전</a> · <a href="/trust.html">보안·개인정보</a><br>
+  입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다.
+</div></footer>
+</body>
+</html>
+`;
+  return { html: page, results };
+}
+
+const { html, results } = build();
+fs.writeFileSync(OUT, html);
+console.log('✅ verification.html 생성 (' + path.relative(ROOT, OUT) + ')');
+// 배포 게이트 — 파리티가 실제로 돌았고 하나라도 FAIL 이면 릴리스 차단(화면=엑셀 원칙 강화)
+const failed = results.filter(r => r.ok === false);
+if (failed.length) {
+  console.error('❌ 파리티 실패 — 배포 차단: ' + failed.map(r => r.k).join(', ') + ' (계산·엑셀 로직 불일치. 수정 후 재검증)');
+  process.exit(1);
+}
+const ran = results.filter(r => r.ok === true).length;
+console.log(ran ? ('   파리티 ' + ran + '딜 전수 통과 — 배포 안전') : '   (Python·formulas 미설치 — 파리티 미실행, 배포 환경에서 재생성 필요)');

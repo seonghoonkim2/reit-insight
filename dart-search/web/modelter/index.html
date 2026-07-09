@@ -166,6 +166,9 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .deal-tab .badge-base{font-size:10px; background:var(--accent-solid); color:var(--on-accent); padding:2px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
 .deal-tab.on .badge-base{background:var(--accent)}
 .deal-tab .badge-lite{font-size:10px; background:var(--bg); color:var(--muted); border:1px solid var(--line-soft); padding:1px 6px; border-radius:5px; font-weight:600}
+.deal-tab.deal-soon{opacity:.6; border-style:dashed; color:var(--muted); font-weight:500}
+.deal-tab.deal-soon:hover{opacity:.9; border-color:var(--accent); color:var(--accent-deep)}
+.deal-tab .badge-soon{font-size:9.5px; background:var(--line-soft); color:var(--muted); padding:1px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
 .deal-tab.on .badge-lite{background:rgba(255,255,255,.18); color:var(--on-accent); border-color:transparent}
 
 .builder{padding:14px 0 60px}
@@ -748,6 +751,9 @@ header{background:rgba(253,252,249,.82)}
 .dl-row{display:flex; gap:8px; margin-top:14px; align-items:stretch}
 .dl-row[hidden]{display:none}
 .dl-row .xl-dl{margin-top:0; width:auto; flex:2; min-width:0}
+.dl-opt{display:flex; align-items:flex-start; gap:7px; margin-top:9px; font-size:12px; color:var(--ink-2); line-height:1.5; cursor:pointer}
+.dl-opt input{margin-top:2px; flex-shrink:0; accent-color:var(--accent-solid)}
+.dl-opt-note{color:var(--muted); font-size:11.5px}
 .dl-row .tz-dl{flex:1; background:var(--ink); color:var(--panel); box-shadow:0 4px 14px rgba(0,0,0,.18); font-size:13px; padding:14px 8px}
 .dl-row .tz-dl .xl-ext{opacity:.6}
 
@@ -1101,6 +1107,13 @@ html,body{overflow-x:hidden}
 .ro-txt b{color:var(--accent-deep)}
 .ro-open{border:1px solid var(--accent);background:var(--accent-solid);color:var(--on-accent);font-family:var(--font);font-weight:700;font-size:13px;padding:8px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .ro-open:hover{filter:brightness(1.06)}
+.ro-cta{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.10)}
+.ro-cta .wrap{display:flex;align-items:center;gap:12px;padding:11px 24px;flex-wrap:wrap;justify-content:space-between}
+.ro-cta-t{font-size:13.5px;color:var(--ink-2);flex:1;min-width:180px}
+.ro-cta-t b{color:var(--accent-deep)}
+.ro-cta-b{border:none;background:var(--accent-solid);color:var(--on-accent);font-family:var(--font);font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;cursor:pointer;white-space:nowrap;box-shadow:0 3px 12px rgba(143,98,32,.3)}
+.ro-cta-b:hover{filter:brightness(1.07)}
+@media(max-width:520px){ .ro-cta .wrap{justify-content:center} .ro-cta-b{width:100%} }
 body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #srcBtn,body.mt-ro #chkBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
 
@@ -1117,6 +1130,8 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .ob-role .ob-d{font-size:12px;color:var(--ink-3);line-height:1.4}
 .ob-skip{border:none;background:none;color:var(--muted);font-family:var(--font);font-size:13px;cursor:pointer;padding:6px 12px;border-radius:8px}
 .ob-skip:hover{color:var(--ink-2);background:var(--line-soft)}
+.ob-trust{margin:10px 0 0;font-size:11.5px;color:var(--muted);text-align:center}
+.ob-trust a{color:var(--ink-3);font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
 @media(max-width:520px){ .ob-roles{grid-template-columns:1fr} .ob-h{font-size:22px} .ob-card{max-width:none} }
 /* 핵심 입력 진행률 */
 .inp-prog{display:flex;align-items:center;gap:8px;padding:0 20px 10px;font-size:11.5px;color:var(--ink-3)}
@@ -1212,6 +1227,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .cmp-verdict.mid{background:rgba(169,121,43,.1);color:var(--accent-deep)}
 /* 입력 참고 범위 */
 .f-ref{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+.f-src{color:var(--accent-deep);opacity:.85;cursor:help;border-bottom:1px dotted var(--line)}
 .f-range+.f-ref{margin-top:1px}
 .f-conv{display:block;font-size:11.5px;font-weight:700;color:var(--accent-deep);margin-top:3px;line-height:1.3}
 .f-conv+.f-ref{margin-top:1px}
@@ -1272,6 +1288,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <span class="ob-ic">🎓</span><b>학습 · 둘러보기</b><span class="ob-d">실무 재무모델 구조를 직접 만들며 익히기</span></button>
     </div>
     <button type="button" class="ob-skip" id="obSkip">그냥 둘러볼게요 →</button>
+    <p class="ob-trust">입력한 숫자는 서버로 전송되지 않습니다. <a href="/trust.html" target="_blank" rel="noopener">보안·개인정보 →</a></p>
   </div>
 </div>
 
@@ -1280,12 +1297,12 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
     <div class="wn-eyebrow">What's new · v3</div>
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
-    <p class="wn-lead">매입·분양·리파이낸싱 — 4개 딜 전부, 검증된 엑셀까지 이어집니다.</p>
+    <p class="wn-lead">4개 딜 전부, 검증된 엑셀까지 이어집니다.</p>
     <ul class="wn-list">
-      <li><span class="wn-ic">⬇️</span><div><b>스스로 검증하는 엑셀</b><span>13시트 모델의 검증 시트에 생성 시점 계산값이 함께 찍혀, 받은 사람도 파일 안에서 값이 변조 없이 일치하는지 PASS/FAIL로 확인할 수 있습니다.</span></div></li>
-      <li><span class="wn-ic">📑</span><div><b>IC 패키지 · 검토 메모 <span class="wn-tag">NEW</span></b><span>심의용 PPT 7장(민감도 히트맵 + 기본/보수/낙관 시나리오 표)과, 메일 본문에 그대로 붙이는 검토 메모 10줄 초안.</span></div></li>
-      <li><span class="wn-ic">🗂️</span><div><b>딜 관리 3종 <span class="wn-tag">NEW</span></b><span>딜 복제(원본 이력 보존), 버전 간 가정 diff(지난 보고 대비 변경점 표), 내 기본값(회사 표준 부대비·보수·대출 조건 저장).</span></div></li>
-      <li><span class="wn-ic">✓</span><div><b>판정 · 차환 갭 · 예시값 경고</b><span>IRR·DSCR 자동 판정에 만기 차환 갭 테스트와 보수 코너 한 줄, 예시값이 남은 채 산출물을 만들면 경고. 지표 옆 ? 는 <a href="/guide.html">용어사전</a>으로.</span></div></li>
+      <li><span class="wn-ic">⬇️</span><div><b>스스로 검증하는 엑셀</b><span>생성 시점 값이 파일에 함께 찍혀, 받은 사람도 PASS/FAIL로 확인합니다.</span></div></li>
+      <li><span class="wn-ic">📑</span><div><b>IC 패키지 · 검토 메모 <span class="wn-tag">NEW</span></b><span>심의용 PPT 7장 + 메일에 그대로 붙이는 검토 메모 10줄.</span></div></li>
+      <li><span class="wn-ic">🗂️</span><div><b>딜 관리 3종 <span class="wn-tag">NEW</span></b><span>딜 복제 · 버전 간 가정 diff · 내 기본값(회사 표준 조건).</span></div></li>
+      <li><span class="wn-ic">✓</span><div><b>판정 · 차환 갭 · 예시값 경고</b><span>자동 판정에 차환 갭·보수 한 줄, 예시값이 남아 있으면 경고.</span></div></li>
     </ul>
     <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
@@ -1462,6 +1479,12 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
     <button class="ro-open" id="roOpen" type="button">내 모델로 열기 →</button>
   </div>
 </div>
+<div class="ro-cta" id="roCta" hidden>
+  <div class="wrap">
+    <span class="ro-cta-t">이 모델이 마음에 드시나요? <b>내 딜로 새로 만들 수 있습니다.</b></span>
+    <button class="ro-cta-b" id="roCtaBtn" type="button">이 가정으로 내 딜 시작하기 →</button>
+  </div>
+</div>
 
 <section class="builder">
   <div class="wrap grid2">
@@ -1507,6 +1530,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
           <button class="xl-dl tz-dl" id="tzDownload" type="button" title="현재 입력값으로 1장짜리 간이 검토 보고서(PPT 양식)를 만듭니다">📄 원페이지 티저 <span class="xl-ext">.pptx</span></button>
           <button class="xl-dl tz-dl" id="icDownload" type="button" title="표지·투자요약·핵심가정·현금흐름·민감도·리스크점검 6장 — 화면 결과 그대로, 재계산 없음">📑 IC 패키지 6장 <span class="xl-ext">.pptx</span></button>
         </div>
+        <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> — 받는 사람이 클릭·스캔 한 번으로 라이브 모델에 이어집니다. 링크에는 화면의 가정 수치가 담기며(임차인 실명은 자동 마스킹) 파일 자체와 같은 정보입니다.</span></label>
       </div>
       <div class="metrics" id="metricsCard" hidden>
         <div class="mx-head"><span class="mx-t">즉시 점검 <span class="mx-sub">입력값 기반</span></span><span class="mx-flag" id="mxFlag"></span></div>
@@ -1618,7 +1642,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       </div>
       <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-07-02</p>
       <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
-      <p class="foot-guide"><a href="/guide.html">부동산 금융 용어사전</a> · <a href="/howto.html">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a></p>
+      <p class="foot-guide"><a href="/guide.html">부동산 금융 용어사전</a> · <a href="/howto.html">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a> · <a href="/trust.html">보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다</a> · <a href="/verification.html">파리티 검증 — 화면=엑셀 재현 증거</a></p>
     </div>
   </div>
 </footer>
@@ -1891,6 +1915,10 @@ const QUICK_FIELDS={
 
 let cur="office";
 let state={};
+/* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
+   전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
+window.MT_BUILD='2026-07-09·d3a7f33192';
+function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 /* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
  * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
  * "사용자가 일부를 수정했는데(혼합 상태) 예시 키가 남아 있으면" 칩·산출물 확인·꼬리표로 알린다. */
@@ -1947,16 +1975,25 @@ let refiState={};
 let depth="standard";
 
 /* ---------- 딜 탭 ---------- */
+/* 수요 가짜 문 — 아직 안 만든 딜 유형을 "준비 중"으로 보여주고, 클릭 시 딜 유형명만 익명 집계.
+   어떤 딜 유형 수요가 실재하는지 데이터로 보고 커버리지 확장 여부를 정하기 위함(수치·PII 없음). */
+const DEAL_SOON=[{k:'hotel',label:'호텔'},{k:'retail',label:'리테일'},{k:'rental',label:'임대주택'},{k:'datacenter',label:'데이터센터'}];
 function renderTabs(){
-  $("dealTabs").innerHTML=Object.entries(DEALS).map(([k,d])=>
+  const real=Object.entries(DEALS).map(([k,d])=>
     `<button class="deal-tab ${k===cur?'on':''}" data-k="${k}">${d.label}${d.base?'<span class="badge-base">기본</span>':''}${d.lite?'<span class="badge-lite" title="간이 체크 — 빠른 감 잡기용">간이</span>':''}</button>`
   ).join("");
-  $("dealTabs").querySelectorAll(".deal-tab").forEach(b=>b.addEventListener("click",()=>{ cur=b.dataset.k; fillExample(); }));
+  const soon=DEAL_SOON.map(x=>
+    `<button class="deal-tab deal-soon" data-want="${x.k}" title="준비 중 — 클릭하면 이 딜 유형에 관심 있다고 익명으로 알려집니다">${x.label}<span class="badge-soon">준비중</span></button>`
+  ).join("");
+  $("dealTabs").innerHTML=real+soon;
+  $("dealTabs").querySelectorAll(".deal-tab:not(.deal-soon)").forEach(b=>b.addEventListener("click",()=>{ cur=b.dataset.k; fillExample(); }));
   $("dtLabel").textContent=DEALS[cur].label;
 }
 
 /* ---------- 입력 폼 ---------- */
 // 핵심 입력 참고 범위 — 통상 실무 눈높이(참고용, 딜마다 다름). 호버 없이 바로 보이게
+/*__MKTREF_START__*/ /* data/market-ref.json 에서 tools/gen-marketref.js 로 생성 — 손대지 말고 JSON 을 고치세요 */
+const MARKET_REF_ASOF="2026.2Q", MARKET_REF_NOTE="공개 기준·업계 관행 참고치입니다. 개별 자산·입지·시점별로 다르며, 시세·감정평가액을 대체하지 않습니다.";
 const FIELD_REF={
   exitcap:"참고 4~6% (자산·입지별)",
   vacancy:"참고 오피스 3~8% · 물류 2~5%",
@@ -1976,33 +2013,41 @@ const FIELD_REF={
   dpct:"참고 계약금 10~20%",
   rpct:"참고 잔금 20~30%"
 };
-/* 시장 참고치 v2 — 딜 유형별 오버라이드 (없으면 위 공통값 사용). 수치는 통상 범위 참고용 샘플이며 시점·개별 자산별로 다릅니다. */
-const FIELD_REF_DEAL={
-  office:{
-    exitcap:"참고 서울 오피스 4.0~5.5% (코어 낮음·외곽 높음)",
-    rentpp:"참고 도심·강남 9~13만원 · 기타 권역 6~9만원",
-    campp:"참고 임대료의 35~45% 수준",
-    vacancy:"참고 서울 3~6% (권역·시점별)",
-    hold:"참고 5년 표준 (3~7년)",
-    depmult:"참고 월 임대료의 10~12개월치"
-  },
-  logistics:{
-    exitcap:"참고 수도권 물류 5~7% (저온 높음)",
-    rentpp:"참고 상온 3~4만원 · 저온 5~7만원",
-    campp:"참고 책임임대차면 0~1만원 수준",
-    vacancy:"참고 상온 2~6% · 저온 공급과잉 유의",
-    noig:"참고 0~2%/년",
-    hold:"참고 5년 표준 (3~7년)"
-  },
-  dev:{
-    exitcap:"참고 준공 후 안정화 기준 4.5~6.5%"
-  },
-  refi:{
-    oldrate:"참고 기존 선순위 4~7% (실행 시점별)",
-    noi:"참고 최근 12개월 실적 기준 권장"
-  }
+const FIELD_REF_META={
+  exitcap:{s:"감정평가·매매 관행",d:"2026.2Q"},
+  vacancy:{s:"권역 임대차 관행",d:"2026.2Q"},
+  noig:{s:"임대료 상승 관행",d:"2026.2Q"},
+  acqtax:{s:"지방세법 취득세율",d:"법정"},
+  opfee:{s:"자산운용 보수 관행",d:"2026"},
+  salefee:{s:"매각 자문 관행",d:"2026"},
+  depmult:{s:"상업용 임대차 관행",d:"2026"},
+  pfrate:{s:"PF 여신금리 관행(한국은행 기준금리 연동)",d:"2026.2Q"},
+  brate:{s:"브릿지 여신금리 관행",d:"2026.2Q"},
+  salespct:{s:"분양 판매비 관행",d:"2026"},
+  hugpct:{s:"HUG 분양보증 수수료",d:"2026"},
+  engpct:{s:"설계·감리비 관행",d:"2026"},
+  rsvpct:{s:"예비비 관행",d:"2026"},
+  taxpct:{s:"지방세법 취득세율",d:"법정"},
+  dscrmin:{s:"대주 커버넌트 관행",d:"2026"},
+  dpct:{s:"분양 계약 관행",d:"2026"},
+  rpct:{s:"분양 계약 관행",d:"2026"}
 };
+const FIELD_REF_DEAL={
+  office:{exitcap:"참고 서울 오피스 4.0~5.5% (코어 낮음·외곽 높음)", rentpp:"참고 도심·강남 9~13만원 · 기타 권역 6~9만원", campp:"참고 임대료의 35~45% 수준", vacancy:"참고 서울 3~6% (권역·시점별)", hold:"참고 5년 표준 (3~7년)", depmult:"참고 월 임대료의 10~12개월치"},
+  logistics:{exitcap:"참고 수도권 물류 5~7% (저온 높음)", rentpp:"참고 상온 3~4만원 · 저온 5~7만원", campp:"참고 책임임대차면 0~1만원 수준", vacancy:"참고 상온 2~6% · 저온 공급과잉 유의", noig:"참고 0~2%/년", hold:"참고 5년 표준 (3~7년)"},
+  dev:{exitcap:"참고 준공 후 안정화 기준 4.5~6.5%"},
+  refi:{oldrate:"참고 기존 선순위 4~7% (실행 시점별)", noi:"참고 최근 12개월 실적 기준 권장"}
+};
+const FIELD_REF_DEAL_META={
+  office:{exitcap:{s:"서울 오피스 매매 관행",d:"2026.2Q"}, rentpp:{s:"서울 오피스 임대 관행",d:"2026.2Q"}, campp:{s:"오피스 관리비 관행",d:"2026"}, vacancy:{s:"서울 오피스 공실 관행",d:"2026.2Q"}, hold:{s:"펀드·리츠 보유 관행",d:"2026"}, depmult:{s:"오피스 임대차 관행",d:"2026"}},
+  logistics:{exitcap:{s:"수도권 물류 매매 관행",d:"2026.2Q"}, rentpp:{s:"수도권 물류 임대 관행",d:"2026.2Q"}, campp:{s:"물류 임대차 관행",d:"2026"}, vacancy:{s:"수도권 물류 공실 관행",d:"2026.2Q"}, noig:{s:"물류 임대료 관행",d:"2026"}, hold:{s:"펀드·리츠 보유 관행",d:"2026"}},
+  dev:{exitcap:{s:"준공 자산 매매 관행",d:"2026.2Q"}},
+  refi:{oldrate:{s:"선순위 여신금리 관행",d:"2026.2Q"}, noi:{s:"대주 심사 관행",d:"2026"}}
+};
+/*__MKTREF_END__*/
 function fieldRef(k){ var d=FIELD_REF_DEAL[cur]; return (d&&d[k])||FIELD_REF[k]||''; }
+// 참고치 출처·기준일 (딜 오버라이드 우선). 표시용 — refRange 파싱은 fieldRef 텍스트만 사용
+function fieldRefMeta(k){ var dm=(typeof FIELD_REF_DEAL_META!=='undefined')?FIELD_REF_DEAL_META[cur]:null; var v=(dm&&dm[k])?dm[k]:((typeof FIELD_REF_META!=='undefined'&&FIELD_REF_META[k])?FIELD_REF_META[k]:null); return v||null; }
 function wonConv(v){ // 백만원 → 읽기 쉬운 억/조 표기
   if(!isFinite(v)||v<=0) return '';
   var e=v/100;
@@ -2038,7 +2083,7 @@ function fieldHtml(f){
     input=`<input id="${id}" data-k="${f.k}" ${it} ${vattr} placeholder="${f.ph||''}" />`;
   }
   const err=f.t==="num"?`<span class="err" id="err_${f.k}"></span>`:"";
-  const ref=(fieldRef(f.k)&&f.t==="num")?`<span class="f-ref">${fieldRef(f.k)}</span>`:"";
+  const ref=(fieldRef(f.k)&&f.t==="num")?`<span class="f-ref">${fieldRef(f.k)}${(function(){var mm=(typeof fieldRefMeta==='function')?fieldRefMeta(f.k):null;return mm?` <span class="f-src" title="출처: ${mm.s} · ${mm.d} 기준 · 참고치이며 개별 자산별로 다릅니다">· ${mm.d} · ${mm.s}</span>`:'';})()}</span>`:"";
   // 백만원 단위 필드: 입력 즉시 억/조 환산 표시 — 단위 착오(억을 그대로 입력) 방어
   const isWon=f.t==="num"&&/^백만원/.test(f.u||"");
   const conv=isWon?`<span class="f-conv" id="conv_${f.k}" hidden></span>`:"";
@@ -4235,6 +4280,54 @@ function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(c
 /* 하우스 기준(내 허들) — 판정·커버넌트·차환·대주 뷰가 통상값 대신 내 기준 사용 */
 function houseLoad(){ try{ return JSON.parse(localStorage.getItem('mt_house')||'{}')||{}; }catch(e){ return {}; } }
 function houseGet(k,d){ var h=houseLoad(); var v=parseFloat(h[k]); return isFinite(v)&&v>0?v:d; }
+function houseOn(){ return (houseGet('irr',0)>0||houseGet('dscr',0)>0||houseGet('ltv',0)>0); }
+// 산출물 표기용 팀 기준 라벨 — 팀명이 있으면 "OO팀 기준 v2", 없으면 "사내 기준"
+function houseName(){ var h=houseLoad(); var t=String(h.team||'').trim(); var v=String(h.ver||'').trim(); return (t||'사내')+(v?(' '+v):''); }
+function houseTag(){ if(!houseOn()) return ''; var h=houseLoad(); var d=String(h.at||'').trim(); return houseName()+' 기준 적용'+(d?(' · '+d):''); }
+// 팀 기준 배포 링크(#h=) — 회사 표준 파라미터만(허들·부대비율 등). 개별 딜 수치·임차인 정보 절대 불포함.
+function houseShareLink(){
+  var h=houseLoad(); var pay={h:h, at:new Date().toISOString().slice(0,10)};
+  try{ var md=JSON.parse(localStorage.getItem('mt_mydef')||'{}'); if(md&&Object.keys(md).length) pay.md=md; }catch(e){}
+  var enc=''; try{ enc=mtLZ.compress(JSON.stringify(pay)); }catch(e2){}
+  if(!enc) return '';
+  return location.origin+location.pathname+'#h='+enc;
+}
+// 팀 기준 설치 미리보기 — 무엇이 설치되는지 표로 보여주고, 적용은 사용자 클릭으로만(자동 적용 금지)
+function houseImportPreview(pay){
+  if(!pay||typeof pay!=='object') return;
+  var h=pay.h||{}, md=pay.md||null;
+  function row(l,v){ return v?('<tr><td>'+esc(l)+'</td><td><b>'+esc(v)+'</b></td></tr>'):''; }
+  var team=String(h.team||'').trim(), ver=String(h.ver||'').trim();
+  var mdN=md?Object.keys(md).length:0;
+  var ov2=document.createElement('div'); ov2.className='imx-ov';
+  ov2.innerHTML='<div class="imx"><h3>🎯 팀 기준 설치</h3>'
+    +'<div class="imx-sub">'+(team?('<b>'+esc(team)+(ver?(' '+esc(ver)):'')+'</b>의 '):'')+'심사 기준을 이 브라우저에 설치합니다. 자동 판정·커버넌트·차환·대주 뷰와 산출물 표기에 반영됩니다. <b>지금 설정을 덮어씁니다.</b></div>'
+    +'<table class="imx-tbl">'
+    +row('목표 레버드 IRR', h.irr?(h.irr+'%'):'')
+    +row('최소 DSCR', h.dscr?(h.dscr+'x'):'')
+    +row('최대 내재 LTV', h.ltv?(h.ltv+'%'):'')
+    +row('팀 표준 기본값(부대비·보수·대출)', mdN?(mdN+'개 딜 유형'):'')
+    +row('기준일', pay.at||'')
+    +'</table>'
+    +'<div class="imx-act"><button type="button" data-hi="cancel">취소</button><button type="button" class="pri" data-hi="apply">이 기준 적용</button></div>'
+    +'<div class="imx-priv">회사 표준 파라미터(허들·부대비율 등)만 담깁니다 — 개별 딜 수치·임차인 정보는 포함되지 않습니다. 서버를 거치지 않고 링크 안에만 담겨 왔습니다.</div></div>';
+  document.body.appendChild(ov2); document.body.style.overflow='hidden';
+  function closeI(){ ov2.remove(); document.body.style.overflow=''; }
+  ov2.addEventListener('click',function(e){
+    if(e.target===ov2){ closeI(); return; }
+    var b=e.target.closest?e.target.closest('[data-hi]'):null; if(!b) return;
+    if(b.dataset.hi==='cancel'){ closeI(); return; }
+    if(b.dataset.hi==='apply'){
+      try{ localStorage.setItem('mt_house', JSON.stringify(h)); }catch(e2){}
+      if(md){ try{ var cur2=JSON.parse(localStorage.getItem('mt_mydef')||'{}')||{}; for(var k in md) cur2[k]=md[k]; localStorage.setItem('mt_mydef', JSON.stringify(cur2)); }catch(e3){} }
+      if(window.mtTrack) try{ mtTrack('house_apply'); }catch(e4){}
+      try{ history.replaceState(null,'',location.pathname); }catch(e5){}
+      toast(houseName()+' 기준을 적용했습니다 — 판정·산출물에 반영됩니다'); closeI();
+      try{ update(); }catch(e6){}
+    }
+  });
+}
+window.__mtHouseImport=houseImportPreview;
 function housePop(){
   var h=houseLoad();
   var ov2=document.createElement('div'); ov2.className='imx-ov';
@@ -4244,9 +4337,11 @@ function housePop(){
     +'<tr><td><b>목표 레버드 IRR</b> <span style="color:var(--muted);font-size:11px">%</span></td><td><input data-house="irr" inputmode="decimal" placeholder="8" value="'+esc(h.irr||'')+'"></td></tr>'
     +'<tr><td><b>최소 DSCR</b> <span style="color:var(--muted);font-size:11px">x</span></td><td><input data-house="dscr" inputmode="decimal" placeholder="1.2" value="'+esc(h.dscr||'')+'"></td></tr>'
     +'<tr><td><b>최대 내재 LTV</b> <span style="color:var(--muted);font-size:11px">%</span></td><td><input data-house="ltv" inputmode="decimal" placeholder="60" value="'+esc(h.ltv||'')+'"></td></tr>'
+    +'<tr><td><b>팀 이름</b> <span style="color:var(--muted);font-size:11px">산출물 표기·배포</span></td><td><input data-house="team" placeholder="예: 투자심사팀" value="'+esc(h.team||'')+'"></td></tr>'
+    +'<tr><td><b>기준 버전</b> <span style="color:var(--muted);font-size:11px">선택</span></td><td><input data-house="ver" placeholder="예: v2" value="'+esc(h.ver||'')+'"></td></tr>'
     +'</table>'
-    +'<div class="imx-act"><button type="button" data-hs="clear">기준 지우기 (통상값)</button><button type="button" class="pri" data-hs="save">저장</button></div>'
-    +'<div class="imx-priv">이 브라우저에만 저장됩니다 — 서버 전송 없음. 딜별로 다른 기준이 필요하면 커버넌트 표의 기준 입력을 쓰세요(딜별 값이 우선).</div></div>';
+    +'<div class="imx-act"><button type="button" data-hs="clear">기준 지우기 (통상값)</button><button type="button" data-hs="share">🔗 팀에 배포 (링크 복사)</button><button type="button" class="pri" data-hs="save">저장</button></div>'
+    +'<div class="imx-priv">이 브라우저에만 저장됩니다 — 서버 전송 없음. 「팀에 배포」는 회사 표준 파라미터(허들·부대비율 등)만 링크에 담아 복사합니다(개별 딜 수치·임차인 정보 없음). 받은 팀원은 미리보기 후 적용합니다.</div></div>';
   document.body.appendChild(ov2); document.body.style.overflow='hidden';
   function closeH(){ ov2.remove(); document.body.style.overflow=''; try{ update(); }catch(e){} }
   ov2.addEventListener('click',function(e){
@@ -4254,7 +4349,15 @@ function housePop(){
     var b=e.target.closest?e.target.closest('[data-hs]'):null; if(!b) return;
     if(b.dataset.hs==='clear'){ try{ localStorage.removeItem('mt_house'); }catch(e2){} toast('내 기준을 지웠습니다 — 통상값으로 판정'); closeH(); return; }
     var o={}; ov2.querySelectorAll('[data-house]').forEach(function(i2){ if(String(i2.value).trim()!=='') o[i2.dataset.house]=String(i2.value).trim(); });
+    o.at=new Date().toISOString().slice(0,10);
     try{ localStorage.setItem('mt_house', JSON.stringify(o)); }catch(e3){}
+    if(b.dataset.hs==='share'){
+      var link=houseShareLink();
+      if(!link){ toast('배포 링크 생성에 실패했습니다'); return; }
+      copyShare(link, (String(o.team||'').trim()||'팀')+' 기준');
+      if(window.mtTrack) try{ mtTrack('house_share'); }catch(e5){}
+      return;   // 모달 유지 — 팀명·버전 확인 후 계속
+    }
     toast('내 판정 기준 저장됨 — 판정·커버넌트·대주 뷰에 반영');
     if(window.mtTrack) try{ mtTrack('house_set'); }catch(e4){}
     closeH();
@@ -4272,14 +4375,14 @@ function dealVerdict(r){
     var parts=[], tone='good';
     var irr=raw.IRR;
     var hIrr=houseGet('irr',8)/100, hDscr=houseGet('dscr',1.2);
-    var hOn=(houseGet('irr',0)>0||houseGet('dscr',0)>0||houseGet('ltv',0)>0);
-    var hNm=hOn?'사내 기준 ':'', lead, dsAt=-1;
+    var hOn=houseOn();
+    var hNm=hOn?(houseName()+' 기준 '):'', lead, dsAt=-1;
     if(irr>=hIrr){ lead='IRR은 '+fp(irr)+'로 '+hNm+mfmt(hIrr*100,1)+'%는 넘습니다'; parts.push(lead+'.'); }
     else if(irr<hIrr-0.03){ lead='IRR이 '+fp(irr)+'에 그칩니다'; parts.push(lead+'. '+hNm+mfmt(hIrr*100,1)+'%까지 가려면 가격이나 조건을 다시 봐야 합니다.'); tone='warn'; }
     else { lead='IRR이 '+fp(irr)+'라 '+hNm+mfmt(hIrr*100,1)+'%에는 조금 못 미칩니다'; parts.push(lead+'.'); if(tone==='good') tone='mid'; }
     if(raw.minDSCR!=null&&isFinite(raw.minDSCR)){
       if(raw.minDSCR>=hDscr) parts.push('최소 DSCR는 '+fx(raw.minDSCR)+'라 상환 쪽은 무리가 없어 보입니다.');
-      else { parts.push('다만 최소 DSCR가 '+fx(raw.minDSCR)+'까지 내려갑니다. '+(hOn?('사내 기준 '+mfmt(hDscr,2)+'x에 못 미치는'):('대주들이 보통 보는 '+mfmt(hDscr,2)+'x에 걸릴 수 있는'))+' <b>수준입니다</b>.'); tone='warn'; }
+      else { parts.push('다만 최소 DSCR가 '+fx(raw.minDSCR)+'까지 내려갑니다. '+(hOn?(houseName()+' 기준 '+mfmt(hDscr,2)+'x에 못 미치는'):('대주들이 보통 보는 '+mfmt(hDscr,2)+'x에 걸릴 수 있는'))+' <b>수준입니다</b>.'); tone='warn'; }
     }
     var price=parseNum(state.price), noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null, ec=raw.exitCap;
     if(isFinite(price)&&price>0&&noi0!=null&&isFinite(ec)){
@@ -4717,11 +4820,19 @@ function sharePayload(){
 }
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
 window.__mtSnapForXlsx=function(){ try{ return encodeState()||null; }catch(e){ return null; } };
-function shareLink(readonly){
+// 채널 태그 정화 — 산출물 회수 링크가 붙이는 src 값은 화이트리스트 채널명만(수치·PII 불가)
+var SRC_CHANNELS={xlsx:1,ppt:1,png:1,qr:1,share:1,notes:1,team:1,hero:1};
+function srcTag(src){ src=String(src||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,8); return SRC_CHANNELS[src]?src:''; }
+function shareLink(readonly, src){
   var enc=encodeState();
   if(!enc){ toast("공유 링크 생성에 실패했습니다"); return; }
-  return location.origin+location.pathname+"#"+(readonly?"v":"e")+"="+enc;
+  var s=srcTag(src);
+  // enc(mtLZ)는 URL-safe 64자(A-Za-z0-9-_)만 — &·=·# 불포함이라 &src= 를 뒤에 붙여도 파싱 안전
+  return location.origin+location.pathname+"#"+(readonly?"v":"e")+"="+enc+(s?"&src="+s:"");
 }
+// 산출물 회수 링크 — 옵트인 체크박스(기본 켜짐). 산출물에 「이 모델 열기」 링크·QR을 넣을지.
+function recoverOn(){ try{ var c=document.getElementById('recoverChk'); return c?!!c.checked:true; }catch(e){ return true; } }
+function recoverUrl(src){ if(!recoverOn()) return null; try{ return shareLink(true, src)||null; }catch(e){ return null; } }
 function copyShare(url, label){
   var done=function(){ toast(label+" 링크가 복사되었습니다"); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(function(){ prompt("이 링크를 복사하세요:",url); }); }
@@ -5029,7 +5140,7 @@ function oneLineReport(){
   }
   var vd=null; try{ vd=dealVerdict(r); }catch(e){}
   var vTxt=''; if(vd){ var seg=String(vd.lead||vd.html).replace(/<[^>]+>/g,''); vTxt=' — '+(vd.tone==='warn'?'⚠ ':'✓ ')+seg; }
-  var url=shareLink(true)||'';
+  var url=shareLink(true,'share')||'';
   var exTag=(typeof exMixed==='function'&&exMixed())?' · (일부 가정은 예시값)':'';
   return '[모델터] '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+exTag+'\n'+url;
 }
@@ -5086,7 +5197,7 @@ function reviewMemo(){
   if(vd){
     L.push((vd.tone==='warn'?'⚠':'✓')+' 판정 — '+String(vd.noDs||vd.html).replace(/<[^>]+>/g,''));
   }
-  var url=shareLink(true)||'';
+  var url=shareLink(true,'share')||'';
   if(url){ L.push(''); L.push('결과 링크(읽기 전용): '+url); }
   L.push('');
   try{
@@ -5099,6 +5210,7 @@ function reviewMemo(){
   var exs=(typeof exRemaining==='function')?exRemaining():[];
   if(exs.length) L.push(exUserEdited?'※ 일부는 아직 예시 숫자입니다. 보내기 전에 실제 값인지 확인하세요.':'※ 아직 전부 예시 숫자입니다. 실제 값으로 바꾼 뒤에 돌리세요.');
   L.push('※ 입력 가정에 따른 추정치이며, 투자 권유가 아닌 정보 제공 목적입니다.');
+  if(mtBuild()) L.push('※ 생성 빌드 '+mtBuild()+' · 화면=엑셀 파리티 검증(재현: modelter.com/verification.html)');
   return L.join('\n');
 }
 /* 결과 요약 카드 PNG — 카톡에 이미지로 붙이는 1200×630 카드 (임차인 정보 미포함·고지 포함) */
@@ -5120,7 +5232,7 @@ function summaryCardPNG(){
   g.fillStyle='#fdfcf9'; g.fillRect(0,0,1200,630);
   g.fillStyle='#a9792b'; g.fillRect(0,0,1200,10);
   g.fillStyle='#8b8f98'; g.font='600 26px '+F;
-  g.fillText(DEALS[cur].label+' · '+new Date().toISOString().slice(0,10), 64, 96);
+  g.fillText(DEALS[cur].label+' · '+new Date().toISOString().slice(0,10)+(mtBuild()?'  ·  build '+mtBuild():''), 64, 96);
   g.fillStyle='#1b2230'; g.font='800 52px '+F;
   g.fillText(name, 64, 168, 1072);
   var tw=(1200-64*2-40*2)/3;
@@ -5132,14 +5244,30 @@ function summaryCardPNG(){
     g.fillStyle='#a9792b'; g.font='800 52px '+F;
     g.fillText(String(k.v), x+26, 350, tw-52);
   });
+  // 산출물 회수 QR — 스캔하면 이 모델(읽기 전용·임차인 마스킹)이 폰에서 열림 (옵트인·&src=png)
+  var _qok=false, _qurl=null; try{ _qurl=recoverUrl('png'); }catch(eQ0){}
+  if(_qurl && typeof window.__mtQR==='function'){
+    try{
+      var _q=null,_tt; for(_tt=5;_tt<=40;_tt++){ try{ var _qq=window.__mtQR(_tt,'M'); _qq.addData(_qurl,'Byte'); _qq.make(); _q=_qq; break; }catch(_eQ){} }
+      if(_q){
+        var _n=_q.getModuleCount(), _box=118, _sc=Math.max(1,Math.floor(_box/(_n+2))), _q0=_sc, _sz=_n*_sc+_q0*2, _qx=1136-_sz, _qy=428;
+        g.fillStyle='#ffffff'; g.fillRect(_qx,_qy,_sz,_sz);
+        g.fillStyle='#1b2230';
+        for(var _rr=0;_rr<_n;_rr++) for(var _cc=0;_cc<_n;_cc++) if(_q.isDark(_rr,_cc)) g.fillRect(_qx+_q0+_cc*_sc, _qy+_q0+_rr*_sc, _sc, _sc);
+        g.fillStyle='#8b8f98'; g.font='600 17px '+F; g.textAlign='center';
+        g.fillText('스캔 → 이 모델 열기', _qx+_sz/2, _qy+_sz+22); g.textAlign='left';
+        _qok=true;
+      }
+    }catch(eQ){}
+  }
+  var _maxW=_qok?968:1072;
   if(vTxt){ g.fillStyle=(vd&&vd.tone==='warn')?'#b4552d':'#2e7d4f'; g.font='700 30px '+F;
-    g.fillText((vd&&vd.tone==='warn'?'⚠ ':'✓ ')+vTxt, 64, 468, 1072); }
+    g.fillText((vd&&vd.tone==='warn'?'⚠ ':'✓ ')+vTxt, 64, 468, _maxW); }
   if(warn){ g.fillStyle='#b4552d'; g.font='600 24px '+F;
-    g.fillText('※ 일부는 아직 예시 숫자입니다 — 보내기 전에 실제 값인지 확인하세요', 64, 514, 1072); }
+    g.fillText('※ 일부는 아직 예시 숫자입니다 — 보내기 전에 실제 값인지 확인하세요', 64, 514, _maxW); }
   g.fillStyle='#8b8f98'; g.font='500 21px '+F;
   g.fillText('입력 가정에 따른 추정치 · 투자 권유가 아닌 정보 제공 목적 · 임차인 정보 미포함', 64, 572, 900);
-  g.fillStyle='#a9792b'; g.font='800 26px '+F;
-  g.fillText('modelter.com', 1010, 572);
+  if(!_qok){ g.fillStyle='#a9792b'; g.font='800 26px '+F; g.fillText('modelter.com', 1010, 572); }
   cv.toBlob(function(b){
     if(!b) return;
     var a=document.createElement('a'); a.href=URL.createObjectURL(b);
@@ -5211,7 +5339,7 @@ function shareInputs(){
     }
     var ro=o.dataset.ro==='1';
     if(typeof exConfirmOutput==='function'&&!exConfirmOutput('공유 링크')){ pop.remove(); return; }
-    var url=shareLink(ro); if(url) copyShare(url, ro?'결과(읽기 전용)':'편집용');
+    var url=shareLink(ro,'share'); if(url) copyShare(url, ro?'결과(읽기 전용)':'편집용');
     if(window.mtTrack) try{ mtTrack('share_link',{ro:ro?1:0}); }catch(e){}
     pop.remove();
   }); });
@@ -5228,6 +5356,14 @@ function applySharedPayload(p){
 }
 function tryRestoreFromURL(){
   var h=location.hash||'';
+  // 팀 기준 배포 링크 #h= — 딜 복원이 아니라 "기준 설치". 미리보기 모달만 띄우고 정상 로드는 그대로 진행(자동 적용 금지)
+  var mHouse=h.match(/[#&]h=([^&]+)/);
+  if(mHouse){
+    try{ var _hp=JSON.parse(mtLZ.decompress(mHouse[1]));
+      setTimeout(function(){ try{ houseImportPreview(_hp); }catch(e2){} }, 350);
+    }catch(eH){}
+    // return 하지 않음 — 아래 정상 딜 복원/로컬/예시 경로가 이어짐
+  }
   // 가이드 딥링크: #t=office|logistics|dev|refi (&view=lender) → 탭 전환 + 예시 + 빌더 스크롤
   var mT=h.match(/[#&]t=(office|logistics|dev|refi)/);
   if(mT){
@@ -5251,7 +5387,8 @@ function tryRestoreFromURL(){
 // 읽기 전용 모드: 입력을 보기만 가능하게 잠그고, 결과·민감도는 그대로. '내 모델로 열기'로 해제
 function enterReadonly(){
   window.__mtReadonly=true;
-  try{ document.body.classList.add('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=false; }catch(e){}
+  try{ document.body.classList.add('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=false;
+    var cta=document.getElementById('roCta'); if(cta) cta.hidden=false; }catch(e){}
   // 모바일 수신자: 입력 폼이 아니라 결과부터 보이게 (받은 사람은 결과가 목적)
   try{
     if(window.innerWidth<=760){
@@ -5262,6 +5399,7 @@ function enterReadonly(){
 window.__mtExitReadonly=function(){
   window.__mtReadonly=false;
   try{ document.body.classList.remove('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=true;
+    var cta=document.getElementById('roCta'); if(cta) cta.hidden=true;
     try{ history.replaceState(null,'',location.pathname); }catch(e2){} }catch(e){}
   try{ toast('편집 모드로 전환했습니다 — 이제 값을 바꿀 수 있습니다'); }catch(e3){}
 };
@@ -5301,7 +5439,13 @@ function initTheme(){
 }
 
 const shareBtn=$("shareBtn"); if(shareBtn) shareBtn.addEventListener("click",shareInputs);
-var _roOpen=$("roOpen"); if(_roOpen) _roOpen.addEventListener("click",function(){ if(window.__mtExitReadonly) window.__mtExitReadonly(); });
+var _roOpen=$("roOpen"); if(_roOpen) _roOpen.addEventListener("click",function(){ try{ if(window.mtTrack) mtTrack('recover_cta',{from:'banner'}); }catch(e){} if(window.__mtExitReadonly) window.__mtExitReadonly(); });
+var _roCta=$("roCtaBtn"); if(_roCta) _roCta.addEventListener("click",function(){
+  try{ if(window.mtTrack) mtTrack('recover_cta',{from:'cta'}); }catch(e){}
+  if(window.__mtExitReadonly) window.__mtExitReadonly();
+  try{ var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({block:'start',behavior:'smooth'}); }catch(e2){}
+  try{ toast('편집 모드입니다 — 이 가정을 바탕으로 값을 바꿔 내 딜을 만들어 보세요'); }catch(e3){}
+});
 const mailBtn=$("mailBtn"); if(mailBtn) mailBtn.addEventListener("click",mailPrompt);
 
 renderTabs();
@@ -5313,7 +5457,7 @@ if(!tryRestoreFromURL() && !tryRestoreLocal()) fillExample();
 /* 재방문자는 소개를 건너뛰고 빌더로 바로 (신규 방문 서사는 유지) */
 (function(){
   try{
-    if(/[#&][evdt]=/.test(location.hash||'')) return; // 공유·딥링크 복원 시엔 그대로
+    if(/[#&][evdth]=/.test(location.hash||'')) return; // 공유·딥링크 복원 시엔 그대로
     var seen=localStorage.getItem('mt_visited');
     localStorage.setItem('mt_visited','1');
     if(seen==='1'){
@@ -5430,7 +5574,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
 
   function buildSheetXml(sheet, xfMap, xfList){
-    var rows={};
+    var rows={}, links=[];
     sheet.cells.forEach(function(c){ var sr=splitRef(c.r); (rows[sr.row]=rows[sr.row]||[]).push(c); });
     var rowNums=Object.keys(rows).map(Number).sort(function(a,b){return a-b;});
     var maxC=2, body='';
@@ -5448,6 +5592,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         if('f' in c){ rowx+='<c r="'+c.r+'"'+sAttr+'><f>'+fixFormula(c.f)+'</f></c>'; }
         else if('n' in c){ rowx+='<c r="'+c.r+'"'+sAttr+'><v>'+c.n+'</v></c>'; }
         else { rowx+='<c r="'+c.r+'"'+sAttr+' t="inlineStr"><is><t xml:space="preserve">'+xmlesc(c.s||'')+'</t></is></c>'; }
+        if(c.link){ links.push({ref:c.r, target:String(c.link)}); }   // 외부 하이퍼링크(회수 링크) — 시트 rels로 연결
       });
       var ht=imp>=3?'21':(imp>=2?'18':null);
       body+='<row r="'+rn+'"'+(ht?' ht="'+ht+'" customHeight="1"':'')+'>'+rowx+'</row>';
@@ -5456,14 +5601,18 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var dim='A1:'+colLet(Math.max(maxC,2))+lastRow;
     var merges='';
     if(sheet.merges&&sheet.merges.length){ merges='<mergeCells count="'+sheet.merges.length+'">'+sheet.merges.map(function(m){return '<mergeCell ref="'+m+'"/>';}).join('')+'</mergeCells>'; }
-    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    // 하이퍼링크는 스키마상 mergeCells 뒤에 옴. rId는 시트 rels(rId1..)와 일치
+    var hyper='';
+    if(links.length){ hyper='<hyperlinks>'+links.map(function(l,i){return '<hyperlink ref="'+l.ref+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</hyperlinks>'; }
+    var xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
       '<dimension ref="'+dim+'"/>'+
       '<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>'+
       '<sheetFormatPr defaultRowHeight="15"/>'+
       colsXml(sheet)+
-      '<sheetData>'+body+'</sheetData>'+merges+
+      '<sheetData>'+body+'</sheetData>'+merges+hyper+
       '</worksheet>';
+    return {xml:xml, links:links};
   }
 
   function applyOverrides(tmpl, overrides){
@@ -5505,7 +5654,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       }
     }catch(eRS){}
     var xfList=[], xfMap={};
-    var sheetsXml=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
+    var sheetsMeta=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
+    var sheetsXml=sheetsMeta.map(function(m){return m.xml;});
     var stylesXml=buildStyles(xfList);
     var n=t.sheets.length, files=[], i;
     var ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
@@ -5524,7 +5674,15 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     wbrels+='<Relationship Id="rId'+(n+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>';
     files.push(['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+wbrels+'</Relationships>']);
     files.push(['xl/styles.xml',stylesXml]);
-    for(i=0;i<n;i++) files.push(['xl/worksheets/sheet'+(i+1)+'.xml',sheetsXml[i]]);
+    for(i=0;i<n;i++){
+      files.push(['xl/worksheets/sheet'+(i+1)+'.xml',sheetsXml[i]]);
+      var lk=sheetsMeta[i].links;
+      if(lk&&lk.length){   // 시트별 외부 하이퍼링크 rels (TargetMode=External)
+        var rel='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+          lk.map(function(l,j){return '<Relationship Id="rId'+(j+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="'+xmlesc(l.target)+'" TargetMode="External"/>';}).join('')+'</Relationships>';
+        files.push(['xl/worksheets/_rels/sheet'+(i+1)+'.xml.rels',rel]);
+      }
+    }
     return zipStore(files);
   }
 
@@ -6560,7 +6718,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
             _pv2({r:'B20',role:'lb',s:'Equity Multiple (총자기자본)'}); _pv2({r:'C20',role:'vf',n:_rS.EM,z:'mult'}); _pv2({r:'D20',role:'vr',f:'09_Return_Summary!E7',z:'mult'}); _pv2({r:'E20',role:'vr',f:'IF(ABS(C20-D20)<0.005,"PASS","FAIL")'}); _pv2({r:'F20',role:'da',s:'0.005x'});
             _pv2({r:'B21',role:'lb',s:'최소 DSCR'}); _pv2({r:'C21',role:'vf',n:_rS.minDSCR,z:'mult'}); _pv2({r:'D21',role:'vr',f:'09_Return_Summary!C13',z:'mult'}); _pv2({r:'E21',role:'vr',f:'IF(ABS(C21-D21)<0.005,"PASS","FAIL")'}); _pv2({r:'F21',role:'da',s:'0.005x'});
             _pv2({r:'B22',role:'lb',s:'순매각가 (부대비 차감)'}); _pv2({r:'C22',role:'vf',n:_rS.netSale,z:'num'}); _pv2({r:'D22',role:'vr',f:'06_Tax_Disposition!C15',z:'num'}); _pv2({r:'E22',role:'vr',f:'IF(ABS(C22-D22)<0.5,"PASS","FAIL")'}); _pv2({r:'F22',role:'da',s:'0.5백만'});
-            _pv2({r:'B23',role:'nw',s:'가정 셀을 수정하면 위 판정이 FAIL로 바뀝니다 — 원본(생성 시점)과 달라졌다는 표시입니다. 생성일 '+new Date().toISOString().slice(0,10)+' · 렌트롤 반영 화면과는 다를 수 있음(이 표는 가정 시트 기준)'});
+            _pv2({r:'B23',role:'nw',s:'가정 셀을 수정하면 위 판정이 FAIL로 바뀝니다 — 원본(생성 시점)과 달라졌다는 표시입니다. 생성일 '+new Date().toISOString().slice(0,10)+(mtBuild()?(' · 빌드 '+mtBuild()+' (재현성: modelter.com/verification.html)'):'')+' · 렌트롤 반영 화면과는 다를 수 있음(이 표는 가정 시트 기준)'});
           }
         }
       }catch(eSC){}
@@ -6572,6 +6730,28 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
           if(_b22&&_b22.s) _b22.s+=' · Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')))+' · 생성 '+new Date().toISOString().slice(0,10);
         }
       }catch(e3){}
+      // 팀 기준 표기 — 하우스 기준이 설정돼 있으면 표지에 "OO팀 기준 v2 적용" 자동 표기
+      try{
+        var _ht=(typeof houseTag==='function')?houseTag():'';
+        if(_ht){ var _cvh=null,i4; for(i4=0;i4<_TPL.sheets.length;i4++) if(_TPL.sheets[i4].name==='00_Cover'){ _cvh=_TPL.sheets[i4]; break; }
+          if(_cvh){ var _b2h=null,i5; for(i5=0;i5<_cvh.cells.length;i5++) if(_cvh.cells[i5].r==='B2'){ _b2h=_cvh.cells[i5]; break; }
+            if(_b2h&&_b2h.s) _b2h.s+=' · '+_ht; }
+        }
+      }catch(e3b){}
+      // 산출물 회수 링크 — 표지에 「이 모델 열기」 하이퍼링크(옵트인·마스킹·&src=xlsx). 받은 사람이 클릭 한 번으로 라이브 모델에 착지.
+      try{
+        var _rl=recoverUrl('xlsx');
+        if(_rl){
+          var _cov=null,_cvi; for(_cvi=0;_cvi<_TPL.sheets.length;_cvi++) if(_TPL.sheets[_cvi].name==='00_Cover'){_cov=_TPL.sheets[_cvi];break;}
+          if(_cov){
+            var _mr=0; _cov.cells.forEach(function(c){ var mm=/^[A-Z]+(\d+)$/.exec(c.r); if(mm){ var rn=+mm[1]; if(rn>_mr)_mr=rn; } });
+            var _lr=_mr+2;
+            _cov.cells.push({r:'B'+_lr, role:'se', s:'이 모델을 브라우저에서 열기'});
+            _cov.cells.push({r:'B'+(_lr+1), role:'lbb', s:'📱 modelter.com에서 이 모델 열기 →', link:_rl});
+            _cov.cells.push({r:'B'+(_lr+2), role:'da', s:'클릭하면 이 가정 그대로 라이브 모델이 열립니다(읽기 전용). 값을 바꾸려면 「내 모델로 열기」. 임차인 실명은 링크에서 자동 마스킹됩니다.'});
+          }
+        }
+      }catch(eRL){}
       var ext=leaseExtraSheets();
       var bytes = ext ? XLSXGEN.buildXlsx(_TPL, ov, ext.sheets, ext.ov)
                       : (function(){ var rr=rentRollSheet(); return XLSXGEN.buildXlsx(_TPL, ov, rr?[rr]:null); })();
@@ -6601,7 +6781,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var isDev=(typeof cur!=='undefined')&&cur==='dev'&&(typeof devResi==='function')&&devResi();
     var isRefi=(typeof cur!=='undefined')&&(cur==='refi');
     var b=$id('dlRow'), card=$id('simCard');
-    if(b){ var noRes=false; try{ noRes=card&&card.classList&&card.classList.contains&&card.classList.contains('noresult'); }catch(eN){} b.hidden=!((isOffice||isDev||isRefi)&&card&&!card.hidden&&!noRes); }
+    if(b){ var noRes=false; try{ noRes=card&&card.classList&&card.classList.contains&&card.classList.contains('noresult'); }catch(eN){} b.hidden=!((isOffice||isDev||isRefi)&&card&&!card.hidden&&!noRes);
+      var ro2=$id('recoverOpt'); if(ro2) ro2.hidden=b.hidden; }
     var xb=$id('xlDownload');
     if(xb) xb.innerHTML=isDev?'⬇ 분양수지 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>':(isRefi?'⬇ 리파이낸싱 비교 엑셀 받기 <span class="xl-ext">.xlsx</span>':'⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>');
     // 티저(PPT)는 매입 딜(오피스·물류) 전용
@@ -7053,7 +7234,9 @@ function buildIcPptx(){
     s.push(box(cm(0.9),cm(5.1),cm(30),cm(1.0),[{runs:[{t:'Investment Committee Package',sz:1300,b:1,color:C.acc2}]}]));
     s.push(box(cm(0.9),cm(6.0),cm(31),cm(2.7),[{runs:[{t:D.name,sz:4400,b:1,color:C.wh}]}]));
     s.push(box(cm(0.9),cm(8.9),cm(12),cm(0.95),[{runs:[{t:'  '+D.deal+'  ',sz:1150,b:1,color:C.wh}]}],{fill:C.acc,rounded:true,anchor:'ctr'}));
-    s.push(box(cm(13.3),cm(8.9),cm(12),cm(0.95),[{runs:[{t:D.date+' · 모델터에서 생성',sz:1100,color:C.cwh}]}],{anchor:'ctr'}));
+    s.push(box(cm(13.3),cm(8.9),cm(12),cm(0.95),[{runs:[{t:D.date+' · 모델터'+(typeof mtBuild==='function'&&mtBuild()?(' · 빌드 '+mtBuild()):''),sz:1100,color:C.cwh}]}],{anchor:'ctr'}));
+    var _ptag=(typeof houseTag==='function')?houseTag():'';
+    if(_ptag) s.push(box(cm(0.9),cm(10.0),cm(31),cm(0.7),[{runs:[{t:'✓ '+_ptag,sz:1050,b:1,color:C.acc2}]}]));
     // KPI 미리보기 타일 3개 (다크 톤)
     var pv=kps.slice(0,3);
     pv.forEach(function(k,i){
@@ -7278,11 +7461,12 @@ function buildIcPptx(){
       s.push(box(cm(0.9),cm(y),cm(30),cm(1),[{runs:[{t:'자동 점검에서 발견된 경고가 없습니다.',sz:1100,color:C.green}]}]));
       y+=1.2;
     }
-    s.push(box(cm(0.9),cm(Math.max(y+0.4,12.9)),cm(32),cm(3.9),[
+    s.push(box(cm(0.9),cm(Math.max(y+0.4,12.6)),cm(32),cm(4.3),[
       {runs:[{t:'방법론 · 신뢰성',sz:1100,b:1,color:C.ink}]},
       {runs:[{t:'· 본 패키지의 모든 수치는 modelter.com 화면과 동일한 계산 엔진에서 나왔으며, 엑셀 다운로드와도 같은 계산식입니다(파리티 검증).',sz:1000,color:C.mut}],spcB:400},
       {runs:[{t:'· 딜 데이터는 서버에 저장·전송되지 않고 브라우저 안에서만 계산됩니다.',sz:1000,color:C.mut}],spcB:200},
-      {runs:[{t:'· 수치는 입력 가정 기반 추정치로, 감정평가·실사 결과를 대체하지 않습니다.',sz:1000,color:C.mut}],spcB:200}
+      {runs:[{t:'· 수치는 입력 가정 기반 추정치로, 감정평가·실사 결과를 대체하지 않습니다.',sz:1000,color:C.mut}],spcB:200},
+      {runs:[{t:'▶ 이 모델을 바로 열어 보기: ',sz:1000,b:1,color:C.acc},{t:'modelter.com',sz:1000,b:1,color:C.acc2},{t:'  —  휴대폰은 요약 카드(PNG)의 QR을 스캔하면 이 가정 그대로 열립니다. 엑셀 표지에도 「이 모델 열기」 링크가 있습니다.',sz:1000,color:C.mut}],spcB:300}
     ],{fill:C.bg,line:C.line,rounded:true}));
     slides.push(slideXml(s));
   })();
@@ -10247,7 +10431,7 @@ var qrcode = function() {
 })();
 (function(){
   function qrPop(){
-    var url=null; try{ url=shareLink(false); }catch(e){}
+    var url=null; try{ url=shareLink(false,'qr'); }catch(e){}
     if(!url){ toast('공유 링크를 만들 수 없습니다 — 핵심 입력을 먼저 채워주세요'); return; }
     if(typeof window.__mtQR!=='function'){ toast('QR 모듈을 불러오지 못했습니다'); return; }
     var qr=null, t;
@@ -10612,7 +10796,7 @@ var qrcode = function() {
       +'<div class="imx-err"></div>'
       +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" id="imxGo" data-im="go">추출하기</button></div>'
       +'</div>'
-      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 과금되며 통상 IM 1건 추출에 수십 원 수준입니다.</div>'
+      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 과금되며 통상 IM 1건 추출에 수십 원 수준입니다. <a href="/trust.html" target="_blank" rel="noopener">데이터 흐름·보안 문서 →</a></div>'
       +'</div>';
     document.body.appendChild(ov); document.body.style.overflow='hidden';
     ov.addEventListener('click',function(e){
@@ -10782,7 +10966,7 @@ var qrcode = function() {
   var sk=document.getElementById('obSkip'); if(sk) sk.addEventListener('click',function(){ markOnboarded(); close(); if(window.mtTrack) try{ mtTrack('onboard',{role:'skip'}); }catch(e){} });
   ov.addEventListener('click',function(e){ if(e.target===ov){ markOnboarded(); close(); } });
   // 첫 방문에만 노출 (공유 링크 복원 시엔 건너뜀). 노출하면 이 세션 What's new는 억제
-  if(!onboarded() && !/[#&][evdt]=/.test(location.hash||'')){
+  if(!onboarded() && !/[#&][evdth]=/.test(location.hash||'')){
     window.__mtOnboarding=true;
     ov.hidden=false; document.body.style.overflow='hidden';
   }
@@ -10802,7 +10986,7 @@ var qrcode = function() {
   // 첫 노출: 오늘 그만보기 상태가 아니면 배너 표시 + (이번 세션 처음이면) 팝업 자동
   if(!snoozedToday()){
     if(bar) bar.hidden=false;
-    var deepLink=/[#&][evdt]=/.test(location.hash||'');   // 공유·가이드 딥링크 진입은 목적지 우선 — 팝업으로 막지 않음
+    var deepLink=/[#&][evdth]=/.test(location.hash||'');   // 공유·가이드 딥링크 진입은 목적지 우선 — 팝업으로 막지 않음
     if(ov && !seenSession() && !window.__mtOnboarding && !deepLink) openWN();   // 첫 방문 온보딩·딥링크와 이중 노출 방지
   }
   var more=document.getElementById('annMore'); if(more) more.addEventListener('click',openWN);
@@ -10927,6 +11111,8 @@ var qrcode = function() {
         depth:(typeof depth!=='undefined'?depth:''),
         rr:!!(window.rrModel&&window.rrModel.on),
         feats:featSnapshot() };
+      var _s=''; try{ _s=sessionStorage.getItem('mt_src')||''; }catch(_e){}
+      if(_s) b.src=_s;   // 채널 어트리뷰션 — 이 탭 세션 동안 착지 채널을 모든 이벤트에 부착(퍼널 채널 분해용)
       if(extra){ for(var k in extra) b[k]=extra[k]; }
       var body=JSON.stringify(b);
       if(navigator.sendBeacon){ navigator.sendBeacon('/e', body); }
@@ -10952,10 +11138,19 @@ var qrcode = function() {
       }, 25000);
     }catch(e3){}
   };
+  // 채널 어트리뷰션 — 착지 URL의 src= 태그(공유·산출물 회수·검색 착지가 부착)를 이 탭 세션 동안 유지.
+  //  sessionStorage = 탭을 닫으면 소멸(교차세션 추적 아님), 값은 채널명 화이트리스트뿐(수치·PII 없음).
+  var _freshSrc='';
+  try{
+    var _sm=(location.search+location.hash).match(/[?#&]src=([A-Za-z0-9_]{1,8})/);
+    if(_sm){ _freshSrc=_sm[1]; sessionStorage.setItem('mt_src', _freshSrc); }
+  }catch(_e){}
   track('session');
+  if(_freshSrc){ try{ track('landing'); }catch(_e){} }   // src 태그를 달고 들어온 유입 1건
   document.addEventListener('click', function(e){
     var t=e.target; if(!t||!t.closest) return;
     var el;
+    if((el=t.closest('.deal-soon'))){ track('deal_want',{deal:(el.dataset&&el.dataset.want)||''}); if(typeof toast==='function') toast('관심 감사합니다 — 수요가 모이면 이 딜 유형을 먼저 만들겠습니다'); return; }
     if((el=t.closest('.deal-tab'))){ track('deal_select',{deal:(el.dataset&&el.dataset.k)||''}); return; }
     if(t.closest('#fillExample')){ track('example_fill'); return; }
     if(t.closest('#fillStd')){ track('fill_std'); return; }

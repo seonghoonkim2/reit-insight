@@ -67,11 +67,25 @@
 ## 3. 품질 게이트 (매 배포)
 
 ```bash
-node tools/modelter-ci-check.js   # 마커 190+ · 헤드리스 4딜 실행 · 성능 예산
+node tools/modelter-ci-check.js   # 마커 200+ · 헤드리스 4딜 실행 · 성능 예산 · 신뢰/회수/팀기준/착지/재현성 게이트
 node tools/qa/smoke.js            # 실브라우저 25검사 (위저드·IC·BYOK·성능 가드)
 node tools/parity/gen-xlsx.js <딜> && python3 tools/parity/check.py <딜>   # 계산·엑셀 변경 시
 grep -c "__mtCalc" dart-search/web/modelter/index.html   # 0이어야 함
 ```
+
+**릴리스(배포) 마무리 — 재현성 스탬프 (E6):** 모든 편집·cp 를 끝낸 뒤 마지막에.
+"빌드 없음" 원칙과 충돌하지 않는 **커밋 타임 치환**(런타임 빌드 아님).
+
+```bash
+node tools/stamp-build.js         # index.html MT_BUILD → 날짜·콘텐츠해시 치환(배포+캐노니컬), data/build.json 기록
+node tools/gen-verification.js    # 4딜 파리티 재실행 → verification.html 공표. 파리티 FAIL 시 exit 1(배포 차단)
+node tools/gen-pages.js           # sitemap 갱신(verification 포함)
+node tools/modelter-ci-check.js   # 스탬프 무결성·게이트 재확인
+```
+
+정적 검색 착지 페이지를 고쳤으면 `node tools/gen-pages.js` 재생성 후 커밋(CI 가 최신성 강제).
+시장 참고치를 고쳤으면 `data/market-ref.json` 만 편집 → `node tools/gen-marketref.js` 로 index.html 인라인 재생성(런타임 fetch 없음, CI 가 일치 강제).
+분기 시장 노트는 **분기 1회**: `data/market-ref.json` 갱신 후 `node tools/gen-notes.js` → `node tools/gen-pages.js`(sitemap). 노트의 사전 입력 링크는 앱 mtLZ·EXAMPLES 를 추출해 만들어 브라우저와 100% 호환(CI 가 디코드·최신성 강제). 격주 발행·대량 배포 금지(컴플라이언스 확인 전).
 
 ## 4. 로드맵 현황
 
@@ -116,10 +130,41 @@ grep -c "__mtCalc" dart-search/web/modelter/index.html   # 0이어야 함
 **32건 백로그 전체 완료.** 차기 6개월 전략·에픽 실행 명세는 → **`docs/STRATEGY-NEXT.md`** (관점 5종 패널→심사→종합→코드 실증).
 방향: '만들기'에서 '발견·허가·전파'로 — 신뢰 센터·산출물 회수 루프·팀 기준 배포·검색 착지·채널 어트리뷰션. 착수 순서는 그 문서 4장.
 
+**E1~E8 8개 에픽 전부 완료(2026-07-09).** 각 에픽 브라우저 QA + CI 게이트 + (해당 시)파리티 재검증 통과:
+- E1 신뢰 센터 `/trust` — /e 필드 ↔ trust 표 CI 게이트
+- E5 채널 어트리뷰션 — `src` 태그·`deal_want` 가짜 문·`--attribution`
+- E2 산출물 회수 루프 — 엑셀 하이퍼링크·PNG QR·착지 CTA·`&src=` 태그
+- E4 팀 기준 배포 `#h=` — 내보내기·미리보기·적용·4산출물 표기
+- E3 검색 착지 28면 — `tools/gen-pages.js`(용어 24·계산기 4)
+- E6 재현성 스탬프 + `/verification` — 빌드 스탬프·파리티 공표·배포 게이트
+- E7 참고치 v3 — `data/market-ref.json` 출처·기준일·인라인
+- E8 분기 시장 노트 — `tools/gen-notes.js`(사전 입력 `#v=&src=notes`)
+
 세부 우선순위는 계기판 실사용 데이터(`node tools/modelter-ae.js --days 7`)로 조정한다 — 신규 이벤트: im_quick, memo_copy, png_card, pipeline_copy, inquiry_copy, ws_diff, ws_status,
 mydef_*, adj_open, xlsx_restore, src_tag, house_set, qr_open, coach_ok.
 
-## 5. 불변 원칙 (CLAUDE.md와 동일 — 완화 금지)
+## 5. 획득·채널 월간 리뷰 루틴 (E5 — 시간 배분의 데이터화)
+
+1인 운영이므로 "어디에 시간을 쓸지"를 감이 아니라 데이터로 정한다. 월 1회, 아래 한 줄을 돌린다:
+
+```bash
+CF_ACCOUNT_ID=xxxx CF_API_TOKEN=yyyy node tools/modelter-ae.js --days 30 --attribution --snapshot
+git add data/ae-snapshots && git commit -m "계기판 월간 스냅샷"   # AE 90일 보존 극복 → 영구 추세
+node tools/modelter-report.js   # data/dashboard.html 갱신(로컬 확인용, 커밋 안 함)
+```
+
+**무엇을 보고 무엇을 정하나 (채널 → 산출물 전환 기준)**
+
+| 신호 | 본다 | 결정 |
+|---|---|---|
+| `--attribution` 채널(src)별 퍼널 | 어느 링크(`src=xlsx`·`notes`·`hero` 등)가 방문→산출물까지 가나 | 전환 높은 채널에 시간 집중, 낮은 채널(E2·E3·E8 산출물)은 문구·CTA 교체 또는 중단 |
+| 유입 호스트별 퍼널 | 검색·직접·특정 사이트 중 실사용 채널 | E3(검색 착지) 지속·확대 여부 |
+| `deal_want` 딜 유형 분포 | 준비 중 타일에서 어떤 유형 수요가 실재하나 | 특정 유형 수요 누적 시에만 그 딜 커버리지 착수(데이터 전 선착수 금지) |
+| 모바일 비중·이탈 | 기기별 세션·전환 | 모바일 이탈 확인 시에만 성능 투자(아키텍처 정책 재검토 트리거) |
+
+**src 태그 규약:** 산출물 회수 링크·검색 착지·노트 CTA가 `#…&src=<채널>` 를 붙인다(영문·숫자 8자, 화이트리스트). `xlsx`·`ppt`·`png`·`qr`·`notes`·`hero`·`team` 등. **채널명뿐 — 수치·PII 절대 금지**(worker.js 정화 + trust.html 표기 + CI 게이트로 3중 강제).
+
+## 6. 불변 원칙 (CLAUDE.md와 동일 — 완화 금지)
 
 딜 데이터 서버 전송 금지 · 임차인명 마스킹 · `__mtCalc` 훅 배포 금지 · What's new 라벨 v3 고정 ·
-"투자 권유 아님" 문구 유지 · 숫자 예시는 샘플.
+"투자 권유 아님" 문구 유지 · 숫자 예시는 샘플 · **채널 어트리뷰션 src·deal_want 는 채널명/딜유형명만**.

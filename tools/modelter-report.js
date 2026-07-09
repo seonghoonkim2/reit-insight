@@ -79,6 +79,15 @@ function mergeFeat(featMap) {
 }
 function dealLabelMap(deals) { const o = {}; for (const k in deals) o[DEAL_LABEL[k] || k] = deals[k]; return o; }
 
+// 채널별 퍼널 표 (attribution.bySrc / byRef → 방문·결과·산출·전환)
+function attrTable(byGroup, emptyMsg) {
+  const groups = Object.entries(byGroup || {}).sort((a, b) => (b[1].session || 0) - (a[1].session || 0)).slice(0, 12);
+  if (!groups.length) return `<p class="empty">${esc(emptyMsg || '(데이터 없음)')}</p>`;
+  return `<table class="snt"><tr><th>채널</th><th>방문</th><th>결과</th><th>산출</th><th>전환</th></tr>` +
+    groups.map(([k, f]) => `<tr><td>${esc(k)}</td><td>${num(f.session)}</td><td>${num(f.computed)}</td><td>${num(f.output)}</td><td>${pct(f.output, f.session)}</td></tr>`).join('') +
+    `</table>`;
+}
+
 function build(snaps) {
   const genAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
   if (!snaps.length) {
@@ -160,8 +169,15 @@ function build(snaps) {
 
   <div class="row2">
     <div class="card"><h2>유입 경로 <span>ref 호스트</span></h2>${barList(last.ref || {}, { top: 8 })}
-      <p class="note">대부분 <code>modelter.com</code>이면 내부 이동입니다. 최초 유입(검색·카톡 등)을 보려면 공유 링크의 <code>src</code> 태그(전략 E5)가 필요합니다.</p></div>
+      <p class="note">대부분 <code>modelter.com</code>이면 내부 이동입니다. 링크에 붙은 <code>src</code> 태그로 최초 유입 채널을 봅니다(아래 채널 카드).</p></div>
     <div class="card"><h2>활성 기능 채택 <span>feats</span></h2>${barList(mergeFeat(last.feats || {}), {})}</div>
+  </div>
+
+  <div class="row2">
+    <div class="card"><h2>채널 <span>src 태그</span></h2>${barList(last.src || {}, { top: 10 })}
+      <p class="note">산출물 회수 링크·검색 착지·노트 CTA가 붙인 채널명. 채널명뿐(수치·PII 없음).</p></div>
+    <div class="card"><h2>채널별 퍼널 <span>src → 산출물</span></h2>${attrTable((last.attribution || {}).bySrc, '아직 src 태그 유입이 없습니다. 산출물 회수 링크(E2)·노트(E8)가 채널을 붙이기 시작하면 채워집니다.')}
+      <p class="note">어느 링크가 방문→산출물까지 가나. 전환 높은 채널에 시간을 집중.</p></div>
   </div>
 
   <div class="card sn"><h2>스냅샷 이력 <span>${snaps.length}개</span></h2>

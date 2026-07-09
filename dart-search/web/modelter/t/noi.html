@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NOI 뜻·계산식·실무 예시 | 모델터</title>
+<meta name="description" content="NOI(순영업이익 · Net Operating Income)의 정의와 계산식, 상업용 부동산 실무 예시. 자산가치 환원과 DSCR이 모두 이 값에서 출발해, 운영비 가정 하나가 밸류에이션 전체를 흔듭니다. 모델터에서 오피스 딜로 바로 계산해 보세요." />
+<link rel="canonical" href="https://modelter.com/t/noi.html" />
+<meta name="author" content="김성훈 (Seonghoon Kim)" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="NOI 뜻·계산식·실무 예시 | 모델터" />
+<meta property="og:description" content="NOI(순영업이익 · Net Operating Income)의 정의와 계산식, 상업용 부동산 실무 예시. 자산가치 환원과 DSCR이 모두 이 값에서 출발해, 운영비 가정 하나가 밸류에이션 전체를 흔듭니다. 모델터에서 오피스 딜로 바로 계산해 보세요." />
+<meta property="og:url" content="https://modelter.com/t/noi.html" />
+<meta property="og:image" content="https://modelter.com/og.png" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"DefinedTerm","@id":"https://modelter.com/t/noi.html#term","name":"NOI","alternateName":"순영업이익 · Net Operating Income","description":"NOI = 유효총수입(EGI) − 운영비(OPEX) 임대료·관리비 등 자산이 벌어들이는 수입에서 인건비·수선·보험·재산세 등 운영비를 뺀 순수 영업이익입니다. 대출 이자·감가상각·법인세는 아직 빼기 전 단계로, 가치평가(Cap)와 DSCR의 출발점입니다.","inDefinedTermSet":"https://modelter.com/guide.html"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"용어사전","item":"https://modelter.com/guide.html"},{"@type":"ListItem","position":3,"name":"NOI","item":"https://modelter.com/t/noi.html"}]}]}
+</script>
+<style>:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--green:#2e7d4f;--red:#b4552d;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f;--green:#57b07f;--red:#d98a5f}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 22px}
+header{border-bottom:1px solid var(--line-soft);background:var(--panel)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 22px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;color:var(--ink);text-decoration:none}
+.logo .m{width:26px;height:26px;border-radius:7px;background:var(--accent);display:inline-block}
+.back{font-size:13.5px;color:var(--accent-deep);text-decoration:none;font-weight:600;border:1px solid var(--line);padding:7px 14px;border-radius:9px}
+.back:hover{border-color:var(--accent)}
+.crumb{font-size:12.5px;color:var(--muted);padding:16px 0 0}
+.crumb a{color:var(--ink-3);text-decoration:none}.crumb a:hover{color:var(--accent-deep)}
+.hero{padding:10px 0 4px}
+.eyebrow{font-size:12px;font-weight:700;color:var(--accent-deep);letter-spacing:.02em;text-transform:uppercase}
+h1{font-size:29px;font-weight:800;line-height:1.25;margin:8px 0 6px}
+h1 .en{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-top:4px}
+.lead{font-size:16px;color:var(--ink-2);line-height:1.65;margin:10px 0}
+section{padding:22px 0;border-top:1px solid var(--line-soft)}
+h2{font-size:18px;font-weight:800;margin-bottom:8px}
+p{margin-bottom:11px;color:var(--ink-2)}
+.formula{display:inline-block;font-family:var(--mono);font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 13px;color:var(--accent-deep);margin:4px 0 10px}
+.tip{font-size:14px;color:var(--ink-3);background:var(--panel);border-left:3px solid var(--accent);border-radius:0 9px 9px 0;padding:11px 15px;margin:8px 0}
+.ex{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 18px;margin:6px 0}
+.ex h2{font-size:14px;color:var(--accent-deep);margin-bottom:6px}
+.ex p{margin:0;color:var(--ink-2)}
+.cta{display:block;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;padding:14px 18px;border-radius:12px;font-size:15.5px;text-align:center;margin:16px 0 4px}
+.cta:hover{filter:brightness(1.06)}
+.cta .sub{display:block;font-size:12.5px;font-weight:500;opacity:.9;margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chips a{font-size:13px;color:var(--ink-2);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 13px;text-decoration:none}
+.chips a:hover{border-color:var(--accent);color:var(--accent-deep)}
+.io{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0}
+@media(max-width:560px){.io{grid-template-columns:1fr}}
+.io .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.io h2{font-size:14px;margin-bottom:8px}
+.io ul{list-style:none;font-size:14px;color:var(--ink-2)}
+.io li{padding:3px 0 3px 16px;position:relative}
+.io li::before{content:"·";position:absolute;left:3px;color:var(--accent);font-weight:700}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:12.5px;margin-top:8px}
+footer a{color:var(--ink-3)}</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="/"><span class="m"></span>모델터</a>
+  <a class="back" href="/guide.html">← 용어사전</a>
+</div></header>
+<main class="wrap">
+  <nav class="crumb"><a href="/">모델터</a> › <a href="/guide.html">용어사전</a> › NOI</nav>
+  <div class="hero">
+    <div class="eyebrow">부동산 금융 용어</div>
+    <h1>NOI<span class="en">순영업이익 · Net Operating Income</span></h1>
+  </div>
+  <section>
+    <h2>정의</h2>
+    <span class="formula">NOI = 유효총수입(EGI) − 운영비(OPEX)</span>
+      <p>임대료·관리비 등 자산이 벌어들이는 수입에서 인건비·수선·보험·재산세 등 운영비를 뺀 순수 영업이익입니다. 대출 이자·감가상각·법인세는 아직 빼기 전 단계로, 가치평가(Cap)와 DSCR의 출발점입니다.</p>
+  </section>
+  <section>
+    <h2>왜 중요한가</h2>
+    <p>자산가치 환원과 DSCR이 모두 이 값에서 출발해, 운영비 가정 하나가 밸류에이션 전체를 흔듭니다.</p>
+  </section>
+  <section class="ex">
+    <h2>실무 예시</h2>
+    <p>EGI 120억에서 인건비·수선·재산세 등 운영비 30억을 빼면 NOI 90억입니다. 이 90억을 Cap 5%로 나누면 매각가 1,800억이 됩니다.</p>
+  </section>
+  <section>
+    <a class="cta" href="/#t=office&src=seo">오피스 딜로 NOI 바로 계산하기 →<span class="sub">숫자만 넣으면 화면에서 바로 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
+    <h2 style="margin-top:14px">관련 용어</h2>
+    <div class="chips"><a href="/t/irr.html">IRR</a><a href="/t/em.html">Equity Multiple</a><a href="/t/coc.html">현금수익률</a><a href="/calc/office.html">오피스 계산기</a></div>
+  </section>
+</main>
+<footer><div class="wrap">
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide.html">용어사전</a> · <a href="/howto.html">실무 가이드</a> · <a href="/trust.html">보안·개인정보</a> · <a href="/verification.html">파리티 검증</a><br>
+  입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.
+</div></footer>
+</body>
+</html>
