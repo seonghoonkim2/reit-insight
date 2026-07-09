@@ -21,7 +21,7 @@
 'use strict';
 const fs = require('fs');
 
-const OUTPUT_EVENTS = ['xlsx_download', 'teaser', 'share_link', 'memo_copy', 'png_card', 'pipeline_copy', 'slot_save', 'prompt_copy', 'pdf_export', 'sample_download'];
+const OUTPUT_EVENTS = ['xlsx_download', 'teaser', 'share_link', 'memo_copy', 'png_card', 'pipeline_copy', 'inquiry_copy', 'slot_save', 'prompt_copy', 'pdf_export', 'sample_download'];
 const OUTPUT_SET = new Set(OUTPUT_EVENTS);
 
 // ── 입력 읽기 (파일 인자 또는 stdin) ──

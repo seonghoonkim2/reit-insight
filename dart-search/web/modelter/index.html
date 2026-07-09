@@ -1101,7 +1101,7 @@ html,body{overflow-x:hidden}
 .ro-txt b{color:var(--accent-deep)}
 .ro-open{border:1px solid var(--accent);background:var(--accent-solid);color:var(--on-accent);font-family:var(--font);font-weight:700;font-size:13px;padding:8px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .ro-open:hover{filter:brightness(1.06)}
-body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #srcBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
+body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #srcBtn,body.mt-ro #chkBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
 
 /* 첫 방문 온보딩 역할 선택 */
@@ -1472,6 +1472,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
           <button class="ex ghost" id="myDefBtn" title="회사 표준 부대비·보수·대출 조건을 저장해 두고 새 딜에 한 번에 적용">내 기본값</button>
           <button class="ex ghost" id="srcBtn" title="가정별 출처(IM 기재·감정평가·실사·추정·회사 표준)와 기준일 기록 — 엑셀 가정 시트·검토 메모에 전파">출처</button>
+          <button class="ex ghost" id="chkBtn" title="핵심 가정이 통상 참고 범위 안인지 전수 점검 + 매도자·자문사용 검토 질의서 초안">점검</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
         </div>
       </div>
@@ -4811,6 +4812,89 @@ function srcPop(){
   });
 }
 var _srcB=$("srcBtn"); if(_srcB) _srcB.addEventListener("click",srcPop);
+
+/* ---------- 가정 적정성 점검표(#26) + 검토 질의서(#29) ---------- */
+function refRange(k, fu){
+  var t=(typeof fieldRef==='function')?fieldRef(k):''; if(!t) return null;
+  var s=String(t);
+  if(/\uC758\s*\d+\s*[~\u223C\uFF5E]/.test(s)) return {lo:null, hi:null, txt:s}; // '임대료의 35~45%' 같은 상대 기준 — 판정 생략
+  var re=/(\d+(?:\.\d+)?)\s*[~\u223C\uFF5E]\s*(\d+(?:\.\d+)?)(\s*\uB9CC\uC6D0)?/g, m, lo=Infinity, hi=-Infinity, man=false, found=false;
+  while((m=re.exec(s))){ found=true; var a=parseFloat(m[1]), b=parseFloat(m[2]); if(m[3]) man=true; if(a<lo)lo=a; if(b>hi)hi=b; }
+  if(!found) return {lo:null, hi:null, txt:s};
+  // 참고가 '만원' 단위이고 입력이 '원' 단위면 환산해 비교 (권역별 여러 범위는 가장 넓은 포락선)
+  if((man||s.indexOf('\uB9CC\uC6D0')>=0)&&/\uC6D0/.test(fu||'')&&(fu||'').indexOf('\uB9CC\uC6D0')<0){ lo*=10000; hi*=10000; }
+  return {lo:lo, hi:hi, txt:s};
+}
+function checkAssumptions(){
+  var rows=[];
+  (DEALS[cur].groups||[]).forEach(function(g){ (g.f||[]).forEach(function(f){
+    if(f.t!=='num') return;
+    var rr=refRange(f.k, f.u||''); if(!rr) return; // 참고 범위가 있는 핵심 가정만
+    var v=parseNum(state[f.k]);
+    if(!isFinite(v)){ rows.push({k:f.k,l:f.l,u:f.u||'',v:null,st:'empty',ref:rr.txt}); return; }
+    if(rr.lo==null){ rows.push({k:f.k,l:f.l,u:f.u||'',v:v,st:'ok',ref:rr.txt}); return; }
+    var st=(v<rr.lo)?'low':((v>rr.hi)?'high':'ok');
+    rows.push({k:f.k,l:f.l,u:f.u||'',v:v,st:st,ref:rr.txt,lo:rr.lo,hi:rr.hi});
+  }); });
+  return rows;
+}
+function inquiryText(rows){
+  var name=((state.asset||'').trim())||DEALS[cur].label;
+  var L=['[검토 질의서 초안] '+name+' — '+DEALS[cur].label+' · '+new Date().toISOString().slice(0,10),'','매도자·자문사 확인 요청 사항:'];
+  var n=1;
+  rows.filter(function(r){ return r.st==='high'||r.st==='low'; }).forEach(function(r){
+    L.push(n+++'. '+r.l+' '+r.v+(r.u?(' '+r.u):'')+' — 통상 '+r.ref.replace(/^참고\s*/,'')+' 대비 '+(r.st==='high'?'높음':'낮음')+': 산정 근거 요청');
+  });
+  rows.filter(function(r){ return r.st==='empty'; }).forEach(function(r){
+    L.push(n+++'. '+r.l+' — 자료 미확인: IM·감정평가서·계약서 기준 값 회신 요청');
+  });
+  try{
+    var exs=(typeof exRemaining==='function')?exRemaining():[];
+    var lm={}; (DEALS[cur].groups||[]).forEach(function(g){ (g.f||[]).forEach(function(f){ lm[f.k]=f.l; }); });
+    exs.slice(0,8).forEach(function(k){ if(lm[k]) L.push(n+++'. '+lm[k]+' — 현재 예시값으로 계산 중: 실제 값 회신 요청'); });
+  }catch(e){}
+  if(n===1) L.push('· 확인 요청 항목이 없습니다 — 핵심 가정이 모두 입력되어 있고 통상 범위 안입니다.');
+  L.push('');
+  L.push('※ 모델터 자동 생성 초안 — 문구를 다듬어 사용하세요 · 입력 가정 기반이며 투자 권유가 아닙니다');
+  return L.join('\n');
+}
+function chkPop(){
+  var rows=checkAssumptions();
+  if(!rows.length){ toast('점검할 핵심 가정이 없습니다'); return; }
+  var nOk=rows.filter(function(r){return r.st==='ok';}).length,
+      nOut=rows.filter(function(r){return r.st==='high'||r.st==='low';}).length,
+      nEmp=rows.filter(function(r){return r.st==='empty';}).length;
+  var body=rows.map(function(r){
+    var badge=r.st==='ok'?'<span style="color:var(--green);font-weight:700">● 범위 안</span>'
+      :(r.st==='empty'?'<span style="color:var(--muted)">○ 미입력</span>'
+      :('<span style="color:var(--red);font-weight:700">'+(r.st==='high'?'▲ 높음':'▼ 낮음')+'</span>'));
+    return '<tr><td><b>'+esc(r.l)+'</b>'+(r.u?(' <span style="color:var(--muted);font-size:11px">'+esc(r.u)+'</span>'):'')+'</td>'
+      +'<td>'+(r.v!=null?esc(String(r.v)):'—')+'</td><td style="font-size:11px;color:var(--muted)">'+esc(r.ref.replace(/^참고\s*/,''))+'</td><td>'+badge+'</td></tr>';
+  }).join('');
+  var ov2=document.createElement('div'); ov2.className='imx-ov';
+  ov2.innerHTML='<div class="imx"><h3>📋 가정 적정성 점검 — 참고 범위 대비</h3>'
+    +'<div class="imx-sub">범위 안 <b>'+nOk+'</b> · 범위 밖 <b style="color:var(--red)">'+nOut+'</b> · 미입력 <b>'+nEmp+'</b> — 범위 밖은 \'틀림\'이 아니라 <b>설명이 필요하다는 신호</b>입니다. 아래 질의서로 근거를 요청하세요.</div>'
+    +'<table class="imx-tbl"><tr><th>가정</th><th>내 값</th><th>통상 참고</th><th>판정</th></tr>'+body+'</table>'
+    +'<div class="imx-act"><button type="button" data-chk="close">닫기</button><button type="button" class="pri" data-chk="inq">📨 검토 질의서 복사</button></div>'
+    +'<div class="imx-priv">참고 범위는 통상 수준 샘플로 자산·입지·시점별로 다릅니다. 점검 결과는 이 브라우저 안에서만 계산됩니다.</div></div>';
+  document.body.appendChild(ov2); document.body.style.overflow='hidden';
+  function closeC(){ ov2.remove(); document.body.style.overflow=''; }
+  ov2.addEventListener('click',function(e){
+    if(e.target===ov2){ closeC(); return; }
+    var b=e.target.closest?e.target.closest('[data-chk]'):null; if(!b) return;
+    if(b.dataset.chk==='inq'){
+      var txt=inquiryText(rows);
+      var done=function(){ toast('검토 질의서 초안을 복사했습니다 — 메일에 붙여넣고 다듬어 보내세요',2800); };
+      if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(function(){ prompt('아래 내용을 복사하세요:',txt); });
+      else prompt('아래 내용을 복사하세요:',txt);
+      if(window.mtTrack) try{ mtTrack('inquiry_copy'); }catch(e2){}
+      return;
+    }
+    closeC();
+  });
+  if(window.mtTrack) try{ mtTrack('check_open'); }catch(e3){}
+}
+var _chkB=$("chkBtn"); if(_chkB) _chkB.addEventListener("click",chkPop);
 
 /* ---------- 첫 결과 코치마크 — 읽기 순서 3스텝, 브라우저당 1회 ---------- */
 function renderCoach(){

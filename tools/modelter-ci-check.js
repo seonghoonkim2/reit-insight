@@ -152,6 +152,7 @@ ok(html.includes('function renderCoach') && html.includes('mt_coach'), '첫 결�
 ok(html.includes('function wsPipelineReport') && html.includes("WS_STATUSES=['검토중'"), '딜 상태 태그+파이프라인 보고 존재');
 ok(html.includes('function housePop') && html.includes("localStorage.getItem('mt_house')"), '하우스 기준(내 허들) 존재');
 ok(html.includes('__setDevSensAxis') && html.includes("'공사비 조정'"), '분양 공사비 스트레스 축 존재');
+ok(html.includes('function checkAssumptions') && html.includes('function inquiryText'), '가정 적정성 점검+검토 질의서 존재');
 ok(html.includes('결과부터 보이게') || html.includes('입력 폼이 아니라 결과부터'), '읽기 전용 모바일 결과 우선 착지 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
