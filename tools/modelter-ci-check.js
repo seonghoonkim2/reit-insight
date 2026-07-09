@@ -125,6 +125,8 @@ ok(html.includes("tool_choice:{type:'tool', name:'extract'}"), 'BYOK: tool_choic
 ok(html.includes('서버로는 어떤 내용도 전송·저장되지 않습니다'), 'BYOK: 개인정보·보안 고지 문구');
 ok(!html.includes("localStorage.setItem('mt_byok"), 'BYOK: 키를 localStorage에 저장하지 않음(세션만)');
 ok(html.includes('문서에 없으면 null (추측 금지)'), 'BYOK: 추측 금지 추출 규칙');
+ok(html.includes('MTIM.checklist()') && html.includes('IM에서 찾을 숫자'), 'IM 체크리스트(키 없이 시작) 존재');
+ok(html.includes('보수 코너(Exit '), '판정 다운사이드 한 줄 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');

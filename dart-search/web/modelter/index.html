@@ -2125,7 +2125,7 @@ function renderForm(){
   let html=depthHtml();  // 깊이 선택을 폼 최상단에
   // IM 가정 추출(BYOK) — 매입 딜 전용, 읽기 전용에서는 숨김
   if(rrEligible && !(document.body&&document.body.classList.contains('mt-ro')))
-    html+='<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()">🤖 IM에서 가정 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>본인 Anthropic API 키</b>로 매입가·임대료·Exit Cap 등을 추출해 채웁니다 — 모델터 서버 무경유</span></div>';
+    html+='<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()">🤖 IM에서 가정 추출 <i>β</i></button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="API 키 없이 — IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><span class="im-note">IM 텍스트를 붙여넣으면 <b>본인 Anthropic API 키</b>로 매입가·임대료·Exit Cap 등을 추출해 채웁니다 — 모델터 서버 무경유</span></div>';
   if(isQuick){
     // 빠른 검토: 핵심 필드만 한 그룹으로 모아 노출
     const allFields=[];
@@ -7088,6 +7088,53 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     if(window.mtTrack) try{ mtTrack('im_extract',{n:n}); }catch(e){}
     var c=document.getElementById('simCard'); if(c&&c.scrollIntoView) c.scrollIntoView({behavior:'smooth',block:'start'});
   }
+  /* IM 체크리스트 — API 키 없이, 폼 스키마에서 '찾을 숫자' 목록 자동 생성 */
+  function checklist(){
+    if(!(cur==='office'||cur==='logistics')){ if(typeof toast==='function') toast('IM 체크리스트는 오피스·물류 매입 딜에서 지원합니다'); return; }
+    var d=DEALS[cur], secs=[];
+    d.groups.forEach(function(g){
+      var rows=[];
+      g.f.forEach(function(f){
+        if(f.t==='textarea'||f.t==='select'||f.t==='range') return;
+        var hint=String(f.hint||'').split('.')[0];
+        var ref=(typeof fieldRef==='function')?fieldRef(f.k):'';
+        rows.push({l:f.l, u:f.u||'', h:hint, ref:ref});
+      });
+      if(rows.length) secs.push({h:g.h, rows:rows});
+    });
+    var n=secs.reduce(function(a2,s2){ return a2+s2.rows.length; },0);
+    var body=secs.map(function(sc){
+      return '<div style="margin:13px 0 4px;font-weight:800;font-size:13px;color:var(--accent-deep)">■ '+esc(sc.h)+'</div>'
+        +'<table class="imx-tbl">'+sc.rows.map(function(r){
+          return '<tr><td style="white-space:nowrap">□ <b>'+esc(r.l)+'</b>'+(r.u?(' <span style="color:var(--muted);font-size:11px">'+esc(r.u)+'</span>'):'')+'</td>'
+            +'<td>'+esc(r.h)+(r.ref?(' <span style="color:var(--accent-deep);font-size:11px">'+esc(r.ref)+'</span>'):'')+'</td></tr>';
+        }).join('')+'</table>';
+    }).join('');
+    ov=document.createElement('div'); ov.className='imx-ov';
+    ov.innerHTML='<div class="imx">'
+      +'<h3>📋 IM에서 찾을 숫자 — '+esc(d.label)+' <span style="font-size:12px;color:var(--muted);font-weight:600">'+n+'개 항목</span></h3>'
+      +'<div class="imx-sub">IM을 펼쳐놓고 아래 값을 찾아 그대로 입력하면 됩니다. <b>못 찾은 항목은 비워두세요</b> — 자산 유형 표준가정으로 계산되고, 엑셀 가정 시트에 표준가정임이 표시됩니다.</div>'
+      +body
+      +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" data-im="ckcopy">체크리스트 복사</button></div>'
+      +'<div class="imx-priv">단위 주의: 금액은 백만원(1,200억 → 120,000), 면적은 평(㎡ ÷ 3.3058), 임대료·관리비는 평당 월 기준 원. 참고 범위는 통상 수준 샘플로 시점·자산별로 다릅니다.</div>'
+      +'</div>';
+    document.body.appendChild(ov); document.body.style.overflow='hidden';
+    ov.addEventListener('click',function(e){
+      if(e.target===ov){ close(); return; }
+      var b3=e.target.closest('[data-im]'); if(!b3) return;
+      if(b3.dataset.im==='close') close();
+      else if(b3.dataset.im==='ckcopy'){
+        var txt='[모델터] IM에서 찾을 숫자 — '+d.label+'\n'
+          +secs.map(function(sc){ return '■ '+sc.h+'\n'+sc.rows.map(function(r){ return '□ '+r.l+(r.u?(' ('+r.u+')'):'')+(r.h?(' — '+r.h):''); }).join('\n'); }).join('\n\n')
+          +'\n\n※ 금액=백만원 · 면적=평 · 못 찾은 항목은 표준가정으로 계산 · modelter.com/howto.html';
+        var done=function(){ if(typeof toast==='function') toast('체크리스트를 복사했습니다 — 메모장·인쇄용으로 붙여넣으세요',2400); };
+        if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(function(){ prompt('아래 내용을 복사하세요:',txt); });
+        else prompt('아래 내용을 복사하세요:',txt);
+        if(window.mtTrack) try{ mtTrack('im_checklist'); }catch(e2){}
+      }
+    });
+    if(window.mtTrack) try{ mtTrack('im_checklist_open'); }catch(e3){}
+  }
   function open(){
     if(document.body.classList.contains('mt-ro')){ if(typeof toast==='function') toast('읽기 전용 모드에서는 사용할 수 없습니다'); return; }
     if(!(cur==='office'||cur==='logistics')){ if(typeof toast==='function') toast('IM 추출은 오피스·물류 매입 딜에서 지원합니다'); return; }
@@ -7120,7 +7167,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     });
     if(window.mtTrack) try{ mtTrack('im_open'); }catch(e){}
   }
-  window.MTIM={open:open};
+  window.MTIM={open:open, checklist:checklist};
 })();
 
 /* ── 모바일 빠른 입력 위저드: 딜별 핵심 입력만 한 개씩, 큰 글씨·참고 범위·억조 환산과 함께 ── */
