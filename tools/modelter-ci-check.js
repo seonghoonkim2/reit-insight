@@ -18,6 +18,14 @@ ok(fs.existsSync(path.join(DIR, 'og.png')), 'og.png 존재 (소셜 미리보기 
 ok(fs.existsSync(path.join(DIR, 'robots.txt')), 'robots.txt 존재 (크롤 안내)');
 ok(fs.existsSync(path.join(DIR, 'sitemap.xml')), 'sitemap.xml 존재');
 ok(fs.existsSync(path.join(DIR, 'guide.html')), '가이드·용어사전 페이지 존재 (SEO)');
+ok(fs.existsSync(path.join(DIR, 'howto.html')), '실무 활용 가이드(howto) 존재 (SEO)');
+if (fs.existsSync(path.join(DIR, 'howto.html'))) {
+  const hw = fs.readFileSync(path.join(DIR, 'howto.html'), 'utf8');
+  ok(hw.includes('"@type":"HowTo"') && hw.includes('BreadcrumbList'), 'howto.html 구조화 데이터(HowTo·Breadcrumb)');
+  ok(hw.includes('/#t=office') && hw.includes('/#t=dev&view=lender'), 'howto.html → 계산기 딥링크');
+  ok(hw.includes('/guide.html'), 'howto ↔ 용어사전 상호 링크');
+  ok(hw.includes('투자 권유가 아닌'), 'howto 고지 문구');
+}
 if (fs.existsSync(path.join(DIR, 'guide.html'))) {
   const g = fs.readFileSync(path.join(DIR, 'guide.html'), 'utf8');
   ok(g.includes('FAQPage') && g.includes('BreadcrumbList'), 'guide.html 구조화 데이터(FAQ·Breadcrumb)');
@@ -29,7 +37,7 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
 }
 if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
-  ok(sm.includes('modelter.com/') && sm.includes('guide.html'), 'sitemap: 홈·가이드 URL');
+  ok(sm.includes('modelter.com/') && sm.includes('guide.html') && sm.includes('howto.html'), 'sitemap: 홈·가이드·활용 가이드 URL');
 }
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
@@ -159,6 +167,7 @@ ok(html.includes("localStorage.getItem('mt_onboarded')"), '온보딩 첫 방문 
 ok(html.includes('!window.__mtOnboarding'), "온보딩·What's new 이중 노출 방지");
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
 ok(html.includes('href="/guide.html"'), '홈→가이드 내부 링크(SEO) 존재');
+ok(html.includes('href="/howto.html"'), '홈→실무 활용 가이드 링크 존재');
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'추천'"), '미니 KPI 전 탭(분양·리파이) 확장');
