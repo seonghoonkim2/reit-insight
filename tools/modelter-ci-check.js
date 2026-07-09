@@ -13,6 +13,10 @@ const ok = (cond, msg) => { if (!cond) fails.push(msg); else console.log('  ✓ 
 
 const html = fs.readFileSync(HTML, 'utf8');
 
+/* ── 0) 성능 예산 — 사용자 체감 기준 (docs/STRATEGY.md 아키텍처 정책) ── */
+const gzKB = Math.round(require('zlib').gzipSync(Buffer.from(html), { level: 6 }).length / 1024);
+ok(gzKB < 300, '성능 예산: gzip 전송량 ' + gzKB + 'KB < 300KB (초과 시 출력 생성기 지연 로딩부터 검토)');
+
 /* ── 1) 정적 존재 검사 ── */
 ok(fs.existsSync(path.join(DIR, 'og.png')), 'og.png 존재 (소셜 미리보기 404 방지)');
 ok(fs.existsSync(path.join(DIR, 'robots.txt')), 'robots.txt 존재 (크롤 안내)');

@@ -196,12 +196,32 @@ async function closeOverlays(page) {
     await ctx.close();
   }
 
-  // ── [7] 배포 안전: 테스트 훅 부재 ──
-  console.log('\n[7] 배포 안전');
+  // ── [7] 산출물: IC 패키지 7장 + BYOK 진입점 ──
+  console.log('\n[7] IC 패키지 · BYOK');
+  {
+    const { ctx, page } = await fresh(browser);
+    await page.goto(URL0); await closeOverlays(page); await page.waitForTimeout(300);
+    const ic = await page.evaluate(() => {
+      cur = 'office'; fillExample(); update();
+      const bytes = ICPPT.build();
+      if (!bytes) return { err: 'null' };
+      const names = Object.keys(XLSXREAD.readZip(bytes));
+      return { slides: names.filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n)).length, size: bytes.length };
+    });
+    ok(ic.slides === 7, 'IC 패키지 7장 생성 (' + ic.slides + '장, ' + Math.round(ic.size / 1024) + 'KB)');
+    const im = await page.evaluate(() => ({ btn: !!document.querySelector('.im-btn'), mod: typeof MTIM === 'object' }));
+    ok(im.btn && im.mod, 'IM 추출(BYOK) 진입점 + 모듈');
+    await ctx.close();
+  }
+
+  // ── [8] 배포 안전: 테스트 훅 부재 + 전송량 예산 ──
+  console.log('\n[8] 배포 안전');
   {
     const html = fs.readFileSync(path.join(WEB, 'index.html'), 'utf8');
     ok(!html.includes('__mtCalc'), '__mtCalc 훅 없음');
-    ok(fs.existsSync(path.join(WEB, 'guide.html')) && fs.existsSync(path.join(WEB, 'og.png')), 'guide.html·og.png 존재');
+    ok(fs.existsSync(path.join(WEB, 'guide.html')) && fs.existsSync(path.join(WEB, 'howto.html')) && fs.existsSync(path.join(WEB, 'og.png')), 'guide·howto·og.png 존재');
+    const gz = require('zlib').gzipSync(Buffer.from(html), { level: 6 }).length;
+    ok(gz < 300 * 1024, 'gzip 전송량 ' + Math.round(gz / 1024) + 'KB (<300KB 예산)');
   }
 
   await browser.close(); server.close();
