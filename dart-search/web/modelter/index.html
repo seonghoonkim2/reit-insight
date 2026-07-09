@@ -25,10 +25,15 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&display=swap" rel="stylesheet" />
+<!-- 폰트 CSS는 비차단 로딩: CDN이 느리거나 막힌 환경(사내 프록시 등)에서도 첫 화면은 시스템 폰트로 즉시 표시 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&display=swap" media="print" onload="this.media='all'" />
+<noscript>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&display=swap" />
+</noscript>
 
 <style>
 :root{
@@ -1226,7 +1231,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
     <p class="wn-lead">매입·분양·리파이낸싱 — 4개 딜 전부, 검증된 엑셀까지 이어집니다.</p>
     <ul class="wn-list">
       <li><span class="wn-ic">⬇️</span><div><b>모든 딜에서 검증된 엑셀</b><span>오피스·물류 13시트, 공동주택 분양수지 6시트, 리파이낸싱 비교 4시트 — 전부 수식 연결·화면과 일치 검증.</span></div></li>
-      <li><span class="wn-ic">🏦</span><div><b>분양수지 + 대주 뷰 <span class="wn-tag">NEW</span></b><span>브릿지→본PF·중도금 일정에, 시행↔대주(PF 심사) 관점 전환과 분양률 스트레스까지.</span></div></li>
+      <li><span class="wn-ic">📑</span><div><b>IC 패키지 · IM 추출 <span class="wn-tag">NEW</span></b><span>심의용 PPT 7장(요약·자본구조·민감도 히트맵)을 한 번에, IM 텍스트는 본인 API 키로 가정 자동 채움(β) — 서버 무경유.</span></div></li>
       <li><span class="wn-ic">📎</span><div><b>공유 링크 · 한 줄 보고 <span class="wn-tag">NEW</span></b><span>읽기 전용 결과 링크에 더해, 딜명·KPI·판정·링크를 한 번에 복사해 카톡·메일로 — 서버 저장 없이, 임차인명은 자동 마스킹.</span></div></li>
       <li><span class="wn-ic">✓</span><div><b>자동 판정 · 용어 도움말</b><span>IRR·DSCR을 통상 기준과 비교해 한 줄로 판정. 지표 옆 ? 를 누르면 <a href="/guide.html">용어사전</a>이 열리고, 금액 입력엔 억·조 환산이 바로 붙습니다.</span></div></li>
     </ul>
@@ -1857,9 +1862,36 @@ const FIELD_REF={
   rsvpct:"참고 2~5%",
   taxpct:"참고 4.6%",
   dscrmin:"참고 1.2x 이상",
-  dpct:"참고 10~20%",
-  rpct:"참고 20~30%"
+  dpct:"참고 계약금 10~20%",
+  rpct:"참고 잔금 20~30%"
 };
+/* 시장 참고치 v2 — 딜 유형별 오버라이드 (없으면 위 공통값 사용). 수치는 통상 범위 참고용 샘플이며 시점·개별 자산별로 다릅니다. */
+const FIELD_REF_DEAL={
+  office:{
+    exitcap:"참고 서울 오피스 4.0~5.5% (코어 낮음·외곽 높음)",
+    rentpp:"참고 도심·강남 9~13만원 · 기타 권역 6~9만원",
+    campp:"참고 임대료의 35~45% 수준",
+    vacancy:"참고 서울 3~6% (권역·시점별)",
+    hold:"참고 5년 표준 (3~7년)",
+    depmult:"참고 월 임대료의 10~12개월치"
+  },
+  logistics:{
+    exitcap:"참고 수도권 물류 5~7% (저온 높음)",
+    rentpp:"참고 상온 3~4만원 · 저온 5~7만원",
+    campp:"참고 책임임대차면 0~1만원 수준",
+    vacancy:"참고 상온 2~6% · 저온 공급과잉 유의",
+    noig:"참고 0~2%/년",
+    hold:"참고 5년 표준 (3~7년)"
+  },
+  dev:{
+    exitcap:"참고 준공 후 안정화 기준 4.5~6.5%"
+  },
+  refi:{
+    oldrate:"참고 기존 선순위 4~7% (실행 시점별)",
+    noi:"참고 최근 12개월 실적 기준 권장"
+  }
+};
+function fieldRef(k){ var d=FIELD_REF_DEAL[cur]; return (d&&d[k])||FIELD_REF[k]||''; }
 function wonConv(v){ // 백만원 → 읽기 쉬운 억/조 표기
   if(!isFinite(v)||v<=0) return '';
   var e=v/100;
@@ -1895,7 +1927,7 @@ function fieldHtml(f){
     input=`<input id="${id}" data-k="${f.k}" ${it} ${vattr} placeholder="${f.ph||''}" />`;
   }
   const err=f.t==="num"?`<span class="err" id="err_${f.k}"></span>`:"";
-  const ref=(FIELD_REF[f.k]&&f.t==="num")?`<span class="f-ref">${FIELD_REF[f.k]}</span>`:"";
+  const ref=(fieldRef(f.k)&&f.t==="num")?`<span class="f-ref">${fieldRef(f.k)}</span>`:"";
   // 백만원 단위 필드: 입력 즉시 억/조 환산 표시 — 단위 착오(억을 그대로 입력) 방어
   const isWon=f.t==="num"&&/^백만원/.test(f.u||"");
   const conv=isWon?`<span class="f-conv" id="conv_${f.k}" hidden></span>`:"";
@@ -7108,7 +7140,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       +(f.hint?'<div class="wiz-hint">'+esc(f.hint)+'</div>':'')
       +'<input class="wiz-in" id="wizIn" '+(f.t==='num'?'inputmode="decimal"':'')+' placeholder="'+esc(String(f.ph||''))+'" value="'+esc(String(state[f.k]||''))+'">'
       +'<span class="wiz-conv" id="wizConv"></span>'
-      +'<span class="wiz-ref">'+((typeof FIELD_REF!=='undefined'&&FIELD_REF[f.k])?FIELD_REF[f.k]:'')+'</span>'
+      +'<span class="wiz-ref">'+((typeof fieldRef==='function')?fieldRef(f.k):'')+'</span>'
       +'<div class="wiz-nav">'
       +(W.i>0?'<button type="button" class="wiz-btn" data-w="prev">← 이전</button>':'<button type="button" class="wiz-btn" data-w="close">닫기</button>')
       +'<button type="button" class="wiz-btn pri" data-w="next">다음 →</button></div>';

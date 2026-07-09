@@ -165,7 +165,10 @@ ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'추천'
 ok(html.includes('mt_nudge') && html.includes('nudge_save'), '저장 넛지(세션 1회) 존재');
 ok(html.includes('모든 딜에서 검증된 엑셀'), "What's new v3 내용 현행화");
 ok(html.includes('공유 링크 · 한 줄 보고') && html.includes('자동 판정 · 용어 도움말'), "What's new v3 내용 2차 현행화(한 줄 보고·환산)");
+ok(html.includes('IC 패키지 · IM 추출'), "What's new v3 내용 3차 현행화(IC·IM)");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
+ok(html.includes('const FIELD_REF_DEAL=') && html.includes('function fieldRef'), '시장 참고치 v2(딜 유형별) 존재');
+ok(html.includes('수도권 물류 5~7%') && html.includes('도심·강남 9~13만원'), '참고치 자산 유형별 분화(오피스≠물류)');
 ok(html.includes('ev&&ev.isTrusted&&window.__mtActivate'), '퍼널: 신뢰 입력만 활성화(예시 로드 제외)');
 ok(html.includes('function missingKeyFields') && html.includes('sim-empty'), '결과 빈 상태 안내(누락 필드) 존재');
 ok(html.includes("classList.add('noresult')") && html.includes("contains('noresult')"), '빈 상태에서 다운로드 행 차단');
