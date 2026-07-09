@@ -560,6 +560,10 @@ header{background:rgba(253,252,249,.82)}
 .ws-diff-t th,.ws-diff-t td{border:1px solid var(--line-soft); padding:4px 7px; text-align:left}
 .ws-diff-t th{color:var(--ink-3); font-weight:600; background:var(--bg)}
 .ws-diff-t td.wd-new{font-weight:700; color:var(--accent-deep)}
+.sc-h{font-size:12.5px; font-weight:700; color:var(--ink-2); margin:12px 0 6px}
+.sc-h span{font-weight:500; color:var(--muted); font-size:11px; margin-left:6px}
+.sc-tbl td:first-child{font-weight:700}
+.sc-tbl tr.sc-base td{background:var(--line-soft)}
 .ws-deal.on,.ws-ver.on{border-color:var(--accent); background:rgba(169,121,43,.05)}
 .ws-deal-t,.ws-ver-t{display:flex; align-items:baseline; gap:8px; font-size:13px; color:var(--ink); flex-wrap:wrap}
 .ws-deal-t span,.ws-date{font-size:11px; color:var(--muted); font-weight:500}
@@ -3551,6 +3555,28 @@ function renderHeat(m){
   }).join('');
   return '<div class="hx-wrap"><div class="hx-axis-top">'+esc(m.gLabel)+' →</div><table class="sens-tbl hx-tbl">'+head+body+'</table></div>';
 }
+/* 시나리오 비교 — Base/보수/낙관 전 지표 (오피스·물류, 히트맵과 같은 엔진) */
+function scenarioTable(){
+  if(!(cur==='office'||cur==='logistics')) return '';
+  if(typeof window.__mtScenario!=='function'||typeof window.__mtSensBase!=='function') return '';
+  var base=window.__mtSensBase(); if(!base||!isFinite(base.ec)||!isFinite(base.g)) return '';
+  var defs=[
+    {n:'낙관 (Upside)', ec:base.ec-0.5, g:base.g+1.0, cls:'sc-up'},
+    {n:'기본 (Base)', ec:base.ec, g:base.g, cls:'sc-base'},
+    {n:'보수 (Downside)', ec:base.ec+1.0, g:base.g-1.0, cls:'sc-dn'}
+  ];
+  var rows='', any=false;
+  defs.forEach(function(d){
+    var r=window.__mtScenario(d.ec,d.g); if(!r) return; any=true;
+    rows+='<tr class="'+d.cls+'"><td>'+d.n+'</td><td>Exit '+(Math.round(d.ec*10)/10)+'% · '+esc(String(base.gLabel||'성장'))+' '+(Math.round(d.g*10)/10)+'%</td>'
+      +'<td>'+((r.IRR!=null&&isFinite(r.IRR))?(r.IRR*100).toFixed(1)+'%':'—')+'</td>'
+      +'<td>'+((r.EM!=null&&isFinite(r.EM))?r.EM.toFixed(2)+'x':'—')+'</td>'
+      +'<td>'+((r.minDSCR!=null&&isFinite(r.minDSCR))?r.minDSCR.toFixed(2)+'x':'—')+'</td></tr>';
+  });
+  if(!any) return '';
+  return '<div class="sc-h">시나리오 비교 <span>낙관 = Exit −0.5%p·성장 +1%p / 보수 = Exit +1%p·성장 −1%p</span></div>'
+    +'<table class="sens-tbl sc-tbl"><tr><th>시나리오</th><th>가정</th><th>IRR</th><th>EM</th><th>최소 DSCR</th></tr>'+rows+'</table>';
+}
 function renderSens(){
   var card=$('sensCard'); if(!card) return;
   var sub=card.querySelector('.mx-sub');
@@ -3563,7 +3589,8 @@ function renderSens(){
       var tg='<div class="hx-toggle"><span>2번째 축</span>'
         +'<button type="button" class="hx-tg'+(sensAxis!=='rate'?' on':'')+'" onclick="__setSensAxis(\'growth\')">성장률</button>'
         +'<button type="button" class="hx-tg'+(sensAxis==='rate'?' on':'')+'" onclick="__setSensAxis(\'rate\')">선순위 금리</button></div>';
-      $('sensBody').innerHTML=tg+renderHeat(m);
+      var scH=''; try{ scH=scenarioTable(); }catch(eS){}
+      $('sensBody').innerHTML=tg+renderHeat(m)+scH;
       $('sensNote').textContent='각 칸 = 해당 Exit Cap·'+(sensAxis==='rate'?'선순위 금리':'성장률')+'에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 파랑=높음·주황=낮음.';
       return;
     }
@@ -5431,6 +5458,21 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       var r2=calcModel(V2); return (r2&&isFinite(r2.IRR))?r2.IRR:null;
     }catch(e){ return null; }
   };
+  // 시나리오 비교용 — (Exit Cap, 성장률) 조정 시 전 지표(IRR·EM·최소 DSCR)
+  window.__mtScenario=function(ecPct, yPct){
+    try{
+      if(!_sensOffice()) return null;
+      var rm=(typeof window!=='undefined')?window.rrModel:null;
+      if(rm&&rm.on&&rm.leases&&rm.leases.length){
+        var V=assumFullV2(); V.exitCap=ecPct/100;
+        var mkt={}; for(var kk in rm.mkt) mkt[kk]=rm.mkt[kk]; mkt.mktStepUp=yPct/100;
+        var r=leaseModelV2(rm.leases, V, mkt, mtHold());
+        return r?{IRR:r.IRR, EM:r.EM, minDSCR:r.minDSCR}:null;
+      }
+      var V2=assumFull(); V2['C58']=ecPct/100; V2['C27']=yPct/100; V2['C28']=yPct/100;
+      var r2=calcModel(V2); return r2?{IRR:r2.IRR, EM:r2.EM, minDSCR:r2.minDSCR}:null;
+    }catch(e){ return null; }
+  };
 
   function notes(){
     var s=(typeof state!=='undefined'&&state)?state:{}, k=(typeof stackState!=='undefined'&&stackState)?stackState:{}, w=[];
@@ -6604,6 +6646,29 @@ function buildIcPptx(){
       s.push(tbl(cm(0.9),cm(3.1),cw,[head].concat(rows),{rowH:cm(1.05),band:false}));
       var note=isDev?'각 칸 = 해당 분양률×분양가 조정(상업시설 동시 조정)에서의 사업이익률 — 월별 엔진 재계산.':'각 칸 = 해당 Exit Cap×'+m.gLabel+'에서의 레버드 IRR — 모델 전체 재계산.';
       s.push(box(cm(0.9),cm(3.1+1.05*(m.rows.length+1)+0.35),cm(31),cm(0.8),[{runs:[{t:note,sz:950,color:C.mut}]}]));
+      // 시나리오 비교 표 — Base/보수/낙관 전 지표 (오피스·물류)
+      if(!isDev&&typeof global.__mtScenario==='function'&&typeof global.__mtSensBase==='function'){
+        try{
+          var b0=global.__mtSensBase();
+          if(b0&&isFinite(b0.ec)&&isFinite(b0.g)){
+            var scDefs=[{n:'낙관 (Upside)',ec:b0.ec-0.5,g:b0.g+1.0},{n:'기본 (Base)',ec:b0.ec,g:b0.g},{n:'보수 (Downside)',ec:b0.ec+1.0,g:b0.g-1.0}];
+            var scRows=[], anyS=false;
+            scDefs.forEach(function(d){
+              var rr=global.__mtScenario(d.ec,d.g); if(!rr) return; anyS=true;
+              scRows.push([{t:d.n,b:1,fill:C.band},{t:'Exit '+mfmt(d.ec,1)+'% · '+String(b0.gLabel||'성장')+' '+mfmt(d.g,1)+'%'},
+                {t:fpct(rr.IRR,1),align:'ctr',b:(d.n.indexOf('기본')===0?1:0)},
+                {t:(rr.EM!=null&&isFinite(rr.EM))?rr.EM.toFixed(2)+'x':'—',align:'ctr'},
+                {t:(rr.minDSCR!=null&&isFinite(rr.minDSCR))?rr.minDSCR.toFixed(2)+'x':'—',align:'ctr'}]);
+            });
+            if(anyS){
+              var yS=3.1+1.05*(m.rows.length+1)+2.0;
+              s.push(box(cm(0.9),cm(yS-0.75),cm(31),cm(0.7),[{runs:[{t:'시나리오 비교 — 낙관(Exit −0.5%p·성장 +1%p) · 보수(Exit +1%p·성장 −1%p)',sz:1000,b:1,color:C.ink}]}]));
+              s.push(tbl(cm(0.9),cm(yS),[cm(5.2),cm(10.4),cm(5.2),cm(5.2),cm(5.2)],
+                [[{t:'시나리오',sz:950},{t:'가정'},{t:'IRR'},{t:'EM'},{t:'최소 DSCR'}]].concat(scRows),{rowH:cm(0.85)}));
+            }
+          }
+        }catch(eS){}
+      }
     } else {
       s.push(box(cm(0.9),cm(3.1),cm(30),cm(1),[{runs:[{t:'이 딜 유형의 상세 전개는 앞 장의 연도별 표를 참조하세요.',sz:1100,color:C.mut}]}]));
     }
