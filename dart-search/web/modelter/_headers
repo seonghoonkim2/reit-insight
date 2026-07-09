@@ -22,6 +22,12 @@
 /trust.html
   Cache-Control: no-cache
 
+/t/*
+  Cache-Control: no-cache
+
+/calc/*
+  Cache-Control: no-cache
+
 /sw.js
   Cache-Control: no-cache
 

@@ -125,6 +125,47 @@ ok(html.includes('function houseName()') && html.includes('function houseTag()')
 ok(html.includes("_b2h.s+=' · '+_ht") || html.includes("+' · '+_ht"), '팀 기준: 엑셀 표지에 팀 기준 표기');
 ok(html.includes("'✓ '+_ptag") || html.includes('✓ '+"'+_ptag"), '팀 기준: IC PPT 표지에 팀 기준 배지');
 ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 팀명 격상(사내 기준 하드코딩 제거)');
+
+/* ── 1f) 검색 착지 페이지(E3) — 생성기 최신성·링크 무결성·JSON-LD ── */
+{
+  const genPath = path.join(__dirname, 'gen-pages.js');
+  ok(fs.existsSync(genPath), '검색 착지: 생성기(gen-pages.js) 존재');
+  // 생성 결과가 guide.html·TERM_META 와 어긋나지 않는지(빌드 없이 커밋 원칙 강제)
+  if (fs.existsSync(genPath)) {
+    let fresh = true, out = '';
+    try { out = require('child_process').execSync('node ' + JSON.stringify(genPath) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); }
+    catch (e) { fresh = false; out = (e.stdout || '') + (e.stderr || ''); }
+    ok(fresh, '검색 착지: 생성 페이지가 최신(gen-pages --check) — 실패 시 `node tools/gen-pages.js` 재생성 후 커밋' + (fresh ? '' : '\n     ' + out.trim().split('\n').slice(0, 4).join('\n     ')));
+  }
+  const tDir = path.join(DIR, 't'), cDir = path.join(DIR, 'calc');
+  const tFiles = fs.existsSync(tDir) ? fs.readdirSync(tDir).filter(f => f.endsWith('.html')) : [];
+  const cFiles = fs.existsSync(cDir) ? fs.readdirSync(cDir).filter(f => f.endsWith('.html')) : [];
+  ok(tFiles.length >= 24, '검색 착지: 용어 페이지 24+ (' + tFiles.length + '개)');
+  ok(cFiles.length === 4, '검색 착지: 계산기 페이지 4개 (' + cFiles.length + '개)');
+  // sitemap 에 새 URL 등록 수 일치
+  if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
+    const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
+    const locN = (sm.match(/<loc>/g) || []).length;
+    ok(locN === 4 + tFiles.length + cFiles.length, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = 4기본+' + tFiles.length + '용어+' + cFiles.length + '계산기)');
+    ok(sm.includes('/t/irr.html') && sm.includes('/calc/office.html'), 'sitemap: 용어·계산기 URL 포함');
+  }
+  // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
+  let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0;
+  const allPages = tFiles.map(f => 't/' + f).concat(cFiles.map(f => 'calc/' + f));
+  const existsPage = p => fs.existsSync(path.join(DIR, p));
+  for (const rp of allPages) {
+    const ph = fs.readFileSync(path.join(DIR, rp), 'utf8');
+    const jm = ph.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    try { JSON.parse(jm[1]); } catch (e) { jsonBad++; }
+    if (!/rel="canonical" href="https:\/\/modelter\.com\//.test(ph)) canonBad++;
+    if (!/href="\/#t=(office|logistics|dev|refi)&src=seo"/.test(ph)) ctaBad++;
+    for (const mm of ph.matchAll(/href="\/(t|calc)\/([a-z0-9]+)\.html"/g)) if (!existsPage(mm[1] + '/' + mm[2] + '.html')) linkBad++;
+  }
+  ok(jsonBad === 0, '검색 착지: 전 페이지 JSON-LD 유효 (' + jsonBad + ' 실패)');
+  ok(canonBad === 0, '검색 착지: 전 페이지 canonical (' + canonBad + ' 누락)');
+  ok(ctaBad === 0, '검색 착지: 전 페이지 앱 CTA(#t=…&src=seo) (' + ctaBad + ' 누락)');
+  ok(linkBad === 0, '검색 착지: 내부 링크 무결성 (' + linkBad + ' 깨짐)');
+}
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
 if (fs.existsSync(headersPath)) {
