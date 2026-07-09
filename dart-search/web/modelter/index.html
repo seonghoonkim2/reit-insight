@@ -564,6 +564,17 @@ header{background:rgba(253,252,249,.82)}
 .sc-h span{font-weight:500; color:var(--muted); font-size:11px; margin-left:6px}
 .sc-tbl td:first-child{font-weight:700}
 .sc-tbl tr.sc-base td{background:var(--line-soft)}
+/* 즉석 조정 바 */
+.adj-d{border:1px dashed var(--line); border-radius:11px; padding:8px 12px; margin:10px 0; background:var(--bg)}
+.adj-d summary{cursor:pointer; font-size:12.5px; font-weight:700; color:var(--ink-2)}
+.adj-sub{font-weight:500; color:var(--muted); font-size:11px; margin-left:6px}
+.adj-row{display:flex; align-items:center; gap:8px; margin:9px 0}
+.adj-l{min-width:104px; font-size:12.5px; font-weight:600; color:var(--ink-2)}
+.adj-b{width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--panel); font-size:17px; font-weight:800; color:var(--accent-deep); cursor:pointer; line-height:1}
+.adj-b:active{transform:scale(.94)}
+.adj-v{min-width:92px; text-align:center; font-weight:800; font-variant-numeric:tabular-nums; font-size:13.5px}
+.adj-step{font-size:11px; color:var(--muted)}
+.adj-foot{display:flex; align-items:center; gap:10px; margin-top:9px; font-size:11px; color:var(--muted); flex-wrap:wrap}
 .ws-deal.on,.ws-ver.on{border-color:var(--accent); background:rgba(169,121,43,.05)}
 .ws-deal-t,.ws-ver-t{display:flex; align-items:baseline; gap:8px; font-size:13px; color:var(--ink); flex-wrap:wrap}
 .ws-deal-t span,.ws-date{font-size:11px; color:var(--muted); font-weight:500}
@@ -1461,6 +1472,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관·보유 3~10년 전 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
         <div class="sim-kpis" id="simKpis"></div>
         <div class="sim-verdict" id="simVerdict" hidden></div>
+        <details class="adj-d" id="adjBar" hidden><summary>🎛 즉석 조정 <span class="adj-sub">미팅 중 핵심 드라이버만 ± — 입력 폼과 즉시 동기화</span></summary><div id="adjBody"></div></details>
         <div id="simBody"></div>
         <div class="sim-cav" id="simCaveat"></div>
         <div class="dl-row" id="dlRow" hidden>
@@ -2552,6 +2564,7 @@ function update(){
   try{ renderWorkspace(); }catch(e){}
   try{ renderInpProg(); }catch(e){}
   try{ renderExChip(); }catch(e){}
+  try{ if(typeof renderAdjBar==='function') renderAdjBar(); }catch(e){}
   saveLocal();
 }
 /* 핵심 입력 진행률 — 딜별 필수 필드가 얼마나 채워졌는지(완성도 안심 지표) */
@@ -4567,6 +4580,85 @@ function myDefPop(){
   setTimeout(function(){ document.addEventListener('click',function h(e){ if(!pop.contains(e.target)&&e.target!==btn){ pop.remove(); document.removeEventListener('click',h); } }); },0);
 }
 var _mdB=$("myDefBtn"); if(_mdB) _mdB.addEventListener("click",myDefPop);
+
+/* ---------- 미팅용 즉석 조정 바 — 핵심 드라이버 ± 스텝퍼 (입력 폼과 동기화) ---------- */
+var ADJ_BASE=null;
+var ADJ_DEFS={
+  office:[
+    {k:'price', l:'매입가', mode:'pct', step:1, fk:'meok'},
+    {k:'rentpp', l:'평당 임대료', mode:'pct', step:1, fk:'won'},
+    {k:'exitcap', l:'Exit Cap', mode:'abs', step:0.1, d:2, u:'%'},
+    {sk:'senior_rate', l:'선순위 금리', mode:'abs', step:0.1, d:2, u:'%', def:'4.2'}
+  ],
+  dev:[
+    {k:'aptsold', l:'아파트 분양률', mode:'abs', step:5, d:0, u:'%', min:0, max:100},
+    {k:'conscost', l:'도급 공사비', mode:'pct', step:1, fk:'meok'},
+    {k:'pfrate', l:'본PF 금리', mode:'abs', step:0.25, d:2, u:'%'}
+  ]
+};
+ADJ_DEFS.logistics=ADJ_DEFS.office;
+function adjGet(d){ var raw=d.sk?stackState[d.sk]:state[d.k]; if((raw==null||String(raw).trim()==='')&&d.def!=null) raw=d.def; return parseNum(raw); }
+function adjSet(d,v){
+  var s=(d.d!=null)?String(Math.round(v*Math.pow(10,d.d))/Math.pow(10,d.d)):String(Math.round(v));
+  if(d.sk){ stackState[d.sk]=s; var se=document.querySelector('[data-sk="'+d.sk+'"]'); if(se) se.value=s; }
+  else { state[d.k]=s; if(typeof exTouch==='function') exTouch(d.k); var fe=document.querySelector('[data-k="'+d.k+'"]'); if(fe) fe.value=s; }
+}
+function adjFmt(d){
+  var v=adjGet(d); if(!isFinite(v)) return '—';
+  if(d.u==='%') return (Math.round(v*100)/100)+'%';
+  if(d.fk==='meok') return meok(v);
+  return Math.round(v).toLocaleString()+'원';
+}
+function renderAdjBar(){
+  var bar=$('adjBar'); if(!bar) return;
+  var defs=(ADJ_DEFS&&ADJ_DEFS[cur])||null;
+  if(!defs||window.__mtReadonly){ bar.hidden=true; return; }
+  bar.hidden=false;
+  if(!bar.open) return;
+  var body=$('adjBody'); if(!body) return;
+  body.innerHTML=defs.map(function(d,i){
+    return '<div class="adj-row"><span class="adj-l">'+d.l+'</span>'
+      +'<button type="button" class="adj-b" data-adj="'+i+'" data-dir="-1" aria-label="'+d.l+' 내리기">−</button>'
+      +'<span class="adj-v">'+adjFmt(d)+'</span>'
+      +'<button type="button" class="adj-b" data-adj="'+i+'" data-dir="1" aria-label="'+d.l+' 올리기">＋</button>'
+      +'<span class="adj-step">'+(d.mode==='pct'?('±'+d.step+'%'):('±'+d.step+(d.u||'')))+'</span></div>';
+  }).join('')
+  +'<div class="adj-foot"><button type="button" class="sl-btn" id="adjReset">처음 값으로 되돌리기</button><span>조정값은 입력 폼·엑셀·공유에 그대로 반영됩니다</span></div>';
+}
+(function(){
+  var bar=document.getElementById('adjBar'); if(!bar) return;
+  bar.addEventListener('toggle',function(){
+    if(bar.open){
+      var defs=(ADJ_DEFS&&ADJ_DEFS[cur])||[];
+      ADJ_BASE={};
+      defs.forEach(function(d){ var key=d.sk||d.k; ADJ_BASE[key]={sk:!!d.sk, v:d.sk?stackState[d.sk]:state[d.k]}; });
+      renderAdjBar();
+      if(window.mtTrack) try{ mtTrack('adj_open'); }catch(e){}
+    }
+  });
+  bar.addEventListener('click',function(e){
+    var rs=e.target.closest?e.target.closest('#adjReset'):null;
+    if(rs&&ADJ_BASE){
+      Object.keys(ADJ_BASE).forEach(function(key){
+        var b=ADJ_BASE[key];
+        if(b.sk){ if(b.v==null) delete stackState[key]; else stackState[key]=b.v; var se=document.querySelector('[data-sk="'+key+'"]'); if(se) se.value=(b.v==null?'':b.v); }
+        else { if(b.v==null) delete state[key]; else state[key]=b.v; var fe=document.querySelector('[data-k="'+key+'"]'); if(fe) fe.value=(b.v==null?'':b.v); }
+      });
+      update();
+      return;
+    }
+    var t=e.target.closest?e.target.closest('[data-adj]'):null; if(!t) return;
+    var defs=(ADJ_DEFS&&ADJ_DEFS[cur])||[]; var d=defs[parseInt(t.dataset.adj,10)]; if(!d) return;
+    var v=adjGet(d);
+    if(!isFinite(v)){ toast(d.l+' 값을 폼에 먼저 입력하세요'); return; }
+    var dir=parseInt(t.dataset.dir,10);
+    var nv=(d.mode==='pct')?v*(1+dir*d.step/100):v+dir*d.step;
+    if(d.min!=null&&nv<d.min) nv=d.min;
+    if(d.max!=null&&nv>d.max) nv=d.max;
+    adjSet(d,nv);
+    update();
+  });
+})();
 
 /* 한 줄 보고 — 카톡·메일에 그대로 붙이는 KPI 요약 + 읽기 전용 링크 */
 function oneLineReport(){
