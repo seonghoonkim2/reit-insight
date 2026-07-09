@@ -562,6 +562,11 @@ header{background:rgba(253,252,249,.82)}
 .ws-diff-t td.wd-new{font-weight:700; color:var(--accent-deep)}
 .ws-lcmp{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:8px}
 .ws-lcmp input{flex:1 1 220px; min-width:0; border:1px solid var(--line); border-radius:9px; padding:7px 10px; font-size:12px; background:var(--panel); color:var(--ink)}
+.cmp-pick{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--ink-2)}
+.cmp-pk-t{font-weight:700}
+.cmp-pk{display:inline-flex; align-items:center; gap:4px; border:1px solid var(--line-soft); border-radius:999px; padding:3px 10px; background:var(--bg); cursor:pointer}
+.cmp-pk-n{font-size:11px; color:var(--muted)}
+.cmp-act{margin:10px 0 2px}
 .sc-h{font-size:12.5px; font-weight:700; color:var(--ink-2); margin:12px 0 6px}
 .sc-h span{font-weight:500; color:var(--muted); font-size:11px; margin-left:6px}
 .sc-tbl td:first-child{font-weight:700}
@@ -3001,11 +3006,14 @@ function computeForSnapshot(snap){
   finally{ cur=bk.c; depth=bk.d; state=bk.s; stackState=bk.k; refiState=bk.r; window.rrModel=bk.rr; }
   return out;
 }
+var CMP_SEL=null; // 비교 대상 딜 이름 목록 (null=기본: 앞 4개)
 function renderCompare(){
   var slots=loadSlots(), names=Object.keys(slots), cols=[];
+  if(CMP_SEL==null) CMP_SEL=names.slice(0,4);
+  var sel=names.filter(function(nm){ return CMP_SEL.indexOf(nm)>=0; }).slice(0,6);
   var curSnap={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:(window.rrModel&&window.rrModel.on?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null)};
   var c0=computeForSnapshot(curSnap); if(c0){ c0.label='현재 입력'; cols.push(c0); }
-  names.slice(0,4).forEach(function(nm){ var c=computeForSnapshot(slots[nm]); if(c){ c.label=nm; cols.push(c); } });
+  sel.forEach(function(nm){ var c=computeForSnapshot(slots[nm]); if(c){ c.label=nm; cols.push(c); } });
   cols=cols.filter(function(c){return c&&c.kpis&&c.kpis.length;});
   if(cols.length<1){ $('cmpBody').innerHTML='<p class="md-sub">비교할 딜이 없습니다. 입력값을 넣고 저장해 보세요.</p>'; return; }
   var labels=[]; cols.forEach(function(c){ c.kpis.forEach(function(k){ if(labels.indexOf(k.l)<0) labels.push(k.l); }); });
@@ -3045,7 +3053,44 @@ function renderCompare(){
       return '<td'+((hiSet&&hiSet[ci2])?' class="cmp-hi"':'')+'>'+esc(String(v))+dHtml+'</td>';
     }).join('')+'</tr>';
   }).join('');
-  $('cmpBody').innerHTML='<div class="cmp-wrap"><table class="cmp-tbl">'+head+vRow+body+'</table></div><p class="cmp-note">입력값으로 직접 계산한 추정치이며 투자 권유가 아닙니다. 딜별 세부는 해당 딜을 불러와 확인하세요.</p>';
+  var pick=(names.length>1)?('<div class="cmp-pick"><span class="cmp-pk-t">비교 대상</span>'+names.map(function(nm){
+    var on=sel.indexOf(nm)>=0;
+    return '<label class="cmp-pk"><input type="checkbox" data-cmp="'+esc(nm)+'"'+(on?' checked':'')+'> '+esc(nm)+'</label>';
+  }).join('')+'<span class="cmp-pk-n">현재 입력 포함 · 최대 6개</span></div>'):'';
+  $('cmpBody').innerHTML=pick+'<div class="cmp-wrap"><table class="cmp-tbl">'+head+vRow+body+'</table></div>'
+    +'<div class="cmp-act"><button type="button" class="sl-btn" id="cmpCopy">📋 비교표 복사 — 엑셀·메일 붙여넣기용</button></div>'
+    +'<p class="cmp-note">입력값으로 직접 계산한 추정치이며 투자 권유가 아닙니다. 딜별 세부는 해당 딜을 불러와 확인하세요.</p>';
+}
+function cmpTableText(){
+  var tbl=document.querySelector('#cmpBody .cmp-tbl'); if(!tbl) return null;
+  var out=[];
+  [].forEach.call(tbl.rows,function(row){
+    var cells=[].map.call(row.cells,function(c){
+      var cn=c.querySelector('.cmp-name');
+      if(cn){ var cd=c.querySelector('.cmp-deal'); return cn.textContent+(cd?(' ('+cd.textContent+')'):''); }
+      var cl=c.cloneNode(true);
+      [].forEach.call(cl.querySelectorAll('.cmp-delta,.cmp-badge'),function(x){ x.remove(); });
+      return cl.textContent.replace(/\s+/g,' ').trim();
+    });
+    out.push(cells.join('\t'));
+  });
+  return '[모델터] 딜 비교 — '+new Date().toISOString().slice(0,10)+'\n'+out.join('\n')+'\n※ 입력 가정 기반 추정치 · 투자 권유가 아닌 정보 제공 목적';
+}
+if(typeof document!=='undefined'&&!document.__cmpDeleg){ document.__cmpDeleg=1;
+  document.addEventListener('change',function(e){
+    var t=e.target; if(!t||!t.dataset||t.dataset.cmp==null) return;
+    var boxes=document.querySelectorAll('#cmpBody [data-cmp]');
+    CMP_SEL=[].filter.call(boxes,function(b){ return b.checked; }).map(function(b){ return b.dataset.cmp; });
+    renderCompare();
+  });
+  document.addEventListener('click',function(e){
+    var t=e.target&&e.target.closest?e.target.closest('#cmpCopy'):null; if(!t) return;
+    var txt=cmpTableText(); if(!txt) return;
+    var done=function(){ toast('비교표를 복사했습니다 — 엑셀·메일·카톡에 붙여넣으세요',2400); };
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(function(){ prompt('아래 내용을 복사하세요:',txt); });
+    else prompt('아래 내용을 복사하세요:',txt);
+    if(window.mtTrack) try{ mtTrack('cmp_copy'); }catch(e2){}
+  });
 }
 
 /* ---------- 워크스페이스 패널: 버전 목록 · 산출물 이력 · 백업 ---------- */
