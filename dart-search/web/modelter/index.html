@@ -5677,6 +5677,24 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       }
       var ov=assumOverrides();
       var _TPL=holdTemplate(XLTMPL, mtHold());
+      // 자가 검증 스탬프 — 생성 시점 웹 계산값을 검증 시트에 고정하고, 옆의 살아있는 수식과 PASS/FAIL 대조.
+      // 받은 사람이 "이 파일이 화면과 같은 값인지, 누가 셀을 고쳤는지"를 파일 안에서 확인할 수 있다.
+      try{
+        var _rS=calcModel(assumFull());
+        if(_rS&&isFinite(_rS.IRR)){
+          var _vs=null,_i5; for(_i5=0;_i5<_TPL.sheets.length;_i5++) if(_TPL.sheets[_i5].name==='11_Validation_Checks'){ _vs=_TPL.sheets[_i5]; break; }
+          if(_vs){
+            var _pv2=function(c){ _vs.cells.push(c); };
+            _pv2({r:'B17',role:'se',s:'자가 검증 — 생성 시점 웹 계산값 vs 이 파일의 수식 재계산'});
+            _pv2({r:'B18',role:'th',s:'지표'}); _pv2({r:'C18',role:'th',s:'웹 계산값(고정)'}); _pv2({r:'D18',role:'th',s:'엑셀 재계산'}); _pv2({r:'E18',role:'th',s:'판정'}); _pv2({r:'F18',role:'th',s:'허용 오차'});
+            _pv2({r:'B19',role:'lb',s:'세전 IRR (총자기자본)'}); _pv2({r:'C19',role:'vf',n:_rS.IRR,z:'pct2'}); _pv2({r:'D19',role:'vr',f:'09_Return_Summary!E5',z:'pct2'}); _pv2({r:'E19',role:'vr',f:'IF(ABS(C19-D19)<0.0005,"PASS","FAIL")'}); _pv2({r:'F19',role:'da',s:'0.05%p'});
+            _pv2({r:'B20',role:'lb',s:'Equity Multiple (총자기자본)'}); _pv2({r:'C20',role:'vf',n:_rS.EM,z:'mult'}); _pv2({r:'D20',role:'vr',f:'09_Return_Summary!E7',z:'mult'}); _pv2({r:'E20',role:'vr',f:'IF(ABS(C20-D20)<0.005,"PASS","FAIL")'}); _pv2({r:'F20',role:'da',s:'0.005x'});
+            _pv2({r:'B21',role:'lb',s:'최소 DSCR'}); _pv2({r:'C21',role:'vf',n:_rS.minDSCR,z:'mult'}); _pv2({r:'D21',role:'vr',f:'09_Return_Summary!C13',z:'mult'}); _pv2({r:'E21',role:'vr',f:'IF(ABS(C21-D21)<0.005,"PASS","FAIL")'}); _pv2({r:'F21',role:'da',s:'0.005x'});
+            _pv2({r:'B22',role:'lb',s:'순매각가 (부대비 차감)'}); _pv2({r:'C22',role:'vf',n:_rS.netSale,z:'num'}); _pv2({r:'D22',role:'vr',f:'06_Tax_Disposition!C15',z:'num'}); _pv2({r:'E22',role:'vr',f:'IF(ABS(C22-D22)<0.5,"PASS","FAIL")'}); _pv2({r:'F22',role:'da',s:'0.5백만'});
+            _pv2({r:'B23',role:'nw',s:'가정 셀을 수정하면 위 판정이 FAIL로 바뀝니다 — 원본(생성 시점)과 달라졌다는 표시입니다. 생성일 '+new Date().toISOString().slice(0,10)+' · 렌트롤 반영 화면과는 다를 수 있음(이 표는 가정 시트 기준)'});
+          }
+        }
+      }catch(eSC){}
       // 표지에 딜·버전 표기
       try{
         if(ctx){ var _cv2=null,_b22=null,i3;
