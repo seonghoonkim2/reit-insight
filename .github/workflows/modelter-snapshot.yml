@@ -1,0 +1,75 @@
+# 모델터 계기판 주간 스냅샷 — Analytics Engine 집계를 저장소에 영구 누적
+#
+# 왜: Cloudflare Analytics Engine 은 데이터를 ~90일만 보관합니다. 매주 집계 스냅샷을
+#     data/ae-snapshots/<날짜>.json 으로 커밋해 두면 90일이 지나도 추세가 이어집니다.
+#
+# 준비(한 번): 저장소 Settings → Secrets and variables → Actions 에 두 개 추가
+#   CF_ACCOUNT_ID  = Cloudflare 계정 ID
+#   CF_API_TOKEN   = "Account Analytics : Read" 권한 토큰
+#   (시크릿이 없으면 이 워크플로우는 조용히 건너뜁니다 — 실패로 뜨지 않습니다.)
+#
+# 결과: data/ae-snapshots/<날짜>.json 커밋 → 대시보드는 로컬에서 `node tools/modelter-report.js`
+#       실행 후 data/dashboard.html 을 브라우저로 열어 봅니다(트래픽 지표라 공개 배포하지 않음).
+
+name: Modelter snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "집계 범위(일)"
+        default: "30"
+  schedule:
+    - cron: "30 20 * * 1"   # 매주 월요일 20:30 UTC (화 05:30 KST)
+
+permissions:
+  contents: write            # 스냅샷 커밋용
+
+concurrency:
+  group: modelter-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 시크릿 확인 (없으면 이후 단계 건너뜀)
+        id: guard
+        run: |
+          if [ -z "$CF_ACCOUNT_ID" ] || [ -z "$CF_API_TOKEN" ]; then
+            echo "::notice::CF_ACCOUNT_ID / CF_API_TOKEN 시크릿이 없어 스냅샷을 건너뜁니다. Settings → Secrets 에 추가하면 매주 자동 누적됩니다."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        with:
+          node-version: "20"
+
+      - name: 스냅샷 저장 (라이브 AE → data/ae-snapshots/<날짜>.json)
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        run: node tools/modelter-ae.js --days "${{ inputs.days || '30' }}" --snapshot
+
+      - name: 대시보드 렌더 스모크 테스트 (에러 없이 생성되는지만 확인)
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        run: node tools/modelter-report.js
+
+      - name: 변경분만 커밋·푸시 (스냅샷 JSON)
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ae-snapshots/*.json
+          if git diff --cached --quiet; then
+            echo "새 스냅샷 없음 — 커밋 생략"
+          else
+            git commit -m "계기판 주간 스냅샷 (자동) [skip ci]"
+            git push
+          fi

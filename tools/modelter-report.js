@@ -21,29 +21,23 @@ const ROOT = path.join(__dirname, '..');
 const SNAP_DIR = arg('dir', path.join(ROOT, 'data', 'ae-snapshots'));
 const OUT = arg('out', path.join(ROOT, 'data', 'dashboard.html'));
 
-const OUTPUT_EVENTS = ['xlsx_download', 'teaser', 'ic_ppt', 'share_link', 'memo_copy', 'png_card', 'pipeline_copy', 'inquiry_copy', 'slot_save', 'prompt_copy', 'pdf_export', 'sample_download'];
-const DEAL_LABEL = { office: '오피스', logistics: '물류', dev: '개발·PF', refi: '리파이낸싱' };
-const FEAT_LABEL = { rr: '렌트롤', dep: '보증금승계', fee: '운용보수', bido: '비도관과세', vac: '공실', resi: '분양수지', hold: '보유기간변경', pref: '우선주', scen: '시나리오' };
-const EV_LABEL = {
-  session: '방문', activate: '직접입력', computed: '결과도달',
-  xlsx_download: '엑셀', ic_ppt: 'IC PPT', teaser: '티저', share_link: '공유링크',
-  memo_copy: '검토메모', png_card: '요약카드', pipeline_copy: '파이프라인', inquiry_copy: '질의서',
-  qr_open: 'QR', im_quick: 'IM자동인식', im_open: 'IM-AI', house_set: '하우스기준', coach_ok: '코치마크',
-};
+// 산출물 목록·라벨은 공용 모듈에서(ae.js 와 단일 진실 공유 — 드리프트 방지)
+const { OUTPUT_EVENTS, DEAL_LABEL, FEAT_LABEL, EV_LABEL, DEVICE_LABEL } = require('./modelter-labels');
 
 function loadSnapshots() {
   let files = [];
   try { files = fs.readdirSync(SNAP_DIR).filter(f => f.endsWith('.json')); } catch (_) { return []; }
   const snaps = [];
   for (const f of files) {
-    try { const s = JSON.parse(fs.readFileSync(path.join(SNAP_DIR, f), 'utf8')); if (s && s.events) snaps.push(s); } catch (_) {}
+    try { const s = JSON.parse(fs.readFileSync(path.join(SNAP_DIR, f), 'utf8')); if (s && s.events && s.endDate) snaps.push(s); } catch (_) {}
   }
   snaps.sort((a, b) => String(a.endDate).localeCompare(String(b.endDate)));
   return snaps;
 }
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const num = n => Math.round(Number(n) || 0).toLocaleString();
-const pct = (a, b) => b > 0 ? (a / b * 100).toFixed(1) + '%' : '—';
+const dnum = v => { const n = Math.round(Number(v)); return Number.isFinite(n) && n > 0 ? n : '?'; };  // days 를 안전한 정수로(HTML 삽입 무해화)
+const pct = (a, b) => { a = Number(a) || 0; b = Number(b) || 0; return b > 0 ? (a / b * 100).toFixed(1) + '%' : '—'; };  // 부분/누락 값도 NaN% 대신 안전한 수치로
 
 // ── 인라인 SVG 차트 (외부 의존 없음) ──
 function lineChart(series, opt) {
@@ -60,11 +54,12 @@ function lineChart(series, opt) {
   labels.forEach((lb, i) => { if (n <= 12 || i % Math.ceil(n / 12) === 0) svg += `<text x="${x(i)}" y="${H - 8}" class="axis" text-anchor="middle">${esc(lb)}</text>`; });
   sets.forEach(s => {
     const pts = s.data.map((v, i) => `${x(i)},${y(v)}`).join(' ');
-    svg += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5"/>`;
+    svg += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-dasharray="${s.dash || ''}"/>`;
     s.data.forEach((v, i) => { svg += `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${s.color}"/>`; });
   });
   svg += `</svg>`;
-  const legend = sets.map(s => `<span class="lg"><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('');
+  // 범례 스와치를 색+점선패턴 미니 라인으로 → 적록색맹도 계열 구분 가능(색만으로 구분 금지)
+  const legend = sets.map(s => `<span class="lg"><svg width="16" height="8" class="lgln"><line x1="0" y1="4" x2="16" y2="4" stroke="${s.color}" stroke-width="2.5" stroke-dasharray="${s.dash || ''}"/></svg>${esc(s.name)}</span>`).join('');
   return `<div class="ln">${svg}<div class="legend">${legend}</div></div>`;
 }
 function barList(obj, opt) {
@@ -93,39 +88,50 @@ function build(snaps) {
       <p>그 뒤 이 스크립트를 다시 실행하면 여기에 누적 대시보드가 그려집니다. 주 1회 스냅샷을 커밋하면 시간에 따른 추세가 쌓입니다.</p></div>`);
   }
   const last = snaps[snaps.length - 1];
-  const f = last.funnel || { session: 0, activate: 0, computed: 0, output: 0 };
+  const rawF = last.funnel || {};                    // 부분 funnel(키 일부 누락)도 NaN 없이: 키별 Number 강제
+  const f = { session: Number(rawF.session) || 0, activate: Number(rawF.activate) || 0, computed: Number(rawF.computed) || 0, output: Number(rawF.output) || 0 };
 
   // KPI 타일 (최신 스냅샷)
+  //   산출물은 "매 산출 행동 합계"라 결과(세션당 1회)로 나눈 백분율이 100%를 넘을 수 있다 →
+  //   퍼널 전환처럼 오독되지 않게 '결과당 N.N건'(결과 세션당 평균 산출 건수)으로 표기.
+  const perResult = f.computed > 0 ? '결과당 ' + (f.output / f.computed).toFixed(1) + '건' : '총 ' + num(f.output) + '건';
   const kpis = [
-    ['방문 (session)', num(f.session), '최근 ' + last.days + '일'],
+    ['방문 (session)', num(f.session), '최근 ' + dnum(last.days) + '일'],
     ['직접 입력', num(f.activate), pct(f.activate, f.session) + ' of 방문'],
     ['결과 도달', num(f.computed), pct(f.computed, f.session) + ' of 방문'],
-    ['산출물', num(f.output), pct(f.output, f.computed) + ' of 결과'],
+    ['산출물', num(f.output), perResult],
     ['방문→산출물 전환', pct(f.output, f.session), '핵심 지표'],
   ].map(k => `<div class="kpi"><div class="kv">${k[1]}</div><div class="kl">${esc(k[0])}</div><div class="ks">${esc(k[2])}</div></div>`).join('');
 
   // 추세: 스냅샷별 session/computed/output (누적 이력)
+  //   집계범위(days)가 다른 스냅샷을 한 선에 섞으면(7일 vs 30일) 원시 카운트가 급증 아티팩트로 오독됨 →
+  //   최신 스냅샷과 같은 윈도우만 플롯. 계열은 색 + 점선패턴으로 이중 구분(색맹 대비).
+  const win = last.days;
+  const trendSnaps = snaps.filter(s => s.days === win);
+  const dropped = snaps.length - trendSnaps.length;
   let trend = '';
-  if (snaps.length >= 2) {
+  if (trendSnaps.length >= 2) {
     trend = lineChart({
-      labels: snaps.map(s => String(s.endDate).slice(5)),
+      labels: trendSnaps.map(s => String(s.endDate).slice(5)),
       sets: [
-        { name: '방문', color: '#a9792b', data: snaps.map(s => (s.funnel || {}).session || 0) },
-        { name: '결과도달', color: '#2e7d4f', data: snaps.map(s => (s.funnel || {}).computed || 0) },
-        { name: '산출물', color: '#b4552d', data: snaps.map(s => (s.funnel || {}).output || 0) },
+        { name: '방문', color: '#a9792b', dash: '', data: trendSnaps.map(s => (s.funnel || {}).session || 0) },
+        { name: '결과도달', color: '#2e7d4f', dash: '5 3', data: trendSnaps.map(s => (s.funnel || {}).computed || 0) },
+        { name: '산출물', color: '#b4552d', dash: '1.5 3', data: trendSnaps.map(s => (s.funnel || {}).output || 0) },
       ],
     });
+    trend += `<p class="note">최근 ${dnum(win)}일 집계 스냅샷 ${trendSnaps.length}개${dropped ? ` · 집계범위가 다른 ${dropped}개는 왜곡 방지 위해 제외` : ''}.</p>`;
   } else if (last.daily && last.daily.length >= 2) {
     // 스냅샷이 1개뿐이면 그 안의 일자별 시계열로 대체
     trend = lineChart({
       labels: last.daily.map(d => String(d.day).slice(5)),
       sets: [
-        { name: '방문', color: '#a9792b', data: last.daily.map(d => d.session || 0) },
-        { name: '결과도달', color: '#2e7d4f', data: last.daily.map(d => d.computed || 0) },
+        { name: '방문', color: '#a9792b', dash: '', data: last.daily.map(d => d.session || 0) },
+        { name: '결과도달', color: '#2e7d4f', dash: '5 3', data: last.daily.map(d => d.computed || 0) },
       ],
     });
+    trend += `<p class="note">스냅샷 1개 — 그 안의 일자별 추이. 주 1회 스냅샷을 커밋하면 주간 추세로 바뀝니다.</p>`;
   } else {
-    trend = '<p class="empty">추세는 스냅샷이 2개 이상 쌓이면 표시됩니다 (주 1회 커밋 권장).</p>';
+    trend = '<p class="empty">추세는 같은 집계범위 스냅샷이 2개 이상 쌓이면 표시됩니다 (주 1회 커밋 권장).</p>';
   }
 
   // 퍼널 바
@@ -142,14 +148,14 @@ function build(snaps) {
   <div class="card"><h2>추세 <span>스냅샷별 · 누적 이력</span></h2>${trend}</div>
 
   <div class="row2">
-    <div class="card"><h2>활성화 퍼널 <span>최근 ${last.days}일</span></h2><div class="funnel">${funnelHtml}</div>
-      <p class="note">방문 → 직접 입력(예시 아님) → 결과 도달 → 산출물. 각 단계가 세션당 1회 신호.</p></div>
+    <div class="card"><h2>활성화 퍼널 <span>최근 ${dnum(last.days)}일</span></h2><div class="funnel">${funnelHtml}</div>
+      <p class="note">방문·직접입력·결과도달은 <b>세션당 1회</b> 신호. 산출물은 <b>매 산출 행동의 합계</b>라 결과보다 클 수 있습니다(한 세션이 엑셀·티저 등 여러 개 생성).</p></div>
     <div class="card"><h2>산출물 종류</h2>${barList(outObj, {})}</div>
   </div>
 
   <div class="row2">
     <div class="card"><h2>딜 유형</h2>${barList(dealLabelMap(last.deals || {}), {})}</div>
-    <div class="card"><h2>기기</h2>${barList(last.device || {}, {})}</div>
+    <div class="card"><h2>기기</h2>${barList(last.device || {}, { label: DEVICE_LABEL })}</div>
   </div>
 
   <div class="row2">
@@ -160,7 +166,7 @@ function build(snaps) {
 
   <div class="card sn"><h2>스냅샷 이력 <span>${snaps.length}개</span></h2>
     <table class="snt"><tr><th>기준일</th><th>범위</th><th>방문</th><th>결과도달</th><th>산출물</th><th>전환</th></tr>
-    ${snaps.slice().reverse().map(s => { const ff = s.funnel || {}; return `<tr><td>${esc(s.endDate)}</td><td>${s.days}일</td><td>${num(ff.session)}</td><td>${num(ff.computed)}</td><td>${num(ff.output)}</td><td>${pct(ff.output, ff.session)}</td></tr>`; }).join('')}
+    ${snaps.slice().reverse().map(s => { const ff = s.funnel || {}; return `<tr><td>${esc(s.endDate)}</td><td>${dnum(s.days)}일</td><td>${num(ff.session)}</td><td>${num(ff.computed)}</td><td>${num(ff.output)}</td><td>${pct(ff.output, ff.session)}</td></tr>`; }).join('')}
     </table></div>
 
   <p class="foot">봇·크롤러 주의: 자동 스캐너가 많은 요청을 만들지만 이 집계는 <b>앱이 직접 보낸 이벤트(mtevent)만</b> 셉니다 — 취약점 탐색 GET, og.png 크롤링 등은 포함되지 않습니다. 수치·임차인명·개인정보는 애초에 수집하지 않습니다.</p>`;
@@ -169,7 +175,7 @@ function build(snaps) {
 }
 
 function page(genAt, body, last) {
-  const sub = last ? `최신 스냅샷 ${esc(last.endDate)} · 최근 ${last.days}일 기준` : '스냅샷 대기 중';
+  const sub = last ? `최신 스냅샷 ${esc(last.endDate)} · 최근 ${dnum(last.days)}일 기준` : '스냅샷 대기 중';
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>모델터 계기판</title>
 <style>
@@ -187,7 +193,7 @@ h1{font-size:22px;margin:0 0 2px}.sub{color:var(--ink3);font-size:12.5px;margin:
 .kl{font-size:12px;font-weight:600;color:var(--ink2);margin-top:4px}.ks{font-size:10.5px;color:var(--muted);margin-top:1px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:720px){.row2{grid-template-columns:1fr}}
 .chart{width:100%;height:auto}.grid{stroke:var(--line2)}.axis{fill:var(--muted);font-size:9px}
-.legend{display:flex;gap:14px;margin-top:6px;font-size:11.5px;color:var(--ink2)}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.legend{display:flex;gap:14px;margin-top:6px;font-size:11.5px;color:var(--ink2)}.lg .lgln{margin-right:5px;vertical-align:-1px}
 .bars,.funnel{display:flex;flex-direction:column;gap:7px}
 .brow,.frow{display:flex;align-items:center;gap:9px}.bk,.fk{min-width:96px;font-size:12px;color:var(--ink2)}
 .btrack,.ftrack{flex:1;height:9px;background:var(--line2);border-radius:6px;overflow:hidden}
@@ -205,7 +211,13 @@ ${body}
 }
 
 const snaps = loadSnapshots();
-fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, build(snaps));
+try {
+  fs.mkdirSync(path.dirname(OUT), { recursive: true });
+  fs.writeFileSync(OUT, build(snaps));
+} catch (e) {
+  console.error('대시보드 파일을 쓰지 못했습니다: ' + OUT + '\n  → ' + e.message +
+    '\n  쓰기 권한이 있는 경로로 --out 을 지정하세요. 예: node tools/modelter-report.js --out ./dashboard.html');
+  process.exit(1);
+}
 console.log('✅ 대시보드 생성: ' + path.relative(ROOT, OUT) + '  (스냅샷 ' + snaps.length + '개)');
 console.log('   브라우저로 열기: file://' + OUT);
