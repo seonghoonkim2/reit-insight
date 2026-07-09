@@ -113,8 +113,10 @@ grep -c "__mtCalc" dart-search/web/modelter/index.html   # 0이어야 함
 26. ~~가정 적정성 점검표~~(5d5e558) 27. ~~AI 근거 원문~~(15ccece) 28. ~~제시치 대조~~(15ccece)
 29. ~~검토 질의서~~(5d5e558) 30. ~~경량 PWA~~(81e9317) 31. ~~사진 IM 추출~~(15ccece) 32. ~~QR 이어가기~~(c45cbb9)
 
-**32건 백로그 전체 완료.** 다음 우선순위는 계기판 실사용 데이터(`node tools/modelter-ae.js --days 7`)로
-발굴한다 — 신규 이벤트: im_quick, memo_copy, png_card, pipeline_copy, inquiry_copy, ws_diff, ws_status,
+**32건 백로그 전체 완료.** 차기 6개월 전략·에픽 실행 명세는 → **`docs/STRATEGY-NEXT.md`** (관점 5종 패널→심사→종합→코드 실증).
+방향: '만들기'에서 '발견·허가·전파'로 — 신뢰 센터·산출물 회수 루프·팀 기준 배포·검색 착지·채널 어트리뷰션. 착수 순서는 그 문서 4장.
+
+세부 우선순위는 계기판 실사용 데이터(`node tools/modelter-ae.js --days 7`)로 조정한다 — 신규 이벤트: im_quick, memo_copy, png_card, pipeline_copy, inquiry_copy, ws_diff, ws_status,
 mydef_*, adj_open, xlsx_restore, src_tag, house_set, qr_open, coach_ok.
 
 ## 5. 불변 원칙 (CLAUDE.md와 동일 — 완화 금지)
