@@ -3910,6 +3910,20 @@ function dealVerdict(r){
       else if(sp>=-0.5) parts.push('Exit Cap이 진입과 유사');   // 앱 검증 허용치(±0.5%p) 이내
       else { parts.push('Exit Cap이 진입보다 '+mfmt(-sp,1)+'%p 낮음(공격적) — <b>역스프레드 주의</b>'); tone='warn'; }
     }
+    // 다운사이드 한 줄 — 민감도 히트맵의 보수 코너(Exit +1.0%p × 성장 −1.0%p)를 문장으로
+    try{
+      if(typeof window!=='undefined'&&typeof window.__mtSens2==='function'&&typeof window.__mtSensBase==='function'){
+        var _b=window.__mtSensBase();
+        if(_b&&isFinite(_b.ec)&&isFinite(_b.g)){
+          var _dEc=_b.ec+1.0, _dG=_b.g-1.0;
+          var _dIRR=window.__mtSens2(_dEc,_dG,'growth');
+          if(_dIRR!=null&&isFinite(_dIRR)){
+            if(_dIRR<0.05) parts.push('보수 코너(Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%)에선 IRR '+fp(_dIRR)+' — <b>다운사이드 취약</b>');
+            else parts.push('보수 코너(Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%)에서도 IRR '+fp(_dIRR));
+          }
+        }
+      }
+    }catch(eDs){}
     return {tone:tone, html:parts.join(' · ')};
   }
   // ── 개발·분양: 이익률·손익분기·PF 상환 ──
