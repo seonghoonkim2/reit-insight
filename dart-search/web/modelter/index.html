@@ -522,6 +522,8 @@ header{background:rgba(253,252,249,.82)}
 .cov-tbl tr.cv-ok .cv-st{color:var(--green)}
 .cov-refi{font-size:11.5px; color:var(--ink-3); margin-top:8px; line-height:1.5}
 .cov-refi b{color:var(--accent-deep)}
+.cov-gap{margin-top:4px}
+.cov-refi b.cv-neg{color:var(--red)}
 /* 역산 카드 */
 .sv-rows{display:flex; flex-direction:column; gap:9px}
 .sv-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2)}
@@ -4920,7 +4922,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       var H=r.DSCR.length;
       var minD=parseNum(state['covdscr']), maxL=parseNum(state['covltv']); if(isFinite(maxL)) maxL=maxL/100;
       var judge=isFinite(minD)||isFinite(maxL);
-      var rows='', lastDY=null, lastLTV=null;
+      var rows='', lastDY=null, lastLTV=null, lastIV=null;
       for(var y=0;y<H;y++){
         var noi=r.NOI[y], ds=r.DS[y], dscr=r.DSCR[y];
         var icr=r.INT[y]>0?noi/r.INT[y]:null;
@@ -4928,7 +4930,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         var fwd=(r.NOI[y+1]!=null)?r.NOI[y+1]:noi;
         var iv=(r.exitCap>0)?fwd/r.exitCap:null;
         var ltv=(iv&&r.endBal[y]>0)?r.endBal[y]/iv:null;
-        if(y===H-1){ lastDY=dy; lastLTV=ltv; }
+        if(y===H-1){ lastDY=dy; lastLTV=ltv; lastIV=iv; }
         var st='—', cls='';
         if(judge){
           var br=(isFinite(minD)&&dscr<minD)||(isFinite(maxL)&&ltv!=null&&ltv>maxL);
@@ -4938,6 +4940,13 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         rows+='<tr'+(cls?' class="'+cls+'"':'')+'><td>Y'+(y+1)+'</td><td>'+meok(noi)+'</td><td>'+meok(ds)+'</td><td>'+(isFinite(dscr)?dscr.toFixed(2)+'x':'—')+'</td><td>'+(icr!=null?icr.toFixed(1)+'x':'—')+'</td><td>'+(dy!=null?(dy*100).toFixed(1)+'%':'—')+'</td><td>'+(ltv!=null?(ltv*100).toFixed(0)+'%':'—')+'</td><td class="cv-st">'+st+'</td></tr>';
       }
       var refi=(lastDY!=null&&lastLTV!=null)?('<div class="cov-refi">만기시점 Debt Yield <b>'+(lastDY*100).toFixed(1)+'%</b> · 내재 LTV <b>'+(lastLTV*100).toFixed(0)+'%</b> 입니다. 차환 여력을 가늠하는 참고치이며, 내재가치는 다음해 NOI를 Exit Cap으로 나눈 값입니다.</div>'):'';
+      // 만기 차환 갭 테스트: 벌룬 잔액 vs 만기시점 내재가치 × 차환 한도(입력 LTV 또는 통상 60% 가정)
+      if(lastIV!=null&&lastIV>0&&r.endBal[H-1]>0){
+        var _bal=r.endBal[H-1], _lim=isFinite(maxL)?maxL:0.60, _cap=lastIV*_lim, _gap=_cap-_bal;
+        var _limLb=isFinite(maxL)?('입력 기준 LTV '+Math.round(_lim*100)+'%'):'통상 60% 가정';
+        refi+='<div class="cov-refi cov-gap">차환 갭 테스트: 만기 잔액(벌룬) <b>'+meok(_bal)+'</b> vs 차환 가능액 <b>'+meok(_cap)+'</b> (내재가치 × '+_limLb+') → '
+          +(_gap>=0?('<b>여유 '+meok(_gap)+'</b> — 신규 대출로 만기 차환이 성립하는 구간입니다.'):('<b class="cv-neg">부족 '+meok(-_gap)+'</b> — 만기 전 일부 상환·에쿼티 보강 또는 매각 없이는 차환이 어려울 수 있습니다.'))+'</div>';
+      }
       var opn=judge?' open':'';
       return '<details class="sim-cf cov-d"'+opn+'><summary>부채 커버넌트 · 리파이 참고 ▾</summary>'
         +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><span>기준을 안 넣으면 판정 없이 숫자만 보여줍니다 (엑셀 05_Debt_Schedule에도 같은 행이 있음)</span></div>'
