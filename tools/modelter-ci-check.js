@@ -157,6 +157,7 @@ ok(html.includes("props['evidence']") && html.includes('근거 원문'), 'AI 추
 ok(html.includes("'sellerirr'") && html.includes('매도자 제시 IRR'), '매도자 제시치 대조 존재');
 ok(html.includes('function imgToB64') && html.includes("id=\"imxImg\""), '사진(비전) IM 추출 존재');
 ok(html.includes('rel="manifest"') && html.includes("navigator.serviceWorker.register('/sw.js')"), 'PWA(manifest+SW 등록) 존재');
+ok(html.includes('Kazuhiko Arase') && html.includes('function qrPop'), 'QR 이어가기(MIT 인코더 내장) 존재');
 ok(html.includes('결과부터 보이게') || html.includes('입력 폼이 아니라 결과부터'), '읽기 전용 모바일 결과 우선 착지 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
