@@ -102,6 +102,18 @@ ok(html.includes("track('deal_want'"), '수요 가짜 문: deal_want 수집(딜 
   const workerSrc = fs.existsSync(path.join(__dirname, '..', 'worker.js')) ? fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8') : '';
   ok(/const\s+src\s*=\s*s\(d\.src,\s*8\)\.replace\(\/\[\^A-Za-z0-9_\]/.test(workerSrc), 'worker.js: src 화이트리스트(영문·숫자·_ 8자) 정화');
 }
+
+/* ── 1d) 산출물 회수 루프(E2) — 회수 링크·QR·착지 CTA ── */
+ok(html.includes('function shareLink(readonly, src)') && html.includes('var SRC_CHANNELS='), '회수: shareLink(readonly,src) 채널 태그 화이트리스트');
+ok(html.includes('function recoverUrl(src)') && html.includes("function recoverOn()"), '회수: 옵트인(recoverOn)·회수 URL 생성기');
+ok(html.includes('id="recoverChk"') && html.includes('id="recoverOpt"'), '회수: 산출물 링크 옵트인 체크박스(기본 켜짐)');
+ok(html.includes('if(c.link){ links.push') && html.includes('officeDocument/2006/relationships/hyperlink') && html.includes('TargetMode="External"'), '회수: XLSXGEN 하이퍼링크(시트 rels·External) 지원');
+ok(html.includes("recoverUrl('xlsx')") && html.includes('modelter.com에서 이 모델 열기'), '회수: 엑셀 표지 「이 모델 열기」 하이퍼링크 셀(&src=xlsx)');
+ok(html.includes("recoverUrl('png')") && html.includes('스캔 → 이 모델 열기'), '회수: PNG 요약 카드 QR(&src=png)');
+ok(html.includes("shareLink(false,'qr')"), '회수: QR 이어가기 링크 &src=qr');
+ok(html.includes('id="roCta"') && html.includes('id="roCtaBtn"') && html.includes('이 가정으로 내 딜 시작하기'), '회수: 읽기전용 착지 하단 CTA 바');
+ok(html.includes("mtTrack('recover_cta'"), '회수: recover_cta 이벤트(착지→편집 전환)');
+ok(html.includes('이 모델을 바로 열어 보기:') && html.includes('요약 카드(PNG)의 QR'), '회수: IC PPT 마지막 장 회수 안내(라이브·QR 경로)');
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
 if (fs.existsSync(headersPath)) {

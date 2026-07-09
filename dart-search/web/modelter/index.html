@@ -751,6 +751,9 @@ header{background:rgba(253,252,249,.82)}
 .dl-row{display:flex; gap:8px; margin-top:14px; align-items:stretch}
 .dl-row[hidden]{display:none}
 .dl-row .xl-dl{margin-top:0; width:auto; flex:2; min-width:0}
+.dl-opt{display:flex; align-items:flex-start; gap:7px; margin-top:9px; font-size:12px; color:var(--ink-2); line-height:1.5; cursor:pointer}
+.dl-opt input{margin-top:2px; flex-shrink:0; accent-color:var(--accent-solid)}
+.dl-opt-note{color:var(--muted); font-size:11.5px}
 .dl-row .tz-dl{flex:1; background:var(--ink); color:var(--panel); box-shadow:0 4px 14px rgba(0,0,0,.18); font-size:13px; padding:14px 8px}
 .dl-row .tz-dl .xl-ext{opacity:.6}
 
@@ -1104,6 +1107,13 @@ html,body{overflow-x:hidden}
 .ro-txt b{color:var(--accent-deep)}
 .ro-open{border:1px solid var(--accent);background:var(--accent-solid);color:var(--on-accent);font-family:var(--font);font-weight:700;font-size:13px;padding:8px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .ro-open:hover{filter:brightness(1.06)}
+.ro-cta{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.10)}
+.ro-cta .wrap{display:flex;align-items:center;gap:12px;padding:11px 24px;flex-wrap:wrap;justify-content:space-between}
+.ro-cta-t{font-size:13.5px;color:var(--ink-2);flex:1;min-width:180px}
+.ro-cta-t b{color:var(--accent-deep)}
+.ro-cta-b{border:none;background:var(--accent-solid);color:var(--on-accent);font-family:var(--font);font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;cursor:pointer;white-space:nowrap;box-shadow:0 3px 12px rgba(143,98,32,.3)}
+.ro-cta-b:hover{filter:brightness(1.07)}
+@media(max-width:520px){ .ro-cta .wrap{justify-content:center} .ro-cta-b{width:100%} }
 body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #srcBtn,body.mt-ro #chkBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
 
@@ -1468,6 +1478,12 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
     <button class="ro-open" id="roOpen" type="button">내 모델로 열기 →</button>
   </div>
 </div>
+<div class="ro-cta" id="roCta" hidden>
+  <div class="wrap">
+    <span class="ro-cta-t">이 모델이 마음에 드시나요? <b>내 딜로 새로 만들 수 있습니다.</b></span>
+    <button class="ro-cta-b" id="roCtaBtn" type="button">이 가정으로 내 딜 시작하기 →</button>
+  </div>
+</div>
 
 <section class="builder">
   <div class="wrap grid2">
@@ -1513,6 +1529,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
           <button class="xl-dl tz-dl" id="tzDownload" type="button" title="현재 입력값으로 1장짜리 간이 검토 보고서(PPT 양식)를 만듭니다">📄 원페이지 티저 <span class="xl-ext">.pptx</span></button>
           <button class="xl-dl tz-dl" id="icDownload" type="button" title="표지·투자요약·핵심가정·현금흐름·민감도·리스크점검 6장 — 화면 결과 그대로, 재계산 없음">📑 IC 패키지 6장 <span class="xl-ext">.pptx</span></button>
         </div>
+        <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> — 받는 사람이 클릭·스캔 한 번으로 라이브 모델에 이어집니다. 링크에는 화면의 가정 수치가 담기며(임차인 실명은 자동 마스킹) 파일 자체와 같은 정보입니다.</span></label>
       </div>
       <div class="metrics" id="metricsCard" hidden>
         <div class="mx-head"><span class="mx-t">즉시 점검 <span class="mx-sub">입력값 기반</span></span><span class="mx-flag" id="mxFlag"></span></div>
@@ -4730,11 +4747,19 @@ function sharePayload(){
 }
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
 window.__mtSnapForXlsx=function(){ try{ return encodeState()||null; }catch(e){ return null; } };
-function shareLink(readonly){
+// 채널 태그 정화 — 산출물 회수 링크가 붙이는 src 값은 화이트리스트 채널명만(수치·PII 불가)
+var SRC_CHANNELS={xlsx:1,ppt:1,png:1,qr:1,share:1,notes:1,team:1,hero:1};
+function srcTag(src){ src=String(src||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,8); return SRC_CHANNELS[src]?src:''; }
+function shareLink(readonly, src){
   var enc=encodeState();
   if(!enc){ toast("공유 링크 생성에 실패했습니다"); return; }
-  return location.origin+location.pathname+"#"+(readonly?"v":"e")+"="+enc;
+  var s=srcTag(src);
+  // enc(mtLZ)는 URL-safe 64자(A-Za-z0-9-_)만 — &·=·# 불포함이라 &src= 를 뒤에 붙여도 파싱 안전
+  return location.origin+location.pathname+"#"+(readonly?"v":"e")+"="+enc+(s?"&src="+s:"");
 }
+// 산출물 회수 링크 — 옵트인 체크박스(기본 켜짐). 산출물에 「이 모델 열기」 링크·QR을 넣을지.
+function recoverOn(){ try{ var c=document.getElementById('recoverChk'); return c?!!c.checked:true; }catch(e){ return true; } }
+function recoverUrl(src){ if(!recoverOn()) return null; try{ return shareLink(true, src)||null; }catch(e){ return null; } }
 function copyShare(url, label){
   var done=function(){ toast(label+" 링크가 복사되었습니다"); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(function(){ prompt("이 링크를 복사하세요:",url); }); }
@@ -5042,7 +5067,7 @@ function oneLineReport(){
   }
   var vd=null; try{ vd=dealVerdict(r); }catch(e){}
   var vTxt=''; if(vd){ var seg=String(vd.lead||vd.html).replace(/<[^>]+>/g,''); vTxt=' — '+(vd.tone==='warn'?'⚠ ':'✓ ')+seg; }
-  var url=shareLink(true)||'';
+  var url=shareLink(true,'share')||'';
   var exTag=(typeof exMixed==='function'&&exMixed())?' · (일부 가정은 예시값)':'';
   return '[모델터] '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+exTag+'\n'+url;
 }
@@ -5099,7 +5124,7 @@ function reviewMemo(){
   if(vd){
     L.push((vd.tone==='warn'?'⚠':'✓')+' 판정 — '+String(vd.noDs||vd.html).replace(/<[^>]+>/g,''));
   }
-  var url=shareLink(true)||'';
+  var url=shareLink(true,'share')||'';
   if(url){ L.push(''); L.push('결과 링크(읽기 전용): '+url); }
   L.push('');
   try{
@@ -5145,14 +5170,30 @@ function summaryCardPNG(){
     g.fillStyle='#a9792b'; g.font='800 52px '+F;
     g.fillText(String(k.v), x+26, 350, tw-52);
   });
+  // 산출물 회수 QR — 스캔하면 이 모델(읽기 전용·임차인 마스킹)이 폰에서 열림 (옵트인·&src=png)
+  var _qok=false, _qurl=null; try{ _qurl=recoverUrl('png'); }catch(eQ0){}
+  if(_qurl && typeof window.__mtQR==='function'){
+    try{
+      var _q=null,_tt; for(_tt=5;_tt<=40;_tt++){ try{ var _qq=window.__mtQR(_tt,'M'); _qq.addData(_qurl,'Byte'); _qq.make(); _q=_qq; break; }catch(_eQ){} }
+      if(_q){
+        var _n=_q.getModuleCount(), _box=118, _sc=Math.max(1,Math.floor(_box/(_n+2))), _q0=_sc, _sz=_n*_sc+_q0*2, _qx=1136-_sz, _qy=428;
+        g.fillStyle='#ffffff'; g.fillRect(_qx,_qy,_sz,_sz);
+        g.fillStyle='#1b2230';
+        for(var _rr=0;_rr<_n;_rr++) for(var _cc=0;_cc<_n;_cc++) if(_q.isDark(_rr,_cc)) g.fillRect(_qx+_q0+_cc*_sc, _qy+_q0+_rr*_sc, _sc, _sc);
+        g.fillStyle='#8b8f98'; g.font='600 17px '+F; g.textAlign='center';
+        g.fillText('스캔 → 이 모델 열기', _qx+_sz/2, _qy+_sz+22); g.textAlign='left';
+        _qok=true;
+      }
+    }catch(eQ){}
+  }
+  var _maxW=_qok?968:1072;
   if(vTxt){ g.fillStyle=(vd&&vd.tone==='warn')?'#b4552d':'#2e7d4f'; g.font='700 30px '+F;
-    g.fillText((vd&&vd.tone==='warn'?'⚠ ':'✓ ')+vTxt, 64, 468, 1072); }
+    g.fillText((vd&&vd.tone==='warn'?'⚠ ':'✓ ')+vTxt, 64, 468, _maxW); }
   if(warn){ g.fillStyle='#b4552d'; g.font='600 24px '+F;
-    g.fillText('※ 일부는 아직 예시 숫자입니다 — 보내기 전에 실제 값인지 확인하세요', 64, 514, 1072); }
+    g.fillText('※ 일부는 아직 예시 숫자입니다 — 보내기 전에 실제 값인지 확인하세요', 64, 514, _maxW); }
   g.fillStyle='#8b8f98'; g.font='500 21px '+F;
   g.fillText('입력 가정에 따른 추정치 · 투자 권유가 아닌 정보 제공 목적 · 임차인 정보 미포함', 64, 572, 900);
-  g.fillStyle='#a9792b'; g.font='800 26px '+F;
-  g.fillText('modelter.com', 1010, 572);
+  if(!_qok){ g.fillStyle='#a9792b'; g.font='800 26px '+F; g.fillText('modelter.com', 1010, 572); }
   cv.toBlob(function(b){
     if(!b) return;
     var a=document.createElement('a'); a.href=URL.createObjectURL(b);
@@ -5224,7 +5265,7 @@ function shareInputs(){
     }
     var ro=o.dataset.ro==='1';
     if(typeof exConfirmOutput==='function'&&!exConfirmOutput('공유 링크')){ pop.remove(); return; }
-    var url=shareLink(ro); if(url) copyShare(url, ro?'결과(읽기 전용)':'편집용');
+    var url=shareLink(ro,'share'); if(url) copyShare(url, ro?'결과(읽기 전용)':'편집용');
     if(window.mtTrack) try{ mtTrack('share_link',{ro:ro?1:0}); }catch(e){}
     pop.remove();
   }); });
@@ -5264,7 +5305,8 @@ function tryRestoreFromURL(){
 // 읽기 전용 모드: 입력을 보기만 가능하게 잠그고, 결과·민감도는 그대로. '내 모델로 열기'로 해제
 function enterReadonly(){
   window.__mtReadonly=true;
-  try{ document.body.classList.add('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=false; }catch(e){}
+  try{ document.body.classList.add('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=false;
+    var cta=document.getElementById('roCta'); if(cta) cta.hidden=false; }catch(e){}
   // 모바일 수신자: 입력 폼이 아니라 결과부터 보이게 (받은 사람은 결과가 목적)
   try{
     if(window.innerWidth<=760){
@@ -5275,6 +5317,7 @@ function enterReadonly(){
 window.__mtExitReadonly=function(){
   window.__mtReadonly=false;
   try{ document.body.classList.remove('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=true;
+    var cta=document.getElementById('roCta'); if(cta) cta.hidden=true;
     try{ history.replaceState(null,'',location.pathname); }catch(e2){} }catch(e){}
   try{ toast('편집 모드로 전환했습니다 — 이제 값을 바꿀 수 있습니다'); }catch(e3){}
 };
@@ -5314,7 +5357,13 @@ function initTheme(){
 }
 
 const shareBtn=$("shareBtn"); if(shareBtn) shareBtn.addEventListener("click",shareInputs);
-var _roOpen=$("roOpen"); if(_roOpen) _roOpen.addEventListener("click",function(){ if(window.__mtExitReadonly) window.__mtExitReadonly(); });
+var _roOpen=$("roOpen"); if(_roOpen) _roOpen.addEventListener("click",function(){ try{ if(window.mtTrack) mtTrack('recover_cta',{from:'banner'}); }catch(e){} if(window.__mtExitReadonly) window.__mtExitReadonly(); });
+var _roCta=$("roCtaBtn"); if(_roCta) _roCta.addEventListener("click",function(){
+  try{ if(window.mtTrack) mtTrack('recover_cta',{from:'cta'}); }catch(e){}
+  if(window.__mtExitReadonly) window.__mtExitReadonly();
+  try{ var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({block:'start',behavior:'smooth'}); }catch(e2){}
+  try{ toast('편집 모드입니다 — 이 가정을 바탕으로 값을 바꿔 내 딜을 만들어 보세요'); }catch(e3){}
+});
 const mailBtn=$("mailBtn"); if(mailBtn) mailBtn.addEventListener("click",mailPrompt);
 
 renderTabs();
@@ -5443,7 +5492,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
 
   function buildSheetXml(sheet, xfMap, xfList){
-    var rows={};
+    var rows={}, links=[];
     sheet.cells.forEach(function(c){ var sr=splitRef(c.r); (rows[sr.row]=rows[sr.row]||[]).push(c); });
     var rowNums=Object.keys(rows).map(Number).sort(function(a,b){return a-b;});
     var maxC=2, body='';
@@ -5461,6 +5510,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         if('f' in c){ rowx+='<c r="'+c.r+'"'+sAttr+'><f>'+fixFormula(c.f)+'</f></c>'; }
         else if('n' in c){ rowx+='<c r="'+c.r+'"'+sAttr+'><v>'+c.n+'</v></c>'; }
         else { rowx+='<c r="'+c.r+'"'+sAttr+' t="inlineStr"><is><t xml:space="preserve">'+xmlesc(c.s||'')+'</t></is></c>'; }
+        if(c.link){ links.push({ref:c.r, target:String(c.link)}); }   // 외부 하이퍼링크(회수 링크) — 시트 rels로 연결
       });
       var ht=imp>=3?'21':(imp>=2?'18':null);
       body+='<row r="'+rn+'"'+(ht?' ht="'+ht+'" customHeight="1"':'')+'>'+rowx+'</row>';
@@ -5469,14 +5519,18 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var dim='A1:'+colLet(Math.max(maxC,2))+lastRow;
     var merges='';
     if(sheet.merges&&sheet.merges.length){ merges='<mergeCells count="'+sheet.merges.length+'">'+sheet.merges.map(function(m){return '<mergeCell ref="'+m+'"/>';}).join('')+'</mergeCells>'; }
-    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    // 하이퍼링크는 스키마상 mergeCells 뒤에 옴. rId는 시트 rels(rId1..)와 일치
+    var hyper='';
+    if(links.length){ hyper='<hyperlinks>'+links.map(function(l,i){return '<hyperlink ref="'+l.ref+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</hyperlinks>'; }
+    var xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
       '<dimension ref="'+dim+'"/>'+
       '<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>'+
       '<sheetFormatPr defaultRowHeight="15"/>'+
       colsXml(sheet)+
-      '<sheetData>'+body+'</sheetData>'+merges+
+      '<sheetData>'+body+'</sheetData>'+merges+hyper+
       '</worksheet>';
+    return {xml:xml, links:links};
   }
 
   function applyOverrides(tmpl, overrides){
@@ -5518,7 +5572,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       }
     }catch(eRS){}
     var xfList=[], xfMap={};
-    var sheetsXml=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
+    var sheetsMeta=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
+    var sheetsXml=sheetsMeta.map(function(m){return m.xml;});
     var stylesXml=buildStyles(xfList);
     var n=t.sheets.length, files=[], i;
     var ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
@@ -5537,7 +5592,15 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     wbrels+='<Relationship Id="rId'+(n+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>';
     files.push(['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+wbrels+'</Relationships>']);
     files.push(['xl/styles.xml',stylesXml]);
-    for(i=0;i<n;i++) files.push(['xl/worksheets/sheet'+(i+1)+'.xml',sheetsXml[i]]);
+    for(i=0;i<n;i++){
+      files.push(['xl/worksheets/sheet'+(i+1)+'.xml',sheetsXml[i]]);
+      var lk=sheetsMeta[i].links;
+      if(lk&&lk.length){   // 시트별 외부 하이퍼링크 rels (TargetMode=External)
+        var rel='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+          lk.map(function(l,j){return '<Relationship Id="rId'+(j+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="'+xmlesc(l.target)+'" TargetMode="External"/>';}).join('')+'</Relationships>';
+        files.push(['xl/worksheets/_rels/sheet'+(i+1)+'.xml.rels',rel]);
+      }
+    }
     return zipStore(files);
   }
 
@@ -6585,6 +6648,20 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
           if(_b22&&_b22.s) _b22.s+=' · Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')))+' · 생성 '+new Date().toISOString().slice(0,10);
         }
       }catch(e3){}
+      // 산출물 회수 링크 — 표지에 「이 모델 열기」 하이퍼링크(옵트인·마스킹·&src=xlsx). 받은 사람이 클릭 한 번으로 라이브 모델에 착지.
+      try{
+        var _rl=recoverUrl('xlsx');
+        if(_rl){
+          var _cov=null,_cvi; for(_cvi=0;_cvi<_TPL.sheets.length;_cvi++) if(_TPL.sheets[_cvi].name==='00_Cover'){_cov=_TPL.sheets[_cvi];break;}
+          if(_cov){
+            var _mr=0; _cov.cells.forEach(function(c){ var mm=/^[A-Z]+(\d+)$/.exec(c.r); if(mm){ var rn=+mm[1]; if(rn>_mr)_mr=rn; } });
+            var _lr=_mr+2;
+            _cov.cells.push({r:'B'+_lr, role:'se', s:'이 모델을 브라우저에서 열기'});
+            _cov.cells.push({r:'B'+(_lr+1), role:'lbb', s:'📱 modelter.com에서 이 모델 열기 →', link:_rl});
+            _cov.cells.push({r:'B'+(_lr+2), role:'da', s:'클릭하면 이 가정 그대로 라이브 모델이 열립니다(읽기 전용). 값을 바꾸려면 「내 모델로 열기」. 임차인 실명은 링크에서 자동 마스킹됩니다.'});
+          }
+        }
+      }catch(eRL){}
       var ext=leaseExtraSheets();
       var bytes = ext ? XLSXGEN.buildXlsx(_TPL, ov, ext.sheets, ext.ov)
                       : (function(){ var rr=rentRollSheet(); return XLSXGEN.buildXlsx(_TPL, ov, rr?[rr]:null); })();
@@ -6614,7 +6691,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     var isDev=(typeof cur!=='undefined')&&cur==='dev'&&(typeof devResi==='function')&&devResi();
     var isRefi=(typeof cur!=='undefined')&&(cur==='refi');
     var b=$id('dlRow'), card=$id('simCard');
-    if(b){ var noRes=false; try{ noRes=card&&card.classList&&card.classList.contains&&card.classList.contains('noresult'); }catch(eN){} b.hidden=!((isOffice||isDev||isRefi)&&card&&!card.hidden&&!noRes); }
+    if(b){ var noRes=false; try{ noRes=card&&card.classList&&card.classList.contains&&card.classList.contains('noresult'); }catch(eN){} b.hidden=!((isOffice||isDev||isRefi)&&card&&!card.hidden&&!noRes);
+      var ro2=$id('recoverOpt'); if(ro2) ro2.hidden=b.hidden; }
     var xb=$id('xlDownload');
     if(xb) xb.innerHTML=isDev?'⬇ 분양수지 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>':(isRefi?'⬇ 리파이낸싱 비교 엑셀 받기 <span class="xl-ext">.xlsx</span>':'⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span>');
     // 티저(PPT)는 매입 딜(오피스·물류) 전용
@@ -7291,11 +7369,12 @@ function buildIcPptx(){
       s.push(box(cm(0.9),cm(y),cm(30),cm(1),[{runs:[{t:'자동 점검에서 발견된 경고가 없습니다.',sz:1100,color:C.green}]}]));
       y+=1.2;
     }
-    s.push(box(cm(0.9),cm(Math.max(y+0.4,12.9)),cm(32),cm(3.9),[
+    s.push(box(cm(0.9),cm(Math.max(y+0.4,12.6)),cm(32),cm(4.3),[
       {runs:[{t:'방법론 · 신뢰성',sz:1100,b:1,color:C.ink}]},
       {runs:[{t:'· 본 패키지의 모든 수치는 modelter.com 화면과 동일한 계산 엔진에서 나왔으며, 엑셀 다운로드와도 같은 계산식입니다(파리티 검증).',sz:1000,color:C.mut}],spcB:400},
       {runs:[{t:'· 딜 데이터는 서버에 저장·전송되지 않고 브라우저 안에서만 계산됩니다.',sz:1000,color:C.mut}],spcB:200},
-      {runs:[{t:'· 수치는 입력 가정 기반 추정치로, 감정평가·실사 결과를 대체하지 않습니다.',sz:1000,color:C.mut}],spcB:200}
+      {runs:[{t:'· 수치는 입력 가정 기반 추정치로, 감정평가·실사 결과를 대체하지 않습니다.',sz:1000,color:C.mut}],spcB:200},
+      {runs:[{t:'▶ 이 모델을 바로 열어 보기: ',sz:1000,b:1,color:C.acc},{t:'modelter.com',sz:1000,b:1,color:C.acc2},{t:'  —  휴대폰은 요약 카드(PNG)의 QR을 스캔하면 이 가정 그대로 열립니다. 엑셀 표지에도 「이 모델 열기」 링크가 있습니다.',sz:1000,color:C.mut}],spcB:300}
     ],{fill:C.bg,line:C.line,rounded:true}));
     slides.push(slideXml(s));
   })();
@@ -10260,7 +10339,7 @@ var qrcode = function() {
 })();
 (function(){
   function qrPop(){
-    var url=null; try{ url=shareLink(false); }catch(e){}
+    var url=null; try{ url=shareLink(false,'qr'); }catch(e){}
     if(!url){ toast('공유 링크를 만들 수 없습니다 — 핵심 입력을 먼저 채워주세요'); return; }
     if(typeof window.__mtQR!=='function'){ toast('QR 모듈을 불러오지 못했습니다'); return; }
     var qr=null, t;
