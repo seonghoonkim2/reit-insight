@@ -25,6 +25,10 @@ CF_ACCOUNT_ID=... CF_API_TOKEN=... node tools/modelter-ae.js --days 30 --snapsho
 node tools/modelter-report.js
 #   → data/dashboard.html 을 브라우저로 열기
 
+# 2b) 사용 패턴 보고서 (누가·언제·어떻게 — 주간 모멘텀·기기·딜×산출물·시간대)
+node tools/modelter-patterns.js
+#   → data/patterns.html 을 브라우저로 열기
+
 # 3) 커밋 (스냅샷을 남겨 다음에도 추세가 이어지게)
 git add data/ae-snapshots/*.json && git commit -m "계기판 스냅샷 <날짜>"
 ```
