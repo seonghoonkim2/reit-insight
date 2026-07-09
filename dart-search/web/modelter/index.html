@@ -4577,7 +4577,7 @@ function mtNextTip(){ // 첫 산출물(엑셀) 이후 1회 — 다른 전달 수
     if(localStorage.getItem('mt_tip_next')) return;
     localStorage.setItem('mt_tip_next','1');
     setTimeout(function(){
-      toast('팁: 결과는 공유 링크(입력 패널의 공유 버튼·읽기 전용)와 📄 요약(IC 한 장 인쇄)으로도 전달할 수 있어요', 5200);
+      toast('팁: 결과는 공유 링크(입력 패널의 공유 버튼·읽기 전용)와 📄 요약(IC 한 장 인쇄)으로도 보낼 수 있습니다', 5200);
       if(window.mtTrack) try{ mtTrack('tip_next'); }catch(e){}
     },2200);
   }catch(e){}
@@ -10946,7 +10946,7 @@ var qrcode = function() {
           if(typeof wsDeal==='function'&&wsDeal()) return;   // 이미 딜로 저장함
           if(window.__mtReadonly) return;
           sessionStorage.setItem('mt_nudge','1');
-          if(typeof toast==='function') toast('만든 모델은 "딜로 저장"으로 버전을 남기고, 공유 아이콘으로 팀에 보낼 수 있어요');
+          if(typeof toast==='function') toast('만든 모델은 "딜로 저장"으로 버전을 남기고, 공유 아이콘으로 팀에 보낼 수 있습니다');
           track('nudge_save');
         }catch(e2){}
       }, 25000);
