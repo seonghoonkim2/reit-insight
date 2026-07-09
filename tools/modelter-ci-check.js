@@ -145,6 +145,7 @@ ok(html.includes('function summaryCardPNG') && html.includes('임차인 정보 �
 ok(html.includes('function wsLinkDiff') && html.includes('data-ws="lcmp"'), '공유 링크 2개 가정 diff 존재');
 ok(html.includes('function cmpTableText') && html.includes('data-cmp='), '딜 비교 대상 선택 + 비교표 복사 존재');
 ok(html.includes('function srcPop') && html.includes('var srcTags={}') && (html.match(/st:srcTags\}/g)||[]).length>=3, '가정 출처·기준일 기록(3경로 영속) 존재');
+ok(html.includes("name:'_Restore'") && html.includes('wsXlsxRestore') && html.includes('MTSNAP1:'), '엑셀 라운드트립(_Restore 시트+복원 입력) 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
@@ -562,7 +563,8 @@ const driver = `;(function(){
       if (!(_bx && _bx.length > 20000)) throw new Error("분양수지 엑셀 생성 실패");
       var _zx = XLSXREAD.readZip(_bx);
       var _wb = XLSXREAD.entryText(_zx["xl/workbook.xml"]);
-      if ((_wb.match(/<sheet /g) || []).length !== 6) throw new Error("workbook 시트 등록 오류");
+      if ((_wb.match(/<sheet /g) || []).length !== 7) throw new Error("workbook 시트 등록 오류(6시트+_Restore 기대)");
+      if (_wb.indexOf("_Restore") < 0) throw new Error("라운드트립 _Restore 시트 누락");
       if (_wb.indexOf("03_Monthly_CF") < 0 || _wb.indexOf("02_Unit_Mix") < 0) throw new Error("분양수지 시트명 누락");
       var _s4 = XLSXREAD.entryText(_zx["xl/worksheets/sheet4.xml"]);
       if (_s4.indexOf("COUNTIF") < 0 || _s4.indexOf("SUMIF") < 0) throw new Error("월별 CF 코호트 수식 누락");

@@ -3219,6 +3219,7 @@ function renderWsPanel(){
   // 백업
   html+='<div class="ws-sec-h">백업 · 가져오기</div>'+
     '<div class="ws-backup"><label class="sl-btn ws-import">딜 가져오기 (.modelter)<input type="file" id="wsImport" accept=".modelter,application/json" hidden></label>'+
+    '<label class="sl-btn ws-import">엑셀에서 복원 (.xlsx)<input type="file" id="wsXlsxRestore" accept=".xlsx" hidden></label>'+
     '<span class="ws-note">.modelter 파일에는 입력값·렌트롤 요약이 포함됩니다(원본 파일·임차인 실명은 저장되지 않음). 저장 데이터는 이 브라우저 로컬에만 보관됩니다.</span></div>';
   body.innerHTML=html;
 }
@@ -3253,6 +3254,26 @@ function renderWsPanel(){
       });
       renderWsPanel();
     }
+  });
+  // 엑셀 라운드트립 복원: 생성 xlsx 안의 스냅샷(STORE 평문)에서 딜 복원
+  document.addEventListener('change',function(e){
+    var t=e.target; if(!t||t.id!=='wsXlsxRestore') return;
+    var f=t.files&&t.files[0]; if(!f) return;
+    var fr=new FileReader();
+    fr.onload=function(){
+      try{
+        var txt=new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(fr.result));
+        var m=txt.match(/MTSNAP1:([A-Za-z0-9_-]+):PANSTM/);
+        if(!m){ toast('복원 코드를 찾지 못했습니다 — 모델터에서 생성한 .xlsx인지 확인하세요 (2026-07 이후 생성분부터 지원)'); t.value=''; return; }
+        var p=JSON.parse(mtLZ.decompress(m[1]));
+        applySharedPayload(p);
+        var ovl=document.getElementById('wsOverlay'); if(ovl){ ovl.hidden=true; document.body.style.overflow=''; }
+        toast('엑셀에서 딜을 복원했습니다 — 생성 시점 입력 기준 (엑셀에서 고친 셀은 반영되지 않음)',3400);
+        if(window.mtTrack) try{ mtTrack('xlsx_restore'); }catch(e2){}
+      }catch(err){ toast('복원 실패: '+(err&&err.message||'파일을 읽을 수 없습니다')); }
+      t.value='';
+    };
+    fr.readAsArrayBuffer(f);
   });
   // .modelter 가져오기
   document.addEventListener('change',function(e){
@@ -4577,6 +4598,7 @@ function sharePayload(){
   return {c:cur,d:depth,s:state,k:stackState,r:refiState,rr:rr,ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags};
 }
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
+window.__mtSnapForXlsx=function(){ try{ return encodeState()||null; }catch(e){ return null; } };
 function shareLink(readonly){
   var enc=encodeState();
   if(!enc){ toast("공유 링크 생성에 실패했습니다"); return; }
@@ -5242,6 +5264,19 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       var byRef={}; sh.cells.forEach(function(c){byRef[c.r]=c;});
       Object.keys(sheetOv[snm]).forEach(function(ref){ var ov2=sheetOv[snm][ref], c=byRef[ref]; if(!c){ c={r:ref,role:'vn'}; sh.cells.push(c); byRef[ref]=c; }
         delete c.f; delete c.n; delete c.s; if('n' in ov2)c.n=ov2.n; else if('f' in ov2)c.f=ov2.f; else if('s' in ov2)c.s=ov2.s; }); }); }
+    // 라운드트립: 마스킹된 딜 스냅샷(공유 링크와 동일 페이로드)을 숨김 시트에 심음 → 이 파일을 드롭하면 딜 복원
+    try{
+      if(t.sheets.length>1&&typeof window!=='undefined'&&typeof window.__mtSnapForXlsx==='function'){
+        var _rc=window.__mtSnapForXlsx();
+        if(_rc){
+          t.sheets.push({name:'_Restore', hidden:true, cells:[
+            {r:'B1', role:'ti', s:'모델터 복원 코드'},
+            {r:'B2', role:'st', s:'이 시트는 modelter.com의 [엑셀에서 복원] 기능용입니다 — 내용을 수정하지 마세요. 임차인 실명은 담기지 않습니다.'},
+            {r:'B3', role:'da', s:'MTSNAP1:'+_rc+':PANSTM'}
+          ], maxcol:3, widths:{B:40.0}});
+        }
+      }
+    }catch(eRS){}
     var xfList=[], xfMap={};
     var sheetsXml=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
     var stylesXml=buildStyles(xfList);
