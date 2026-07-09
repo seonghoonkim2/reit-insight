@@ -1250,7 +1250,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 <div class="announce" id="announce" hidden>
   <div class="wrap announce-in">
     <span class="ann-badge">NEW</span>
-    <span class="ann-msg"><b>모델터가 새로워졌습니다</b> — 이제 이 화면 안에서 재무모델이 바로 돌아가고, 수식이 살아있는 Excel로 받습니다.</span>
+    <span class="ann-msg"><b>모델터가 새로워졌습니다</b> — 이제 이 화면 안에서 재무모델이 바로 돌아가고, 수식이 살아있는 엑셀로 받습니다.</span>
     <button class="ann-more" id="annMore" type="button">무엇이 바뀌었나 →</button>
     <button class="ann-x" id="annClose" type="button" aria-label="공지 닫기">×</button>
   </div>
@@ -1260,7 +1260,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
   <div class="wn-card ob-card">
     <div class="ob-eyebrow">환영합니다 · 30초면 첫 결과가 나옵니다</div>
     <h2 class="ob-h">어떤 일을 하고 계신가요?</h2>
-    <p class="ob-sub">고르시면 맞는 딜 유형과 예시가 자동으로 준비됩니다. 숫자만 바꾸면 IRR·멀티플이 바로 나옵니다.</p>
+    <p class="ob-sub">고르시면 거기에 맞는 딜 유형과 예시가 자동으로 준비됩니다. 숫자만 바꾸면 IRR·멀티플이 바로 나옵니다.</p>
     <div class="ob-roles">
       <button type="button" class="ob-role" data-role="acq">
         <span class="ob-ic">🏢</span><b>매입 검토</b><span class="ob-d">운용사·리츠·펀드 — IM 받고 IRR·민감도 빠르게</span></button>
@@ -1282,7 +1282,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
     <p class="wn-lead">매입·분양·리파이낸싱 — 4개 딜 전부, 검증된 엑셀까지 이어집니다.</p>
     <ul class="wn-list">
-      <li><span class="wn-ic">⬇️</span><div><b>스스로 검증하는 엑셀</b><span>13시트 모델 검증 시트에 생성 시점 계산값이 함께 찍혀, 받은 사람도 파일 안에서 PASS/FAIL로 변조·일치 여부를 확인합니다.</span></div></li>
+      <li><span class="wn-ic">⬇️</span><div><b>스스로 검증하는 엑셀</b><span>13시트 모델의 검증 시트에 생성 시점 계산값이 함께 찍혀, 받은 사람도 파일 안에서 값이 변조 없이 일치하는지 PASS/FAIL로 확인할 수 있습니다.</span></div></li>
       <li><span class="wn-ic">📑</span><div><b>IC 패키지 · 검토 메모 <span class="wn-tag">NEW</span></b><span>심의용 PPT 7장(민감도 히트맵 + 기본/보수/낙관 시나리오 표)과, 메일 본문에 그대로 붙이는 검토 메모 10줄 초안.</span></div></li>
       <li><span class="wn-ic">🗂️</span><div><b>딜 관리 3종 <span class="wn-tag">NEW</span></b><span>딜 복제(원본 이력 보존), 버전 간 가정 diff(지난 보고 대비 변경점 표), 내 기본값(회사 표준 부대비·보수·대출 조건 저장).</span></div></li>
       <li><span class="wn-ic">✓</span><div><b>판정 · 차환 갭 · 예시값 경고</b><span>IRR·DSCR 자동 판정에 만기 차환 갭 테스트와 보수 코너 한 줄, 예시값이 남은 채 산출물을 만들면 경고. 지표 옆 ? 는 <a href="/guide.html">용어사전</a>으로.</span></div></li>
@@ -1326,7 +1326,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 
     <div class="md-sec">
       <h4>개발 · 공동주택 분양 — 월별 분양수지</h4>
-      <div class="md-f"><b>① 수입 인식</b> — 아파트: Σ(평형별 세대수 × 세대당 분양가) × 최종 분양률. 상업시설: Σ(면적 × 평당 분양가 × 분양률), 아파트와 분양률을 분리해 반영합니다.</div>
+      <div class="md-f"><b>① 수입 인식</b> — 아파트: Σ(평형별 세대수 × 세대당 분양가) × 최종 분양률. 상업시설: Σ(면적 × 평당 분양가 × 분양률), 분양률은 아파트와 분리해 반영합니다.</div>
       <div class="md-f"><b>② 판매 곡선과 납부(Cash-in)</b> — 분양 개시월에 초기 계약률만큼 계약되고, 잔여분은 흡수기간에 균등 판매됩니다. 각 계약(코호트)은 <b>계약금 즉시 → 중도금 회차 시점(분양개시~준공 균등 배치, 늦은 계약분은 경과 회차를 계약 시 일괄 납부) → 잔금 준공월</b> 순으로 현금화됩니다. 상업시설도 같은 납부 일정을 따릅니다.</div>
       <div class="md-f"><b>③ 지출(Cash-out)</b> — 토지비+취득 제세(착수 일괄) · 도급 공사비+설계감리·예비비(공사기간 균등 기성) · 기타 고정비(사업기간 균등) · 분양보증 수수료(개시월 일괄) · 판매비(계약 발생 연동) · 중도금 무이자 시 시행 대납이자(중도금 납부 누적액 × 대출금리, 준공까지).</div>
       <div class="md-f"><b>④ 조달 — 브릿지 → 본PF</b> — 자기자본을 먼저 투입하고, 부족 자금은 차입으로 자동 인출합니다. 착공 전(선행기간)에는 <b>브릿지 금리</b>, 착공 후에는 <b>본PF 금리</b>가 적용되며 착공 시점에 잔액이 본PF로 차환(승계)됩니다. 잉여현금은 차입을 자동 상환하고, 이자는 잔액에 월할로 붙습니다(부족 시 재원도 차입 = 이자 유보 효과).</div>
@@ -1336,7 +1336,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 
     <div class="md-sec">
       <h4>다른 탭</h4>
-      <p><b>리파이낸싱</b>: 대안 3안의 텀시트(한도·순인출·일회성 비용·Debt Yield)와 상환구조별 원리금으로 <b>전 기간 연도별 DSCR</b>을 전개해 기준 충족을 판정합니다. 같은 계산식의 비교 엑셀(4시트·수식 연결)로 내려받을 수 있습니다. 만기 상환(벌룬)은 차환 가정으로 DSCR에서 제외하며, 변동금리·약정 트리거는 미반영입니다.</p>
+      <p><b>리파이낸싱</b>: 대안 3개의 텀시트(한도·순인출·일회성 비용·Debt Yield)와 상환구조별 원리금으로 <b>전 기간 연도별 DSCR</b>을 전개해 기준 충족 여부를 판정합니다. 같은 계산식의 비교 엑셀(4시트·수식 연결)로 내려받을 수 있습니다. 만기 상환(벌룬)은 차환 가정으로 DSCR에서 제외하며, 변동금리·약정 트리거는 미반영입니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1346,7 +1346,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 
     <div class="md-sec">
       <h4>검토 보조 — 점검·부채·역산</h4>
-      <p><b>점검</b>: 입력·현금흐름·부채·렌트롤의 이상값을 한곳에 모아 오류와 경고로 구분합니다. <b>부채 커버넌트</b>: 연도별 DSCR·ICR·Debt Yield·내재 LTV를 보여주고, 기준을 넣으면 충족·주의·위반을 판정합니다. <b>역산</b>: 목표 IRR에 맞는 최대 매입가, 손익분기 Exit Cap·공실률을 거꾸로 구합니다. <b>임대차 리스크</b>: WALE·만기 집중·임차인 집중도를 렌트롤에서 산출하며, 임차인명을 가려서 쓸 수도 있습니다.</p>
+      <p><b>점검</b>: 입력·현금흐름·부채·렌트롤의 이상값을 한곳에 모아 오류와 경고로 구분합니다. <b>부채 커버넌트</b>: 연도별 DSCR·ICR·Debt Yield·내재 LTV를 보여주고, 기준을 넣으면 충족·주의·위반으로 판정합니다. <b>역산</b>: 목표 IRR에 맞는 최대 매입가, 손익분기 Exit Cap·공실률을 거꾸로 구합니다. <b>임대차 리스크</b>: WALE·만기 집중·임차인 집중도를 렌트롤에서 산출하며, 임차인명을 가려서 쓸 수도 있습니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1414,7 +1414,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">시니어</span><span class="who-gain">검토 가속</span></div>
-          <p>가정만 바꾸면 결과가 바로 — 시나리오 검토가 빨라집니다.</p>
+          <p>가정만 바꾸면 결과가 바로 나와 시나리오 검토가 빨라집니다.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">주니어</span><span class="who-gain">속도 · 정확</span></div>
@@ -1440,7 +1440,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       </div>
       <div class="uc-card">
         <div class="uc-head"><div class="uc-tag">투자심의</div><div class="uc-t">투자심의위원회 부의 자료</div></div>
-        <p>자본구조·도관과세·민감도까지 갖춘 수치 기초를 만듭니다.</p>
+        <p>자본구조·도관과세·민감도까지 갖춘 기초 수치를 만듭니다.</p>
       </div>
       <div class="uc-card">
         <div class="uc-head"><div class="uc-tag">자산관리</div><div class="uc-t">보유자산 리파이낸싱·재평가</div></div>
@@ -1474,7 +1474,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
           <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
           <button class="ex ghost" id="myDefBtn" title="회사 표준 부대비·보수·대출 조건을 저장해 두고 새 딜에 한 번에 적용">내 기본값</button>
-          <button class="ex ghost" id="srcBtn" title="가정별 출처(IM 기재·감정평가·실사·추정·회사 표준)와 기준일 기록 — 엑셀 가정 시트·검토 메모에 전파">출처</button>
+          <button class="ex ghost" id="srcBtn" title="가정별 출처(IM 기재·감정평가·실사·추정·회사 표준)와 기준일 기록 — 엑셀 가정 시트·검토 메모에 반영">출처</button>
           <button class="ex ghost" id="chkBtn" title="핵심 가정이 통상 참고 범위 안인지 전수 점검 + 매도자·자문사용 검토 질의서 초안">점검</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
         </div>
@@ -1495,7 +1495,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 
     <div id="resultCol">
       <div class="metrics" id="simCard" hidden>
-        <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관·보유 3~10년 전 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
+        <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관, 보유 3~10년 모든 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
         <div class="coach" id="coachMark" hidden><b>결과, 이 순서로 보면 됩니다</b><ol><li><b>① 큰 숫자 세 개부터</b> — IRR(연 수익률)·EM(원금의 몇 배)·배당률</li><li><b>② 바로 아래 판정 한 줄</b> — 이 숫자가 좋은 건지 나쁜 건지</li><li><b>③ 민감도·시나리오</b> — 가정이 빗나가면 어디까지 버티는지</li></ol><button type="button" class="sl-btn" id="coachOk">확인했어요, 그만 보기</button></div>
         <div class="sim-kpis" id="simKpis"></div>
         <div class="sim-verdict" id="simVerdict" hidden></div>
@@ -1577,7 +1577,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       <div class="fb-head">
         <div class="fb-label">현장의 의견을 반영합니다</div>
         <h3>실무에서 쓰며 함께 발전시킵니다.</h3>
-        <p>딜 유형이나 가정 항목 추가 요청, 실무와 다른 부분 지적, 또는 사용법이 궁금하거나 팀 대상 시연이 필요하시면 알려주세요. 현장에서 나온 의견이 다음 버전에 반영됩니다.</p>
+        <p>쓰고 싶은 딜 유형이나 가정 항목, 실무와 다른 부분이 있으면 알려주세요. 사용법 문의나 팀 시연 요청도 좋습니다. 현장에서 나온 의견이 다음 버전에 반영됩니다.</p>
         <a class="fb-contact" href="https://www.linkedin.com/in/seonghoonk/" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
           사용법 문의 · 시연 요청은 LinkedIn으로
@@ -1667,7 +1667,7 @@ const LAYER_ORDER=["입력","엔진","결과","검증"];
 const SHEET_INFO={
  Control_Index:"모델 목적·기준일·통화·단위·작성자와 전체 시트 링크 관리",
  Source_Data:"원자료를 원본 형태로 적재하고 이후 시트의 입력 소스로만 사용",
- Assumptions:"모든 가정값을 출처·기준일·단위와 함께 단일 출처로 집중",
+ Assumptions:"모든 가정값을 출처·기준일·단위와 함께 한곳에 모아 관리",
  Sources_Uses:"Uses(매입가+취득세+부대비)와 Sources(대출+자기자본) 연결, 양변 일치 검증",
  Capital_Stack:"선순위·중순위·우선주·보통주 트랜치별 금액·비중·수익률 관리",
  Rent_Roll:"임차인별 면적·임대료·만기·옵션을 정리한 임대 명세",
@@ -1738,7 +1738,7 @@ const DEALS={
       {k:"exitcap",l:"Exit Cap",u:"%",t:"num",ph:"4.8",min:0,max:30,pct:1,hint:"매각 시점 자본환원율(매각가 대비 NOI 비율). 매각가 = 매각연도 NOI ÷ Exit Cap. 진입 Cap보다 보수적으로(높게) 잡는 것이 일반적이며, 최근 거래사례 Cap을 참고합니다."},
       {k:"salefee",l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 시 중개·자문 수수료를 매각가 대비 %로. 보통 1~2%."},
       {k:"prepayfee",l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
-      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 차익(순매각가 − 총투자액)에 대해 자산운용사(AM)에 지급하는 성과보수를 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
+      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"자산운용사(AM)에 지급하는 성과보수를 매각 차익(순매각가 − 총투자액) 대비 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
       {k:"sellerirr",l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다. 없으면 비워두세요."}
     ]}
    ]},
@@ -1772,7 +1772,7 @@ const DEALS={
       {k:"exitcap",l:"Exit Cap",u:"%",t:"num",ph:"5.4",min:0,max:30,pct:1,hint:"매각 시점 자본환원율. 매각가 = 매각연도 NOI ÷ Exit Cap. 물류는 입지·임차인 신용에 따라 차이가 큽니다."},
       {k:"salefee",l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 중개·자문 수수료를 매각가 대비 %로."},
       {k:"prepayfee",l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
-      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 차익(순매각가 − 총투자액)에 대해 자산운용사(AM)에 지급하는 성과보수를 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
+      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"자산운용사(AM)에 지급하는 성과보수를 매각 차익(순매각가 − 총투자액) 대비 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
       {k:"sellerirr",l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다."}
     ]}
    ]},
@@ -1789,7 +1789,7 @@ const DEALS={
       {k:"tpc",l:"총사업비",u:"백만원",t:"num",ph:"320,000",min:0,hint:"토지비+공사비+금융비+기타를 모두 포함한 총투입. 자본구조 비중의 분모입니다."},
       {k:"landcost",l:"토지비",u:"백만원",t:"num",ph:"180,000",min:0,hint:"토지 매입가(제세 제외). 취득 제세는 ④사업비 세부의 비율로 얹습니다."},
       {k:"conscost",l:"도급 공사비",u:"백만원",t:"num",ph:"290,000",min:0,hint:"직접 공사비. 아래 기성 곡선에 따라 공사기간에 투입되며, 설계·감리·예비비는 ④에서 비율로 얹습니다."},
-      {k:"conscurve",l:"기성 곡선",t:"select",opts:["균등 기성","S-커브(20/60/20)"],hint:"공사비 투입 패턴. S-커브는 공사기간을 3등분해 20%/60%/20%로 투입 — 초기 지출이 적어 브릿지·PF 이자가 줄어드는 효과가 실제와 가깝습니다."}
+      {k:"conscurve",l:"기성 곡선",t:"select",opts:["균등 기성","S-커브(20/60/20)"],hint:"공사비 투입 패턴. S-커브는 공사기간을 3등분해 20%/60%/20%로 투입합니다. 초기 지출이 적어 브릿지·PF 이자가 줄어들고, 실제 기성 흐름에도 가깝습니다."}
     ]},
     {h:"분양 수입", gl:"②", f:[
       {k:"saleprice",l:"분양가/임대가",u:"평당 만원·연",t:"text",ph:"평당 1,150만",hint:"분양은 평당 분양가, 임대는 평당 연임대료로 입력."},
@@ -1824,7 +1824,7 @@ const DEALS={
       {k:"equity",l:"자기자본",u:"백만원",t:"num",ph:"60,000",min:0,hint:"시행 자기자본. 먼저 투입되고 부족 자금은 브릿지→본PF로 조달합니다."},
       {k:"brate",l:"브릿지 금리",u:"%/년",t:"num",ph:"9.0",min:0,max:30,pct:1,hint:"토지 선매입~착공(선행기간) 동안 적용되는 고금리 차입. 착공 시 본PF로 차환(잔액 승계)됩니다. 선행기간 0이면 미사용."},
       {k:"pfrate",l:"본PF 금리",u:"%/년",t:"num",ph:"6.5",min:0,max:30,pct:1,hint:"착공 이후 적용되는 본PF 연이자율. 월별 인출 잔액에 이자가 붙고 분양수입으로 상환됩니다."},
-      {k:"pffee",l:"본PF 수수료",u:"%",t:"num",ph:"1.0",min:0,max:30,pct:1,hint:"주선·취급 수수료를 필요 본PF 한도(최대 인출액) 대비 %로. 없으면 0."}
+      {k:"pffee",l:"본PF 수수료",u:"%",t:"num",ph:"1.0",min:0,max:30,pct:1,hint:"주선·취급 수수료. 필요 본PF 한도(최대 인출액) 대비 %로 입력합니다. 없으면 0."}
     ]}
    ]},
 
@@ -1858,7 +1858,7 @@ const DEFAULT_ON=["원본 보존","시트 간 연결","셀 참조·출처 명시
 const DEPTHS={
   quick:{label:"빠른 검토", range:"1~3시트", desc:"가정·계산·결과만. 빠른 의사결정용 약식 모델."},
   standard:{label:"표준", range:"5~8시트", desc:"입력·엔진·결과·검증을 갖춘 실무 표준 모델."},
-  deep:{label:"심층", range:"10시트+", desc:"세부 분해·민감도·검증까지. 위원회·실사용 정밀 모델."}
+  deep:{label:"심층", range:"10시트+", desc:"세부 분해·민감도·검증까지. 위원회·실사(DD)용 정밀 모델."}
 };
 // 딜별 '빠른 검토'에서 남길 핵심 계산 시트(1~2개)
 const QUICK_CORE={
@@ -2049,7 +2049,7 @@ function stackHtml(mode){
   const title = mode==="dev" ? "자금 구조 (PF · 트랜치)" : "자본구조 (Capital Stack)";
   const hint = mode==="dev"
     ? "PF 선순위에 더해 중순위(브릿지)·우선주를 켜면 시트와 분배 구조가 추가됩니다. 비중은 총사업비 대비 %."
-    : "기본은 선순위+보통주. 메자닌·우선주를 켜면 Capital_Stack·Waterfall 시트와 트랜치별 지시가 추가됩니다. 비중은 총 취득원가 대비 %.";
+    : "기본은 선순위+보통주. 메자닌·우선주를 켜면 Capital_Stack·Waterfall 시트와 트랜치별 지시문이 추가됩니다. 비중은 총 취득원가 대비 %.";
   const rows=TRANCHES.map(t=>{
     const on=stackState[t.id]!==undefined?stackState[t.id]:t.on;
     const v=k=>{ const s=stackState[t.id+"_"+k]; return s!==undefined?s:(t[k]||""); };
@@ -2103,7 +2103,7 @@ function commonHtml(){
      <div class="f"><label>세무 처리</label><select id="f_taxmode" data-k="taxmode"><option>도관과세(법인세 면제)</option><option>비도관(법인세 적용)</option></select></div>
      <div class="f"><label>법인세율 <span class="unit">%</span></label><input id="f_taxrate" data-k="taxrate" data-num="1" data-min="0" data-max="50" data-pct="1" inputmode="decimal" placeholder="20" /></div>
    </div>
-   <div class="f full" style="margin-top:12px"><label>모델 목적·메모 <span class="unit">선택</span></label><textarea id="f_memo" data-k="memo" placeholder="이 모델로 무엇을 보고 싶은지, 반영할 가정·제약을 적으면 모델·지시문에 함께 반영됩니다. 예: 보수적 시나리오 기준, 공실률 10% 가정"></textarea></div>
+   <div class="f full" style="margin-top:12px"><label>모델 목적·메모 <span class="unit">선택</span></label><textarea id="f_memo" data-k="memo" placeholder="이 모델로 무엇을 보고 싶은지, 적용할 가정·제약을 적으면 모델·지시문에 함께 반영됩니다. 예: 보수적 시나리오 기준, 공실률 10% 가정"></textarea></div>
    <div class="f" style="margin-top:12px"><label>추가 적용 원칙</label><div class="opts" id="optBox"></div></div>
   </div>`;
 }
@@ -2127,7 +2127,7 @@ function rrFormBlockHtml(){
   return '<div class="rr-fb on" style="grid-column:1/-1">'
     +'<div class="rr-fb-h"><span class="rr-fb-ic ok">✓</span>렌트롤 반영 중<span class="rr-fb-tag">임차인별 계산</span></div>'
     +'<div class="rr-fb-stat">'+stat+'</div>'
-    +'<p class="rr-fb-d">아래 평당 단가는 업로드 렌트롤의 <b>가중평균</b>입니다. 실제 계산은 <b>임차인별</b>로 오른쪽 ‘모델 결과’의 <b>반영 구조</b>에 표시됩니다.</p>'
+    +'<p class="rr-fb-d">아래 평당 단가는 업로드 렌트롤의 <b>가중평균</b>입니다. 실제 계산은 <b>임차인별</b>로 이뤄지며, 오른쪽 ‘모델 결과’의 <b>반영 구조</b>에서 확인할 수 있습니다.</p>'
     +'<div class="rr-fb-act"><button type="button" class="rr-fb-btn ghost" data-rr-open>다시 업로드</button><button type="button" class="rr-fb-link" data-rr-clear>반영 해제</button></div>'
     +'</div>';
 }
@@ -2160,7 +2160,7 @@ function devGridsHtml(){
     '<button type="button" class="dg-add" data-dgadd="apt">+ 평형 추가</button>'+
     '<div class="dg-h" style="margin-top:14px">상업시설 분양 <span class="dg-note">상가 등 — 평당 분양가·분양률을 아파트와 분리해 반영</span></div>'+
     '<div class="dev-grid"><table><thead><tr><th>구분</th><th>면적 <span class="unit">평</span></th><th>평당 분양가 <span class="unit">만원</span></th><th>분양률 <span class="unit">%</span></th><th>수입 <span class="unit">분양률 반영</span></th><th></th></tr></thead>'+
-    '<tbody>'+(retBody||'<tr><td colspan="6" class="dg-empty">상업시설이 있으면 아래에서 추가하세요 — 없으면 비워둡니다</td></tr>')+'</tbody>'+
+    '<tbody>'+(retBody||'<tr><td colspan="6" class="dg-empty">상업시설이 있으면 아래에서 추가하세요 — 없으면 비워두면 됩니다</td></tr>')+'</tbody>'+
     (ret.length?'<tfoot><tr><td class="dg-tl">합계</td><td></td><td></td><td></td><td class="dg-calc" id="dgRetTot">—</td><td></td></tr></tfoot>':'')+
     '</table></div>'+
     '<button type="button" class="dg-add" data-dgadd="ret">+ 상업시설 추가</button>'+
@@ -2236,7 +2236,7 @@ function renderForm(){
   let html=depthHtml();  // 깊이 선택을 폼 최상단에
   // IM 가정 추출(BYOK) — 매입 딜 전용, 읽기 전용에서는 숨김
   if(rrEligible && !(document.body&&document.body.classList.contains('mt-ro')))
-    html+='<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키·문서 전송 없이 이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 — 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>키·전송 없이</b> 매입가·임대료·Exit Cap 등을 자동 인식해 채웁니다. 복잡한 문서만 선택적으로 AI 정밀 추출(본인 키).</span></div>';
+    html+='<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키·문서 전송 없이 이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 — 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>키·전송 없이</b> 매입가·임대료·Exit Cap 등을 자동 인식해 채웁니다. 복잡한 문서는 AI 정밀 추출(본인 키)로 보완할 수 있습니다.</span></div>';
   if(isQuick){
     // 빠른 검토: 핵심 필드만 한 그룹으로 모아 노출
     const allFields=[];
@@ -2521,7 +2521,7 @@ function build(){
   else depthLine=`아래 지시에 따라 ${nSheets}개의 서로 연결된 시트로 실무 표준 재무모델을 구축한다. 한 번에 한 시트씩, 위에서 아래 순서로 만든다.`;
   parts.push(`역할: 너는 Claude in Excel에서 작업하는 상업용 부동산 재무모델 빌더다.
 ${depthLine}
-시트 수가 많은 것이 목적이 아니다. 이 모델의 목적에 맞는 깊이(${dp.label})를 유지하고, 각 시트가 실제로 기여하지 않으면 만들지 않는다.`);
+시트 수가 많은 것이 목적이 아니다. 이 모델의 목적에 맞는 깊이(${dp.label})를 유지하고, 실제로 기여하지 않는 시트는 만들지 않는다.`);
   parts.push(`[딜 유형] ${d.label}\n[모델 깊이] ${dp.label} (${dp.range})\n[현금흐름 주기] ${freq}    [수익지표] 세전·세후 IRR·Equity Multiple 모두 산출`);
   parts.push(`[모델 목적]\n${purposeText()}`);
   const memo=(state["memo"]||"").trim();
@@ -2536,7 +2536,7 @@ ${depthLine}
 - 시트 상단에 '역할 / 주요 입력 / 주요 출력 / 다음 시트로 넘기는 값'을 4줄로 적는다.
 - 표의 행·열 머리글을 먼저 만들고, 그 다음 수식을 채운다.`);
   parts.push(`[수식·참조 원칙]
-- 모든 수식은 가능한 한 셀 참조로 작성하고, 하드코딩은 입력 셀과 확정값에만 제한한다.
+- 모든 수식은 가능한 한 셀 참조로 작성하고, 하드코딩은 입력 셀과 확정값으로 제한한다.
 - Source_Data 원자료는 결과표에서 직접 참조하지 않고 Assumptions·모델 시트를 거쳐 사용한다.
 - Assumptions의 핵심 가정 변경이 하위 시트에 자동 반영되도록 연결한다.`);
   const tb=taxBlock(); if(tb) parts.push(tb);
@@ -2620,7 +2620,7 @@ function _paintProg(box,fill,txt,filled,total){
   fill.style.width=pct+'%';
   var done=(filled>=total);
   box.classList.toggle('done',done);
-  txt.textContent=done?('핵심 입력 완료 · 결과가 준비됐어요'):('핵심 입력 '+filled+'/'+total);
+  txt.textContent=done?('핵심 입력 완료 · 결과가 준비됐습니다'):('핵심 입력 '+filled+'/'+total);
 }
 /* 그룹별 입력 진행 표시 (n/m) — 어디까지 채웠는지 부담을 줄여줌 */
 function updateGroupCounts(){
@@ -2655,7 +2655,7 @@ function mAcq(){
   if(isFinite(price)&&isFinite(gfa)&&gfa>0){ rows.push({l:'평당 매입가',v:mfmt(price*1e6/gfa/1e4,0)+'만원/평'}); }
   var mode=(state['noimode']||'').trim(); var rentBased=(mode===''||mode.indexOf('임대료')===0);
   var noi=NaN, est=false;
-  if(rentBased){ var rentpp=mnum('rentpp'), campp=mnum('campp'); if(isFinite(rentpp)&&isFinite(gfa)){ var cam=isFinite(campp)?campp:0; var egi=(rentpp+cam)*gfa*12/1e6; var opex=(cur==='office')?0.35:0.15; noi=egi*(1-opex); est=true; rows.push({l:'추정 NOI(1년차)',v:meok(noi),est:true,hint:'유효총수입에 통상 운영비율('+Math.round(opex*100)+'%)을 가정 차감한 추정치. 실제는 Claude가 정밀 산출.'}); } }
+  if(rentBased){ var rentpp=mnum('rentpp'), campp=mnum('campp'); if(isFinite(rentpp)&&isFinite(gfa)){ var cam=isFinite(campp)?campp:0; var egi=(rentpp+cam)*gfa*12/1e6; var opex=(cur==='office')?0.35:0.15; noi=egi*(1-opex); est=true; rows.push({l:'추정 NOI(1년차)',v:meok(noi),est:true,hint:'유효총수입에 통상 운영비율('+Math.round(opex*100)+'%)을 가정해 차감한 추정치. 정확한 값은 Claude가 계산합니다.'}); } }
   else { noi=mnum('noi1'); if(isFinite(noi)) rows.push({l:'NOI(1년차)',v:meok(noi)}); }
   var entryCap=NaN;
   if(isFinite(noi)&&isFinite(price)&&price>0){ entryCap=noi/price*100; rows.push({l:(est?'추정 ':'')+'진입 Cap',v:mpct(entryCap,2),est:est}); }
@@ -2666,7 +2666,7 @@ function mAcq(){
     ['senior','mezz'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); if(isFinite(l)){ debt+=l/100*app; anyDebt=true; } } });
     var pref=0; if(mOn('pref')){ var lp=mLtv('pref'); if(isFinite(lp)) pref=lp/100*app; }
     if(anyDebt){ var ltv=debt/app*100; rows.push({l:'대출액 (LTV '+mfmt(ltv,0)+'%)',v:meok(debt),hint:'대출 트랜치 비중 × 감정평가액'});
-      if(isFinite(uses)){ var eq=uses-debt-pref; rows.push({l:'자기자본(추정)',v:meok(eq),est:true,hint:'총취득원가 − 대출 − 우선주 (plug)'}); if(eq<0) warns.push('대출+우선주가 총취득원가를 초과 — 자기자본이 음수입니다. 비중을 확인하세요.'); }
+      if(isFinite(uses)){ var eq=uses-debt-pref; rows.push({l:'자기자본(추정)',v:meok(eq),est:true,hint:'총취득원가 − 대출 − 우선주 (plug)'}); if(eq<0) warns.push('대출+우선주가 총취득원가를 초과해 자기자본이 음수입니다. 비중을 확인하세요.'); }
       if(ltv>70) warns.push('LTV '+mfmt(ltv,0)+'% — 대주 한도(통상 60% 내외)를 넘을 수 있습니다.');
     }
   }
@@ -2688,7 +2688,7 @@ function mRefi(){
       if(isFinite(icr)&&isFinite(dmin)&&icr<dmin) warns.push('대안 '+n+': ICR '+mfmt(icr,2)+'x < 기준 '+mfmt(dmin,2)+'x (이자보상 미달, 원금상환 포함 DSCR은 더 낮음).');
     }
   });
-  return {rows:rows,warns:warns,note:'ICR = NOI ÷ 연이자(만기일시 가정). 원리금 상환형 DSCR은 더 낮습니다 — 정밀 산정은 Claude가 수행.'};
+  return {rows:rows,warns:warns,note:'ICR = NOI ÷ 연이자(만기일시 가정). 원리금 상환형 DSCR은 더 낮습니다. 정밀 산정은 Claude가 수행합니다.'};
 }
 
 function mDev(){
@@ -2709,14 +2709,14 @@ function mDev(){
     if(!isFinite(d1)) d1=10; if(!isFinite(m1)) m1=60; if(!isFinite(r1)) r1=30;
     var ps=d1+m1+r1;
     rows.push({l:'납부 비율(계약+중도+잔금)',v:mfmt(ps,0)+'%'});
-    if(Math.abs(ps-100)>0.01) warns.push('계약금+중도금+잔금 합계가 '+mfmt(ps,0)+'%입니다 — 100%로 맞춰주세요.');
+    if(Math.abs(ps-100)>0.01) warns.push('계약금+중도금+잔금 합계가 '+mfmt(ps,0)+'%입니다. 100%로 맞춰주세요.');
     return {rows:rows,warns:warns,note:'분양수입은 평형/상업시설 그리드 합산 기준. 건설이자·필요 PF 한도는 결과 카드에서 월별로 계산됩니다.'};
   }
   var rows=[], warns=[];
   var tpc=mnum('tpc'), land=mnum('landcost'), cons=mnum('conscost'), gfa=mnum('gfa');
   if(isFinite(tpc)) rows.push({l:'총사업비',v:meok(tpc)});
   if(isFinite(cons)&&isFinite(gfa)&&gfa>0) rows.push({l:'평당 공사비',v:mfmt(cons*1e6/gfa/1e4,0)+'만원/평'});
-  if(isFinite(tpc)&&isFinite(land)&&isFinite(cons)){ rows.push({l:'토지+공사 합',v:meok(land+cons)}); var etc=tpc-land-cons; rows.push({l:'기타(금융·부대 등)',v:meok(etc),hint:'총사업비 − 토지비 − 공사비'}); if(etc<0) warns.push('토지비+공사비가 총사업비를 초과합니다 — 항목/총액을 확인하세요.'); }
+  if(isFinite(tpc)&&isFinite(land)&&isFinite(cons)){ rows.push({l:'토지+공사 합',v:meok(land+cons)}); var etc=tpc-land-cons; rows.push({l:'기타(금융·부대 등)',v:meok(etc),hint:'총사업비 − 토지비 − 공사비'}); if(etc<0) warns.push('토지비+공사비가 총사업비를 초과합니다. 항목과 총액을 확인하세요.'); }
   if(isFinite(tpc)){ ['senior','mezz','pref','common'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); if(isFinite(l)) rows.push({l:mTr(id)+' ('+mfmt(l,0)+'%)',v:meok(l/100*tpc)}); } }); }
   return {rows:rows,warns:warns,note:'개발 자금구조 비중(%)의 분모는 총사업비입니다.'};
 }
@@ -2773,7 +2773,7 @@ function renderMetrics(){
   $('mxWarn').innerHTML=ck.length?ck.map(function(c){return '<div class="mx-w'+(c.sev==='error'?' err':'')+'">'+(c.sev==='error'?'⛔':'⚠')+' '+esc(c.msg)+'</div>';}).join(''):'';
   var flag=$('mxFlag'); flag.textContent=nErr?(nErr+'개 오류'):(ck.length?(ck.length+'개 점검 필요'):'이상 없음'); flag.className='mx-flag '+(ck.length?'bad':'ok');
   var d=DEALS[cur], total=0, filled=0; d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='select') return; total++; if((state[f.k]||'').trim()!=='') filled++; }); });
-  var empty=total-filled; var comp=(empty>0)?('미입력 '+empty+'개는 합리적 가정으로 처리됩니다.'):'핵심 입력이 모두 채워졌습니다.';
+  var empty=total-filled; var comp=(empty>0)?('미입력 '+empty+'개는 기본 가정값으로 채워 계산합니다.'):'핵심 입력이 모두 채워졌습니다.';
   $('mxFoot').textContent=(r.note?(r.note+'  ·  '):'')+comp;
 }
 
@@ -2926,7 +2926,7 @@ function wsDeleteDeal(dealId){
 }
 function wsDeleteVersion(dealId, vid){
   var db=wsDB(), deal=db.deals[dealId]; if(!deal) return;
-  if(deal.versions.length<=1){ toast('마지막 버전입니다 — 딜 자체를 삭제하려면 보관함의 삭제를 사용하세요'); return; }
+  if(deal.versions.length<=1){ toast('마지막 버전입니다 — 딜 자체를 지우려면 보관함에서 삭제하세요'); return; }
   var v=wsVersion(deal,vid); if(!v) return;
   if(!confirm(v.label+(v.name?(' · '+v.name):'')+' 버전을 삭제할까요?')) return;
   deal.versions=deal.versions.filter(function(x){return x.id!==vid;});
@@ -3200,7 +3200,7 @@ function wsLinkDiff(){
   var sa=null, sb=null; try{ sa=wsSummary(pa); sb=wsSummary(pb); }catch(e){}
   var head='<div class="ws-diff-h">이전 링크 → 이후 링크 · 가정 변경 '+rows.length+'건</div>'
     +((sa&&sb)?('<div class="ws-diff-s">결과 '+esc(_wsFmtSum(sa))+' → '+esc(_wsFmtSum(sb))+'</div>'):'');
-  if(!rows.length){ box.innerHTML='<div class="ws-diff">'+head+'<p class="md-sub">입력 가정 변경 없음 — 두 링크는 동일한 입력입니다.</p></div>'; return; }
+  if(!rows.length){ box.innerHTML='<div class="ws-diff">'+head+'<p class="md-sub">입력 가정 변경 없음 — 두 링크의 입력값이 동일합니다.</p></div>'; return; }
   var tb='<table class="ws-diff-t"><tr><th>항목</th><th>이전</th><th>이후</th></tr>'
     +rows.map(function(d){ return '<tr><td>'+esc((d.sec!=='가정'?(d.sec+' · '):'')+d.label)+'</td><td>'+esc(d.a)+'</td><td class="wd-new">'+esc(d.b)+'</td></tr>'; }).join('')+'</table>';
   box.innerHTML='<div class="ws-diff">'+head+tb+'</div>';
@@ -3213,7 +3213,7 @@ function wsDiffBlock(deal, v){
   var rows=wsDiffSnaps(pv.snap, v.snap);
   var head='<div class="ws-diff-h">'+pv.label+' → '+v.label+' · 가정 변경 '+rows.length+'건</div>'
     +'<div class="ws-diff-s">결과 '+esc(_wsFmtSum(pv.summary))+' → '+esc(_wsFmtSum(v.summary))+'</div>';
-  if(!rows.length) return '<div class="ws-diff">'+head+'<p class="md-sub">입력 가정 변경 없음 — 동일한 입력입니다.</p></div>';
+  if(!rows.length) return '<div class="ws-diff">'+head+'<p class="md-sub">입력 가정 변경 없음 — 이전 버전과 입력이 같습니다.</p></div>';
   var tb='<table class="ws-diff-t"><tr><th>항목</th><th>'+pv.label+'</th><th>'+v.label+'</th></tr>'
     +rows.map(function(d){ return '<tr><td>'+esc((d.sec!=='가정'?(d.sec+' · '):'')+d.label)+'</td><td>'+esc(d.a)+'</td><td class="wd-new">'+esc(d.b)+'</td></tr>'; }).join('')+'</table>';
   return '<div class="ws-diff">'+head+tb+'</div>';
@@ -3783,7 +3783,7 @@ function renderSens(){
         +'<button type="button" class="hx-tg'+(isCost?' on':'')+'" onclick="__setDevSensAxis(\'cost\')">공사비</button></div>';
       $('sensBody').innerHTML=dtg+renderHeat(dm);
       $('sensNote').textContent=isCost
-        ?'각 칸 = 해당 아파트 분양률 × 도급 공사비 조정(설계·감리·예비비도 공사비 비율로 연동)에서의 사업이익률(매출 대비). 월별 엔진 재계산, 진한 테두리 칸이 현재 가정. 파랑=높음·주황=낮음.'
+        ?'각 칸 = 해당 아파트 분양률 × 도급 공사비 조정(설계·감리·예비비도 공사비 비율로 연동)에서의 사업이익률(매출 대비). 월별 엔진으로 다시 계산한 값이며, 진한 테두리 칸이 현재 가정입니다. 파랑=높음·주황=낮음.'
         :'각 칸 = 해당 아파트 분양률 × 분양가 조정(상업시설 분양가 동시 조정)에서의 사업이익률(매출 대비). 월별 엔진으로 다시 계산한 값이며, 진한 테두리 칸이 현재 가정입니다. 파랑=높음·주황=낮음.';
       return;
     }
@@ -3925,7 +3925,7 @@ function simRefi(){
   return {type:'refi', rows:rows, best:(best?best.n:null), maxY:maxY, dmin:I.dmin,
     mini:{irrL:'추천', irr:(best?(best.n+'안'):'—'), cocL:'minDSCR', coc:(best&&best.minDSCR!=null?mfmt(best.minDSCR,2)+'x':'—')},
     raw:{minDSCR:(best?best.minDSCR:null), loan:(best?best.loan:null)},
-    caveats:['대안별 텀시트 비교 — 연도별 NOI(성장률 반영)와 상환구조별 원리금으로 전 기간 DSCR을 전개합니다. 만기 상환(벌룬)은 차환 가정으로 DSCR에서 제외. 화면 수치는 아래에서 받는 엑셀과 같은 계산식입니다. 약정 트리거(LTV 재평가)·변동금리는 미반영.']};
+    caveats:['대안별 텀시트 비교 — 연도별 NOI(성장률 반영)와 상환구조별 원리금으로 전 기간 DSCR을 전개합니다. 만기 상환(벌룬)은 차환 가정으로 DSCR에서 제외. 화면 수치는 아래에서 받는 엑셀과 같은 계산식으로 구한 값입니다. 약정 트리거(LTV 재평가)·변동금리는 미반영.']};
 }
 
 function simDev(){ return devResi()? simDevResi() : simDevBulk(); }
@@ -4122,7 +4122,7 @@ function devLenderStress(I){
 }
 function devLenderHtml(I,R,solv){
   var st=devLenderStress(I);
-  var h='<div class="dv-sec-h">분양률 스트레스 <span>같은 월별 엔진 재계산</span></div>'+
+  var h='<div class="dv-sec-h">분양률 스트레스 <span>같은 월별 엔진으로 재계산</span></div>'+
     '<div class="dev-grid"><table class="sens-tbl sim-tbl"><tr><th>아파트 분양률</th><th>사업이익률</th><th>필요 본PF 한도</th><th>만기 미상환</th><th>판정</th></tr>'+
     st.map(function(x){
       var okRepay=x.pfEnd<0.5;
@@ -4274,7 +4274,7 @@ function dealVerdict(r){
     var hIrr=houseGet('irr',8)/100, hDscr=houseGet('dscr',1.2);
     var hOn=(houseGet('irr',0)>0||houseGet('dscr',0)>0||houseGet('ltv',0)>0);
     var hNm=hOn?'사내 기준 ':'', lead, dsAt=-1;
-    if(irr>=hIrr){ lead='IRR은 '+fp(irr)+'로 '+hNm+mfmt(hIrr*100,1)+'% 선을 넘습니다'; parts.push(lead+'.'); }
+    if(irr>=hIrr){ lead='IRR은 '+fp(irr)+'로 '+hNm+mfmt(hIrr*100,1)+'%는 넘습니다'; parts.push(lead+'.'); }
     else if(irr<hIrr-0.03){ lead='IRR이 '+fp(irr)+'에 그칩니다'; parts.push(lead+'. '+hNm+mfmt(hIrr*100,1)+'%까지 가려면 가격이나 조건을 다시 봐야 합니다.'); tone='warn'; }
     else { lead='IRR이 '+fp(irr)+'라 '+hNm+mfmt(hIrr*100,1)+'%에는 조금 못 미칩니다'; parts.push(lead+'.'); if(tone==='good') tone='mid'; }
     if(raw.minDSCR!=null&&isFinite(raw.minDSCR)){
