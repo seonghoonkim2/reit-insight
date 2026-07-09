@@ -95,6 +95,12 @@ if (fs.existsSync(path.join(DIR, 'trust.html'))) {
 ok(html.includes("sessionStorage.setItem('mt_src'") && html.includes("/[?#&]src="), '채널 어트리뷰션: 착지 src= 태그 파싱·세션 유지');
 ok(html.includes("if(_s) b.src=_s;"), '채널 어트리뷰션: 이벤트에 src 채널 부착(퍼널 분해용)');
 ok(html.includes("track('landing')"), '채널 어트리뷰션: landing 이벤트(src 유입 1건)');
+ok(html.includes("sessionStorage.getItem('mt_ref0')") && html.includes('document.referrer'), '진짜 유입원: 진입 referrer 호스트 캡처(mt_ref0 — 경로·쿼리 없음)');
+ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부 호스트만) 부착');
+{
+  const workerSrc2 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
+  ok(/const dr = s\(d\.dr, 40\)\.replace\(\/\[\^A-Za-z0-9.\\-\]\/g, ""\);/.test(workerSrc2) && workerSrc2.includes('if (dr) refHost = dr;'), 'worker.js: dr(진짜 유입원) 정화 후 ref로 기록');
+}
 ok(html.includes('const DEAL_SOON=') && html.includes('deal-soon'), '수요 가짜 문: 준비 중 딜 타일(DEAL_SOON) 존재');
 ok(html.includes("track('deal_want'"), '수요 가짜 문: deal_want 수집(딜 유형명만)');
 {

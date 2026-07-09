@@ -143,6 +143,17 @@ node tools/modelter-ci-check.js   # 스탬프 무결성·게이트 재확인
 세부 우선순위는 계기판 실사용 데이터(`node tools/modelter-ae.js --days 7`)로 조정한다 — 신규 이벤트: im_quick, memo_copy, png_card, pipeline_copy, inquiry_copy, ws_diff, ws_status,
 mydef_*, adj_open, xlsx_restore, src_tag, house_set, qr_open, coach_ok.
 
+**실사용 30일 첫 판독 (2026-07-09 스냅샷, 752 방문) — 판독과 조치:**
+
+| 판독 | 수치 | 조치 |
+|---|---|---|
+| 유입(ref)이 전부 자기참조 — 비콘 referer 헤더는 항상 자기 페이지 | modelter.com 2,077건 = 100% | **진입 document.referrer 호스트 계측 추가**(dr → ref, 경로·쿼리 없음). 다음 스냅샷부터 구글·네이버 등 실유입 보임 |
+| 엑셀(97) > 활성화(32) — 직접 입력 6경로 미계측 | 활성화율 4.3%로 과소 | #15에서 수정 완료(리파이 텀시트·분양 그리드·트랜치·시나리오·렌트롤) — 데이터 재적재 대기 |
+| 모바일 이벤트 비중 ~40% | 846/2,081 | 유입 채널·기기별 전환 확보 전 UI 변경 보류(성능 예산 재검토 트리거는 "비중+이탈 확인") |
+| 딜 탐색 활발, reit(제거된 탭) 잔존 | deal_select 521 · reit 57 | 수요 가짜 문(deal_want)이 유형별 수요 수집 시작. reit는 구캐시 클라이언트 — no-cache로 자연 소멸 |
+
+1~2주 뒤 `--attribution` + `tools/modelter-patterns.js`(매일 아침 갱신)로 채널·기기 전환을 재판독한다.
+
 ## 5. 획득·채널 월간 리뷰 루틴 (E5 — 시간 배분의 데이터화)
 
 1인 운영이므로 "어디에 시간을 쓸지"를 감이 아니라 데이터로 정한다. 월 1회, 아래 한 줄을 돌린다:
