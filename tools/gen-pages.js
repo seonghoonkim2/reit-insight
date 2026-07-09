@@ -271,6 +271,11 @@ function buildSitemap(slugs, deals) {
   ];
   deals.forEach(d => urls.push({ loc: `${BASE}/calc/${d}.html`, freq: 'monthly', pri: '0.7' }));
   slugs.forEach(s => urls.push({ loc: `${BASE}/t/${s}.html`, freq: 'monthly', pri: '0.6' }));
+  // 분기 시장 노트(E8) — notes/*.html 자동 등록
+  try {
+    const nd = path.join(DIR, 'notes');
+    if (fs.existsSync(nd)) fs.readdirSync(nd).filter(f => f.endsWith('.html')).sort().forEach(f => urls.push({ loc: `${BASE}/notes/${f}`, freq: 'yearly', pri: '0.5' }));
+  } catch (e) {}
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.pri}</priority>\n  </url>`).join('\n') +
     '\n</urlset>\n';

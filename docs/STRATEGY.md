@@ -85,6 +85,7 @@ node tools/modelter-ci-check.js   # 스탬프 무결성·게이트 재확인
 
 정적 검색 착지 페이지를 고쳤으면 `node tools/gen-pages.js` 재생성 후 커밋(CI 가 최신성 강제).
 시장 참고치를 고쳤으면 `data/market-ref.json` 만 편집 → `node tools/gen-marketref.js` 로 index.html 인라인 재생성(런타임 fetch 없음, CI 가 일치 강제).
+분기 시장 노트는 **분기 1회**: `data/market-ref.json` 갱신 후 `node tools/gen-notes.js` → `node tools/gen-pages.js`(sitemap). 노트의 사전 입력 링크는 앱 mtLZ·EXAMPLES 를 추출해 만들어 브라우저와 100% 호환(CI 가 디코드·최신성 강제). 격주 발행·대량 배포 금지(컴플라이언스 확인 전).
 
 ## 4. 로드맵 현황
 

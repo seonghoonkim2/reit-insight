@@ -147,7 +147,9 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
     const locN = (sm.match(/<loc>/g) || []).length;
     const baseN = 5;  // 홈·guide·howto·trust·verification
-    ok(locN === baseN + tFiles.length + cFiles.length, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = ' + baseN + '기본+' + tFiles.length + '용어+' + cFiles.length + '계산기)');
+    const nDir = path.join(DIR, 'notes');
+    const nN = fs.existsSync(nDir) ? fs.readdirSync(nDir).filter(f => f.endsWith('.html')).length : 0;
+    ok(locN === baseN + tFiles.length + cFiles.length + nN, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = ' + baseN + '기본+' + tFiles.length + '용어+' + cFiles.length + '계산기+' + nN + '노트)');
     ok(sm.includes('/t/irr.html') && sm.includes('/calc/office.html'), 'sitemap: 용어·계산기 URL 포함');
   }
   // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
@@ -211,6 +213,42 @@ if (fs.existsSync(path.join(__dirname, 'gen-marketref.js'))) {
     collect(mr.common || {}); Object.values(mr.deal || {}).forEach(collect);
     ok(srcs.length > 0 && srcs.every(s => !/https?:\/\//.test(s)), '참고치: 출처는 공개 기준·관행 표기(외부 URL·시세 아님)');
   } catch (e) { ok(false, '참고치: market-ref.json 파싱'); }
+}
+
+/* ── 1i) 분기 시장 노트(E8) — 데이터셋 동기화 콘텐츠 퍼널 ── */
+ok(fs.existsSync(path.join(__dirname, 'gen-notes.js')), '분기 노트: 생성기(gen-notes.js) 존재');
+{
+  const nDir = path.join(DIR, 'notes');
+  const notes = fs.existsSync(nDir) ? fs.readdirSync(nDir).filter(f => f.endsWith('.html')) : [];
+  ok(notes.length >= 1, '분기 노트: notes/*.html 존재 (' + notes.length + '개)');
+  let nBad = 0, nSrc = 0, nCanon = 0, nDisc = 0;
+  for (const f of notes) {
+    const nh = fs.readFileSync(path.join(nDir, f), 'utf8');
+    try { JSON.parse((nh.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/) || [])[1]); } catch (e) { nBad++; }
+    if (/href="https:\/\/modelter\.com\/#v=[A-Za-z0-9_-]+&src=notes"/.test(nh)) nSrc++;
+    if (/rel="canonical" href="https:\/\/modelter\.com\/notes\//.test(nh)) nCanon++;
+    if (nh.includes('투자 권유가 아닌')) nDisc++;
+  }
+  ok(nBad === 0, '분기 노트: JSON-LD(Article) 유효 (' + nBad + ' 실패)');
+  ok(nSrc === notes.length, '분기 노트: 사전 입력 링크(#v=…&src=notes) 존재');
+  ok(nCanon === notes.length, '분기 노트: canonical');
+  ok(nDisc === notes.length, '분기 노트: 투자 권유 아님 고지');
+  // 사전 입력 링크가 앱 코덱으로 실제 디코드되는지(브라우저 호환) — mtLZ 추출 왕복
+  if (notes.length) {
+    try {
+      const appHtml = fs.readFileSync(HTML, 'utf8');
+      const mLZ = appHtml.match(/var mtLZ=(\(function\(\)\{[\s\S]*?return \{compress:compress, decompress:decompress\};\s*\}\)\(\));/);
+      const mtLZ = new Function('return ' + mLZ[1])();
+      const enc = fs.readFileSync(path.join(nDir, notes[0]), 'utf8').match(/#v=([A-Za-z0-9_-]+)&src=notes/)[1];
+      const p = JSON.parse(mtLZ.decompress(enc));
+      ok(p && p.c && p.s && Object.keys(p.s).length > 3, '분기 노트: 사전 입력 링크가 앱 코덱으로 디코드(딜=' + p.c + ')');
+    } catch (e) { ok(false, '분기 노트: 사전 입력 링크 디코드 — ' + e.message); }
+  }
+  // 최신성(데이터셋 동기화) 게이트
+  let gnOK = true, gnMsg = '';
+  try { gnMsg = require('child_process').execSync('node ' + JSON.stringify(path.join(__dirname, 'gen-notes.js')) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
+  catch (e) { gnOK = false; gnMsg = ((e.stdout || '') + (e.stderr || '')).trim(); }
+  ok(gnOK, '분기 노트: 데이터셋과 동기화(gen-notes --check) — ' + gnMsg.split('\n')[0]);
 }
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
