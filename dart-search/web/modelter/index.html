@@ -4265,6 +4265,54 @@ function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(c
 /* 하우스 기준(내 허들) — 판정·커버넌트·차환·대주 뷰가 통상값 대신 내 기준 사용 */
 function houseLoad(){ try{ return JSON.parse(localStorage.getItem('mt_house')||'{}')||{}; }catch(e){ return {}; } }
 function houseGet(k,d){ var h=houseLoad(); var v=parseFloat(h[k]); return isFinite(v)&&v>0?v:d; }
+function houseOn(){ return (houseGet('irr',0)>0||houseGet('dscr',0)>0||houseGet('ltv',0)>0); }
+// 산출물 표기용 팀 기준 라벨 — 팀명이 있으면 "OO팀 기준 v2", 없으면 "사내 기준"
+function houseName(){ var h=houseLoad(); var t=String(h.team||'').trim(); var v=String(h.ver||'').trim(); return (t||'사내')+(v?(' '+v):''); }
+function houseTag(){ if(!houseOn()) return ''; var h=houseLoad(); var d=String(h.at||'').trim(); return houseName()+' 기준 적용'+(d?(' · '+d):''); }
+// 팀 기준 배포 링크(#h=) — 회사 표준 파라미터만(허들·부대비율 등). 개별 딜 수치·임차인 정보 절대 불포함.
+function houseShareLink(){
+  var h=houseLoad(); var pay={h:h, at:new Date().toISOString().slice(0,10)};
+  try{ var md=JSON.parse(localStorage.getItem('mt_mydef')||'{}'); if(md&&Object.keys(md).length) pay.md=md; }catch(e){}
+  var enc=''; try{ enc=mtLZ.compress(JSON.stringify(pay)); }catch(e2){}
+  if(!enc) return '';
+  return location.origin+location.pathname+'#h='+enc;
+}
+// 팀 기준 설치 미리보기 — 무엇이 설치되는지 표로 보여주고, 적용은 사용자 클릭으로만(자동 적용 금지)
+function houseImportPreview(pay){
+  if(!pay||typeof pay!=='object') return;
+  var h=pay.h||{}, md=pay.md||null;
+  function row(l,v){ return v?('<tr><td>'+esc(l)+'</td><td><b>'+esc(v)+'</b></td></tr>'):''; }
+  var team=String(h.team||'').trim(), ver=String(h.ver||'').trim();
+  var mdN=md?Object.keys(md).length:0;
+  var ov2=document.createElement('div'); ov2.className='imx-ov';
+  ov2.innerHTML='<div class="imx"><h3>🎯 팀 기준 설치</h3>'
+    +'<div class="imx-sub">'+(team?('<b>'+esc(team)+(ver?(' '+esc(ver)):'')+'</b>의 '):'')+'심사 기준을 이 브라우저에 설치합니다. 자동 판정·커버넌트·차환·대주 뷰와 산출물 표기에 반영됩니다. <b>지금 설정을 덮어씁니다.</b></div>'
+    +'<table class="imx-tbl">'
+    +row('목표 레버드 IRR', h.irr?(h.irr+'%'):'')
+    +row('최소 DSCR', h.dscr?(h.dscr+'x'):'')
+    +row('최대 내재 LTV', h.ltv?(h.ltv+'%'):'')
+    +row('팀 표준 기본값(부대비·보수·대출)', mdN?(mdN+'개 딜 유형'):'')
+    +row('기준일', pay.at||'')
+    +'</table>'
+    +'<div class="imx-act"><button type="button" data-hi="cancel">취소</button><button type="button" class="pri" data-hi="apply">이 기준 적용</button></div>'
+    +'<div class="imx-priv">회사 표준 파라미터(허들·부대비율 등)만 담깁니다 — 개별 딜 수치·임차인 정보는 포함되지 않습니다. 서버를 거치지 않고 링크 안에만 담겨 왔습니다.</div></div>';
+  document.body.appendChild(ov2); document.body.style.overflow='hidden';
+  function closeI(){ ov2.remove(); document.body.style.overflow=''; }
+  ov2.addEventListener('click',function(e){
+    if(e.target===ov2){ closeI(); return; }
+    var b=e.target.closest?e.target.closest('[data-hi]'):null; if(!b) return;
+    if(b.dataset.hi==='cancel'){ closeI(); return; }
+    if(b.dataset.hi==='apply'){
+      try{ localStorage.setItem('mt_house', JSON.stringify(h)); }catch(e2){}
+      if(md){ try{ var cur2=JSON.parse(localStorage.getItem('mt_mydef')||'{}')||{}; for(var k in md) cur2[k]=md[k]; localStorage.setItem('mt_mydef', JSON.stringify(cur2)); }catch(e3){} }
+      if(window.mtTrack) try{ mtTrack('house_apply'); }catch(e4){}
+      try{ history.replaceState(null,'',location.pathname); }catch(e5){}
+      toast(houseName()+' 기준을 적용했습니다 — 판정·산출물에 반영됩니다'); closeI();
+      try{ update(); }catch(e6){}
+    }
+  });
+}
+window.__mtHouseImport=houseImportPreview;
 function housePop(){
   var h=houseLoad();
   var ov2=document.createElement('div'); ov2.className='imx-ov';
@@ -4274,9 +4322,11 @@ function housePop(){
     +'<tr><td><b>목표 레버드 IRR</b> <span style="color:var(--muted);font-size:11px">%</span></td><td><input data-house="irr" inputmode="decimal" placeholder="8" value="'+esc(h.irr||'')+'"></td></tr>'
     +'<tr><td><b>최소 DSCR</b> <span style="color:var(--muted);font-size:11px">x</span></td><td><input data-house="dscr" inputmode="decimal" placeholder="1.2" value="'+esc(h.dscr||'')+'"></td></tr>'
     +'<tr><td><b>최대 내재 LTV</b> <span style="color:var(--muted);font-size:11px">%</span></td><td><input data-house="ltv" inputmode="decimal" placeholder="60" value="'+esc(h.ltv||'')+'"></td></tr>'
+    +'<tr><td><b>팀 이름</b> <span style="color:var(--muted);font-size:11px">산출물 표기·배포</span></td><td><input data-house="team" placeholder="예: 투자심사팀" value="'+esc(h.team||'')+'"></td></tr>'
+    +'<tr><td><b>기준 버전</b> <span style="color:var(--muted);font-size:11px">선택</span></td><td><input data-house="ver" placeholder="예: v2" value="'+esc(h.ver||'')+'"></td></tr>'
     +'</table>'
-    +'<div class="imx-act"><button type="button" data-hs="clear">기준 지우기 (통상값)</button><button type="button" class="pri" data-hs="save">저장</button></div>'
-    +'<div class="imx-priv">이 브라우저에만 저장됩니다 — 서버 전송 없음. 딜별로 다른 기준이 필요하면 커버넌트 표의 기준 입력을 쓰세요(딜별 값이 우선).</div></div>';
+    +'<div class="imx-act"><button type="button" data-hs="clear">기준 지우기 (통상값)</button><button type="button" data-hs="share">🔗 팀에 배포 (링크 복사)</button><button type="button" class="pri" data-hs="save">저장</button></div>'
+    +'<div class="imx-priv">이 브라우저에만 저장됩니다 — 서버 전송 없음. 「팀에 배포」는 회사 표준 파라미터(허들·부대비율 등)만 링크에 담아 복사합니다(개별 딜 수치·임차인 정보 없음). 받은 팀원은 미리보기 후 적용합니다.</div></div>';
   document.body.appendChild(ov2); document.body.style.overflow='hidden';
   function closeH(){ ov2.remove(); document.body.style.overflow=''; try{ update(); }catch(e){} }
   ov2.addEventListener('click',function(e){
@@ -4284,7 +4334,15 @@ function housePop(){
     var b=e.target.closest?e.target.closest('[data-hs]'):null; if(!b) return;
     if(b.dataset.hs==='clear'){ try{ localStorage.removeItem('mt_house'); }catch(e2){} toast('내 기준을 지웠습니다 — 통상값으로 판정'); closeH(); return; }
     var o={}; ov2.querySelectorAll('[data-house]').forEach(function(i2){ if(String(i2.value).trim()!=='') o[i2.dataset.house]=String(i2.value).trim(); });
+    o.at=new Date().toISOString().slice(0,10);
     try{ localStorage.setItem('mt_house', JSON.stringify(o)); }catch(e3){}
+    if(b.dataset.hs==='share'){
+      var link=houseShareLink();
+      if(!link){ toast('배포 링크 생성에 실패했습니다'); return; }
+      copyShare(link, (String(o.team||'').trim()||'팀')+' 기준');
+      if(window.mtTrack) try{ mtTrack('house_share'); }catch(e5){}
+      return;   // 모달 유지 — 팀명·버전 확인 후 계속
+    }
     toast('내 판정 기준 저장됨 — 판정·커버넌트·대주 뷰에 반영');
     if(window.mtTrack) try{ mtTrack('house_set'); }catch(e4){}
     closeH();
@@ -4302,14 +4360,14 @@ function dealVerdict(r){
     var parts=[], tone='good';
     var irr=raw.IRR;
     var hIrr=houseGet('irr',8)/100, hDscr=houseGet('dscr',1.2);
-    var hOn=(houseGet('irr',0)>0||houseGet('dscr',0)>0||houseGet('ltv',0)>0);
-    var hNm=hOn?'사내 기준 ':'', lead, dsAt=-1;
+    var hOn=houseOn();
+    var hNm=hOn?(houseName()+' 기준 '):'', lead, dsAt=-1;
     if(irr>=hIrr){ lead='IRR은 '+fp(irr)+'로 '+hNm+mfmt(hIrr*100,1)+'%는 넘습니다'; parts.push(lead+'.'); }
     else if(irr<hIrr-0.03){ lead='IRR이 '+fp(irr)+'에 그칩니다'; parts.push(lead+'. '+hNm+mfmt(hIrr*100,1)+'%까지 가려면 가격이나 조건을 다시 봐야 합니다.'); tone='warn'; }
     else { lead='IRR이 '+fp(irr)+'라 '+hNm+mfmt(hIrr*100,1)+'%에는 조금 못 미칩니다'; parts.push(lead+'.'); if(tone==='good') tone='mid'; }
     if(raw.minDSCR!=null&&isFinite(raw.minDSCR)){
       if(raw.minDSCR>=hDscr) parts.push('최소 DSCR는 '+fx(raw.minDSCR)+'라 상환 쪽은 무리가 없어 보입니다.');
-      else { parts.push('다만 최소 DSCR가 '+fx(raw.minDSCR)+'까지 내려갑니다. '+(hOn?('사내 기준 '+mfmt(hDscr,2)+'x에 못 미치는'):('대주들이 보통 보는 '+mfmt(hDscr,2)+'x에 걸릴 수 있는'))+' <b>수준입니다</b>.'); tone='warn'; }
+      else { parts.push('다만 최소 DSCR가 '+fx(raw.minDSCR)+'까지 내려갑니다. '+(hOn?(houseName()+' 기준 '+mfmt(hDscr,2)+'x에 못 미치는'):('대주들이 보통 보는 '+mfmt(hDscr,2)+'x에 걸릴 수 있는'))+' <b>수준입니다</b>.'); tone='warn'; }
     }
     var price=parseNum(state.price), noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null, ec=raw.exitCap;
     if(isFinite(price)&&price>0&&noi0!=null&&isFinite(ec)){
@@ -5282,6 +5340,14 @@ function applySharedPayload(p){
 }
 function tryRestoreFromURL(){
   var h=location.hash||'';
+  // 팀 기준 배포 링크 #h= — 딜 복원이 아니라 "기준 설치". 미리보기 모달만 띄우고 정상 로드는 그대로 진행(자동 적용 금지)
+  var mHouse=h.match(/[#&]h=([^&]+)/);
+  if(mHouse){
+    try{ var _hp=JSON.parse(mtLZ.decompress(mHouse[1]));
+      setTimeout(function(){ try{ houseImportPreview(_hp); }catch(e2){} }, 350);
+    }catch(eH){}
+    // return 하지 않음 — 아래 정상 딜 복원/로컬/예시 경로가 이어짐
+  }
   // 가이드 딥링크: #t=office|logistics|dev|refi (&view=lender) → 탭 전환 + 예시 + 빌더 스크롤
   var mT=h.match(/[#&]t=(office|logistics|dev|refi)/);
   if(mT){
@@ -5375,7 +5441,7 @@ if(!tryRestoreFromURL() && !tryRestoreLocal()) fillExample();
 /* 재방문자는 소개를 건너뛰고 빌더로 바로 (신규 방문 서사는 유지) */
 (function(){
   try{
-    if(/[#&][evdt]=/.test(location.hash||'')) return; // 공유·딥링크 복원 시엔 그대로
+    if(/[#&][evdth]=/.test(location.hash||'')) return; // 공유·딥링크 복원 시엔 그대로
     var seen=localStorage.getItem('mt_visited');
     localStorage.setItem('mt_visited','1');
     if(seen==='1'){
@@ -6648,6 +6714,14 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
           if(_b22&&_b22.s) _b22.s+=' · Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')))+' · 생성 '+new Date().toISOString().slice(0,10);
         }
       }catch(e3){}
+      // 팀 기준 표기 — 하우스 기준이 설정돼 있으면 표지에 "OO팀 기준 v2 적용" 자동 표기
+      try{
+        var _ht=(typeof houseTag==='function')?houseTag():'';
+        if(_ht){ var _cvh=null,i4; for(i4=0;i4<_TPL.sheets.length;i4++) if(_TPL.sheets[i4].name==='00_Cover'){ _cvh=_TPL.sheets[i4]; break; }
+          if(_cvh){ var _b2h=null,i5; for(i5=0;i5<_cvh.cells.length;i5++) if(_cvh.cells[i5].r==='B2'){ _b2h=_cvh.cells[i5]; break; }
+            if(_b2h&&_b2h.s) _b2h.s+=' · '+_ht; }
+        }
+      }catch(e3b){}
       // 산출물 회수 링크 — 표지에 「이 모델 열기」 하이퍼링크(옵트인·마스킹·&src=xlsx). 받은 사람이 클릭 한 번으로 라이브 모델에 착지.
       try{
         var _rl=recoverUrl('xlsx');
@@ -7145,6 +7219,8 @@ function buildIcPptx(){
     s.push(box(cm(0.9),cm(6.0),cm(31),cm(2.7),[{runs:[{t:D.name,sz:4400,b:1,color:C.wh}]}]));
     s.push(box(cm(0.9),cm(8.9),cm(12),cm(0.95),[{runs:[{t:'  '+D.deal+'  ',sz:1150,b:1,color:C.wh}]}],{fill:C.acc,rounded:true,anchor:'ctr'}));
     s.push(box(cm(13.3),cm(8.9),cm(12),cm(0.95),[{runs:[{t:D.date+' · 모델터에서 생성',sz:1100,color:C.cwh}]}],{anchor:'ctr'}));
+    var _ptag=(typeof houseTag==='function')?houseTag():'';
+    if(_ptag) s.push(box(cm(0.9),cm(10.0),cm(31),cm(0.7),[{runs:[{t:'✓ '+_ptag,sz:1050,b:1,color:C.acc2}]}]));
     // KPI 미리보기 타일 3개 (다크 톤)
     var pv=kps.slice(0,3);
     pv.forEach(function(k,i){
@@ -10874,7 +10950,7 @@ var qrcode = function() {
   var sk=document.getElementById('obSkip'); if(sk) sk.addEventListener('click',function(){ markOnboarded(); close(); if(window.mtTrack) try{ mtTrack('onboard',{role:'skip'}); }catch(e){} });
   ov.addEventListener('click',function(e){ if(e.target===ov){ markOnboarded(); close(); } });
   // 첫 방문에만 노출 (공유 링크 복원 시엔 건너뜀). 노출하면 이 세션 What's new는 억제
-  if(!onboarded() && !/[#&][evdt]=/.test(location.hash||'')){
+  if(!onboarded() && !/[#&][evdth]=/.test(location.hash||'')){
     window.__mtOnboarding=true;
     ov.hidden=false; document.body.style.overflow='hidden';
   }
@@ -10894,7 +10970,7 @@ var qrcode = function() {
   // 첫 노출: 오늘 그만보기 상태가 아니면 배너 표시 + (이번 세션 처음이면) 팝업 자동
   if(!snoozedToday()){
     if(bar) bar.hidden=false;
-    var deepLink=/[#&][evdt]=/.test(location.hash||'');   // 공유·가이드 딥링크 진입은 목적지 우선 — 팝업으로 막지 않음
+    var deepLink=/[#&][evdth]=/.test(location.hash||'');   // 공유·가이드 딥링크 진입은 목적지 우선 — 팝업으로 막지 않음
     if(ov && !seenSession() && !window.__mtOnboarding && !deepLink) openWN();   // 첫 방문 온보딩·딥링크와 이중 노출 방지
   }
   var more=document.getElementById('annMore'); if(more) more.addEventListener('click',openWN);

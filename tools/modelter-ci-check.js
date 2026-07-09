@@ -114,6 +114,17 @@ ok(html.includes("shareLink(false,'qr')"), '회수: QR 이어가기 링크 &src=
 ok(html.includes('id="roCta"') && html.includes('id="roCtaBtn"') && html.includes('이 가정으로 내 딜 시작하기'), '회수: 읽기전용 착지 하단 CTA 바');
 ok(html.includes("mtTrack('recover_cta'"), '회수: recover_cta 이벤트(착지→편집 전환)');
 ok(html.includes('이 모델을 바로 열어 보기:') && html.includes('요약 카드(PNG)의 QR'), '회수: IC PPT 마지막 장 회수 안내(라이브·QR 경로)');
+
+/* ── 1e) 팀 기준 배포 링크(E4) — #h= 내보내기·미리보기·적용·표기 ── */
+ok(html.includes('function houseShareLink()') && html.includes("location.pathname+'#h='+enc"), '팀 기준: #h= 배포 링크 생성(회사 표준 파라미터만)');
+ok(html.includes('function houseImportPreview(pay)') && html.includes("data-hi=\"apply\""), '팀 기준: 설치 미리보기 모달(자동 적용 금지)');
+ok(html.includes('var mHouse=h.match(/[#&]h=([^&]+)/)'), '팀 기준: #h= 착지 파싱(딜 복원과 분리)');
+ok(html.includes("data-hs=\"share\"") && html.includes("mtTrack('house_share')"), '팀 기준: 팀에 배포 버튼 + house_share 이벤트');
+ok(html.includes("mtTrack('house_apply')"), '팀 기준: 적용 시 house_apply 이벤트');
+ok(html.includes('function houseName()') && html.includes('function houseTag()'), '팀 기준: 팀명 라벨·산출물 표기 헬퍼');
+ok(html.includes("_b2h.s+=' · '+_ht") || html.includes("+' · '+_ht"), '팀 기준: 엑셀 표지에 팀 기준 표기');
+ok(html.includes("'✓ '+_ptag") || html.includes('✓ '+"'+_ptag"), '팀 기준: IC PPT 표지에 팀 기준 배지');
+ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 팀명 격상(사내 기준 하드코딩 제거)');
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
 if (fs.existsSync(headersPath)) {
@@ -294,7 +305,7 @@ ok(html.includes("classList.add('noresult')") && html.includes("contains('noresu
 ok(html.includes('예시로 시작하기'), '빈 상태 → 예시 시작 버튼 존재');
 ok(html.includes('[#&]t=(office|logistics|dev|refi)'), '가이드 딥링크(#t=) 존재');
 ok(html.includes('[#&]view=lender'), '딥링크 대주 뷰(view=lender) 존재');
-ok(html.includes('[#&][evdt]='), '딥링크 시 온보딩 스킵 가드');
+ok(html.includes('[#&][evdth]='), '딥링크 시 온보딩 스킵 가드(#h= 포함)');
 ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
 ok(html.includes('function termHelp') && html.includes('class="k-help"'), '결과 용어 → 가이드 앵커 링크 존재');
 ok(html.includes('function mtNextTip') && html.includes('mt_tip_next'), '산출물 다음 단계 팁(1회) 존재');
@@ -303,7 +314,7 @@ ok(html.includes('cmp-hi'), '딜 비교 최적값 하이라이트 존재');
 ok(html.includes('function wonConv') && html.includes('class="f-conv"'), '원화 환산 라이브 힌트(억/조) 존재');
 ok(html.includes('탭하면 결과로 이동'), '미니 KPI 탭 → 결과 스크롤 존재');
 ok(html.includes('학습 모드 — 결과 지표 옆'), 'learn 온보딩 용어사전 안내 존재');
-ok(html.includes("var deepLink=/[#&][evdt]=/.test(location.hash||'')"), "딥링크 진입 시 What's new 자동 팝업 억제");
+ok(html.includes("var deepLink=/[#&][evdth]=/.test(location.hash||'')"), "딥링크 진입 시 What's new 자동 팝업 억제");
 ok(html.includes('window.__wizOpen') && html.includes('id="wizBtn"') && html.includes('wiz-sheet'), '모바일 빠른 입력 위저드 존재');
 ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.includes("['asset','noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 핵심 필드 세트');
 ok(html.includes("_gf=mnum('gfa')"), '임대료 기준 연면적 필수 가드(침묵 기본값 차단)');
