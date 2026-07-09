@@ -1170,6 +1170,10 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .f-range+.f-ref{margin-top:1px}
 .f-conv{display:block;font-size:11.5px;font-weight:700;color:var(--accent-deep);margin-top:3px;line-height:1.3}
 .f-conv+.f-ref{margin-top:1px}
+/* 예시값 잔존 칩 + 필드 강조 */
+.ex-chip{border:1px solid rgba(179,71,47,.4); background:rgba(179,71,47,.08); color:var(--red); font-family:var(--font); font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:999px; cursor:pointer; white-space:nowrap}
+.ex-chip:hover{background:rgba(179,71,47,.14)}
+.f.ex-hl{outline:2px solid var(--red); outline-offset:3px; border-radius:8px; transition:outline-color .3s}
 </style>
 </head>
 <body>
@@ -1434,6 +1438,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <span class="ws-dirty" id="wsDirtyTag" hidden title="현재 화면값이 저장된 버전과 다릅니다">● 저장 안 된 변경</span>
       </div>
       <div class="inp-prog" id="inpProg" hidden><span class="ip-bar"><span class="ip-fill" id="ipFill"></span></span><span class="ip-txt" id="ipTxt"></span></div>
+      <button type="button" class="ex-chip" id="exChip" hidden onclick="exChipClick()"></button>
       <div class="panel-body" id="formBody"></div>
     </div>
 
@@ -1831,6 +1836,57 @@ const QUICK_FIELDS={
 
 let cur="office";
 let state={};
+/* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
+ * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
+ * "사용자가 일부를 수정했는데(혼합 상태) 예시 키가 남아 있으면" 칩·산출물 확인·꼬리표로 알린다. */
+let exampleKeys=new Set(), exUserEdited=false;
+function exFieldDef(k){ var f=null; try{ DEALS[cur].groups.forEach(function(g){ g.f.forEach(function(x){ if(x.k===k) f=x; }); }); }catch(e){} return f; }
+function exMarkExample(){ try{
+  exampleKeys=new Set(Object.keys(state).filter(function(k){ return ((state[k]||'')+'').trim()!==''; }));
+  exUserEdited=false; renderExChip();
+}catch(e){} }
+function exTouch(k){ try{ exampleKeys.delete(k); exUserEdited=true; renderExChip(); }catch(e){} }
+function exMarkEdited(){ try{ exUserEdited=true; renderExChip(); }catch(e){} }
+function exClearAllTrack(){ try{ exampleKeys.clear(); exUserEdited=false; renderExChip(); }catch(e){} }
+function exRemaining(){ // 현재 딜 폼에 존재하는 숫자·텍스트 필드 중, 값이 있고 아직 예시 그대로인 키
+  var out=[]; try{ exampleKeys.forEach(function(k){
+    if(((state[k]||'')+'').trim()==='') return;
+    var f=exFieldDef(k); if(!f||f.t==='select'||f.t==='textarea'||f.t==='range') return;
+    out.push(k);
+  }); }catch(e){} return out;
+}
+function exMixed(){ return exUserEdited && exRemaining().length>0; }
+function exLabels(){ return exRemaining().map(function(k){ var f=exFieldDef(k); return f?f.l:k; }); }
+function renderExChip(){
+  var el=(typeof document!=='undefined')?document.getElementById('exChip'):null; if(!el) return;
+  try{
+    var rem=exMixed()?exRemaining():[];
+    if(!rem.length){ el.hidden=true; return; }
+    el.hidden=false;
+    el.textContent='⚠ 예시값 그대로 '+rem.length+'개';
+    el.title='아직 예시 숫자인 항목: '+exLabels().join(', ')+' — 누르면 해당 칸을 표시합니다';
+  }catch(e){}
+}
+function exChipClick(){
+  try{
+    var rem=exRemaining(); if(!rem.length) return;
+    var first=null;
+    rem.forEach(function(k){ var w=document.querySelector('[data-field="'+k+'"]'); if(w){ w.classList.add('ex-hl'); if(!first) first=w; } });
+    if(first&&first.scrollIntoView) first.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(function(){ document.querySelectorAll('.ex-hl').forEach(function(w){ w.classList.remove('ex-hl'); }); },2600);
+  }catch(e){}
+}
+function exConfirmOutput(kind){
+  try{
+    if(!exMixed()) return true;
+    if(sessionStorage.getItem('mt_ex_ack')==='1') return true;
+    var labs=exLabels(); var head=labs.slice(0,6);
+    var okc=confirm('아직 예시 숫자 그대로인 항목이 있습니다:\n· '+head.join('\n· ')+(labs.length>6?('\n· … 외 '+(labs.length-6)+'개'):'')
+      +'\n\n이 값들이 '+kind+'에 그대로 들어갑니다. 계속할까요?\n(계속하면 이 세션에서는 다시 묻지 않고 표시만 합니다)');
+    if(okc){ try{ sessionStorage.setItem('mt_ex_ack','1'); }catch(e2){} if(window.mtTrack) try{ mtTrack('ex_ack'); }catch(e3){} }
+    return okc;
+  }catch(e){ return true; }
+}
 let stackState={};
 let refiState={};
 let depth="standard";
@@ -2095,7 +2151,7 @@ function devGridsRefresh(){
 function bindDevGrids(){
   var host=$('devGrids'); if(!host) return;
   host.querySelectorAll('.dg-in').forEach(function(el){
-    el.addEventListener('input',function(){ devGridWrite(); devGridCalc(); update(); });
+    el.addEventListener('input',function(){ devGridWrite(); exTouch('aptrows'); exTouch('retrows'); exTouch('aptsold'); devGridCalc(); update(); });
   });
   host.querySelectorAll('[data-dgdel]').forEach(function(b){
     b.addEventListener('click',function(){
@@ -2173,7 +2229,7 @@ function renderForm(){
   $("formBody").querySelectorAll("[data-k]").forEach(el=>{
     const handler=(ev)=>{
       state[el.dataset.k]=el.value;
-      if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate();   // 사용자가 직접 값을 입력 = 활성화 신호
+      if(ev&&ev.isTrusted){ exTouch(el.dataset.k); if(window.__mtActivate) window.__mtActivate(); }   // 사용자가 직접 값을 입력 = 활성화 신호 + 예시 추적 해제
       if(el.type==="range"){ const o=document.getElementById("rout_"+el.dataset.k); if(o) o.textContent=el.value+(el.dataset.runit||""); }
       if(el.dataset.num){ validateField(el); updateConvHint(el); }
       if(el.dataset.k==="noimode"||el.dataset.k==="devtype"){ renderForm(); restoreInputs(); update(); return; }
@@ -2187,11 +2243,12 @@ function renderForm(){
     el.addEventListener(el.type==="checkbox"?"change":"input",()=>{
       const key=el.dataset.sk;
       stackState[key]= el.type==="checkbox"?el.checked:el.value;
+      exMarkEdited();
       if(el.type==="checkbox"){ const tr=el.closest(".tranche"); tr.classList.toggle("off",!el.checked); }
       update();
     });
   });
-  $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{ refiState[el.dataset.rk]=el.value; update(); }); });
+  $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{ refiState[el.dataset.rk]=el.value; exMarkEdited(); update(); }); });
   $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",()=>{ scenState[el.dataset.scen]=el.value; update(); }); });
   bindDevGrids();
   var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
@@ -2480,6 +2537,7 @@ function update(){
   updateGroupCounts();
   try{ renderWorkspace(); }catch(e){}
   try{ renderInpProg(); }catch(e){}
+  try{ renderExChip(); }catch(e){}
   saveLocal();
 }
 /* 핵심 입력 진행률 — 딜별 필수 필드가 얼마나 채워졌는지(완성도 안심 지표) */
@@ -2699,7 +2757,7 @@ function wsSnapshot(){
   var s={}; for(var k in state) s[k]=state[k];
   var kk={}; for(var k2 in stackState) kk[k2]=stackState[k2];
   var rr2={}; for(var k3 in refiState) rr2[k3]=refiState[k3];
-  return {c:cur,d:depth,s:s,k:kk,r:rr2,rr:(window.rrModel&&window.rrModel.on)?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null};
+  return {c:cur,d:depth,s:s,k:kk,r:rr2,rr:(window.rrModel&&window.rrModel.on)?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null,ek:Array.from(exampleKeys),ue:exUserEdited?1:0};
 }
 function wsStable(v){
   if(v===null||typeof v!=='object') return JSON.stringify(v);
@@ -2771,6 +2829,7 @@ function wsSaveVersion(){
 function wsApplySnapshot(pp){
   if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d;
   state=Object.assign({},pp.s||{}); stackState=Object.assign({},pp.k||{}); refiState=Object.assign({},pp.r||{});
+  exampleKeys=new Set(pp.ek||[]); exUserEdited=!!pp.ue;
   window.rrModel=(pp.rr&&pp.rr.leases)?{leases:pp.rr.leases,mkt:pp.rr.mkt,on:true,confirmed:true}:null;
   window.rrState=null;
   renderTabs(); renderForm(); restoreInputs(); update();
@@ -3104,7 +3163,7 @@ function buildPrintSummary(){
     '<h2>생성될 시트 구조</h2><p class="ps-sheets">'+esc(sheetHtml)+'</p>'+
     '<div class="ps-foot">modelter.com · 코람코자산신탁 상장리츠팀 김성훈 · 본 요약은 입력값 기반 직접계산·추정치이며 투자 권유가 아닙니다.</div>';
 }
-function printSummary(){ buildPrintSummary(); document.body.classList.add('psum'); window.print(); }
+function printSummary(){ if(typeof exConfirmOutput==='function'&&!exConfirmOutput('한 장 요약(인쇄)')) return; buildPrintSummary(); document.body.classList.add('psum'); window.print(); }
 window.addEventListener('afterprint',function(){ document.body.classList.remove('psum'); });
 (function(){ var pb=$('pdfBtn'); if(pb) pb.addEventListener('click',printSummary); })();
 
@@ -4160,6 +4219,7 @@ function fillExample(){
   // 탭 활성 상태·라벨 갱신
   const tabs=$("dealTabs"); if(tabs){ tabs.querySelectorAll(".deal-tab").forEach(b=>b.classList.toggle("on",b.dataset.k===cur)); }
   const dl=$("dtLabel"); if(dl) dl.textContent=DEALS[cur].label;
+  exMarkExample();   // 예시가 채운 키 기록 (사용자 수정 시 하나씩 해제)
   renderForm();
   restoreInputs();
   update();
@@ -4167,6 +4227,7 @@ function fillExample(){
 
 function clearAll(){
   state={}; stackState={}; refiState={}; depth="standard";
+  exClearAllTrack();
   try{ localStorage.removeItem("mt_state"); }catch(e){}
   renderForm(); restoreInputs(); update();
   toast("입력을 모두 지웠습니다");
@@ -4322,7 +4383,7 @@ function sharePayload(){
     });
     rr={leases:masked, mkt:window.rrModel.mkt};
   }
-  return {c:cur,d:depth,s:state,k:stackState,r:refiState,rr:rr};
+  return {c:cur,d:depth,s:state,k:stackState,r:refiState,rr:rr,ek:Array.from(exampleKeys),ue:exUserEdited?1:0};
 }
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
 function shareLink(readonly){
@@ -4354,7 +4415,8 @@ function oneLineReport(){
   var vd=null; try{ vd=dealVerdict(r); }catch(e){}
   var vTxt=''; if(vd){ var seg=String(vd.html).replace(/<[^>]+>/g,'').split(' · ')[0]; vTxt=' — '+(vd.tone==='warn'?'⚠ ':'✓ ')+seg; }
   var url=shareLink(true)||'';
-  return '[모델터] '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+'\n'+url;
+  var exTag=(typeof exMixed==='function'&&exMixed())?' · (일부 가정은 예시값)':'';
+  return '[모델터] '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+exTag+'\n'+url;
 }
 function shareInputs(){
   // 공유 방식 선택 팝오버
@@ -4372,6 +4434,7 @@ function shareInputs(){
   pop.style.left=Math.max(8,Math.min(r.left+window.scrollX, window.innerWidth-pop.offsetWidth-8))+'px';
   pop.querySelectorAll('.sp-opt').forEach(function(o){ o.addEventListener('click',function(){
     if(o.dataset.ol==='1'){
+      if(typeof exConfirmOutput==='function'&&!exConfirmOutput('한 줄 보고')){ pop.remove(); return; }
       var txt=oneLineReport();
       if(!txt){ toast('결과가 없어 요약을 만들 수 없습니다 — 핵심 입력을 먼저 채워주세요'); pop.remove(); return; }
       var done=function(){ toast('한 줄 보고가 복사되었습니다 — 카톡·메일에 붙여넣으세요',2600); };
@@ -4380,7 +4443,9 @@ function shareInputs(){
       if(window.mtTrack) try{ mtTrack('share_link',{ro:1,ol:1}); }catch(e){}
       pop.remove(); return;
     }
-    var ro=o.dataset.ro==='1'; var url=shareLink(ro); if(url) copyShare(url, ro?'결과(읽기 전용)':'편집용');
+    var ro=o.dataset.ro==='1';
+    if(typeof exConfirmOutput==='function'&&!exConfirmOutput('공유 링크')){ pop.remove(); return; }
+    var url=shareLink(ro); if(url) copyShare(url, ro?'결과(읽기 전용)':'편집용');
     if(window.mtTrack) try{ mtTrack('share_link',{ro:ro?1:0}); }catch(e){}
     pop.remove();
   }); });
@@ -4390,6 +4455,7 @@ function applySharedPayload(p){
   if(p.c && DEALS[p.c]){ cur=p.c; }
   if(p.d && DEPTHS[p.d]){ depth=p.d; }
   state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
+  exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue;
   window.rrModel=(p.rr&&p.rr.leases)?{leases:p.rr.leases,mkt:p.rr.mkt,on:true,confirmed:true}:null;
   window.rrState=null;
   renderTabs(); renderForm(); restoreInputs(); update();
@@ -4429,7 +4495,7 @@ window.__mtExitReadonly=function(){
 };
 
 /* ---------- 입력값 브라우저 자동 저장/복원 ---------- */
-function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState})); }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState,ek:Array.from(exampleKeys),ue:exUserEdited?1:0})); }catch(e){} }
 function tryRestoreLocal(){
   let raw=null; try{ raw=localStorage.getItem("mt_state"); }catch(e){ return false; }
   if(!raw) return false;
@@ -4438,6 +4504,7 @@ function tryRestoreLocal(){
     if(p.c && DEALS[p.c]) cur=p.c;
     if(p.d && DEPTHS[p.d]) depth=p.d;
     state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
+    exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue;
     renderTabs(); renderForm(); restoreInputs(); update();
     return true;
   }catch(e){ return false; }
@@ -5559,6 +5626,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   window.__devTemplate=devTemplate;
 
   function downloadXlsx(ctx){
+    if(typeof exConfirmOutput==='function'&&!exConfirmOutput('엑셀 모델')) return;
     try{
       // 워크스페이스 컨텍스트: 활성 딜이 있으면 버전 기준 메타·파일명·이력 기록
       if(!ctx&&typeof wsOutCtx==='function') ctx=wsOutCtx();
@@ -5938,6 +6006,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     return zipStore(out);
   }
   function download(ctx){
+    if(typeof exConfirmOutput==='function'&&!exConfirmOutput('티저')) return;
     if(!ctx&&typeof wsOutCtx==='function') ctx=wsOutCtx();
     if(ctx&&ctx.dirty&&!ctx.explicit){
       if(!confirm('저장되지 않은 변경이 있습니다.\n이 상태로 받으면 나중에 같은 기준으로 재생성하기 어렵습니다.\n\n현재 화면값으로 계속 받을까요?')) return;
@@ -6365,6 +6434,7 @@ function buildIcPptx(){
 }
 
 function download(ctx){
+  if(typeof exConfirmOutput==='function'&&!exConfirmOutput('IC 패키지')) return;
   if(!ctx&&typeof wsOutCtx==='function') ctx=wsOutCtx();
   var bytes=null;
   try{ bytes=buildIcPptx(); }catch(e){ if(typeof toast==='function') toast('IC 패키지 생성 오류: '+e.message); return; }
@@ -7081,6 +7151,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       var k=ck.dataset.k, f=FIELDS.filter(function(x){return x.k===k;})[0];
       var v=fmtV(f, extracted[k]); if(v==null) return;
       state[k]=v; n++;
+      if(typeof exTouch==='function') exTouch(k);   // IM에서 온 값 = 사용자 제공 값
     });
     close();
     try{ renderForm(); restoreInputs(); update(); }catch(e){}
@@ -7228,7 +7299,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     if(inp){
       var f=W.fs[W.i];
       var conv=function(){ if(f.t==='num'&&/^백만원/.test(f.u||'')){ var n=parseNum(inp.value); var c=sheet.querySelector('#wizConv'); if(c) c.textContent=(isFinite(n)&&n>0)?('= '+wonConv(n)):''; } };
-      inp.addEventListener('input',function(ev){ state[f.k]=inp.value; conv(); if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); });
+      inp.addEventListener('input',function(ev){ state[f.k]=inp.value; conv(); if(ev&&ev.isTrusted){ if(typeof exTouch==='function') exTouch(f.k); if(window.__mtActivate) window.__mtActivate(); } });
       inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); nav('next'); } });
       conv();
       setTimeout(function(){ try{ inp.focus(); }catch(e){} },60);
