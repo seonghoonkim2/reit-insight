@@ -5,3 +5,19 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://api.web3forms.com https://cloudflareinsights.com https://api.anthropic.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
+
+# 캐시 정책 — HTML은 매 방문 재검증(ETag 304, 배포 즉시 반영), 이미지는 하루 캐시
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/guide.html
+  Cache-Control: no-cache
+
+/howto.html
+  Cache-Control: no-cache
+
+/og.png
+  Cache-Control: public, max-age=86400

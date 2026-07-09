@@ -14,6 +14,11 @@ const ok = (cond, msg) => { if (!cond) fails.push(msg); else console.log('  ✓ 
 const html = fs.readFileSync(HTML, 'utf8');
 
 /* ── 0) 성능 예산 — 사용자 체감 기준 (docs/STRATEGY.md 아키텍처 정책) ── */
+{
+  const htmlNoNs = html.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
+  const extCss = (htmlNoNs.match(/<link[^>]+rel="stylesheet"[^>]*>/g) || []).filter(t => /href="https?:\/\//.test(t));
+  ok(extCss.every(t => t.includes('media="print"')), '성능 예산: 렌더 블로킹 외부 CSS 0건 (' + extCss.length + '건 전부 비동기)');
+}
 const gzKB = Math.round(require('zlib').gzipSync(Buffer.from(html), { level: 6 }).length / 1024);
 ok(gzKB < 300, '성능 예산: gzip 전송량 ' + gzKB + 'KB < 300KB (초과 시 출력 생성기 지연 로딩부터 검토)');
 
@@ -49,6 +54,7 @@ if (fs.existsSync(headersPath)) {
   const h = fs.readFileSync(headersPath, 'utf8');
   ok(/content-security-policy/i.test(h), '_headers: CSP 포함');
   ok(/x-frame-options/i.test(h), '_headers: X-Frame-Options 포함');
+  ok(/Cache-Control:\s*no-cache/.test(h), '_headers: HTML 재검증 캐시 정책(구버전 고착 방지)');
   // 앱이 api.anthropic.com을 호출(BYOK)하면 CSP connect-src에도 반드시 있어야 함 — 로컬 QA엔 CSP가 없어 프로덕션에서만 터지는 유형
   if (html.includes('api.anthropic.com')) ok(/connect-src[^;]*api\.anthropic\.com/.test(h), '_headers: CSP connect-src에 api.anthropic.com (BYOK 차단 방지)');
 }
