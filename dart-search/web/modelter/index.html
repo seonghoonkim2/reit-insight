@@ -1058,7 +1058,7 @@ html,body{overflow-x:hidden}
 .ro-txt b{color:var(--accent-deep)}
 .ro-open{border:1px solid var(--accent);background:var(--accent-solid);color:var(--on-accent);font-family:var(--font);font-weight:700;font-size:13px;padding:8px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .ro-open:hover{filter:brightness(1.06)}
-body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
+body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
 
 /* 첫 방문 온보딩 역할 선택 */
@@ -1427,6 +1427,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
           <button class="ex ghost ico" id="clearBtn" title="입력값 전체 지우기" aria-label="비우기"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/></svg></button>
           <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
+          <button class="ex ghost" id="myDefBtn" title="회사 표준 부대비·보수·대출 조건을 저장해 두고 새 딜에 한 번에 적용">내 기본값</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
         </div>
       </div>
@@ -4417,6 +4418,74 @@ function copyShare(url, label){
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(function(){ prompt("이 링크를 복사하세요:",url); }); }
   else{ prompt("이 링크를 복사하세요:",url); }
 }
+/* ---------- 내 기본값 — 딜 유형별 개인 프리셋 (회사 표준 부대비·보수·대출 조건, 이 브라우저에만 저장) ---------- */
+const MYDEF_KEYS={
+  office:['acqtax','acqfee','depmult','depassume','opfee','fixcost','salefee','prepayfee','dispfee'],
+  logistics:['acqtax','acqfee','depmult','depassume','opfee','fixcost','salefee','prepayfee','dispfee'],
+  dev:['taxpct','engpct','rsvpct','salespct','hugpct','midfree','midrate','brate','pfrate','pffee','conscurve'],
+  refi:['dscrmin','prepayfee','newfee']
+};
+function myDefLoad(){ try{ return JSON.parse(localStorage.getItem('mt_mydef')||'{}'); }catch(e){ return {}; } }
+function myDefPersist(db){ try{ localStorage.setItem('mt_mydef', JSON.stringify(db)); }catch(e){ toast('저장 공간이 부족합니다'); } }
+function myDefLabels(keys){
+  var map={}; (DEALS[cur].groups||[]).forEach(function(g){ (g.f||[]).forEach(function(f){ map[f.k]=f.l; }); });
+  return keys.map(function(k){ return map[k]||k; });
+}
+function myDefSave(){
+  var ks=MYDEF_KEYS[cur]||[], s={};
+  ks.forEach(function(k){ var v=state[k]; if(v!=null&&String(v).trim()!=='') s[k]=String(v); });
+  var kk=null;
+  if(DEALS[cur].stack){ kk={}; for(var k2 in stackState) kk[k2]=stackState[k2]; if(!Object.keys(kk).length) kk=null; }
+  if(!Object.keys(s).length&&!kk){ toast('저장할 조건이 없습니다 — 취득 제세·보수·수수료 등을 먼저 입력하세요'); return; }
+  var db=myDefLoad();
+  db[cur]={s:s, k:kk, at:new Date().toISOString()};
+  myDefPersist(db);
+  toast('내 기본값 저장됨 — '+DEALS[cur].label+' 조건 '+Object.keys(s).length+'개'+(kk?' + 자본 스택':''));
+  if(window.mtTrack) try{ mtTrack('mydef_save'); }catch(e){}
+}
+function myDefApply(){
+  var db=myDefLoad(), p=db[cur];
+  if(!p){ toast('저장된 내 기본값이 없습니다'); return; }
+  var n=0;
+  Object.keys(p.s||{}).forEach(function(k){ state[k]=p.s[k]; if(typeof exTouch==='function') exTouch(k); n++; });
+  if(p.k&&DEALS[cur].stack) stackState=Object.assign({},p.k);
+  renderForm(); restoreInputs(); update();
+  toast('내 기본값 적용됨 — 조건 '+n+'개'+(p.k?' + 자본 스택':'')+' · 나머지 입력은 그대로');
+  if(window.mtTrack) try{ mtTrack('mydef_apply'); }catch(e){}
+}
+function myDefPop(){
+  var old=document.getElementById('myDefPop'); if(old){ old.remove(); return; }
+  if(window.__mtReadonly){ toast('읽기 전용 모드에서는 사용할 수 없습니다'); return; }
+  var btn=document.getElementById('myDefBtn'); if(!btn) return;
+  var db=myDefLoad(), p=db[cur];
+  var pop=document.createElement('div'); pop.id='myDefPop'; pop.className='share-pop';
+  var body='';
+  if(p){
+    var pk=Object.keys(p.s||{});
+    var lbs=myDefLabels(pk).slice(0,4).join(' · ');
+    body='<button type="button" class="sp-opt" data-md="apply"><b>현재 딜에 적용</b><span>'+esc(lbs)+(pk.length>4?' 외 '+(pk.length-4)+'개':'')+(p.k?' + 자본 스택(대출 조건)':'')+' — 나머지 입력은 그대로 둡니다</span></button>'
+      +'<button type="button" class="sp-opt" data-md="save"><b>현재 조건으로 다시 저장</b><span>지금 화면의 부대비·보수·대출 조건으로 덮어씁니다</span></button>'
+      +'<button type="button" class="sp-opt" data-md="del"><b>삭제</b><span>'+DEALS[cur].label+'의 내 기본값을 지웁니다</span></button>';
+  } else {
+    body='<button type="button" class="sp-opt" data-md="save"><b>현재 조건을 내 기본값으로 저장</b><span>취득 제세·보수·수수료'+(DEALS[cur].stack?'·자본 스택(대출 조건)':'')+'만 저장 — 매입가·임대료 같은 딜 고유값은 저장하지 않습니다</span></button>';
+  }
+  pop.innerHTML='<div class="sp-h">내 기본값 — '+DEALS[cur].label+'</div>'+body
+    +'<div class="sp-note">이 브라우저에만 저장됩니다 — 서버로 전송되지 않습니다. 새 딜을 시작할 때 회사 표준 조건을 한 번에 채우는 용도입니다.</div>';
+  document.body.appendChild(pop);
+  var r=btn.getBoundingClientRect();
+  pop.style.top=(r.bottom+window.scrollY+6)+'px';
+  pop.style.left=Math.max(8,Math.min(r.left+window.scrollX, window.innerWidth-pop.offsetWidth-8))+'px';
+  pop.querySelectorAll('.sp-opt').forEach(function(o){ o.addEventListener('click',function(){
+    var md=o.dataset.md;
+    if(md==='apply') myDefApply();
+    else if(md==='save') myDefSave();
+    else if(md==='del'){ var db2=myDefLoad(); delete db2[cur]; myDefPersist(db2); toast('내 기본값 삭제됨 — '+DEALS[cur].label); }
+    pop.remove();
+  }); });
+  setTimeout(function(){ document.addEventListener('click',function h(e){ if(!pop.contains(e.target)&&e.target!==btn){ pop.remove(); document.removeEventListener('click',h); } }); },0);
+}
+var _mdB=$("myDefBtn"); if(_mdB) _mdB.addEventListener("click",myDefPop);
+
 /* 한 줄 보고 — 카톡·메일에 그대로 붙이는 KPI 요약 + 읽기 전용 링크 */
 function oneLineReport(){
   var r=null; try{ r=simModel(); }catch(e){}
@@ -4448,12 +4517,26 @@ function shareInputs(){
     '<button type="button" class="sp-opt" data-ro="1"><b>📊 결과 링크 (읽기 전용)</b><span>받는 사람은 결과·민감도를 보고, 값은 수정 못 합니다</span></button>'+
     '<button type="button" class="sp-opt" data-ro="0"><b>✏️ 편집용 링크</b><span>받는 사람이 값을 이어서 수정할 수 있습니다</span></button>'+
     '<button type="button" class="sp-opt" data-ol="1"><b>💬 한 줄 보고 복사</b><span>딜명 · 핵심 KPI · 판정 · 결과 링크 — 카톡·메일에 그대로 붙여넣기</span></button>'+
+    (navigator.share?'<button type="button" class="sp-opt" data-sh="1"><b>📲 공유 시트로 바로 보내기</b><span>카톡·메시지 앱으로 한 줄 보고 + 결과 링크를 한 번에</span></button>':'')+
     '<div class="sp-note">서버에 저장하지 않습니다 — 딜 정보는 링크 안에만 담기고, 임차인 실명은 링크에서 마스킹됩니다.</div>';
   document.body.appendChild(pop);
   var r=btn.getBoundingClientRect();
   pop.style.top=(r.bottom+window.scrollY+6)+'px';
   pop.style.left=Math.max(8,Math.min(r.left+window.scrollX, window.innerWidth-pop.offsetWidth-8))+'px';
   pop.querySelectorAll('.sp-opt').forEach(function(o){ o.addEventListener('click',function(){
+    if(o.dataset.sh==='1'){
+      if(typeof exConfirmOutput==='function'&&!exConfirmOutput('공유')){ pop.remove(); return; }
+      var st2=oneLineReport();
+      if(!st2){ toast('결과가 없어 공유할 수 없습니다 — 핵심 입력을 먼저 채워주세요'); pop.remove(); return; }
+      var i2=st2.lastIndexOf('\n'), sb=i2>0?st2.slice(0,i2):st2, su=i2>0?st2.slice(i2+1):'';
+      navigator.share(su?{text:sb,url:su}:{text:sb}).then(function(){
+        if(window.mtTrack) try{ mtTrack('share_link',{ro:1,sheet:1}); }catch(e){}
+      }).catch(function(err){
+        if(err&&err.name==='AbortError') return; // 사용자가 공유 시트를 닫음
+        if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(st2).then(function(){ toast('공유 시트를 열 수 없어 대신 복사했습니다 — 붙여넣어 보내세요'); }).catch(function(){});
+      });
+      pop.remove(); return;
+    }
     if(o.dataset.ol==='1'){
       if(typeof exConfirmOutput==='function'&&!exConfirmOutput('한 줄 보고')){ pop.remove(); return; }
       var txt=oneLineReport();
