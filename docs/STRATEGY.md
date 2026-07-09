@@ -130,6 +130,16 @@ node tools/modelter-ci-check.js   # 스탬프 무결성·게이트 재확인
 **32건 백로그 전체 완료.** 차기 6개월 전략·에픽 실행 명세는 → **`docs/STRATEGY-NEXT.md`** (관점 5종 패널→심사→종합→코드 실증).
 방향: '만들기'에서 '발견·허가·전파'로 — 신뢰 센터·산출물 회수 루프·팀 기준 배포·검색 착지·채널 어트리뷰션. 착수 순서는 그 문서 4장.
 
+**E1~E8 8개 에픽 전부 완료(2026-07-09).** 각 에픽 브라우저 QA + CI 게이트 + (해당 시)파리티 재검증 통과:
+- E1 신뢰 센터 `/trust` — /e 필드 ↔ trust 표 CI 게이트
+- E5 채널 어트리뷰션 — `src` 태그·`deal_want` 가짜 문·`--attribution`
+- E2 산출물 회수 루프 — 엑셀 하이퍼링크·PNG QR·착지 CTA·`&src=` 태그
+- E4 팀 기준 배포 `#h=` — 내보내기·미리보기·적용·4산출물 표기
+- E3 검색 착지 28면 — `tools/gen-pages.js`(용어 24·계산기 4)
+- E6 재현성 스탬프 + `/verification` — 빌드 스탬프·파리티 공표·배포 게이트
+- E7 참고치 v3 — `data/market-ref.json` 출처·기준일·인라인
+- E8 분기 시장 노트 — `tools/gen-notes.js`(사전 입력 `#v=&src=notes`)
+
 세부 우선순위는 계기판 실사용 데이터(`node tools/modelter-ae.js --days 7`)로 조정한다 — 신규 이벤트: im_quick, memo_copy, png_card, pipeline_copy, inquiry_copy, ws_diff, ws_status,
 mydef_*, adj_open, xlsx_restore, src_tag, house_set, qr_open, coach_ok.
 
