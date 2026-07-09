@@ -22,8 +22,11 @@ export default {
           const axis = s(d.axis, 12);                          // sens_axis 이벤트의 축(growth|rate)
           const featN = feats ? feats.split(",").filter(Boolean).length : 0;
           const rec = { ev, deal: s(d.deal, 16), depth: s(d.depth, 12), rr: d.rr ? 1 : 0, feats, featN, axis, dev, ref: refHost, cc };
-          // Workers Logs 로 남김 (대시보드 → Workers → Logs 에서 조회)
-          console.log("mtevent " + JSON.stringify(rec));
+          // Workers Logs 로 남김 (대시보드 Observability → Query Builder 에서 필드로 필터·그룹 조회)
+          //  · 순수 JSON 객체로 로깅해야 Cloudflare가 ev·deal·dev 등을 개별 필드로 파싱함
+          //    ("mtevent {json}" 처럼 접두어가 붙으면 파싱이 안 돼 필드 필터가 막힘)
+          //  · msg="mtevent" 는 봇 요청 로그와 구분하는 표식 (Filter: msg = mtevent)
+          console.log(JSON.stringify({ msg: "mtevent", ...rec }));
           // Analytics Engine 바인딩이 있으면 집계 저장소에도 기록 (선택)
           if (env.AE) {
             env.AE.writeDataPoint({
