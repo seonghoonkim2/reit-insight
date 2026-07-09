@@ -28,5 +28,6 @@ __pycache__/
 # SEO 정적 생성물 (build_site.py 산출물)
 dart-search/dist/
 
-# 계기판 대시보드(생성물)
+# 계기판 대시보드·패턴 보고서(생성물)
 data/dashboard.html
+data/patterns.html
