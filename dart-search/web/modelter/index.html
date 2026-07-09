@@ -1220,6 +1220,9 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .ex-chip:hover{background:rgba(179,71,47,.14)}
 .f.ex-hl{outline:2px solid var(--red); outline-offset:3px; border-radius:8px; transition:outline-color .3s}
 </style>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#a9792b">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
 
@@ -7934,6 +7937,17 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', wrap);
     else setTimeout(wrap, 0);
   }
+})();
+
+/* ── PWA: 서비스 워커 등록 — 네트워크 우선(최신 유지) + 오프라인 폴백. 홈 화면 설치 지원 ── */
+(function(){
+  try{
+    if('serviceWorker' in navigator && (location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))){
+      window.addEventListener('load',function(){
+        navigator.serviceWorker.register('/sw.js').catch(function(){});
+      });
+    }
+  }catch(e){}
 })();
 
 /* ── 업그레이드 공지 배너 + What's new 모달 ── */
