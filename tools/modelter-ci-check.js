@@ -146,7 +146,8 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
     const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
     const locN = (sm.match(/<loc>/g) || []).length;
-    ok(locN === 4 + tFiles.length + cFiles.length, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = 4기본+' + tFiles.length + '용어+' + cFiles.length + '계산기)');
+    const baseN = 5;  // 홈·guide·howto·trust·verification
+    ok(locN === baseN + tFiles.length + cFiles.length, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = ' + baseN + '기본+' + tFiles.length + '용어+' + cFiles.length + '계산기)');
     ok(sm.includes('/t/irr.html') && sm.includes('/calc/office.html'), 'sitemap: 용어·계산기 URL 포함');
   }
   // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
@@ -165,6 +166,30 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   ok(canonBad === 0, '검색 착지: 전 페이지 canonical (' + canonBad + ' 누락)');
   ok(ctaBad === 0, '검색 착지: 전 페이지 앱 CTA(#t=…&src=seo) (' + ctaBad + ' 누락)');
   ok(linkBad === 0, '검색 착지: 내부 링크 무결성 (' + linkBad + ' 깨짐)');
+}
+
+/* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */
+ok(html.includes("window.MT_BUILD=") && html.includes('function mtBuild()'), '재현성: 빌드 스탬프 상수(MT_BUILD)·헬퍼');
+ok(fs.existsSync(path.join(__dirname, 'stamp-build.js')), '재현성: 빌드 스탬프 스크립트(stamp-build.js)');
+ok(fs.existsSync(path.join(__dirname, 'gen-verification.js')), '재현성: 파리티 공표 생성기(gen-verification.js)');
+ok(fs.existsSync(path.join(DIR, 'verification.html')), '재현성: /verification 페이지 존재');
+// 4산출물 스탬프 표기 코드 경로
+ok(html.includes("'  ·  build '+mtBuild()"), '재현성: PNG 요약 카드 빌드 스탬프');
+ok(html.includes("' · 빌드 '+mtBuild()"), '재현성: 엑셀 자가검증 시트 빌드 스탬프');
+ok(html.includes("' · 빌드 '+mtBuild())") || html.includes("(' · 빌드 '+mtBuild())"), '재현성: IC PPT 표지 빌드 스탬프');
+ok(html.includes("'※ 생성 빌드 '+mtBuild()"), '재현성: 검토 메모 빌드 스탬프');
+if (fs.existsSync(path.join(DIR, 'verification.html'))) {
+  const vf = fs.readFileSync(path.join(DIR, 'verification.html'), 'utf8');
+  ok(/rel="canonical" href="https:\/\/modelter\.com\/verification\.html"/.test(vf), '재현성: verification canonical');
+  ok(vf.includes('gen-xlsx.js') && vf.includes('check.py') && vf.includes('formulas'), '재현성: verification 재현 절차(gen-xlsx·check.py·formulas)');
+  ok(vf.includes('빌드 <b>'), '재현성: verification 빌드 식별자 표기');
+}
+// 빌드 스탬프 무결성 — 스탬프됐다면 콘텐츠 해시와 일치해야 함(스탬프 후 변조 방지). DEV(미스탬프)는 통과.
+{
+  let stampOK = true, stampMsg = '';
+  try { stampMsg = require('child_process').execSync('node ' + JSON.stringify(path.join(__dirname, 'stamp-build.js')) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
+  catch (e) { stampOK = false; stampMsg = ((e.stdout || '') + (e.stderr || '')).trim(); }
+  ok(stampOK, '재현성: 빌드 스탬프 무결성 — ' + stampMsg.split('\n')[0]);
 }
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');

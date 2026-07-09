@@ -67,11 +67,23 @@
 ## 3. 품질 게이트 (매 배포)
 
 ```bash
-node tools/modelter-ci-check.js   # 마커 190+ · 헤드리스 4딜 실행 · 성능 예산
+node tools/modelter-ci-check.js   # 마커 200+ · 헤드리스 4딜 실행 · 성능 예산 · 신뢰/회수/팀기준/착지/재현성 게이트
 node tools/qa/smoke.js            # 실브라우저 25검사 (위저드·IC·BYOK·성능 가드)
 node tools/parity/gen-xlsx.js <딜> && python3 tools/parity/check.py <딜>   # 계산·엑셀 변경 시
 grep -c "__mtCalc" dart-search/web/modelter/index.html   # 0이어야 함
 ```
+
+**릴리스(배포) 마무리 — 재현성 스탬프 (E6):** 모든 편집·cp 를 끝낸 뒤 마지막에.
+"빌드 없음" 원칙과 충돌하지 않는 **커밋 타임 치환**(런타임 빌드 아님).
+
+```bash
+node tools/stamp-build.js         # index.html MT_BUILD → 날짜·콘텐츠해시 치환(배포+캐노니컬), data/build.json 기록
+node tools/gen-verification.js    # 4딜 파리티 재실행 → verification.html 공표. 파리티 FAIL 시 exit 1(배포 차단)
+node tools/gen-pages.js           # sitemap 갱신(verification 포함)
+node tools/modelter-ci-check.js   # 스탬프 무결성·게이트 재확인
+```
+
+정적 검색 착지 페이지를 고쳤으면 `node tools/gen-pages.js` 재생성 후 커밋(CI 가 최신성 강제).
 
 ## 4. 로드맵 현황
 

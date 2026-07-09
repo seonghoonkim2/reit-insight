@@ -160,7 +160,7 @@ ${JSON.stringify(o.ld)}
 ${o.body}
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide.html">용어사전</a> · <a href="/howto.html">실무 가이드</a> · <a href="/trust.html">보안·개인정보</a><br>
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide.html">용어사전</a> · <a href="/howto.html">실무 가이드</a> · <a href="/trust.html">보안·개인정보</a> · <a href="/verification.html">파리티 검증</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.
 </div></footer>
 </body>
@@ -267,6 +267,7 @@ function buildSitemap(slugs, deals) {
     { loc: BASE + '/guide.html', freq: 'monthly', pri: '0.8' },
     { loc: BASE + '/howto.html', freq: 'monthly', pri: '0.8' },
     { loc: BASE + '/trust.html', freq: 'monthly', pri: '0.6' },
+    { loc: BASE + '/verification.html', freq: 'monthly', pri: '0.6' },
   ];
   deals.forEach(d => urls.push({ loc: `${BASE}/calc/${d}.html`, freq: 'monthly', pri: '0.7' }));
   slugs.forEach(s => urls.push({ loc: `${BASE}/t/${s}.html`, freq: 'monthly', pri: '0.6' }));
