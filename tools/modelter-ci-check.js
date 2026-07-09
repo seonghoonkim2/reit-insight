@@ -146,6 +146,8 @@ ok(html.includes('function wsLinkDiff') && html.includes('data-ws="lcmp"'), '공
 ok(html.includes('function cmpTableText') && html.includes('data-cmp='), '딜 비교 대상 선택 + 비교표 복사 존재');
 ok(html.includes('function srcPop') && html.includes('var srcTags={}') && (html.match(/st:srcTags\}/g)||[]).length>=3, '가정 출처·기준일 기록(3경로 영속) 존재');
 ok(html.includes("name:'_Restore'") && html.includes('wsXlsxRestore') && html.includes('MTSNAP1:'), '엑셀 라운드트립(_Restore 시트+복원 입력) 존재');
+ok(html.includes('거치후 원리금균등') && html.includes("n('C80',0)"), '거치후 원리금균등 상환(엔진+엑셀 C80) 존재');
+ok(html.includes('cov-lender') && html.includes('금리 × 공실 결합 스트레스'), '매입 대주 뷰(금리×공실 스트레스) 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
