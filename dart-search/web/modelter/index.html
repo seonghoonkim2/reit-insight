@@ -1227,6 +1227,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .cmp-verdict.mid{background:rgba(169,121,43,.1);color:var(--accent-deep)}
 /* 입력 참고 범위 */
 .f-ref{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+.f-src{color:var(--accent-deep);opacity:.85;cursor:help;border-bottom:1px dotted var(--line)}
 .f-range+.f-ref{margin-top:1px}
 .f-conv{display:block;font-size:11.5px;font-weight:700;color:var(--accent-deep);margin-top:3px;line-height:1.3}
 .f-conv+.f-ref{margin-top:1px}
@@ -1916,7 +1917,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-09·a40d969955';
+window.MT_BUILD='2026-07-09·a8bd05aec8';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 /* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
  * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
@@ -1991,6 +1992,8 @@ function renderTabs(){
 
 /* ---------- 입력 폼 ---------- */
 // 핵심 입력 참고 범위 — 통상 실무 눈높이(참고용, 딜마다 다름). 호버 없이 바로 보이게
+/*__MKTREF_START__*/ /* data/market-ref.json 에서 tools/gen-marketref.js 로 생성 — 손대지 말고 JSON 을 고치세요 */
+const MARKET_REF_ASOF="2026.2Q", MARKET_REF_NOTE="공개 기준·업계 관행 참고치입니다. 개별 자산·입지·시점별로 다르며, 시세·감정평가액을 대체하지 않습니다.";
 const FIELD_REF={
   exitcap:"참고 4~6% (자산·입지별)",
   vacancy:"참고 오피스 3~8% · 물류 2~5%",
@@ -2010,33 +2013,41 @@ const FIELD_REF={
   dpct:"참고 계약금 10~20%",
   rpct:"참고 잔금 20~30%"
 };
-/* 시장 참고치 v2 — 딜 유형별 오버라이드 (없으면 위 공통값 사용). 수치는 통상 범위 참고용 샘플이며 시점·개별 자산별로 다릅니다. */
-const FIELD_REF_DEAL={
-  office:{
-    exitcap:"참고 서울 오피스 4.0~5.5% (코어 낮음·외곽 높음)",
-    rentpp:"참고 도심·강남 9~13만원 · 기타 권역 6~9만원",
-    campp:"참고 임대료의 35~45% 수준",
-    vacancy:"참고 서울 3~6% (권역·시점별)",
-    hold:"참고 5년 표준 (3~7년)",
-    depmult:"참고 월 임대료의 10~12개월치"
-  },
-  logistics:{
-    exitcap:"참고 수도권 물류 5~7% (저온 높음)",
-    rentpp:"참고 상온 3~4만원 · 저온 5~7만원",
-    campp:"참고 책임임대차면 0~1만원 수준",
-    vacancy:"참고 상온 2~6% · 저온 공급과잉 유의",
-    noig:"참고 0~2%/년",
-    hold:"참고 5년 표준 (3~7년)"
-  },
-  dev:{
-    exitcap:"참고 준공 후 안정화 기준 4.5~6.5%"
-  },
-  refi:{
-    oldrate:"참고 기존 선순위 4~7% (실행 시점별)",
-    noi:"참고 최근 12개월 실적 기준 권장"
-  }
+const FIELD_REF_META={
+  exitcap:{s:"감정평가·매매 관행",d:"2026.2Q"},
+  vacancy:{s:"권역 임대차 관행",d:"2026.2Q"},
+  noig:{s:"임대료 상승 관행",d:"2026.2Q"},
+  acqtax:{s:"지방세법 취득세율",d:"법정"},
+  opfee:{s:"자산운용 보수 관행",d:"2026"},
+  salefee:{s:"매각 자문 관행",d:"2026"},
+  depmult:{s:"상업용 임대차 관행",d:"2026"},
+  pfrate:{s:"PF 여신금리 관행(한국은행 기준금리 연동)",d:"2026.2Q"},
+  brate:{s:"브릿지 여신금리 관행",d:"2026.2Q"},
+  salespct:{s:"분양 판매비 관행",d:"2026"},
+  hugpct:{s:"HUG 분양보증 수수료",d:"2026"},
+  engpct:{s:"설계·감리비 관행",d:"2026"},
+  rsvpct:{s:"예비비 관행",d:"2026"},
+  taxpct:{s:"지방세법 취득세율",d:"법정"},
+  dscrmin:{s:"대주 커버넌트 관행",d:"2026"},
+  dpct:{s:"분양 계약 관행",d:"2026"},
+  rpct:{s:"분양 계약 관행",d:"2026"}
 };
+const FIELD_REF_DEAL={
+  office:{exitcap:"참고 서울 오피스 4.0~5.5% (코어 낮음·외곽 높음)", rentpp:"참고 도심·강남 9~13만원 · 기타 권역 6~9만원", campp:"참고 임대료의 35~45% 수준", vacancy:"참고 서울 3~6% (권역·시점별)", hold:"참고 5년 표준 (3~7년)", depmult:"참고 월 임대료의 10~12개월치"},
+  logistics:{exitcap:"참고 수도권 물류 5~7% (저온 높음)", rentpp:"참고 상온 3~4만원 · 저온 5~7만원", campp:"참고 책임임대차면 0~1만원 수준", vacancy:"참고 상온 2~6% · 저온 공급과잉 유의", noig:"참고 0~2%/년", hold:"참고 5년 표준 (3~7년)"},
+  dev:{exitcap:"참고 준공 후 안정화 기준 4.5~6.5%"},
+  refi:{oldrate:"참고 기존 선순위 4~7% (실행 시점별)", noi:"참고 최근 12개월 실적 기준 권장"}
+};
+const FIELD_REF_DEAL_META={
+  office:{exitcap:{s:"서울 오피스 매매 관행",d:"2026.2Q"}, rentpp:{s:"서울 오피스 임대 관행",d:"2026.2Q"}, campp:{s:"오피스 관리비 관행",d:"2026"}, vacancy:{s:"서울 오피스 공실 관행",d:"2026.2Q"}, hold:{s:"펀드·리츠 보유 관행",d:"2026"}, depmult:{s:"오피스 임대차 관행",d:"2026"}},
+  logistics:{exitcap:{s:"수도권 물류 매매 관행",d:"2026.2Q"}, rentpp:{s:"수도권 물류 임대 관행",d:"2026.2Q"}, campp:{s:"물류 임대차 관행",d:"2026"}, vacancy:{s:"수도권 물류 공실 관행",d:"2026.2Q"}, noig:{s:"물류 임대료 관행",d:"2026"}, hold:{s:"펀드·리츠 보유 관행",d:"2026"}},
+  dev:{exitcap:{s:"준공 자산 매매 관행",d:"2026.2Q"}},
+  refi:{oldrate:{s:"선순위 여신금리 관행",d:"2026.2Q"}, noi:{s:"대주 심사 관행",d:"2026"}}
+};
+/*__MKTREF_END__*/
 function fieldRef(k){ var d=FIELD_REF_DEAL[cur]; return (d&&d[k])||FIELD_REF[k]||''; }
+// 참고치 출처·기준일 (딜 오버라이드 우선). 표시용 — refRange 파싱은 fieldRef 텍스트만 사용
+function fieldRefMeta(k){ var dm=(typeof FIELD_REF_DEAL_META!=='undefined')?FIELD_REF_DEAL_META[cur]:null; var v=(dm&&dm[k])?dm[k]:((typeof FIELD_REF_META!=='undefined'&&FIELD_REF_META[k])?FIELD_REF_META[k]:null); return v||null; }
 function wonConv(v){ // 백만원 → 읽기 쉬운 억/조 표기
   if(!isFinite(v)||v<=0) return '';
   var e=v/100;
@@ -2072,7 +2083,7 @@ function fieldHtml(f){
     input=`<input id="${id}" data-k="${f.k}" ${it} ${vattr} placeholder="${f.ph||''}" />`;
   }
   const err=f.t==="num"?`<span class="err" id="err_${f.k}"></span>`:"";
-  const ref=(fieldRef(f.k)&&f.t==="num")?`<span class="f-ref">${fieldRef(f.k)}</span>`:"";
+  const ref=(fieldRef(f.k)&&f.t==="num")?`<span class="f-ref">${fieldRef(f.k)}${(function(){var mm=(typeof fieldRefMeta==='function')?fieldRefMeta(f.k):null;return mm?` <span class="f-src" title="출처: ${mm.s} · ${mm.d} 기준 · 참고치이며 개별 자산별로 다릅니다">· ${mm.d} · ${mm.s}</span>`:'';})()}</span>`:"";
   // 백만원 단위 필드: 입력 즉시 억/조 환산 표시 — 단위 착오(억을 그대로 입력) 방어
   const isWon=f.t==="num"&&/^백만원/.test(f.u||"");
   const conv=isWon?`<span class="f-conv" id="conv_${f.k}" hidden></span>`:"";

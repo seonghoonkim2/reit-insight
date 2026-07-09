@@ -84,6 +84,7 @@ node tools/modelter-ci-check.js   # 스탬프 무결성·게이트 재확인
 ```
 
 정적 검색 착지 페이지를 고쳤으면 `node tools/gen-pages.js` 재생성 후 커밋(CI 가 최신성 강제).
+시장 참고치를 고쳤으면 `data/market-ref.json` 만 편집 → `node tools/gen-marketref.js` 로 index.html 인라인 재생성(런타임 fetch 없음, CI 가 일치 강제).
 
 ## 4. 로드맵 현황
 

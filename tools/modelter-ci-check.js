@@ -191,6 +191,27 @@ if (fs.existsSync(path.join(DIR, 'verification.html'))) {
   catch (e) { stampOK = false; stampMsg = ((e.stdout || '') + (e.stderr || '')).trim(); }
   ok(stampOK, '재현성: 빌드 스탬프 무결성 — ' + stampMsg.split('\n')[0]);
 }
+
+/* ── 1h) 참고치 v3(E7) — 데이터셋 유래·출처·기준일 ── */
+ok(fs.existsSync(path.join(__dirname, '..', 'data', 'market-ref.json')), '참고치: 데이터셋(data/market-ref.json) 존재');
+ok(fs.existsSync(path.join(__dirname, 'gen-marketref.js')), '참고치: 인라인 생성기(gen-marketref.js) 존재');
+ok(html.includes('/*__MKTREF_START__*/') && html.includes('/*__MKTREF_END__*/'), '참고치: 인라인 마커(런타임 fetch 아님)');
+ok(html.includes('const MARKET_REF_ASOF=') && html.includes('const FIELD_REF_META='), '참고치: 기준일·출처 메타(FIELD_REF_META) 인라인');
+ok(html.includes('function fieldRefMeta(k)') && html.includes('class="f-src"'), '참고치: 칩 출처·기준일 뱃지(fieldRefMeta·f-src)');
+ok(!/https?:\/\/[^"']*market-ref\.json/.test(html), '참고치: 런타임 외부 fetch 0(데이터셋 URL 미참조)');
+if (fs.existsSync(path.join(__dirname, 'gen-marketref.js'))) {
+  let mrOK = true, mrMsg = '';
+  try { mrMsg = require('child_process').execSync('node ' + JSON.stringify(path.join(__dirname, 'gen-marketref.js')) + ' --check', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
+  catch (e) { mrOK = false; mrMsg = ((e.stdout || '') + (e.stderr || '')).trim(); }
+  ok(mrOK, '참고치: 인라인이 데이터셋과 일치(gen-marketref --check) — ' + mrMsg.split('\n')[0]);
+  // 출처가 공개 기준·관행 표기인지(임의 URL·시세 표현 아님) 가벼운 확인
+  try {
+    const mr = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'market-ref.json'), 'utf8'));
+    const srcs = []; const collect = o => Object.values(o).forEach(v => v && v.src && srcs.push(v.src));
+    collect(mr.common || {}); Object.values(mr.deal || {}).forEach(collect);
+    ok(srcs.length > 0 && srcs.every(s => !/https?:\/\//.test(s)), '참고치: 출처는 공개 기준·관행 표기(외부 URL·시세 아님)');
+  } catch (e) { ok(false, '참고치: market-ref.json 파싱'); }
+}
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');
 if (fs.existsSync(headersPath)) {
