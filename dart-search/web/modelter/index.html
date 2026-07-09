@@ -1288,7 +1288,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <span class="ob-ic">🎓</span><b>학습 · 둘러보기</b><span class="ob-d">실무 재무모델 구조를 직접 만들며 익히기</span></button>
     </div>
     <button type="button" class="ob-skip" id="obSkip">그냥 둘러볼게요 →</button>
-    <p class="ob-trust">입력한 숫자는 서버로 전송되지 않습니다. <a href="/trust.html" target="_blank" rel="noopener">보안·개인정보 →</a></p>
+    <p class="ob-trust">입력한 숫자는 서버로 전송되지 않습니다. <a href="/trust" target="_blank" rel="noopener">보안·개인정보 →</a></p>
   </div>
 </div>
 
@@ -1642,7 +1642,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       </div>
       <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-07-02</p>
       <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
-      <p class="foot-guide"><a href="/guide.html">부동산 금융 용어사전</a> · <a href="/howto.html">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a> · <a href="/trust.html">보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다</a> · <a href="/verification.html">파리티 검증 — 화면=엑셀 재현 증거</a></p>
+      <p class="foot-guide"><a href="/guide">부동산 금융 용어사전</a> · <a href="/howto">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a> · <a href="/trust">보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다</a> · <a href="/verification">파리티 검증 — 화면=엑셀 재현 증거</a></p>
     </div>
   </div>
 </footer>
@@ -1917,7 +1917,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-09·3c2bf75fd4';
+window.MT_BUILD='2026-07-09·856ad33bc5';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 /* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
  * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
@@ -4461,7 +4461,7 @@ function termHelp(label){
   try{
     var s=String(label||'');
     for(var i=0;i<TERM_ANCHORS.length;i++){ if(TERM_ANCHORS[i][0].test(s))
-      return ' <a class="k-help" href="/guide.html#'+TERM_ANCHORS[i][1]+'" target="_blank" rel="noopener" title="용어 설명 보기" aria-label="용어 설명 보기" onclick="event.stopPropagation();if(window.mtTrack)try{mtTrack(\'term_help\')}catch(e){}">?</a>'; }
+      return ' <a class="k-help" href="/guide#'+TERM_ANCHORS[i][1]+'" target="_blank" rel="noopener" title="용어 설명 보기" aria-label="용어 설명 보기" onclick="event.stopPropagation();if(window.mtTrack)try{mtTrack(\'term_help\')}catch(e){}">?</a>'; }
   }catch(e){}
   return '';
 }
@@ -5211,7 +5211,7 @@ function reviewMemo(){
   var exs=(typeof exRemaining==='function')?exRemaining():[];
   if(exs.length) L.push(exUserEdited?'※ 일부는 아직 예시 숫자입니다. 보내기 전에 실제 값인지 확인하세요.':'※ 아직 전부 예시 숫자입니다. 실제 값으로 바꾼 뒤에 돌리세요.');
   L.push('※ 입력 가정에 따른 추정치이며, 투자 권유가 아닌 정보 제공 목적입니다.');
-  if(mtBuild()) L.push('※ 생성 빌드 '+mtBuild()+' · 화면=엑셀 파리티 검증(재현: modelter.com/verification.html)');
+  if(mtBuild()) L.push('※ 생성 빌드 '+mtBuild()+' · 화면=엑셀 파리티 검증(재현: modelter.com/verification)');
   return L.join('\n');
 }
 /* 결과 요약 카드 PNG — 카톡에 이미지로 붙이는 1200×630 카드 (임차인 정보 미포함·고지 포함) */
@@ -6719,7 +6719,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
             _pv2({r:'B20',role:'lb',s:'Equity Multiple (총자기자본)'}); _pv2({r:'C20',role:'vf',n:_rS.EM,z:'mult'}); _pv2({r:'D20',role:'vr',f:'09_Return_Summary!E7',z:'mult'}); _pv2({r:'E20',role:'vr',f:'IF(ABS(C20-D20)<0.005,"PASS","FAIL")'}); _pv2({r:'F20',role:'da',s:'0.005x'});
             _pv2({r:'B21',role:'lb',s:'최소 DSCR'}); _pv2({r:'C21',role:'vf',n:_rS.minDSCR,z:'mult'}); _pv2({r:'D21',role:'vr',f:'09_Return_Summary!C13',z:'mult'}); _pv2({r:'E21',role:'vr',f:'IF(ABS(C21-D21)<0.005,"PASS","FAIL")'}); _pv2({r:'F21',role:'da',s:'0.005x'});
             _pv2({r:'B22',role:'lb',s:'순매각가 (부대비 차감)'}); _pv2({r:'C22',role:'vf',n:_rS.netSale,z:'num'}); _pv2({r:'D22',role:'vr',f:'06_Tax_Disposition!C15',z:'num'}); _pv2({r:'E22',role:'vr',f:'IF(ABS(C22-D22)<0.5,"PASS","FAIL")'}); _pv2({r:'F22',role:'da',s:'0.5백만'});
-            _pv2({r:'B23',role:'nw',s:'가정 셀을 수정하면 위 판정이 FAIL로 바뀝니다 — 원본(생성 시점)과 달라졌다는 표시입니다. 생성일 '+new Date().toISOString().slice(0,10)+(mtBuild()?(' · 빌드 '+mtBuild()+' (재현성: modelter.com/verification.html)'):'')+' · 렌트롤 반영 화면과는 다를 수 있음(이 표는 가정 시트 기준)'});
+            _pv2({r:'B23',role:'nw',s:'가정 셀을 수정하면 위 판정이 FAIL로 바뀝니다 — 원본(생성 시점)과 달라졌다는 표시입니다. 생성일 '+new Date().toISOString().slice(0,10)+(mtBuild()?(' · 빌드 '+mtBuild()+' (재현성: modelter.com/verification)'):'')+' · 렌트롤 반영 화면과는 다를 수 있음(이 표는 가정 시트 기준)'});
           }
         }
       }catch(eSC){}
@@ -10798,7 +10798,7 @@ var qrcode = function() {
       +'<div class="imx-err"></div>'
       +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" id="imxGo" data-im="go">추출하기</button></div>'
       +'</div>'
-      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 과금되며 통상 IM 1건 추출에 수십 원 수준입니다. <a href="/trust.html" target="_blank" rel="noopener">데이터 흐름·보안 문서 →</a></div>'
+      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 과금되며 통상 IM 1건 추출에 수십 원 수준입니다. <a href="/trust" target="_blank" rel="noopener">데이터 흐름·보안 문서 →</a></div>'
       +'</div>';
     document.body.appendChild(ov); document.body.style.overflow='hidden';
     ov.addEventListener('click',function(e){

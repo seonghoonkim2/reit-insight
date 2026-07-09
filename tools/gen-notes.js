@@ -65,7 +65,7 @@ function build() {
   const q = quarterMeta(mr);
   const title = `${q.year}년 ${q.n}분기 상업용 부동산 시장 노트 — 참고치로 바로 모델 돌려보기 | 모델터`;
   const desc = `${q.year}년 ${q.n}분기 오피스·물류 Cap Rate, PF 금리 참고치와 그 가정이 채워진 라이브 재무모델. 클릭 한 번으로 IRR·DSCR을 확인하세요.`;
-  const canonical = `${BASE}/notes/${q.id}.html`;
+  const canonical = `${BASE}/notes/${q.id}`;   // 무확장이 정식 서빙 URL(.html은 307)
 
   // 참고치(딜 오버라이드 우선) 헬퍼
   const ref = (deal, k) => (mr.deal[deal] && mr.deal[deal][k]) || mr.common[k] || null;
@@ -160,7 +160,7 @@ ${cardsHtml}
   <div class="disc">${esc(mr.note || '')} 위 수치는 공개 기준·업계 관행을 정리한 <b>참고치</b>이며 특정 자산의 시세·감정평가액이 아닙니다. 개별 자산·입지·시점별로 다르며, <b>투자 권유가 아닌 정보 제공 목적</b>입니다.</div>
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide.html">용어사전</a> · <a href="/trust.html">보안·개인정보</a> · <a href="/verification.html">파리티 검증</a><br>
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다.
 </div></footer>
 </body>

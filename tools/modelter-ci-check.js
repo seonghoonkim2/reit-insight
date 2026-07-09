@@ -46,7 +46,7 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
 }
 if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
-  ok(sm.includes('modelter.com/') && sm.includes('guide.html') && sm.includes('howto.html') && sm.includes('trust.html'), 'sitemap: 홈·가이드·활용 가이드·신뢰센터 URL');
+  ok(sm.includes('modelter.com/') && sm.includes('/guide<') && sm.includes('/howto<') && sm.includes('/trust<'), 'sitemap: 홈·가이드·활용 가이드·신뢰센터 URL(무확장)');
 }
 
 /* ── 1b) 신뢰 센터(trust.html) ↔ worker.js /e 수집 필드 1:1 강제 ──
@@ -88,7 +88,7 @@ if (fs.existsSync(path.join(DIR, 'trust.html'))) {
   ok(trust.includes('api.anthropic.com') && trust.includes('서버'), 'trust.html: BYOK 데이터 흐름(서버 무경유) 명시');
   ok(trust.includes('투자 권유가 아닌'), 'trust.html: 고지 문구');
   // 앱 본체에서 신뢰 센터로 가는 링크(푸터·온보딩·BYOK)
-  ok((html.match(/href="\/trust\.html"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·온보딩·BYOK) 존재');
+  ok((html.match(/href="\/trust"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·온보딩·BYOK) 존재');
 }
 
 /* ── 1c) 채널 어트리뷰션(E5) — src 태그·수요 가짜 문 ── */
@@ -150,7 +150,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     const nDir = path.join(DIR, 'notes');
     const nN = fs.existsSync(nDir) ? fs.readdirSync(nDir).filter(f => f.endsWith('.html')).length : 0;
     ok(locN === baseN + tFiles.length + cFiles.length + nN, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = ' + baseN + '기본+' + tFiles.length + '용어+' + cFiles.length + '계산기+' + nN + '노트)');
-    ok(sm.includes('/t/irr.html') && sm.includes('/calc/office.html'), 'sitemap: 용어·계산기 URL 포함');
+    ok(sm.includes('/t/irr<') && sm.includes('/calc/office<'), 'sitemap: 용어·계산기 URL 포함(무확장)');
   }
   // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
   let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0;
@@ -162,7 +162,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     try { JSON.parse(jm[1]); } catch (e) { jsonBad++; }
     if (!/rel="canonical" href="https:\/\/modelter\.com\//.test(ph)) canonBad++;
     if (!/href="\/#t=(office|logistics|dev|refi)&src=seo"/.test(ph)) ctaBad++;
-    for (const mm of ph.matchAll(/href="\/(t|calc)\/([a-z0-9]+)\.html"/g)) if (!existsPage(mm[1] + '/' + mm[2] + '.html')) linkBad++;
+    for (const mm of ph.matchAll(/href="\/(t|calc)\/([a-z0-9]+)"/g)) if (!existsPage(mm[1] + '/' + mm[2] + '.html')) linkBad++;
   }
   ok(jsonBad === 0, '검색 착지: 전 페이지 JSON-LD 유효 (' + jsonBad + ' 실패)');
   ok(canonBad === 0, '검색 착지: 전 페이지 canonical (' + canonBad + ' 누락)');
@@ -182,7 +182,7 @@ ok(html.includes("' · 빌드 '+mtBuild())") || html.includes("(' · 빌드 '+mt
 ok(html.includes("'※ 생성 빌드 '+mtBuild()"), '재현성: 검토 메모 빌드 스탬프');
 if (fs.existsSync(path.join(DIR, 'verification.html'))) {
   const vf = fs.readFileSync(path.join(DIR, 'verification.html'), 'utf8');
-  ok(/rel="canonical" href="https:\/\/modelter\.com\/verification\.html"/.test(vf), '재현성: verification canonical');
+  ok(/rel="canonical" href="https:\/\/modelter\.com\/verification"/.test(vf), '재현성: verification canonical');
   ok(vf.includes('gen-xlsx.js') && vf.includes('check.py') && vf.includes('formulas'), '재현성: verification 재현 절차(gen-xlsx·check.py·formulas)');
   ok(vf.includes('빌드 <b>'), '재현성: verification 빌드 식별자 표기');
 }
@@ -412,8 +412,8 @@ ok(html.includes('id="obOverlay"') && html.includes("data-role=\"acq\""), '온�
 ok(html.includes("localStorage.getItem('mt_onboarded')"), '온보딩 첫 방문 게이트 존재');
 ok(html.includes('!window.__mtOnboarding'), "온보딩·What's new 이중 노출 방지");
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
-ok(html.includes('href="/guide.html"'), '홈→가이드 내부 링크(SEO) 존재');
-ok(html.includes('href="/howto.html"'), '홈→실무 활용 가이드 링크 존재');
+ok(html.includes('href="/guide"'), '홈→가이드 내부 링크(SEO·무확장 정식 URL) 존재');
+ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재');
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'추천'"), '미니 KPI 전 탭(분양·리파이) 확장');
