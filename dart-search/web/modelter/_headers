@@ -19,6 +19,9 @@
 /howto.html
   Cache-Control: no-cache
 
+/trust.html
+  Cache-Control: no-cache
+
 /sw.js
   Cache-Control: no-cache
 

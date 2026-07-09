@@ -46,7 +46,49 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
 }
 if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
-  ok(sm.includes('modelter.com/') && sm.includes('guide.html') && sm.includes('howto.html'), 'sitemap: 홈·가이드·활용 가이드 URL');
+  ok(sm.includes('modelter.com/') && sm.includes('guide.html') && sm.includes('howto.html') && sm.includes('trust.html'), 'sitemap: 홈·가이드·활용 가이드·신뢰센터 URL');
+}
+
+/* ── 1b) 신뢰 센터(trust.html) ↔ worker.js /e 수집 필드 1:1 강제 ──
+ *  화면에 "이것만 수집한다"고 써 붙인 표와 코드가 실제로 보내는 필드가 어긋나면 배포 차단.
+ *  (신뢰 문서가 코드보다 뒤처지거나 앞서가는 것을 CI가 막음) */
+ok(fs.existsSync(path.join(DIR, 'trust.html')), '신뢰 센터(trust.html) 존재 (정보보호 검토 문서)');
+if (fs.existsSync(path.join(DIR, 'trust.html'))) {
+  const trust = fs.readFileSync(path.join(DIR, 'trust.html'), 'utf8');
+  const workerPath = path.join(__dirname, '..', 'worker.js');
+  const workerSrc = fs.existsSync(workerPath) ? fs.readFileSync(workerPath, 'utf8') : '';
+  ok(!!workerSrc, 'worker.js 존재 (/e 수집 필드 원본)');
+  // worker.js가 /e로 실제 보내는 필드 집합 = rec 객체 리터럴의 키
+  const recM = workerSrc.match(/const\s+rec\s*=\s*\{([\s\S]*?)\};/);
+  ok(!!recM, 'worker.js에서 rec 객체 리터럴 파싱');
+  let recKeys = [];
+  if (recM) {
+    // 괄호 깊이를 추적해 최상위 콤마로만 분리(값 안의 콤마 s(d.deal,16) 오분리 방지)
+    let dep = 0, buf = ''; const parts = [];
+    for (const ch of recM[1]) {
+      if (ch === '(' || ch === '[') dep++;
+      else if (ch === ')' || ch === ']') dep--;
+      if (ch === ',' && dep === 0) { parts.push(buf); buf = ''; }
+      else buf += ch;
+    }
+    if (buf.trim()) parts.push(buf);
+    recKeys = parts.map(p => (p.split(':')[0] || '').trim()).filter(Boolean);
+  }
+  const shown = [...trust.matchAll(/data-field="([^"]+)"/g)].map(m => m[1]);
+  const shownSet = new Set(shown), recSet = new Set(recKeys);
+  const missing = recKeys.filter(k => !shownSet.has(k));   // 코드는 보내는데 문서에 없음
+  const extra = shown.filter(k => !recSet.has(k));         // 문서엔 있는데 코드가 안 보냄(유령)
+  ok(recKeys.length > 0, 'worker.js 수집 필드 추출 (' + recKeys.join(',') + ')');
+  ok(missing.length === 0, 'trust.html: worker.js가 보내는 필드 전부 표기 (누락: ' + (missing.join(',') || '없음') + ')');
+  ok(extra.length === 0, 'trust.html: 표기 외 유령 필드 없음 (초과: ' + (extra.join(',') || '없음') + ')');
+  ok(shown.length === shownSet.size, 'trust.html: 필드 중복 표기 없음');
+  // 내용·인쇄 마커 — "믿지 말고 직접 확인" 절차와 정보보호 검토용 인쇄 스타일
+  ok(trust.includes('F12') && trust.includes('네트워크'), 'trust.html: 직접 확인(F12·네트워크 탭) 절차');
+  ok(/@media\s*print/.test(trust), 'trust.html: 인쇄(검토 제출)용 스타일');
+  ok(trust.includes('api.anthropic.com') && trust.includes('서버'), 'trust.html: BYOK 데이터 흐름(서버 무경유) 명시');
+  ok(trust.includes('투자 권유가 아닌'), 'trust.html: 고지 문구');
+  // 앱 본체에서 신뢰 센터로 가는 링크(푸터·온보딩·BYOK)
+  ok((html.match(/href="\/trust\.html"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·온보딩·BYOK) 존재');
 }
 const headersPath = path.join(DIR, '_headers');
 ok(fs.existsSync(headersPath), '_headers 존재');

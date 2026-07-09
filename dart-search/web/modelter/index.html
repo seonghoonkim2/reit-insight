@@ -1117,6 +1117,8 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .ob-role .ob-d{font-size:12px;color:var(--ink-3);line-height:1.4}
 .ob-skip{border:none;background:none;color:var(--muted);font-family:var(--font);font-size:13px;cursor:pointer;padding:6px 12px;border-radius:8px}
 .ob-skip:hover{color:var(--ink-2);background:var(--line-soft)}
+.ob-trust{margin:10px 0 0;font-size:11.5px;color:var(--muted);text-align:center}
+.ob-trust a{color:var(--ink-3);font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
 @media(max-width:520px){ .ob-roles{grid-template-columns:1fr} .ob-h{font-size:22px} .ob-card{max-width:none} }
 /* 핵심 입력 진행률 */
 .inp-prog{display:flex;align-items:center;gap:8px;padding:0 20px 10px;font-size:11.5px;color:var(--ink-3)}
@@ -1272,6 +1274,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <span class="ob-ic">🎓</span><b>학습 · 둘러보기</b><span class="ob-d">실무 재무모델 구조를 직접 만들며 익히기</span></button>
     </div>
     <button type="button" class="ob-skip" id="obSkip">그냥 둘러볼게요 →</button>
+    <p class="ob-trust">입력한 숫자는 서버로 전송되지 않습니다. <a href="/trust.html" target="_blank" rel="noopener">보안·개인정보 →</a></p>
   </div>
 </div>
 
@@ -1618,7 +1621,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       </div>
       <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-07-02</p>
       <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
-      <p class="foot-guide"><a href="/guide.html">부동산 금융 용어사전</a> · <a href="/howto.html">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a></p>
+      <p class="foot-guide"><a href="/guide.html">부동산 금융 용어사전</a> · <a href="/howto.html">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a> · <a href="/trust.html">보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다</a></p>
     </div>
   </div>
 </footer>
@@ -10612,7 +10615,7 @@ var qrcode = function() {
       +'<div class="imx-err"></div>'
       +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" id="imxGo" data-im="go">추출하기</button></div>'
       +'</div>'
-      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 과금되며 통상 IM 1건 추출에 수십 원 수준입니다.</div>'
+      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 과금되며 통상 IM 1건 추출에 수십 원 수준입니다. <a href="/trust.html" target="_blank" rel="noopener">데이터 흐름·보안 문서 →</a></div>'
       +'</div>';
     document.body.appendChild(ov); document.body.style.overflow='hidden';
     ov.addEventListener('click',function(e){
