@@ -1087,7 +1087,7 @@ html,body{overflow-x:hidden}
 .ro-txt b{color:var(--accent-deep)}
 .ro-open{border:1px solid var(--accent);background:var(--accent-solid);color:var(--on-accent);font-family:var(--font);font-weight:700;font-size:13px;padding:8px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .ro-open:hover{filter:brightness(1.06)}
-body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
+body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #srcBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
 
 /* 첫 방문 온보딩 역할 선택 */
@@ -1457,6 +1457,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
           <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
           <button class="ex ghost" id="myDefBtn" title="회사 표준 부대비·보수·대출 조건을 저장해 두고 새 딜에 한 번에 적용">내 기본값</button>
+          <button class="ex ghost" id="srcBtn" title="가정별 출처(IM 기재·감정평가·실사·추정·회사 표준)와 기준일 기록 — 엑셀 가정 시트·검토 메모에 전파">출처</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
         </div>
       </div>
@@ -1872,15 +1873,15 @@ let state={};
 /* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
  * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
  * "사용자가 일부를 수정했는데(혼합 상태) 예시 키가 남아 있으면" 칩·산출물 확인·꼬리표로 알린다. */
-let exampleKeys=new Set(), exUserEdited=false;
+let exampleKeys=new Set(), exUserEdited=false; var srcTags={};
 function exFieldDef(k){ var f=null; try{ DEALS[cur].groups.forEach(function(g){ g.f.forEach(function(x){ if(x.k===k) f=x; }); }); }catch(e){} return f; }
 function exMarkExample(){ try{
   exampleKeys=new Set(Object.keys(state).filter(function(k){ return ((state[k]||'')+'').trim()!==''; }));
-  exUserEdited=false; renderExChip();
+  exUserEdited=false; srcTags={}; renderExChip();
 }catch(e){} }
 function exTouch(k){ try{ exampleKeys.delete(k); exUserEdited=true; renderExChip(); }catch(e){} }
 function exMarkEdited(){ try{ exUserEdited=true; renderExChip(); }catch(e){} }
-function exClearAllTrack(){ try{ exampleKeys.clear(); exUserEdited=false; renderExChip(); }catch(e){} }
+function exClearAllTrack(){ try{ exampleKeys.clear(); exUserEdited=false; srcTags={}; renderExChip(); }catch(e){} }
 function exRemaining(){ // 현재 딜 폼에 존재하는 숫자·텍스트 필드 중, 값이 있고 아직 예시 그대로인 키
   var out=[]; try{ exampleKeys.forEach(function(k){
     if(((state[k]||'')+'').trim()==='') return;
@@ -2791,7 +2792,7 @@ function wsSnapshot(){
   var s={}; for(var k in state) s[k]=state[k];
   var kk={}; for(var k2 in stackState) kk[k2]=stackState[k2];
   var rr2={}; for(var k3 in refiState) rr2[k3]=refiState[k3];
-  return {c:cur,d:depth,s:s,k:kk,r:rr2,rr:(window.rrModel&&window.rrModel.on)?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null,ek:Array.from(exampleKeys),ue:exUserEdited?1:0};
+  return {c:cur,d:depth,s:s,k:kk,r:rr2,rr:(window.rrModel&&window.rrModel.on)?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null,ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags};
 }
 function wsStable(v){
   if(v===null||typeof v!=='object') return JSON.stringify(v);
@@ -2880,7 +2881,7 @@ function wsDupDeal(dealId){
 function wsApplySnapshot(pp){
   if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d;
   state=Object.assign({},pp.s||{}); stackState=Object.assign({},pp.k||{}); refiState=Object.assign({},pp.r||{});
-  exampleKeys=new Set(pp.ek||[]); exUserEdited=!!pp.ue;
+  exampleKeys=new Set(pp.ek||[]); exUserEdited=!!pp.ue; srcTags=pp.st||{};
   window.rrModel=(pp.rr&&pp.rr.leases)?{leases:pp.rr.leases,mkt:pp.rr.mkt,on:true,confirmed:true}:null;
   window.rrState=null;
   renderTabs(); renderForm(); restoreInputs(); update();
@@ -4573,7 +4574,7 @@ function sharePayload(){
     });
     rr={leases:masked, mkt:window.rrModel.mkt};
   }
-  return {c:cur,d:depth,s:state,k:stackState,r:refiState,rr:rr,ek:Array.from(exampleKeys),ue:exUserEdited?1:0};
+  return {c:cur,d:depth,s:state,k:stackState,r:refiState,rr:rr,ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags};
 }
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
 function shareLink(readonly){
@@ -4615,7 +4616,7 @@ function myDefApply(){
   var db=myDefLoad(), p=db[cur];
   if(!p){ toast('저장된 내 기본값이 없습니다'); return; }
   var n=0;
-  Object.keys(p.s||{}).forEach(function(k){ state[k]=p.s[k]; if(typeof exTouch==='function') exTouch(k); n++; });
+  Object.keys(p.s||{}).forEach(function(k){ state[k]=p.s[k]; if(typeof exTouch==='function') exTouch(k); srcTags[k]={s:'회사 표준'}; n++; });
   if(p.k&&DEALS[cur].stack) stackState=Object.assign({},p.k);
   renderForm(); restoreInputs(); update();
   toast('내 기본값 적용됨 — 조건 '+n+'개'+(p.k?' + 자본 스택':'')+' · 나머지 입력은 그대로');
@@ -4653,6 +4654,41 @@ function myDefPop(){
   setTimeout(function(){ document.addEventListener('click',function h(e){ if(!pop.contains(e.target)&&e.target!==btn){ pop.remove(); document.removeEventListener('click',h); } }); },0);
 }
 var _mdB=$("myDefBtn"); if(_mdB) _mdB.addEventListener("click",myDefPop);
+
+/* ---------- 가정 출처·기준일 기록 — 필드별 'IM 기재/감정평가/실사/추정/회사 표준' 태그 ---------- */
+var SRC_OPTS=['IM 기재','감정평가','실사','추정','회사 표준'];
+function srcPop(){
+  if(window.__mtReadonly){ toast('읽기 전용 모드에서는 사용할 수 없습니다'); return; }
+  var rows=[];
+  (DEALS[cur].groups||[]).forEach(function(g){ (g.f||[]).forEach(function(f){
+    if(f.t==='textarea') return;
+    var v=(state[f.k]==null?'':String(state[f.k])).trim(); if(!v) return;
+    var t=srcTags[f.k]||{};
+    rows.push('<tr><td><b>'+esc(f.l)+'</b>'+(f.u?(' <span style="color:var(--muted);font-size:11px">'+esc(f.u)+'</span>'):'')+'</td><td>'+esc(v)+'</td>'
+      +'<td><select data-srck="'+f.k+'"><option value="">—</option>'+SRC_OPTS.map(function(o){ return '<option'+(t.s===o?' selected':'')+'>'+o+'</option>'; }).join('')+'</select></td>'
+      +'<td><input type="date" data-srcd="'+f.k+'" value="'+esc(t.d||'')+'"></td></tr>');
+  }); });
+  if(!rows.length){ toast('기록할 입력값이 없습니다 — 가정을 먼저 채워주세요'); return; }
+  var ov2=document.createElement('div'); ov2.className='imx-ov';
+  ov2.innerHTML='<div class="imx"><h3>📌 가정 출처·기준일 기록</h3>'
+    +'<div class="imx-sub">각 가정이 어디서 온 값인지 기록해 두면 엑셀 가정 시트의 <b>출처·비고 열</b>과 검토 메모에 함께 나갑니다. IM 자동 인식·AI 추출·내 기본값 적용 시엔 자동으로 기록됩니다.</div>'
+    +'<table class="imx-tbl"><tr><th>가정</th><th>현재값</th><th>출처</th><th>기준일</th></tr>'+rows.join('')+'</table>'
+    +'<div class="imx-act"><button type="button" data-src="close">닫기 (변경 즉시 저장됨)</button></div>'
+    +'<div class="imx-priv">이 기록은 이 브라우저와 저장한 딜 버전·공유 링크에만 담깁니다 — 서버 전송 없음.</div></div>';
+  document.body.appendChild(ov2); document.body.style.overflow='hidden';
+  function closeS(){ ov2.remove(); document.body.style.overflow=''; try{ update(); }catch(e){} }
+  ov2.addEventListener('click',function(e){ if(e.target===ov2||(e.target.closest&&e.target.closest('[data-src]'))) closeS(); });
+  ov2.addEventListener('change',function(e){
+    var t2=e.target; if(!t2||!t2.dataset) return;
+    var k=t2.dataset.srck||t2.dataset.srcd; if(!k) return;
+    var c2=srcTags[k]||{};
+    if(t2.dataset.srck!=null) c2.s=t2.value||undefined;
+    if(t2.dataset.srcd!=null) c2.d=t2.value||undefined;
+    if(!c2.s&&!c2.d) delete srcTags[k]; else srcTags[k]=c2;
+    if(window.mtTrack&&!ov2.__srcT){ ov2.__srcT=1; try{ mtTrack('src_tag'); }catch(e3){} }
+  });
+}
+var _srcB=$("srcBtn"); if(_srcB) _srcB.addEventListener("click",srcPop);
 
 /* ---------- 미팅용 즉석 조정 바 — 핵심 드라이버 ± 스텝퍼 (입력 폼과 동기화) ---------- */
 var ADJ_BASE=null;
@@ -4812,6 +4848,13 @@ function reviewMemo(){
   var url=shareLink(true)||'';
   if(url){ L.push(''); L.push('결과 링크(읽기 전용): '+url); }
   L.push('');
+  try{
+    if(typeof srcTags==='object'&&Object.keys(srcTags).length){
+      var _sc={}; Object.keys(srcTags).forEach(function(k2){ var s2=srcTags[k2]&&srcTags[k2].s; if(s2) _sc[s2]=(_sc[s2]||0)+1; });
+      var _sp=Object.keys(_sc).map(function(s2){ return s2+' '+_sc[s2]; });
+      if(_sp.length) L.push('※ 가정 출처: '+_sp.join(' · '));
+    }
+  }catch(eSrc){}
   var exs=(typeof exRemaining==='function')?exRemaining():[];
   if(exs.length) L.push(exUserEdited?'※ 일부 가정은 예시값입니다 — 확정 전 실제 값으로 교체가 필요합니다.':'※ 가정 전체가 예시값입니다 — 실제 딜 값으로 교체한 뒤 회람하세요.');
   L.push('※ 입력 가정에 따른 추정치이며, 투자 권유가 아닌 정보 제공 목적입니다.');
@@ -4935,7 +4978,7 @@ function applySharedPayload(p){
   if(p.c && DEALS[p.c]){ cur=p.c; }
   if(p.d && DEPTHS[p.d]){ depth=p.d; }
   state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
-  exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue;
+  exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue; srcTags=p.st||{};
   window.rrModel=(p.rr&&p.rr.leases)?{leases:p.rr.leases,mkt:p.rr.mkt,on:true,confirmed:true}:null;
   window.rrState=null;
   renderTabs(); renderForm(); restoreInputs(); update();
@@ -4975,7 +5018,7 @@ window.__mtExitReadonly=function(){
 };
 
 /* ---------- 입력값 브라우저 자동 저장/복원 ---------- */
-function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState,ek:Array.from(exampleKeys),ue:exUserEdited?1:0})); }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState,ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags})); }catch(e){} }
 function tryRestoreLocal(){
   let raw=null; try{ raw=localStorage.getItem("mt_state"); }catch(e){ return false; }
   if(!raw) return false;
@@ -4984,7 +5027,7 @@ function tryRestoreLocal(){
     if(p.c && DEALS[p.c]) cur=p.c;
     if(p.d && DEPTHS[p.d]) depth=p.d;
     state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
-    exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue;
+    exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue; srcTags=p.st||{};
     renderTabs(); renderForm(); restoreInputs(); update();
     return true;
   }catch(e){ return false; }
@@ -6179,6 +6222,23 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       }
       var ov=assumOverrides();
       var _TPL=holdTemplate(XLTMPL, mtHold());
+      // 가정 출처·기준일 → 01_Assumptions '출처·비고' 열(F)에 기록 (기존 안내문은 태그 뒤로)
+      try{
+        if(typeof srcTags==='object'&&Object.keys(srcTags).length){
+          var _SRC_ROW={asset:6,gfa:7,price:12,appraisal:14,acqtax:15,acqfee:16,rentpp:23,campp:24,vacancy:25,depmult:26,noig:27,exitcap:58,salefee:59,prepayfee:71,dispfee:72,opfee:76,fixcost:77,hold:79};
+          var _asS=null,_iA; for(_iA=0;_iA<_TPL.sheets.length;_iA++) if(_TPL.sheets[_iA].name==='01_Assumptions'){ _asS=_TPL.sheets[_iA]; break; }
+          if(_asS){
+            Object.keys(srcTags).forEach(function(_k){
+              var _row=_SRC_ROW[_k], _t=srcTags[_k]; if(!_row||!_t||!_t.s) return;
+              var _txt='['+_t.s+(_t.d?(' · '+_t.d):'')+']';
+              var _ref='F'+_row, _fc=null,_ci;
+              for(_ci=0;_ci<_asS.cells.length;_ci++){ if(_asS.cells[_ci].r===_ref){ _fc=_asS.cells[_ci]; break; } }
+              if(_fc){ _fc.s=_txt+' '+String(_fc.s||'').replace(/^\[[^\]]*\]\s*/,''); delete _fc.f; }
+              else _asS.cells.push({r:_ref, role:'no', s:_txt});
+            });
+          }
+        }
+      }catch(eSrcX){}
       // 자가 검증 스탬프 — 생성 시점 웹 계산값을 검증 시트에 고정하고, 옆의 살아있는 수식과 PASS/FAIL 대조.
       // 받은 사람이 "이 파일이 화면과 같은 값인지, 누가 셀을 고쳤는지"를 파일 안에서 확인할 수 있다.
       try{
@@ -7695,6 +7755,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       var v=fmtV(f, extracted[k]); if(v==null) return;
       state[k]=v; n++;
       if(typeof exTouch==='function') exTouch(k);   // IM에서 온 값 = 사용자 제공 값
+      try{ if(typeof srcTags==='object') srcTags[k]={s:'IM 기재', d:new Date().toISOString().slice(0,10)}; }catch(eS2){}
     });
     close();
     try{ renderForm(); restoreInputs(); update(); }catch(e){}
@@ -7822,6 +7883,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       var v=fmtV(f, qex[k]); if(v==null) return;
       state[k]=v; n++;
       if(typeof exTouch==='function') exTouch(k);
+      try{ if(typeof srcTags==='object') srcTags[k]={s:'IM 기재', d:new Date().toISOString().slice(0,10)}; }catch(eS){}
     });
     close();
     try{ renderForm(); restoreInputs(); update(); }catch(e){}

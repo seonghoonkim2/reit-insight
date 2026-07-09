@@ -144,6 +144,7 @@ ok(html.includes('function renderAdjBar') && html.includes('id="adjBar"'), '미�
 ok(html.includes('function summaryCardPNG') && html.includes('임차인 정보 미포함'), '요약 카드 PNG(고지 포함) 존재');
 ok(html.includes('function wsLinkDiff') && html.includes('data-ws="lcmp"'), '공유 링크 2개 가정 diff 존재');
 ok(html.includes('function cmpTableText') && html.includes('data-cmp='), '딜 비교 대상 선택 + 비교표 복사 존재');
+ok(html.includes('function srcPop') && html.includes('var srcTags={}') && (html.match(/st:srcTags\}/g)||[]).length>=3, '가정 출처·기준일 기록(3경로 영속) 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
