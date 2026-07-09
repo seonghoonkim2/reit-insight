@@ -6,167 +6,167 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://modelter.com/guide.html</loc>
+    <loc>https://modelter.com/guide</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://modelter.com/howto.html</loc>
+    <loc>https://modelter.com/howto</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://modelter.com/trust.html</loc>
+    <loc>https://modelter.com/trust</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/verification.html</loc>
+    <loc>https://modelter.com/verification</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/calc/office.html</loc>
+    <loc>https://modelter.com/calc/office</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://modelter.com/calc/logistics.html</loc>
+    <loc>https://modelter.com/calc/logistics</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://modelter.com/calc/dev.html</loc>
+    <loc>https://modelter.com/calc/dev</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://modelter.com/calc/refi.html</loc>
+    <loc>https://modelter.com/calc/refi</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/irr.html</loc>
+    <loc>https://modelter.com/t/irr</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/em.html</loc>
+    <loc>https://modelter.com/t/em</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/coc.html</loc>
+    <loc>https://modelter.com/t/coc</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/noi.html</loc>
+    <loc>https://modelter.com/t/noi</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/caprate.html</loc>
+    <loc>https://modelter.com/t/caprate</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/wale.html</loc>
+    <loc>https://modelter.com/t/wale</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/egi.html</loc>
+    <loc>https://modelter.com/t/egi</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/vacancy.html</loc>
+    <loc>https://modelter.com/t/vacancy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/dscr.html</loc>
+    <loc>https://modelter.com/t/dscr</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/icr.html</loc>
+    <loc>https://modelter.com/t/icr</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/ltv.html</loc>
+    <loc>https://modelter.com/t/ltv</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/dy.html</loc>
+    <loc>https://modelter.com/t/dy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/repay.html</loc>
+    <loc>https://modelter.com/t/repay</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/deposit.html</loc>
+    <loc>https://modelter.com/t/deposit</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/passthru.html</loc>
+    <loc>https://modelter.com/t/passthru</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/waterfall.html</loc>
+    <loc>https://modelter.com/t/waterfall</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/rentfree.html</loc>
+    <loc>https://modelter.com/t/rentfree</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/nla.html</loc>
+    <loc>https://modelter.com/t/nla</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/noc.html</loc>
+    <loc>https://modelter.com/t/noc</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/masterlease.html</loc>
+    <loc>https://modelter.com/t/masterlease</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/bridge.html</loc>
+    <loc>https://modelter.com/t/bridge</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/midpay.html</loc>
+    <loc>https://modelter.com/t/midpay</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/bep.html</loc>
+    <loc>https://modelter.com/t/bep</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/t/devmargin.html</loc>
+    <loc>https://modelter.com/t/devmargin</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://modelter.com/notes/2026q2.html</loc>
+    <loc>https://modelter.com/notes/2026q2</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>

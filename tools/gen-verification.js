@@ -46,7 +46,7 @@ function build() {
     return `<tr><td>${esc(r.n)}</td><td>${badge}</td><td>${err}</td></tr>`;
   }).join('');
 
-  const ld = { '@context': 'https://schema.org', '@type': 'TechArticle', headline: '모델터 파리티 검증 — 화면=엑셀 재현 증거', datePublished: bj.date || '', about: '재무모델 화면 계산값과 다운로드 엑셀 수식의 일치 검증', url: BASE + '/verification.html' };
+  const ld = { '@context': 'https://schema.org', '@type': 'TechArticle', headline: '모델터 파리티 검증 — 화면=엑셀 재현 증거', datePublished: bj.date || '', about: '재무모델 화면 계산값과 다운로드 엑셀 수식의 일치 검증', url: BASE + '/verification' };
 
   const page = `<!doctype html>
 <html lang="ko">
@@ -55,11 +55,11 @@ function build() {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>파리티 검증 — 화면 = 다운로드 엑셀 (재현 가능한 증거) | 모델터</title>
 <meta name="description" content="모델터의 화면 계산값과 다운로드 엑셀 수식이 같은 결과를 내는지, 제3자가 formulas 라이브러리로 직접 재계산해 검증한 결과와 재현 절차. 최신 빌드 식별자 포함." />
-<link rel="canonical" href="${BASE}/verification.html" />
+<link rel="canonical" href="${BASE}/verification" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="파리티 검증 — 화면 = 다운로드 엑셀 | 모델터" />
 <meta property="og:description" content="화면=엑셀을 제3자 재현 가능한 공개 증거로. 4딜 파리티 결과 + 재현 절차." />
-<meta property="og:url" content="${BASE}/verification.html" />
+<meta property="og:url" content="${BASE}/verification" />
 <meta property="og:image" content="${BASE}/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -142,7 +142,7 @@ footer a{color:var(--ink-3)}
   </section>
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide.html">용어사전</a> · <a href="/trust.html">보안·개인정보</a><br>
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/trust">보안·개인정보</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다.
 </div></footer>
 </body>

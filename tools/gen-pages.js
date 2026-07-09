@@ -160,7 +160,7 @@ ${JSON.stringify(o.ld)}
 ${o.body}
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide.html">용어사전</a> · <a href="/howto.html">실무 가이드</a> · <a href="/trust.html">보안·개인정보</a> · <a href="/verification.html">파리티 검증</a><br>
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.
 </div></footer>
 </body>
@@ -182,19 +182,19 @@ function termPage(slug, terms) {
   const deal = DEALS[meta.deal];
   const title = `${t.ko} 뜻·계산식·실무 예시 | 모델터`;
   const desc = `${t.ko}(${t.en})의 정의와 계산식, 상업용 부동산 실무 예시. ${meta.why} 모델터에서 ${deal.short} 딜로 바로 계산해 보세요.`;
-  const canonical = `${BASE}/t/${slug}.html`;
+  const canonical = `${BASE}/t/${slug}`;   // Cloudflare 에셋이 .html 을 떼고 서빙(무확장이 200, .html은 307)
   const rel = relatedTermChips(slug, terms, meta);
-  const chips = rel.map(s => `<a href="/t/${s}.html">${esc(terms[s].ko)}</a>`).join('');
+  const chips = rel.map(s => `<a href="/t/${s}">${esc(terms[s].ko)}</a>`).join('');
   const ld = {
     '@context': 'https://schema.org', '@graph': [
-      { '@type': 'DefinedTerm', '@id': canonical + '#term', name: t.ko, alternateName: t.en, description: t.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300), inDefinedTermSet: `${BASE}/guide.html` },
+      { '@type': 'DefinedTerm', '@id': canonical + '#term', name: t.ko, alternateName: t.en, description: t.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300), inDefinedTermSet: `${BASE}/guide` },
       { '@type': 'BreadcrumbList', itemListElement: [
         { '@type': 'ListItem', position: 1, name: '모델터', item: BASE + '/' },
-        { '@type': 'ListItem', position: 2, name: '용어사전', item: BASE + '/guide.html' },
+        { '@type': 'ListItem', position: 2, name: '용어사전', item: BASE + '/guide' },
         { '@type': 'ListItem', position: 3, name: t.ko, item: canonical } ] },
     ]
   };
-  const body = `  <nav class="crumb"><a href="/">모델터</a> › <a href="/guide.html">용어사전</a> › ${esc(t.ko)}</nav>
+  const body = `  <nav class="crumb"><a href="/">모델터</a> › <a href="/guide">용어사전</a> › ${esc(t.ko)}</nav>
   <div class="hero">
     <div class="eyebrow">부동산 금융 용어</div>
     <h1>${esc(t.ko)}<span class="en">${esc(t.en)}</span></h1>
@@ -214,17 +214,17 @@ function termPage(slug, terms) {
   <section>
     <a class="cta" href="/#t=${meta.deal}&src=seo">${esc(deal.short)} 딜로 ${esc(t.ko)} 바로 계산하기 →<span class="sub">숫자만 넣으면 화면에서 바로 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
     <h2 style="margin-top:14px">관련 용어</h2>
-    <div class="chips">${chips}<a href="/calc/${meta.deal}.html">${esc(deal.short)} 계산기</a></div>
+    <div class="chips">${chips}<a href="/calc/${meta.deal}">${esc(deal.short)} 계산기</a></div>
   </section>`;
-  return shell({ title, desc, canonical, ld, backHref: '/guide.html', backLabel: '← 용어사전', body });
+  return shell({ title, desc, canonical, ld, backHref: '/guide', backLabel: '← 용어사전', body });
 }
 
 function calcPage(deal, terms) {
   const d = DEALS[deal];
   const title = `${d.name} — 온라인 계산기·엑셀 | 모델터`;
   const desc = `${d.kw}. ${d.lede}`;
-  const canonical = `${BASE}/calc/${deal}.html`;
-  const chips = d.terms.map(s => `<a href="/t/${s}.html">${esc(terms[s].ko)}</a>`).join('');
+  const canonical = `${BASE}/calc/${deal}`;
+  const chips = d.terms.map(s => `<a href="/t/${s}">${esc(terms[s].ko)}</a>`).join('');
   const ld = {
     '@context': 'https://schema.org', '@graph': [
       { '@type': 'SoftwareApplication', name: d.name + ' — 모델터', applicationCategory: 'FinanceApplication', operatingSystem: 'Web', offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' }, description: d.lede, url: canonical },
@@ -255,7 +255,7 @@ function calcPage(deal, terms) {
   </section>
   <section>
     <h2>관련 용어</h2>
-    <div class="chips">${chips}<a href="/guide.html">용어사전 전체</a></div>
+    <div class="chips">${chips}<a href="/guide">용어사전 전체</a></div>
   </section>`;
   return shell({ title, desc, canonical, ld, backHref: '/', backLabel: '← 모델터 홈', body });
 }
@@ -264,17 +264,17 @@ function calcPage(deal, terms) {
 function buildSitemap(slugs, deals) {
   const urls = [
     { loc: BASE + '/', freq: 'weekly', pri: '1.0' },
-    { loc: BASE + '/guide.html', freq: 'monthly', pri: '0.8' },
-    { loc: BASE + '/howto.html', freq: 'monthly', pri: '0.8' },
-    { loc: BASE + '/trust.html', freq: 'monthly', pri: '0.6' },
-    { loc: BASE + '/verification.html', freq: 'monthly', pri: '0.6' },
+    { loc: BASE + '/guide', freq: 'monthly', pri: '0.8' },
+    { loc: BASE + '/howto', freq: 'monthly', pri: '0.8' },
+    { loc: BASE + '/trust', freq: 'monthly', pri: '0.6' },
+    { loc: BASE + '/verification', freq: 'monthly', pri: '0.6' },
   ];
-  deals.forEach(d => urls.push({ loc: `${BASE}/calc/${d}.html`, freq: 'monthly', pri: '0.7' }));
-  slugs.forEach(s => urls.push({ loc: `${BASE}/t/${s}.html`, freq: 'monthly', pri: '0.6' }));
+  deals.forEach(d => urls.push({ loc: `${BASE}/calc/${d}`, freq: 'monthly', pri: '0.7' }));
+  slugs.forEach(s => urls.push({ loc: `${BASE}/t/${s}`, freq: 'monthly', pri: '0.6' }));
   // 분기 시장 노트(E8) — notes/*.html 자동 등록
   try {
     const nd = path.join(DIR, 'notes');
-    if (fs.existsSync(nd)) fs.readdirSync(nd).filter(f => f.endsWith('.html')).sort().forEach(f => urls.push({ loc: `${BASE}/notes/${f}`, freq: 'yearly', pri: '0.5' }));
+    if (fs.existsSync(nd)) fs.readdirSync(nd).filter(f => f.endsWith('.html')).sort().forEach(f => urls.push({ loc: `${BASE}/notes/${f.replace(/\.html$/, '')}`, freq: 'yearly', pri: '0.5' }));
   } catch (e) {}
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.pri}</priority>\n  </url>`).join('\n') +
