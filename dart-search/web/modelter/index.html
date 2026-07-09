@@ -1917,7 +1917,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-09·856ad33bc5';
+window.MT_BUILD='2026-07-09·9e7ad0346c';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 /* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
  * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
@@ -11115,6 +11115,8 @@ var qrcode = function() {
         feats:featSnapshot() };
       var _s=''; try{ _s=sessionStorage.getItem('mt_src')||''; }catch(_e){}
       if(_s) b.src=_s;   // 채널 어트리뷰션 — 이 탭 세션 동안 착지 채널을 모든 이벤트에 부착(퍼널 채널 분해용)
+      var _d0=''; try{ _d0=sessionStorage.getItem('mt_ref0')||''; }catch(_e){}
+      if(_d0) b.dr=_d0;  // 진짜 유입원 — 비콘 referer 헤더는 항상 자기 페이지라, 진입 시 document.referrer 호스트만 별도 전달
       if(extra){ for(var k in extra) b[k]=extra[k]; }
       var body=JSON.stringify(b);
       if(navigator.sendBeacon){ navigator.sendBeacon('/e', body); }
@@ -11146,6 +11148,14 @@ var qrcode = function() {
   try{
     var _sm=(location.search+location.hash).match(/[?#&]src=([A-Za-z0-9_]{1,8})/);
     if(_sm){ _freshSrc=_sm[1]; sessionStorage.setItem('mt_src', _freshSrc); }
+  }catch(_e){}
+  // 진짜 유입원 — 30일 실측에서 ref가 전부 자기참조(비콘 referer=자기 페이지)로 무의미했음.
+  //  진입 시점의 document.referrer에서 외부 호스트명만 추출해 세션 동안 유지(경로·쿼리·PII 없음 — 수집 정책의 "유입 호스트" 항목).
+  try{
+    if(!sessionStorage.getItem('mt_ref0') && document.referrer){
+      var _rh=new URL(document.referrer).hostname;
+      if(_rh && _rh!==location.hostname) sessionStorage.setItem('mt_ref0', _rh.slice(0,40));
+    }
   }catch(_e){}
   track('session');
   if(_freshSrc){ try{ track('landing'); }catch(_e){} }   // src 태그를 달고 들어온 유입 1건

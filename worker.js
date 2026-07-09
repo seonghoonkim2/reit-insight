@@ -17,6 +17,10 @@ export default {
           let refHost = "";
           const ref = request.headers.get("referer");
           if (ref) { try { refHost = new URL(ref).hostname.slice(0, 40); } catch (_) {} }
+          // 진짜 유입원 우선 — 비콘 referer 헤더는 항상 자기 페이지(자기참조)라, 클라이언트가 진입 시
+          // document.referrer에서 뽑아 보낸 외부 호스트명(dr)이 있으면 그것을 ref로 기록(호스트 문자만 허용)
+          const dr = s(d.dr, 40).replace(/[^A-Za-z0-9.\-]/g, "");
+          if (dr) refHost = dr;
           const cc = (request.cf && request.cf.country) || "";
           const feats = s(d.feats, 48);                       // "rr,bido,scen" 형태의 활성기능 플래그
           const axis = s(d.axis, 12);                          // sens_axis 이벤트의 축(growth|rate)
