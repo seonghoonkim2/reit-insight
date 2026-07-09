@@ -49,8 +49,10 @@ function ok(c, msg) { if (c) { pass++; console.log('  ✓ ' + msg); } else { fai
 
 const server = http.createServer((rq, rs) => {
   let p = rq.url.split('?')[0].split('#')[0]; if (p === '/') p = '/index.html';
-  const f = path.join(WEB, p);
-  if (!fs.existsSync(f)) { rs.writeHead(404); rs.end(); return; }
+  if (p === '/e') { rs.writeHead(204); rs.end(); return; }              // 익명 이벤트 수집 흉내(비콘 검사용)
+  let f = path.join(WEB, p);
+  if (!path.extname(f) && fs.existsSync(f + '.html')) f += '.html';      // Cloudflare 에셋처럼 무확장 → .html 해석
+  if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) { rs.writeHead(404); rs.end(); return; }
   rs.writeHead(200, { 'Content-Type': p.endsWith('.xml') ? 'application/xml' : 'text/html; charset=utf-8' });
   rs.end(fs.readFileSync(f));
 });
@@ -95,7 +97,7 @@ async function closeOverlays(page) {
     ok(rt.ol, '한 줄 보고 생성');
     // 용어 도움말 링크
     const links = await page.evaluate(() => Array.from(document.querySelectorAll('#simCard .k-help')).map(a => a.getAttribute('href')));
-    ok(links.length >= 3 && links.every(h => /^\/guide\.html#[a-z]+$/.test(h)), 'KPI 용어 ? 링크 (' + links.length + '개)');
+    ok(links.length >= 3 && links.every(h => /^\/guide#[a-z]+$/.test(h)), 'KPI 용어 ? 링크·무확장 URL (' + links.length + '개)');
     // IC 원페이저 판정
     const psv = await page.evaluate(() => { buildPrintSummary(); return document.getElementById('printSummary').innerHTML.includes('ps-verdict'); });
     ok(psv, 'IC 원페이저 ps-verdict');
@@ -214,8 +216,76 @@ async function closeOverlays(page) {
     await ctx.close();
   }
 
-  // ── [8] 배포 안전: 테스트 훅 부재 + 전송량 예산 ──
-  console.log('\n[8] 배포 안전');
+  // ── [8] 에픽 표면 (E1~E8): 신뢰·회수·팀기준·착지·노트 ──
+  console.log('\n[8] 에픽 표면 (신뢰·회수·팀기준·착지·노트)');
+  {
+    // E1 신뢰 센터 + E6 검증 페이지 — 무확장 URL로 렌더
+    const { ctx, page } = await fresh(browser);
+    await page.goto(URL0 + 'trust'); await page.waitForTimeout(200);
+    const tr = await page.evaluate(() => ({ rows: document.querySelectorAll('table.fields tr[data-field]').length, print: !!document.querySelector('.printbtn') }));
+    ok(tr.rows >= 10 && tr.print, '신뢰 센터(/trust) 렌더 — 수집 필드 표 ' + tr.rows + '행 + 인쇄');
+    await page.goto(URL0 + 'verification'); await page.waitForTimeout(200);
+    const vf = await page.evaluate(() => ({ badges: document.querySelectorAll('.pass,.fail,.na').length, build: !!document.querySelector('.build') }));
+    ok(vf.badges >= 3 && vf.build, '파리티 공표(/verification) 렌더 — 판정 배지 + 빌드 식별자');
+    await ctx.close();
+  }
+  {
+    // E5 수요 가짜 문 + E2 회수 착지 CTA + src 어트리뷰션
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await ctx.newPage();
+    const beacons = [];
+    page.on('request', r => { if (r.url().endsWith('/e') && r.method() === 'POST') { try { beacons.push(JSON.parse(r.postData() || '{}')); } catch (e) {} } });
+    await page.goto(URL0); await closeOverlays(page); await page.waitForTimeout(300);
+    await page.locator('.deal-soon').first().click(); await page.waitForTimeout(250);
+    const want = beacons.find(b => b.t === 'deal_want');
+    ok(want && want.deal && !('price' in want), '수요 가짜 문 클릭 → deal_want(딜명만) 비콘');
+    // 읽기전용 착지: 마스킹 공유 링크 열기 → landing(src)·CTA·편집 전환
+    const link = await page.evaluate(() => { cur = 'office'; fillExample(); return shareLink(true, 'share'); });
+    const p2 = await ctx.newPage();
+    const b2 = [];
+    p2.on('request', r => { if (r.url().endsWith('/e') && r.method() === 'POST') { try { b2.push(JSON.parse(r.postData() || '{}')); } catch (e) {} } });
+    await p2.goto(URL0.slice(0, -1) + link.substring(link.indexOf('#'))); await p2.waitForTimeout(700);
+    const cta = await p2.evaluate(() => { const c = document.getElementById('roCta'); return c && !c.hidden; });
+    await p2.evaluate(() => document.getElementById('roCtaBtn').click()); await p2.waitForTimeout(250);
+    const landing = b2.find(b => b.t === 'landing'), rec = b2.find(b => b.t === 'recover_cta');
+    const exited = await p2.evaluate(() => !window.__mtReadonly);
+    ok(cta && landing && landing.src === 'share', '읽기전용 착지 → landing(src=share) + 하단 CTA');
+    ok(rec && exited, '착지 CTA 클릭 → recover_cta + 편집 전환');
+    await ctx.close();
+  }
+  {
+    // E4 팀 기준 #h= 왕복: 내보내기 → 새 컨텍스트 미리보기 → 적용
+    const c1 = await browser.newContext(); const p1 = await c1.newPage();
+    await p1.goto(URL0); await p1.waitForTimeout(400);
+    const hlink = await p1.evaluate(() => {
+      localStorage.setItem('mt_house', JSON.stringify({ irr: '9', dscr: '1.3', team: '스모크팀', ver: 'v1' }));
+      return houseShareLink();
+    });
+    await c1.close();
+    const c2 = await browser.newContext(); const p2 = await c2.newPage();
+    await p2.goto(URL0.slice(0, -1) + hlink.substring(hlink.indexOf('#'))); await p2.waitForTimeout(900);
+    const preview = await p2.evaluate(() => [...document.querySelectorAll('.imx h3')].some(h => /팀 기준 설치/.test(h.textContent)));
+    const before = await p2.evaluate(() => localStorage.getItem('mt_house'));
+    await p2.evaluate(() => { const b = document.querySelector('[data-hi=apply]'); if (b) b.click(); }); await p2.waitForTimeout(250);
+    const after = await p2.evaluate(() => JSON.parse(localStorage.getItem('mt_house') || '{}'));
+    ok(preview && before === null && after.team === '스모크팀' && after.dscr === '1.3', '#h= 팀 기준: 미리보기(자동적용 금지) → 적용 왕복');
+    await c2.close();
+  }
+  {
+    // E8 분기 노트: 사전 입력 링크 → 가정 적용 (노트 파일은 분기별 — 최신 1개 검사)
+    const note = fs.readdirSync(path.join(WEB, 'notes')).filter(f => f.endsWith('.html')).sort().pop();
+    const { ctx, page } = await fresh(browser);
+    await page.goto(URL0 + 'notes/' + note.replace(/\.html$/, '')); await page.waitForTimeout(200);
+    const href = await page.$eval('a.cta', a => a.getAttribute('href'));
+    const ov = /exitcap|pfrate/.test(href) ? null : href;  // 링크는 압축돼 있어 해시로 판별 불가 — 착지로 검증
+    await page.goto(URL0.slice(0, -1) + href.substring(href.indexOf('#'))); await page.waitForTimeout(700);
+    const applied = await page.evaluate(() => ({ deal: cur, exitcap: state.exitcap, hasResult: !!(document.getElementById('simKpis') || {}).textContent }));
+    ok(applied.deal === 'office' && parseFloat(applied.exitcap) > 0 && applied.hasResult, '분기 노트(' + note + ') 사전 입력 링크 → 가정 적용 + 결과');
+    await ctx.close();
+  }
+
+  // ── [9] 배포 안전: 테스트 훅 부재 + 전송량 예산 ──
+  console.log('\n[9] 배포 안전');
   {
     const html = fs.readFileSync(path.join(WEB, 'index.html'), 'utf8');
     ok(!html.includes('__mtCalc'), '__mtCalc 훅 없음');
