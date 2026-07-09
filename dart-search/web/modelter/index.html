@@ -2828,6 +2828,23 @@ function wsSaveVersion(){
   toast(deal.name+' → '+v.label+' 저장됨');
   if(window.mtTrack) try{ mtTrack('ws_save',{kind:'version'}); }catch(e){}
 }
+// 딜 복제 — 원본 이력은 그대로 두고 현재 상태를 새 딜 v0.1로 시작 (버전 이력 오염 방지)
+function wsDupDeal(dealId){
+  var db=wsDB(), src=db.deals[dealId]; if(!src) return;
+  var live=(WS.dealId===dealId); // 열려 있는 딜이면 화면 그대로(저장 안 된 변경 포함) 복제
+  var cv=wsVersion(src,src.currentVersionId)||src.versions[src.versions.length-1];
+  var snap=live?wsSnapshot():(cv?JSON.parse(JSON.stringify(cv.snap)):null); if(!snap) return;
+  var name=prompt('새 딜 이름 — 원본('+src.name+')은 그대로 두고 새 딜로 시작합니다', src.name+' (복제)'); if(name===null) return;
+  name=(name||'').trim(); if(!name){ toast('이름을 입력하세요'); return; }
+  var id=wsId('deal'), now=new Date().toISOString();
+  db.deals[id]={id:id,name:name,createdAt:now,updatedAt:now,currentVersionId:null,versions:[],outputs:[]};
+  var v=wsAddVersion(db.deals[id], snap, '복제: '+src.name+(live?' 화면 기준':(cv?' '+cv.label:'')), now);
+  wsPersist(); WS={dealId:id, versionId:v.id, savedHash:v.hash};
+  if(!live) wsApplySnapshot(JSON.parse(JSON.stringify(snap)));
+  refreshSlotSel(); renderWorkspace(); renderWsPanel();
+  toast(name+' 생성됨 — v0.1부터 새로 시작 (원본 이력은 그대로)');
+  if(window.mtTrack) try{ mtTrack('ws_save',{kind:'dup'}); }catch(e){}
+}
 function wsApplySnapshot(pp){
   if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d;
   state=Object.assign({},pp.s||{}); stackState=Object.assign({},pp.k||{}); refiState=Object.assign({},pp.r||{});
@@ -3025,6 +3042,7 @@ function renderWsPanel(){
         return '<div class="ws-deal'+(WS.dealId===id?' on':'')+'"><div class="ws-deal-t"><b>'+esc(d.name)+'</b><span>버전 '+d.versions.length+' · 산출물 '+(d.outputs||[]).length+' · '+_wsFmtDT(d.updatedAt)+'</span></div>'+
           '<div class="ws-deal-s">'+esc(_wsFmtSum(cv&&cv.summary))+'</div>'+
           '<div class="ws-deal-a">'+(WS.dealId===id?'<span class="ws-now">열려 있음</span>':('<button class="sl-btn" data-ws="open" data-deal="'+id+'">열기</button>'))+
+          '<button class="sl-btn" data-ws="dup" data-deal="'+id+'" title="원본 이력은 그대로 두고 이 딜 기준으로 새 딜(v0.1)을 시작합니다">복제해 새 딜</button>'+
           '<button class="sl-btn" data-ws="export" data-deal="'+id+'">.modelter 내보내기</button>'+
           '<button class="sl-btn" data-ws="deldeal" data-deal="'+id+'">삭제</button></div></div>';
       }).join('')+'</div>';
@@ -3073,6 +3091,7 @@ function renderWsPanel(){
     var act=t.dataset.ws, dealId=t.dataset.deal, verId=t.dataset.ver;
     if(act==='open'){ wsLoadVersion(dealId); renderWsPanel(); }
     else if(act==='load'){ wsLoadVersion(dealId, verId); close(); }
+    else if(act==='dup'){ wsDupDeal(dealId); }
     else if(act==='deldeal'){ wsDeleteDeal(dealId); }
     else if(act==='delver'){ wsDeleteVersion(dealId, verId); }
     else if(act==='export'){ wsExportDownload(dealId); }
