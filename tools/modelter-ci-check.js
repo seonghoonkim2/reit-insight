@@ -128,12 +128,12 @@ ok(html.includes('문서에 없으면 null (추측 금지)'), 'BYOK: 추측 금�
 ok(html.includes('MTIM.checklist()') && html.includes('IM에서 찾을 숫자'), 'IM 체크리스트(키 없이 시작) 존재');
 ok(html.includes('function localExtract') && html.includes('MTIM.quick()'), 'IM 무키 로컬 자동 인식 존재');
 ok(html.includes('이 기능은 네트워크를 사용하지 않습니다'), 'IM 무키 무전송 고지 존재');
-ok(html.includes('보수 코너(Exit '), '판정 다운사이드 한 줄 존재');
+ok(html.includes('보수적으로 눌러 보면'), '판정 다운사이드 한 줄 존재');
 ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfirmOutput'), '예시값 잔존 추적 + 산출물 확인 존재');
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
 ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
 ok(html.includes('자가 검증 — 생성 시점 웹 계산값') && html.includes('IF(ABS(C19-D19)<0.0005,"PASS","FAIL")'), '엑셀 자가 검증 스탬프(11시트 PASS/FAIL) 존재');
-ok(html.includes('차환 갭 테스트: 만기 잔액(벌룬)') && html.includes('통상 60% 가정'), '만기 차환 갭 테스트 한 줄 존재');
+ok(html.includes('만기에 갚을 잔액') && html.includes('통상 잡는 LTV 60%'), '만기 차환 갭 테스트 한 줄 존재');
 ok(html.includes('function wsDupDeal') && html.includes('data-ws="dup"'), '딜 복제(새 딜 시작) 존재');
 ok(html.includes('function myDefSave') && html.includes("localStorage.getItem('mt_mydef')"), '내 기본값 프리셋(딜 유형별) 존재');
 ok(html.includes('data-sh="1"') && html.includes('navigator.share'), 'Web Share 공유 시트 옵션 존재');
