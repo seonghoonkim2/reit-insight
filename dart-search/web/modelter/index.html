@@ -4744,6 +4744,54 @@ function reviewMemo(){
   L.push('※ 입력 가정에 따른 추정치이며, 투자 권유가 아닌 정보 제공 목적입니다.');
   return L.join('\n');
 }
+/* 결과 요약 카드 PNG — 카톡에 이미지로 붙이는 1200×630 카드 (임차인 정보 미포함·고지 포함) */
+function summaryCardPNG(){
+  var r=null; try{ r=simModel(); }catch(e){}
+  if(!r) return false;
+  var name=((state.asset||'').trim())||DEALS[cur].label;
+  var kp=(r.kpis||[]).filter(function(k){return k.big;}).slice(0,3);
+  if(!kp.length) kp=(r.kpis||[]).slice(0,3);
+  if(r.type==='refi'&&r.best) kp=[{l:'추천안', v:r.best+'안'}].concat(kp).slice(0,3);
+  if(!kp.length) return false;
+  var vd=null; try{ vd=dealVerdict(r); }catch(e2){}
+  var vTxt=vd?String(vd.html).replace(/<[^>]+>/g,'').split(' · ')[0]:'';
+  var warn=(typeof exRemaining==='function'&&exRemaining().length>0);
+  var cv=document.createElement('canvas'); cv.width=1200; cv.height=630;
+  var g=cv.getContext('2d'); if(!g) return false;
+  if(!g.roundRect) g.roundRect=function(x,y,w,h){ this.rect(x,y,w,h); };
+  var F='-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+  g.fillStyle='#fdfcf9'; g.fillRect(0,0,1200,630);
+  g.fillStyle='#a9792b'; g.fillRect(0,0,1200,10);
+  g.fillStyle='#8b8f98'; g.font='600 26px '+F;
+  g.fillText(DEALS[cur].label+' · '+new Date().toISOString().slice(0,10), 64, 96);
+  g.fillStyle='#1b2230'; g.font='800 52px '+F;
+  g.fillText(name, 64, 168, 1072);
+  var tw=(1200-64*2-40*2)/3;
+  kp.forEach(function(k,i){
+    var x=64+i*(tw+40);
+    g.fillStyle='#f3f1ec'; g.beginPath(); g.roundRect(x,215,tw,180,16); g.fill();
+    g.fillStyle='#6a7280'; g.font='600 24px '+F;
+    g.fillText(String(k.l).replace(/\s*\([^)]*\)\s*$/,''), x+26, 268, tw-52);
+    g.fillStyle='#a9792b'; g.font='800 52px '+F;
+    g.fillText(String(k.v), x+26, 350, tw-52);
+  });
+  if(vTxt){ g.fillStyle=(vd&&vd.tone==='warn')?'#b4552d':'#2e7d4f'; g.font='700 30px '+F;
+    g.fillText((vd&&vd.tone==='warn'?'⚠ ':'✓ ')+vTxt, 64, 468, 1072); }
+  if(warn){ g.fillStyle='#b4552d'; g.font='600 24px '+F;
+    g.fillText('※ 일부 가정은 예시값입니다 — 확정 전 실제 값으로 교체가 필요합니다', 64, 514, 1072); }
+  g.fillStyle='#8b8f98'; g.font='500 21px '+F;
+  g.fillText('입력 가정에 따른 추정치 · 투자 권유가 아닌 정보 제공 목적 · 임차인 정보 미포함', 64, 572, 900);
+  g.fillStyle='#a9792b'; g.font='800 26px '+F;
+  g.fillText('modelter.com', 1010, 572);
+  cv.toBlob(function(b){
+    if(!b) return;
+    var a=document.createElement('a'); a.href=URL.createObjectURL(b);
+    a.download='모델터_'+name.replace(/[\\/:*?"<>|\s]+/g,'_')+'_요약.png';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },400);
+  },'image/png');
+  return true;
+}
 function shareInputs(){
   // 공유 방식 선택 팝오버
   var old=document.getElementById('sharePop'); if(old){ old.remove(); return; }
@@ -4754,6 +4802,7 @@ function shareInputs(){
     '<button type="button" class="sp-opt" data-ro="0"><b>✏️ 편집용 링크</b><span>받는 사람이 값을 이어서 수정할 수 있습니다</span></button>'+
     '<button type="button" class="sp-opt" data-ol="1"><b>💬 한 줄 보고 복사</b><span>딜명 · 핵심 KPI · 판정 · 결과 링크 — 카톡·메일에 그대로 붙여넣기</span></button>'+
     '<button type="button" class="sp-opt" data-memo="1"><b>📝 검토 메모 초안 복사</b><span>딜 개요·수익성·부채·차환·다운사이드 10줄 — 메일 본문에 그대로</span></button>'+
+    '<button type="button" class="sp-opt" data-png="1"><b>🖼️ 요약 카드 이미지 (PNG)</b><span>딜명·핵심 KPI·판정을 한 장 이미지로 — 카톡에 이미지로 바로 첨부</span></button>'+
     (navigator.share?'<button type="button" class="sp-opt" data-sh="1"><b>📲 공유 시트로 바로 보내기</b><span>카톡·메시지 앱으로 한 줄 보고 + 결과 링크를 한 번에</span></button>':'')+
     '<div class="sp-note">서버에 저장하지 않습니다 — 딜 정보는 링크 안에만 담기고, 임차인 실명은 링크에서 마스킹됩니다.</div>';
   document.body.appendChild(pop);
@@ -4761,6 +4810,13 @@ function shareInputs(){
   pop.style.top=(r.bottom+window.scrollY+6)+'px';
   pop.style.left=Math.max(8,Math.min(r.left+window.scrollX, window.innerWidth-pop.offsetWidth-8))+'px';
   pop.querySelectorAll('.sp-opt').forEach(function(o){ o.addEventListener('click',function(){
+    if(o.dataset.png==='1'){
+      if(typeof exConfirmOutput==='function'&&!exConfirmOutput('요약 카드')){ pop.remove(); return; }
+      var okP=false; try{ okP=summaryCardPNG(); }catch(eP){}
+      toast(okP?'요약 카드 PNG를 내려받았습니다 — 카톡·메신저에 이미지로 첨부하세요':'결과가 없어 카드를 만들 수 없습니다 — 핵심 입력을 먼저 채워주세요');
+      if(okP&&window.mtTrack) try{ mtTrack('png_card'); }catch(e){}
+      pop.remove(); return;
+    }
     if(o.dataset.memo==='1'){
       if(typeof exConfirmOutput==='function'&&!exConfirmOutput('검토 메모')){ pop.remove(); return; }
       var mm=reviewMemo();

@@ -23,7 +23,7 @@
 'use strict';
 
 const DATASET = 'Modelter';
-const OUTPUT_EVENTS = ['xlsx_download', 'teaser', 'ic_ppt', 'share_link', 'memo_copy', 'slot_save', 'prompt_copy', 'pdf_export', 'sample_download'];
+const OUTPUT_EVENTS = ['xlsx_download', 'teaser', 'ic_ppt', 'share_link', 'memo_copy', 'png_card', 'slot_save', 'prompt_copy', 'pdf_export', 'sample_download'];
 const FEAT_LABEL = { rr: '렌트롤', dep: '보증금승계', fee: '운용보수', bido: '비도관과세', vac: '공실', resi: '분양수지', hold: '보유기간변경', pref: '우선주', scen: '시나리오' };
 const DEAL_LABEL = { office: '오피스', logistics: '물류', dev: '개발·PF', refi: '리파이낸싱' };
 

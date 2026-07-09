@@ -141,6 +141,7 @@ ok(html.includes('function reviewMemo') && html.includes('data-memo="1"'), '검�
 ok(html.includes('function wsDiffSnaps') && html.includes('data-ws="diff"'), '버전 간 가정 diff 존재');
 ok(html.includes('function scenarioTable') && html.includes('window.__mtScenario=function'), '시나리오 비교(Base/보수/낙관 전 지표) 존재');
 ok(html.includes('function renderAdjBar') && html.includes('id="adjBar"'), '미팅용 즉석 조정 바 존재');
+ok(html.includes('function summaryCardPNG') && html.includes('임차인 정보 미포함'), '요약 카드 PNG(고지 포함) 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
