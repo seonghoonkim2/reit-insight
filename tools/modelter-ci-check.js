@@ -102,6 +102,25 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   ok(/const dr = s\(d\.dr, 40\)\.replace\(\/\[\^A-Za-z0-9.\\-\]\/g, ""\);/.test(workerSrc2) && workerSrc2.includes('if (dr) refHost = dr;'), 'worker.js: dr(진짜 유입원) 정화 후 ref로 기록');
 }
 
+/* ── 1k) 판독 분모 위생(P2) — 봇 태깅 + 운영자 QA 제외 ──
+ *  판독 게이트(활성화율 등)의 분모에 크롤러·자동화 브라우저·운영자 자신이 섞이면
+ *  전략 판단이 왜곡됨. 서버는 태깅만(bot), 제외는 조회 시(blob10!='1') — 원본 보존. */
+{
+  const workerSrc3 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
+  ok(workerSrc3.includes('const BOT_RE =') && /\(bot\|spider\|crawler\|crawling\|scraper\)\\b/.test(workerSrc3), '분모 위생: worker BOT_RE(접미 경계 일반어) 존재');
+  ok(workerSrc3.includes('yeti') && workerSrc3.includes('daumoa') && workerSrc3.includes('kakaotalk-scrap'), '분모 위생: 국내 크롤러(Yeti·Daumoa·카카오 스크랩) 명시');
+  ok(workerSrc3.includes('!/cubot/i.test(ua)'), '분모 위생: 실기기 오탐(CUBOT 폰) 명시 제외');
+  ok(workerSrc3.includes('d.wd === 1 || d.wd === true'), '분모 위생: 클라이언트 webdriver 신호(wd)도 봇으로 태깅');
+  ok(/bot \? "1" : "0"/.test(workerSrc3) && workerSrc3.includes('blob10=bot'), '분모 위생: AE blob10=bot 기록');
+  ok(html.includes('if(navigator.webdriver) b.wd=1;'), '분모 위생: 클라이언트 navigator.webdriver → wd=1 부착');
+  ok(html.includes("localStorage.getItem('mt_qa')==='1'") && /if\(localStorage\.getItem\('mt_qa'\)==='1'\) return;/.test(html), '분모 위생: 운영자 QA 모드(mt_qa) — track() 조기 반환');
+  ok(html.includes('[?#&]qa=(on|off)'), '분모 위생: #qa=on|off 토글 스위치(토스트 안내) 존재');
+  const aeSrc = fs.readFileSync(path.join(__dirname, 'modelter-ae.js'), 'utf8');
+  ok(aeSrc.includes("blob10 != '1'") && aeSrc.includes('--include-bots'), '분모 위생: modelter-ae.js 기본 봇 제외(+--include-bots 우회)');
+  const patSrc = fs.readFileSync(path.join(__dirname, 'modelter-patterns.js'), 'utf8');
+  ok(patSrc.includes("blob10 != '1'") && patSrc.includes('--include-bots'), '분모 위생: modelter-patterns.js 기본 봇 제외(+--include-bots 우회)');
+}
+
 /* ── 1j) 사용성 v3(로그 기반) — 복잡도 다이어트·조정 바·위저드 발견성 ── */
 ok(html.includes('details.fsub') && html.includes('class="fsub"'), '사용성: 세부 항목 접기(fsub) 존재');
 ok((html.match(/adv:true/g) || []).length >= 20, '사용성: 세부 필드 지정(adv:true) 20+ (' + (html.match(/adv:true/g) || []).length + '곳)');
