@@ -1,0 +1,129 @@
+# 모델터 계측 사전 (METRICS)
+
+계측의 **단일 진실**. 이벤트 이름·의미·퍼널 정의·분모 규칙·스냅샷 스키마를 여기서 정하고,
+코드(`index.html`의 track/mtTrack)와 이 문서가 어긋나면 CI(`tools/modelter-ci-check.js`)가 배포를 차단한다.
+
+- 원칙: **additive만.** 판독 창(≈2026-07-17~24) 전에는 session/activate/computed의 발화 지점·dedupe 코드 변경 금지.
+- 새 이벤트 추가 절차: ① `index.html`에 발화 추가 → ② 이 문서 이벤트 표에 1행 추가 → ③ 산출물이면 `tools/modelter-labels.js`의 `OUTPUT_EVENTS`에도 추가 → ④ `/e` 수집 **필드**가 늘면 `worker.js`+`trust.html`(1:1 CI 게이트) 동기. 수치·임차인명·PII는 어떤 필드에도 금지.
+
+## 1. 퍼널 (세션당 1회, sessionStorage/플래그 dedupe)
+
+| 단계 | 정의 | 발화 |
+|---|---|---|
+| `session` | 방문 — 페이지 로드 시 1회 | 부트 시 `track('session')` |
+| `activate` | 자기 숫자 첫 직접 입력(신뢰 입력 경로 + 조정 바 ± 포함) | `__mtActivate()` — `actFired` 플래그로 1회 |
+| `computed` | activate 이후 자기 딜 결과 도달 | `__mtComputed()` — activate 전이면 무시 |
+| output | 산출물 — 아래 표의 **산출물 12종 합산**(개별 이벤트명 `output`은 없음) | 각 산출물 이벤트 |
+
+활성화율 = activate ÷ session. 산출물 전환율 = output ÷ session. `output > computed`는 예시값 그대로 내보내는 "구경꾼" 패턴(정상 — 버그 아님).
+
+## 2. 분모 규칙 (2026-07-10 이후)
+
+- **봇 제외가 기본.** worker가 UA 정규식+클라이언트 `wd`(navigator.webdriver) 신호로 `bot`(AE blob10)을 태깅하고, `modelter-ae.js`·`modelter-patterns.js`는 기본으로 `blob10 != '1'` 필터를 건다(`--include-bots`로 우회). 서버는 태깅만 — 원본 보존.
+- **07-10 이전 데이터는 태깅이 없어 봇 포함 분모**(blob10='' → 필터에 걸리지 않고 포함됨). 전후 비교 시 주의.
+- **운영자 QA 모드**: `modelter.com/#qa=on`을 연 기기는 `track()`이 조기 반환해 통계에서 제외(`#qa=off` 해제). 배포 확인·시연 전 필수.
+
+## 3. /e 수집 필드 · AE 스키마
+
+수집 필드의 사용자向 설명은 `/trust`(CI가 worker `rec`와 1:1 강제). AE(dataset `Modelter`) 매핑:
+
+| AE | 필드 | 내용 |
+|---|---|---|
+| blob1 (index) | ev | 이벤트명 |
+| blob2 | deal | 딜 유형(office·logistics·dev·refi) |
+| blob3 | depth | 입력 깊이(quick·standard·full) |
+| blob4 | dev | 기기(desktop·mobile) |
+| blob5 | ref | 유입 호스트 — 클라이언트 `dr`(진입 document.referrer 호스트) 우선, 없으면 비콘 referer |
+| blob6 | cc | 국가 코드 |
+| blob7 | feats | 활성 기능 플래그(쉼표 결합) |
+| blob8 | axis | 민감도 축(growth·rate) |
+| blob9 | src | 채널 태그(영문·숫자·_ 8자 화이트리스트) |
+| blob10 | bot | 자동화 트래픽(0/1) — §2 분모 규칙 |
+| double1 | rr | 렌트롤 사용(0/1) |
+| double2 | featN | 활성 기능 수 |
+
+## 4. 이벤트 사전
+
+코드가 발화하는 전체 이벤트(track/mtTrack 리터럴)와 아래 표는 CI가 **정확 일치**(누락·유령 모두 차단)를 강제한다.
+"산출물○" = `OUTPUT_EVENTS`(퍼널 output 합산 대상).
+
+<!-- EVENTS:BEGIN -->
+
+| 이벤트 | 의미 | 산출물 |
+|---|---|---|
+| `session` | 방문(로드 1회) | |
+| `activate` | 자기 숫자 첫 직접 입력(세션 1회) | |
+| `computed` | activate 후 자기 딜 결과 도달(세션 1회) | |
+| `landing` | src= 채널 태그를 달고 들어온 착지 1건 | |
+| `xlsx_download` | 수식 살아있는 엑셀 다운로드 | ○ |
+| `teaser` | 티저(요약) 복사 | ○ |
+| `ic_ppt` | IC 멀티슬라이드 PPT 다운로드 | ○ |
+| `share_link` | 공유 링크 생성·복사(#v=/#e=) | ○ |
+| `memo_copy` | 검토 메모 초안 복사 | ○ |
+| `png_card` | 결과 요약 카드 PNG 저장 | ○ |
+| `pipeline_copy` | 주간 파이프라인 보고 복사 | ○ |
+| `inquiry_copy` | 검토 질의서 복사 | ○ |
+| `slot_save` | 보관함(슬롯) 저장 | ○ |
+| `prompt_copy` | AI 프롬프트 복사 | ○ |
+| `pdf_export` | IC 원페이저 인쇄·PDF | ○ |
+| `sample_download` | 샘플 엑셀 다운로드 | ○ |
+| `deal_select` | 딜 유형 탭 선택 | |
+| `deal_want` | 준비 중 딜 타일 클릭(수요 신호 — 유형명만) | |
+| `depth_change` | 입력 깊이 변경(quick·standard·full) | |
+| `example_fill` | 예시 딜 채우기 | |
+| `fill_std` | 표준값 채우기 | |
+| `sample_deal` | 예시 딜 카드 선택(key=딜 키) | |
+| `onboard` | 온보딩 역할 선택 | |
+| `wizard` | 모바일 빠른 입력 위저드(open=열림·done=완료) | |
+| `fsub_open` | 세부 항목 접기(fsub) 펼침 — 복잡도 수요 신호 | |
+| `rentroll_upload` | 렌트롤 붙여넣기 인식(내용 비저장) | |
+| `im_quick_open` | IM 자동 인식(무키) 열기 | |
+| `im_quick` | IM 자동 인식 적용 | |
+| `im_open` | IM AI(BYOK) 추출 열기 | |
+| `im_extract` | IM AI 추출 완료(n=인식 필드 수) | |
+| `xlsx_restore` | 엑셀 라운드트립 복원 | |
+| `mydef_save` | 내 기본값 저장 | |
+| `mydef_apply` | 내 기본값 적용 | |
+| `house_set` | 하우스 기준 설정 | |
+| `house_apply` | 하우스 기준 적용(#h= 수신 포함) | |
+| `house_share` | 하우스 기준 배포 링크 생성 | |
+| `sens_axis` | 민감도 축 전환(axis=growth·rate) | |
+| `solver` | 손익분기 솔버 실행 | |
+| `method` | 방법론(산식) 모달 열기 | |
+| `dev_view` | 시행↔대주 관점 토글(v) | |
+| `compare` | 딜 비교 열기 | |
+| `cmp_copy` | 비교표 복사 | |
+| `adj_open` | 즉석 조정 바 열기(수동만 — 자동 오픈은 미집계) | |
+| `check_open` | 가정 적정성 점검표 열기 | |
+| `im_checklist_open` | IM 체크리스트 열기 | |
+| `im_checklist` | IM 체크리스트 복사 | |
+| `src_tag` | src 태그 달린 읽기 전용 공유 뷰 열람(뷰당 1회) | |
+| `recover_cta` | 읽기 전용 착지의 "내 딜로 계속" CTA 클릭(from=위치) | |
+| `qr_open` | QR 이어가기로 열림 | |
+| `rr_mask` | 공유 시 임차인명 자동 마스킹 동작 | |
+| `ws_open` | 딜 보관함 패널 열기 | |
+| `ws_save` | 딜로 저장(버전 기록) | |
+| `ws_status` | 딜 상태 태그 변경 | |
+| `ws_diff` | 두 버전 가정 diff | |
+| `slot_delete` | 보관함 삭제 | |
+| `coach_ok` | 코치마크 확인 | |
+| `tip_next` | 산출물 다음 단계 팁 클릭 | |
+| `ex_ack` | 예시값 잔존 경고 확인 | |
+| `nudge_save` | 저장 넛지 노출(computed 25초 후 1회) | |
+
+<!-- EVENTS:END -->
+
+## 5. 스냅샷 스키마 (`data/ae-snapshots/<날짜>.json`)
+
+`node tools/modelter-ae.js --snapshot`이 쓰기 전 검증(`validateSnap`)을 통과해야 저장된다(실패 시 exit 1).
+
+- **v2** (2026-07-10~): `schema: 2` + `botExcluded`(이 스냅샷의 분모가 봇 제외인지) 필드 추가. 필수 키: `endDate`(YYYY-MM-DD)·`week`(YYYY-Www)·`days`·`generatedAt`·`funnel{session,activate,computed,output 숫자}`·`events`(비어 있지 않음). 그 외 `deals`·`device`·`ref`·`feats`·`depth`·`src`·`attribution`·`daily`.
+- **v1** (schema 필드 부재 = 2026-07-09.json): 하위호환으로 그대로 읽는다 — **기존 스냅샷 원자료는 수정 금지.**
+
+### 계측 변경 이력 (판독 시 소급 참고)
+
+| 날짜 | 변경 | 판독 영향 |
+|---|---|---|
+| ~2026-07-07 | 계측 확장 배포 전 | daily에서 activate=0은 "없음"이 아니라 **미계측** |
+| 2026-07-09 | activate 미계측 6경로 수정(리파이 텀시트·분양 그리드 등) | 이전 활성화율(4.3%)은 과소 — 이후와 비교 금지 |
+| 2026-07-10 | `dr`(진짜 유입원)·`bot`(blob10)·사용성 v3 이벤트(fsub_open 등) 추가, 조회 기본 분모=봇 제외 | ref 채널 분해·봇 제외 분모는 이날 이후 데이터만 유효 |

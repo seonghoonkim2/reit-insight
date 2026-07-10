@@ -170,6 +170,18 @@ function isoWeek(d) {
   const wk = Math.ceil((((t - yStart) / 86400000) + 1) / 7);
   return t.getUTCFullYear() + '-W' + String(wk).padStart(2, '0');
 }
+const SNAP_SCHEMA = 2;   // 스냅샷 스키마 버전 — 필드 추가(additive)만, 제거·의미 변경 시 인상 + docs/METRICS.md 갱신
+// 쓰기 전 검증 — 깨진 스냅샷이 조용히 커밋돼 추세를 오염시키는 것을 차단(부재 필드 = v1 하위호환, 읽기는 관대하게)
+function validateSnap(snap) {
+  const errs = [];
+  for (const k of ['endDate', 'week', 'days', 'generatedAt', 'funnel', 'events']) if (snap[k] == null) errs.push('필수 키 누락: ' + k);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(snap.endDate))) errs.push('endDate 형식(YYYY-MM-DD) 위반: ' + snap.endDate);
+  if (!/^\d{4}-W\d{2}$/.test(String(snap.week))) errs.push('week 형식(YYYY-Www) 위반: ' + snap.week);
+  const f = snap.funnel || {};
+  for (const k of ['session', 'activate', 'computed', 'output']) if (typeof f[k] !== 'number' || !isFinite(f[k])) errs.push('funnel.' + k + ' 숫자 아님');
+  if (!snap.events || typeof snap.events !== 'object' || !Object.keys(snap.events).length) errs.push('events 비어 있음');
+  return errs;
+}
 async function writeSnapshot(data, daily, attribution) {
   const path = require('path'), fs = require('fs');
   const dir = path.join(__dirname, '..', 'data', 'ae-snapshots');
@@ -177,6 +189,7 @@ async function writeSnapshot(data, daily, attribution) {
   const end = new Date();
   const endDate = end.toISOString().slice(0, 10);
   const snap = {
+    schema: SNAP_SCHEMA, botExcluded: !FLAG_BOTS,   // 이 스냅샷의 분모가 봇 제외인지(2026-07-10 이후 기본 true)
     endDate, week: isoWeek(end), days: DAYS, generatedAt: end.toISOString(),
     funnel: funnelOf(data.events),
     events: data.events, deals: data.deals, device: data.device,
@@ -184,6 +197,8 @@ async function writeSnapshot(data, daily, attribution) {
     attribution: attribution || null,
     daily: daily || null,
   };
+  const errs = validateSnap(snap);
+  if (errs.length) { console.error('❌ 스냅샷 스키마 검증 실패 — 저장 안 함:\n  - ' + errs.join('\n  - ')); process.exit(1); }
   const file = path.join(dir, endDate + '.json');
   fs.writeFileSync(file, JSON.stringify(snap, null, 1));
   return path.relative(path.join(__dirname, '..'), file);
