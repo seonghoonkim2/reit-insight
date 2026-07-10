@@ -121,6 +121,35 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   ok(patSrc.includes("blob10 != '1'") && patSrc.includes('--include-bots'), '분모 위생: modelter-patterns.js 기본 봇 제외(+--include-bots 우회)');
 }
 
+/* ── 1l) 계측 사전(docs/METRICS.md) ↔ 코드 발화 이벤트 정확 일치 ──
+ *  이벤트명이 문서에 없으면(또는 문서에만 있으면) 판독 시 분모·의미를 잘못 읽는다.
+ *  코드(track/mtTrack 리터럴) = 진실, 문서는 정확 일치해야 배포 통과. */
+{
+  const metricsPath = path.join(__dirname, '..', 'docs', 'METRICS.md');
+  ok(fs.existsSync(metricsPath), '계측 사전: docs/METRICS.md 존재');
+  const md = fs.existsSync(metricsPath) ? fs.readFileSync(metricsPath, 'utf8') : '';
+  const codeEvents = [...new Set([...html.matchAll(/(?:mtTrack|track)\('([a-z_0-9]+)'/g)].map(m => m[1]))].sort();
+  ok(codeEvents.length >= 50, '계측 사전: 코드 이벤트 추출 50+ (' + codeEvents.length + '건 — 추출 정규식 파손 감지 하한)');
+  const secM = md.match(/<!-- EVENTS:BEGIN -->([\s\S]*?)<!-- EVENTS:END -->/);
+  ok(!!secM, '계측 사전: 이벤트 표 마커(EVENTS:BEGIN/END) 존재');
+  const docEvents = secM ? [...new Set([...secM[1].matchAll(/^\|\s*`([a-z_0-9]+)`/gm)].map(m => m[1]))].sort() : [];
+  const missingDoc = codeEvents.filter(e => !docEvents.includes(e));
+  const ghostDoc = docEvents.filter(e => !codeEvents.includes(e));
+  ok(missingDoc.length === 0, '계측 사전: 코드 발화 이벤트 전부 문서화 (누락: ' + (missingDoc.join(',') || '없음') + ')');
+  ok(ghostDoc.length === 0, '계측 사전: 문서에만 있는 유령 이벤트 없음 (초과: ' + (ghostDoc.join(',') || '없음') + ')');
+  // 네거티브 자기 검사 — 이 비교기가 가짜 이벤트를 실제로 잡는지(잡지 못하면 게이트 자체가 무의미)
+  ok([...docEvents, 'zz_fake_event'].filter(e => !codeEvents.includes(e)).length > 0, '계측 사전: 비교기 네거티브 자기 검사(가짜 이벤트 감지)');
+  // 산출물 정의 단일 진실 — labels.js OUTPUT_EVENTS 전부가 문서 표에 존재
+  try {
+    const { OUTPUT_EVENTS } = require(path.join(__dirname, 'modelter-labels'));
+    const outMissing = OUTPUT_EVENTS.filter(e => !docEvents.includes(e));
+    ok(outMissing.length === 0, '계측 사전: OUTPUT_EVENTS(산출물 12종) 전부 문서화 (누락: ' + (outMissing.join(',') || '없음') + ')');
+  } catch (e) { ok(false, '계측 사전: modelter-labels 로드 (' + e.message + ')'); }
+  ok(md.includes('blob10') && md.includes('봇 제외'), '계측 사전: 분모 규칙(봇 제외·blob10) 명시');
+  const aeSrc3 = fs.readFileSync(path.join(__dirname, 'modelter-ae.js'), 'utf8');
+  ok(aeSrc3.includes('SNAP_SCHEMA') && aeSrc3.includes('validateSnap') && aeSrc3.includes('botExcluded'), '스냅샷: 스키마 버전 + 쓰기 전 검증 + botExcluded 표시');
+}
+
 /* ── 1j) 사용성 v3(로그 기반) — 복잡도 다이어트·조정 바·위저드 발견성 ── */
 ok(html.includes('details.fsub') && html.includes('class="fsub"'), '사용성: 세부 항목 접기(fsub) 존재');
 ok((html.match(/adv:true/g) || []).length >= 20, '사용성: 세부 필드 지정(adv:true) 20+ (' + (html.match(/adv:true/g) || []).length + '곳)');
