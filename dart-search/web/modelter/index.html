@@ -163,7 +163,7 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .deal-tab{border:1px solid var(--line); background:var(--panel); cursor:pointer; font-family:var(--font); font-size:14.5px; font-weight:600; color:var(--ink-2); padding:9px 15px; border-radius:11px; transition:.16s; display:inline-flex; align-items:center; gap:7px; white-space:nowrap}
 .deal-tab:hover{border-color:var(--accent); color:var(--accent-deep)}
 .deal-tab.on{background:var(--ink); color:var(--panel); border-color:var(--ink)}
-.deal-tab .badge-base{font-size:10px; background:var(--accent-solid); color:var(--on-accent); padding:2px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
+.deal-tab .badge-base{font-size:10px; background:var(--line-soft); color:var(--ink-3); padding:2px 6px; border-radius:5px; font-weight:700; letter-spacing:.02em}
 .deal-tab.on .badge-base{background:var(--accent)}
 .deal-tab .badge-lite{font-size:10px; background:var(--bg); color:var(--muted); border:1px solid var(--line-soft); padding:1px 6px; border-radius:5px; font-weight:600}
 .deal-tab.deal-soon{opacity:.6; border-style:dashed; color:var(--muted); font-weight:500}
@@ -183,7 +183,7 @@ html,body{overflow-x:clip}
 .panel-head{padding:15px 20px; border-bottom:1px solid var(--line-soft); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
 .panel-head .t{font-size:14.5px; font-weight:700; letter-spacing:-.01em; display:flex; align-items:center; gap:8px; white-space:nowrap; flex:0 0 auto}
 .panel-head .t .dt{font-size:12.5px; font-weight:600; color:var(--accent-deep); background:rgba(169,121,43,.1); padding:3px 9px; border-radius:999px; white-space:nowrap}
-.panel-head .ex{border:1px dashed var(--accent); color:var(--accent-deep); background:transparent; cursor:pointer; font-family:var(--font); font-size:13px; font-weight:600; padding:7px 12px; border-radius:9px; transition:.18s; white-space:nowrap; flex:0 0 auto; line-height:1}
+.panel-head .ex{border:1px solid var(--line); color:var(--ink-2); background:transparent; cursor:pointer; font-family:var(--font); font-size:13px; font-weight:600; padding:7px 12px; border-radius:9px; transition:.18s; white-space:nowrap; flex:0 0 auto; line-height:1}
 .panel-head .ex:hover{background:rgba(169,121,43,.07)}
 .ph-actions{display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; flex:1 1 auto}
 .panel-head .ex.ghost{border-style:solid; border-color:var(--line); color:var(--ink-3); display:inline-flex; align-items:center; gap:5px}
@@ -199,7 +199,8 @@ html,body{overflow-x:clip}
 /* field groups */
 .fgroup{border-bottom:1px solid var(--line-soft); padding:16px 0}
 .fgroup:last-child{border-bottom:none}
-.fgroup-h{font-size:12.5px; font-weight:700; color:var(--accent); letter-spacing:.04em; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px}
+.fgroup-h{font-size:12.5px; font-weight:700; color:var(--ink-2); letter-spacing:.04em; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px}
+.fgroup-h .gl{color:var(--accent-deep)}
 .fgroup-h .gl{font-family:var(--serif); font-size:14.5px; opacity:.8}
 .gh-cnt{font-size:10.5px; font-weight:700; color:var(--muted); background:var(--bg); border:1px solid var(--line-soft); border-radius:999px; padding:1px 7px; letter-spacing:0}
 .gh-cnt.full{color:var(--green); border-color:rgba(47,125,87,.35)}
@@ -226,7 +227,7 @@ html,body{overflow-x:clip}
 .tranche-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:0}
 .tranche-name{display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--ink)}
 .tranche-name .seniority{font-size:10.5px; font-weight:600; color:#fff; padding:2px 7px; border-radius:5px; letter-spacing:.02em}
-.sr-senior{background:#315f75} .sr-mezz{background:#a65f2b} .sr-pref{background:#8a6d2b} .sr-equity{background:#2e7d5b}
+.sr-senior,.sr-mezz,.sr-pref,.sr-equity{background:var(--ink-3)}
 .tg{position:relative; width:38px; height:21px; flex-shrink:0}
 .tg input{opacity:0; width:0; height:0; position:absolute}
 .tg .track{position:absolute; inset:0; background:var(--line); border-radius:999px; transition:.2s; cursor:pointer}
@@ -240,7 +241,7 @@ html,body{overflow-x:clip}
 .stack-hint{font-size:12.5px; color:var(--muted); margin-top:4px; line-height:1.45}
 .stack-sum{font-size:13px; font-weight:600; margin-top:8px; padding:7px 10px; border-radius:8px; background:var(--panel); border:1px solid var(--line-soft); display:flex; justify-content:space-between}
 .stack-sum.bad{border-color:var(--red); color:var(--red)}
-.stack-sum.ok{border-color:var(--green); color:var(--green)}
+.stack-sum.ok{border-color:var(--line); color:var(--ink-2)}
 
 /* model depth segmented control */
 .depth-pick{background:linear-gradient(180deg,#fbf8f1,#f3efe6); border:1px solid var(--line); border-radius:12px; padding:9px 12px; margin-bottom:16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
@@ -484,11 +485,14 @@ header{background:rgba(253,252,249,.82)}
 .metrics{background:var(--panel); border:1px solid var(--line); border-radius:18px; box-shadow:var(--soft); padding:16px 18px; margin-bottom:14px}
 .mx-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
 .mx-t{font-size:14px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px}
-.mx-sub{font-size:11.5px; font-weight:600; color:var(--accent-deep); background:rgba(169,121,43,.12); padding:2px 9px; border-radius:999px}
+.mx-sub{font-size:11.5px; font-weight:600; color:var(--ink-3); background:var(--line-soft); padding:2px 9px; border-radius:999px}
 .mx-flag{font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:999px; white-space:nowrap}
-.mx-flag.ok{color:var(--green); background:rgba(47,125,87,.13)}
+#mxFold>summary{cursor:pointer; list-style:none} #mxFold>summary::-webkit-details-marker{display:none}
+#mxFold>summary .mx-t::after{content:'▸'; font-size:11px; color:var(--muted); margin-left:7px; vertical-align:1px}
+#mxFold[open]>summary .mx-t::after{content:'▾'}
+.mx-flag.ok{color:var(--ink-3); background:var(--line-soft)}
 .mx-flag.bad{color:var(--red); background:rgba(187,70,48,.13)}
-.prt-flag{display:inline-flex; align-items:center; gap:5px; color:var(--accent-deep); background:rgba(169,121,43,.13); padding:3px 9px 3px 8px}
+.prt-flag{display:inline-flex; align-items:center; gap:5px; color:var(--ink-3); background:var(--line-soft); padding:3px 9px 3px 8px}
 .prt-flag svg{width:13px; height:13px; fill:currentColor; flex-shrink:0}
 .prt-flag .prt-lab{letter-spacing:-.01em}
 .prt-flag .prt-q{background:rgba(134,96,31,.24); color:var(--accent-deep)}
@@ -499,7 +503,7 @@ header{background:rgba(253,252,249,.82)}
 .mx-item{display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:7px 0; border-bottom:1px solid var(--line-soft)}
 .mx-l{font-size:13.5px; color:var(--ink-2); display:flex; align-items:center; gap:5px; line-height:1.3}
 .mx-v{font-size:15px; font-weight:700; color:var(--ink); font-family:var(--mono); white-space:nowrap; text-align:right}
-.mx-est{font-size:9.5px; font-weight:700; color:var(--accent-deep); background:rgba(169,121,43,.13); padding:1px 5px; border-radius:4px}
+.mx-est{font-size:9.5px; font-weight:700; color:var(--muted); background:var(--line-soft); padding:1px 5px; border-radius:4px}
 .help.sm{width:13px; height:13px; font-size:9px}
 .mx-warn{margin:0 0 11px; display:flex; flex-direction:column; gap:6px}
 .mx-warn:empty{display:none}
@@ -596,7 +600,7 @@ header{background:rgba(253,252,249,.82)}
 .adj-sub{font-weight:500; color:var(--muted); font-size:11px; margin-left:6px}
 .adj-row{display:flex; align-items:center; gap:8px; margin:9px 0}
 .adj-l{min-width:104px; font-size:12.5px; font-weight:600; color:var(--ink-2)}
-.adj-b{width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--panel); font-size:17px; font-weight:800; color:var(--accent-deep); cursor:pointer; line-height:1}
+.adj-b{width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--panel); font-size:17px; font-weight:800; color:var(--ink-2); cursor:pointer; line-height:1}
 .adj-b:active{transform:scale(.94)}
 .adj-v{min-width:92px; text-align:center; font-weight:800; font-variant-numeric:tabular-nums; font-size:13.5px}
 .adj-step{font-size:11px; color:var(--muted)}
@@ -736,7 +740,7 @@ header{background:rgba(253,252,249,.82)}
 .sim-kpi.warn{border-color:rgba(187,70,48,.35)}
 .sk-l{font-size:12px; color:var(--ink-2); margin-bottom:3px; line-height:1.2}
 .sk-v{font-size:22px; font-weight:800; color:var(--ink); font-family:var(--mono); line-height:1}
-.sim-kpi.good .sk-v{color:var(--green)}
+.sim-kpi.good .sk-v{color:var(--ink)}
 .sim-kpi.warn .sk-v{color:var(--red)}
 .sim-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 16px; margin-top:8px}
 .sim-rec{font-size:13.5px; font-weight:700; color:var(--green); margin:2px 0 8px}
@@ -902,9 +906,9 @@ html,body{overflow-x:hidden}
 }
 
 /* 렌트롤 업로드 — 운영수입 섹션 내 진입 블록 */
-.rr-fb{margin-top:6px; padding:12px 13px; border:1px dashed var(--accent); border-radius:11px; background:rgba(169,121,43,.05)}
+.rr-fb{margin-top:6px; padding:12px 13px; border:1px solid var(--line); border-radius:11px; background:var(--bg)}
 .rr-fb.on{border-style:solid; border-color:rgba(47,125,87,.42); background:rgba(47,125,87,.055)}
-.rr-fb-h{font-size:12.5px; font-weight:800; color:var(--accent-deep); display:flex; align-items:center; gap:6px; letter-spacing:0; text-transform:none}
+.rr-fb-h{font-size:12.5px; font-weight:800; color:var(--ink-2); display:flex; align-items:center; gap:6px; letter-spacing:0; text-transform:none}
 .rr-fb.on .rr-fb-h{color:var(--green)}
 .rr-fb-ic{font-size:14px; line-height:1}
 .rr-fb-ic.ok{width:17px; height:17px; border-radius:50%; background:var(--green); color:#fff; font-size:11px; display:inline-flex; align-items:center; justify-content:center; font-weight:900}
@@ -956,8 +960,8 @@ html,body{overflow-x:hidden}
 .trn-row{display:grid; grid-template-columns:1.3fr .7fr 1fr 1fr 1fr; align-items:center; gap:6px; padding:9px 12px; border-bottom:1px solid var(--line-soft); border-left:3px solid transparent}
 .trn-row:last-child{border-bottom:none}
 .trn-sen{border-left-color:var(--ink-3); background:rgba(120,120,120,.03)}
-.trn-pref{border-left-color:var(--blue); background:rgba(58,90,120,.045)}
-.trn-com{border-left-color:var(--accent-solid); background:rgba(169,121,43,.05)}
+.trn-pref{border-left-color:var(--ink-3)}
+.trn-com{border-left-color:var(--accent-solid)}
 .trn-n{display:flex; flex-direction:column; line-height:1.15}
 .trn-n b{font-size:15px; font-weight:800; color:var(--ink)}
 .trn-n i{font-size:11.5px; font-style:normal; color:var(--muted); font-weight:600}
@@ -966,8 +970,7 @@ html,body{overflow-x:hidden}
 .trn-m{display:flex; flex-direction:column; align-items:flex-end; line-height:1.15}
 .trn-m b{font-family:var(--mono); font-size:15px; font-weight:800; color:var(--ink)}
 .trn-m i{font-size:11px; font-style:normal; color:var(--muted); font-weight:600; margin-top:1px}
-.trn-pref .trn-m b,.trn-pref .trn-n b{color:var(--blue)}
-.trn-com .trn-m:nth-of-type(4) b{color:var(--accent-deep)}
+/* 트랜치 값은 중립 — 정체성은 라벨·좌측 보더가 전달(색 절제) */
 .trn-m.muted b{color:var(--ink-3); font-family:var(--font); font-weight:700; font-size:12px}
 .trn-m.muted i{color:var(--line)}
 @media(max-width:520px){
@@ -1000,7 +1003,7 @@ html,body{overflow-x:hidden}
 .wn-ic{flex:0 0 auto; width:34px; height:34px; border-radius:9px; background:var(--bg); border:1px solid var(--line-soft); display:flex; align-items:center; justify-content:center; font-size:17px}
 .wn-list li>div{display:flex; flex-direction:column; gap:2px}
 .wn-list li b{font-size:14px; font-weight:800; color:var(--ink)}
-.wn-tag{font-size:9px; font-weight:800; letter-spacing:.03em; color:var(--on-accent); background:var(--accent-solid); padding:1px 5px; border-radius:4px; margin-left:5px; vertical-align:middle}
+.wn-tag{font-size:9px; font-weight:800; letter-spacing:.03em; color:var(--accent-deep); background:transparent; border:1px solid var(--line); padding:1px 5px; border-radius:4px; margin-left:5px; vertical-align:middle}
 .wn-list li>div span{font-size:12.5px; color:var(--ink-2); line-height:1.45}
 .wn-cta{display:block; width:100%; border:none; border-radius:11px; background:var(--accent-solid); color:var(--on-accent); font-family:var(--font); font-size:14.5px; font-weight:700; padding:13px; cursor:pointer; box-shadow:0 4px 14px rgba(143,98,32,.3); transition:.15s}
 .wn-cta:hover{filter:brightness(1.07)}
@@ -1200,8 +1203,10 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .wiz-kpi span{font-size:11px; color:var(--muted)}
 .wiz-note{font-size:12.5px; color:var(--ink-3); line-height:1.55; margin-top:8px}
 /* ── IM 가정 추출 (BYOK) ── */
-.im-entry{display:flex; align-items:center; gap:10px; flex-wrap:wrap; border:1px dashed var(--line); border-radius:11px; padding:9px 12px; margin:0 0 14px; background:var(--bg)}
-.im-btn{border:1px solid var(--accent); background:none; color:var(--accent-deep); font-family:var(--font); font-weight:700; font-size:13px; padding:7px 13px; border-radius:9px; cursor:pointer; white-space:nowrap}
+.im-entry{display:flex; align-items:center; gap:10px; flex-wrap:wrap; border:1px solid var(--line-soft); border-radius:11px; padding:9px 12px; margin:6px 0 4px; background:var(--bg)}
+details.imfold{border:1px solid var(--line-soft); border-radius:10px; background:var(--bg); margin:0 0 14px}
+details.imfold[open]>summary .chev{transform:rotate(180deg)}
+.im-btn{border:1px solid var(--line); background:none; color:var(--ink-2); font-family:var(--font); font-weight:700; font-size:13px; padding:7px 13px; border-radius:9px; cursor:pointer; white-space:nowrap}
 .im-btn:hover{background:rgba(169,121,43,.08)}
 .im-btn i{font-style:normal; font-size:10px; background:var(--accent-solid); color:var(--on-accent); border-radius:4px; padding:1px 4px; margin-left:3px; vertical-align:1px}
 .im-note{font-size:11.5px; color:var(--muted); line-height:1.45; flex:1; min-width:220px}
@@ -1546,10 +1551,12 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> — 받는 사람이 클릭·스캔 한 번으로 라이브 모델에 이어집니다. 링크에는 화면의 가정 수치가 담기며(임차인 실명은 자동 마스킹) 파일 자체와 같은 정보입니다.</span></label>
       </div>
       <div class="metrics" id="metricsCard" hidden>
-        <div class="mx-head"><span class="mx-t">즉시 점검 <span class="mx-sub">입력값 기반</span></span><span class="mx-flag" id="mxFlag"></span></div>
-        <div class="mx-warn" id="mxWarn"></div>
-        <div class="mx-grid" id="mxGrid"></div>
-        <div class="mx-foot" id="mxFoot"></div>
+        <details id="mxFold">
+          <summary class="mx-head"><span class="mx-t">즉시 점검 <span class="mx-sub">입력값 기반</span></span><span class="mx-flag" id="mxFlag"></span></summary>
+          <div class="mx-warn" id="mxWarn"></div>
+          <div class="mx-grid" id="mxGrid"></div>
+          <div class="mx-foot" id="mxFoot"></div>
+        </details>
       </div>
       <div class="metrics" id="sensCard" hidden>
         <div class="mx-head"><span class="mx-t" id="sensTitle">민감도</span><span class="mx-sub">1변수 스윕</span></div>
@@ -1930,7 +1937,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-10·2582cc2f8b';
+window.MT_BUILD='2026-07-10·2c43ebf23a';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2296,7 +2303,7 @@ function renderForm(){
   let html=depthHtml();  // 깊이 선택을 폼 최상단에
   // IM 가정 추출(BYOK) — 매입 딜 전용, 읽기 전용에서는 숨김
   if(rrEligible && !(document.body&&document.body.classList.contains('mt-ro')))
-    html+='<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키·문서 전송 없이 이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 — 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>키·전송 없이</b> 매입가·임대료·Exit Cap 등을 자동 인식해 채웁니다. 복잡한 문서는 AI 정밀 추출(본인 키)로 보완할 수 있습니다.</span></div>';
+    html+='<details class="fsub imfold"><summary>📥 IM에서 숫자 가져오기 — 붙여넣기 자동 인식 · AI 정밀(β)<span class="chev">▾</span></summary>'+'<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키·문서 전송 없이 이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 — 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>키·전송 없이</b> 매입가·임대료·Exit Cap 등을 자동 인식해 채웁니다. 복잡한 문서는 AI 정밀 추출(본인 키)로 보완할 수 있습니다.</span></div>'+'</details>';
   if(isQuick){
     // 빠른 검토: 핵심 필드만 한 그룹으로 모아 노출
     const allFields=[];
@@ -2388,6 +2395,7 @@ function renderForm(){
   });
   // 세부 항목(fsub) 펼침 계측 — 접기의 발견성·수요를 다음 판독에서 확인
   $("formBody").querySelectorAll("details.fsub").forEach(dt=>{
+    if(dt.classList.contains("imfold")) return;   // IM 접기는 fsub 지표에서 제외(관심은 im_* 이벤트가 계측)
     dt.addEventListener("toggle",()=>{ if(dt.open&&window.mtTrack){ try{ mtTrack('fsub_open'); }catch(e){} } });
   });
 }
@@ -2841,6 +2849,7 @@ function renderMetrics(){
   var ck=mtChecks(); var nErr=ck.filter(function(c){return c.sev==='error';}).length;
   $('mxWarn').innerHTML=ck.length?ck.map(function(c){return '<div class="mx-w'+(c.sev==='error'?' err':'')+'">'+(c.sev==='error'?'⛔':'⚠')+' '+esc(c.msg)+'</div>';}).join(''):'';
   var flag=$('mxFlag'); flag.textContent=nErr?(nErr+'개 오류'):(ck.length?(ck.length+'개 점검 필요'):'이상 없음'); flag.className='mx-flag '+(ck.length?'bad':'ok');
+  try{ var _mf=$('mxFold'); if(_mf && !_mf.__user){ var _want=(nErr>0)||(ck.length>0); if(_mf.open!==_want){ _mf.__auto=true; _mf.open=_want; } } }catch(e){}
   var d=DEALS[cur], total=0, filled=0; d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='select') return; total++; if((state[f.k]||'').trim()!=='') filled++; }); });
   var empty=total-filled; var comp=(empty>0)?('미입력 '+empty+'개는 기본 가정값으로 채워 계산합니다.'):'핵심 입력이 모두 채워졌습니다.';
   $('mxFoot').textContent=(r.note?(r.note+'  ·  '):'')+comp;
@@ -11229,6 +11238,7 @@ var qrcode = function() {
     }catch(e){}
   }
   window.mtTrack=track;
+  try{ var _mxf=document.getElementById('mxFold'); if(_mxf) _mxf.addEventListener('toggle',function(){ if(_mxf.__auto){ _mxf.__auto=false; return; } _mxf.__user=true; }); }catch(e){}
   // 퍼널 신호(세션당 1회): session(방문) → activate(직접 입력) → computed(자기 딜 결과 도달) → 산출물
   var actFired=false, compFired=false;
   window.__mtActivate=function(){ if(actFired) return; actFired=true; try{ track('activate'); }catch(e){} };
