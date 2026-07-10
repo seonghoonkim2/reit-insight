@@ -284,8 +284,35 @@ async function closeOverlays(page) {
     await ctx.close();
   }
 
-  // ── [9] 배포 안전: 테스트 훅 부재 + 전송량 예산 ──
-  console.log('\n[9] 배포 안전');
+  // ── [9] 방법론 모달 — '내 숫자 대입'이 화면 KPI 문자열과 일치 (4딜, 모달 내 재계산 금지 검증) ──
+  console.log('\n[9] 방법론 모달 대입 파리티');
+  {
+    const { ctx, page } = await fresh(browser);
+    await page.goto(URL0); await page.waitForTimeout(700); await closeOverlays(page);
+    for (const deal of ['office', 'logistics', 'dev', 'refi']) {
+      await page.evaluate(d => { cur = d; fillExample(); update(); }, deal);
+      await page.waitForTimeout(400);
+      await page.evaluate(() => document.getElementById('mdOpen').click());
+      const r = await page.evaluate(() => {
+        const sec = document.getElementById('mdMineSec');
+        const rows = [...document.querySelectorAll('#mdMineBody .md-f[data-kpi]')].map(el => ({ k: el.getAttribute('data-kpi'), v: el.getAttribute('data-v') }));
+        const kmap = {};
+        document.querySelectorAll('#simCard .sim-kpi').forEach(t => { const l = t.querySelector('.sk-l'), v = t.querySelector('.sk-v'); if (l && v) kmap[l.textContent.replace(/\?$/, '').trim()] = v.textContent.trim(); });
+        document.querySelectorAll('#simCard .mx-item').forEach(t => { const l = t.querySelector('.mx-l'), v = t.querySelector('.mx-v'); if (l && v) kmap[l.textContent.replace(/\?$/, '').trim()] = v.textContent.trim(); });
+        const m = (typeof simModel === 'function') ? simModel() : null;
+        const emap = {}; if (m && m.kpis) m.kpis.forEach(k => emap[k.l] = k.v);
+        return { hidden: sec ? sec.hidden : null, rows, kmap, emap };
+      });
+      await page.evaluate(() => document.getElementById('mdClose').click());
+      if (deal === 'refi') { ok(r.hidden === true && r.rows.length === 0, 'refi: 대입 섹션 숨김(비교표 딜)'); continue; }
+      const mm = r.rows.filter(row => (r.kmap[row.k] != null ? r.kmap[row.k] : r.emap[row.k]) !== row.v);
+      ok(r.hidden === false && r.rows.length >= 3 && mm.length === 0, deal + ': 모달 대입 ' + r.rows.length + '개 == 화면 KPI 문자열' + (mm.length ? (' (불일치 ' + mm.map(x => x.k).join(',') + ')') : ''));
+    }
+    await ctx.close();
+  }
+
+  // ── [10] 배포 안전: 테스트 훅 부재 + 전송량 예산 ──
+  console.log('\n[10] 배포 안전');
   {
     const html = fs.readFileSync(path.join(WEB, 'index.html'), 'utf8');
     ok(!html.includes('__mtCalc'), '__mtCalc 훅 없음');

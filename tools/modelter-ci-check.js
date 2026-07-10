@@ -250,7 +250,28 @@ if (fs.existsSync(path.join(DIR, 'verification.html'))) {
   ok(/rel="canonical" href="https:\/\/modelter\.com\/verification"/.test(vf), '재현성: verification canonical');
   ok(vf.includes('gen-xlsx.js') && vf.includes('check.py') && vf.includes('formulas'), '재현성: verification 재현 절차(gen-xlsx·check.py·formulas)');
   ok(vf.includes('빌드 <b>'), '재현성: verification 빌드 식별자 표기');
+  // "전 딜 파리티" 표현의 정직성 — 공개 표에 4딜(리파이 포함) 전부 존재해야 함
+  ok(vf.includes('오피스 매입') && vf.includes('물류센터 매입') && vf.includes('분양 사업수지') && vf.includes('리파이낸싱 비교'), '재현성: verification 표에 4딜 전부(리파이 포함)');
+  const chk = fs.readFileSync(path.join(__dirname, 'parity', 'check.py'), 'utf8');
+  ok(chk.includes("'refi'") && chk.includes('02_Term_Sheets'), '재현성: check.py가 refi 셀 검증 지원(전 딜 파리티 실검증)');
 }
+/* 산출물 개수 문구 ↔ 코드 진실 정합 (vNext 문제 H) — 페이지마다 다른 장수/시트 수 표기를 차단 */
+{
+  const icM = html.match(/raw=r\.raw\|\|\{\},\s*total=(\d+)/);   // ICPPT 실제 슬라이드 수
+  ok(!!icM, '메타 정합: ICPPT total=N 슬라이드 수 파싱');
+  if (icM) {
+    const n = icM[1];
+    const claims = [...html.matchAll(/IC 패키지 (\d+)장/g)].map(m => m[1]);
+    ok(claims.length > 0 && claims.every(c => c === n), '메타 정합: 앱 "IC 패키지 N장" 문구 전부 코드와 일치 (' + n + '장, ' + claims.length + '곳)');
+    const hw2 = fs.existsSync(path.join(DIR, 'howto.html')) ? fs.readFileSync(path.join(DIR, 'howto.html'), 'utf8') : '';
+    const hwClaims = [...hw2.matchAll(/(\d+)장짜리 IC|IC 패키지[^0-9]{0,6}(\d+)장/g)].map(m => m[1] || m[2]);
+    ok(hwClaims.every(c => c === n), '메타 정합: howto의 IC 장수 표기 일치 (' + (hwClaims.join(',') || '언급 없음') + ')');
+  }
+  // 분양 워크북 시트 수 — 앱 내 표기가 서로 일치해야 함(코드 주석 포함)
+  const devSheets = [...html.matchAll(/분양 사업수지[^(]{0,10}\((\d+)시트/g)].map(m => m[1]);
+  ok(devSheets.length === 0 || devSheets.every(c => c === devSheets[0]), '메타 정합: 분양 워크북 시트 수 표기 상호 일치 (' + devSheets.join(',') + ')');
+}
+
 // 빌드 스탬프 무결성 — 스탬프됐다면 콘텐츠 해시와 일치해야 함(스탬프 후 변조 방지). DEV(미스탬프)는 통과.
 {
   let stampOK = true, stampMsg = '';

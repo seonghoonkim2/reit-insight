@@ -1323,18 +1323,24 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
     <h3 id="mdTitle">화면 수치는 이렇게 계산됩니다</h3>
     <p class="md-sub">스크리닝 도구는 가정이 투명해야 믿고 쓸 수 있습니다. 화면 계산에 쓰인 식과 가정을 그대로 공개합니다.</p>
 
+    <div class="md-sec" id="mdMineSec" hidden>
+      <h4>지금 내 딜로 보면 — <span id="mdMineDeal"></span></h4>
+      <div id="mdMineBody"></div>
+      <p class="md-sub">위 수치는 화면 결과 카드와 <b>같은 엔진 계산값을 그대로</b> 가져온 것입니다(이 창에서 재계산하지 않음). 내려받는 엑셀·PPT도 같은 값입니다.</p>
+    </div>
+
     <div class="md-sec">
       <h4>오피스 · 물류 — 레버드 DCF</h4>
       <p>취득부터 매각까지 자기자본 현금흐름을 전개해 IRR·Equity Multiple·배당수익률을 산출합니다.</p>
       <div class="md-f"><b>총 투자액</b> = 매입가 × (1 + 취득세율 + 취득부대비율)</div>
-      <div class="md-f"><b>1차연도 NOI</b> = (임대료 + 관리비)/㎡ × 연면적 × 12 × 순영업이익률<br>순영업이익률: 오피스 65% · 물류 85% (임대료 기반 입력 시) — NOI 직접입력도 가능</div>
+      <div class="md-f"><b>1차연도 NOI</b> = 유효조소득(EGI) − 운영비(항목별)<br>EGI = 평당 월 임대료 × <b>임대가능면적</b>(연면적 × 오피스 88% · 물류 97%) × 12 × 임대율(1−공실률) + 관리비 수입 + 기타 수입 + 보증금 운용수익<br>운영비 = 재산세·보험·수도광열·수선유지·경비미화·PM·기타 (항목별 단가·증가율, 엑셀 03_NOI 시트와 동일)<br><b>NOI 직접 입력</b> 시: 목표 NOI가 나오는 평당 임대료로 환산해 반영(관리비 0 처리)</div>
       <div class="md-f"><b>연차별 NOI</b> = 1차연도 NOI × (1 + NOI 성장률)^(연차 − 1)</div>
       <div class="md-f"><b>매각가</b> = 매각 다음해(forward) NOI ÷ Exit Cap　·　<b>순매각가</b> = 매각가 × (1 − 매각수수료)</div>
       <div class="md-f"><b>매각 순회수(Y5)</b> = 순매각가 − 대출잔액 − 중도상환수수료 − 매각성과보수<br>중도상환수수료 = 대출잔액 × 율　·　매각성과보수 = max(0, 순매각가 − 총투자액) × 율 (둘 다 기본 0)</div>
       <div class="md-f"><b>자기자본</b> = 총 투자액 − 대출 − 우선주 − 보증금 승계 (잔액 plug)<br>보증금 승계 = 임차인 보증금(무이자)을 취득자금으로 사용 → 자기자본 절감, 매각 시 성장 반영해 정산 (선택, 기본 반영)</div>
       <div class="md-f"><b>운용보수·고정비</b> = 취득가 × 운용보수율(기본 0.4%) + 기타 고정비 → 매 기간 배당재원에서 차감</div>
-      <div class="md-f"><b>DSCR</b> = NOI ÷ (이자 + 원금상환)　상환방식: 만기일시 · 원리금균등 · 원금균등</div>
-      <div class="md-f"><b>레버드 IRR</b> = 자기자본 현금흐름의 내부수익률(이분법)<br><b>Equity Multiple</b> = 총회수 ÷ 자기자본　·　<b>평균 배당수익률</b> = 보유 중 연 자기자본 CF ÷ 자기자본<br><b>언레버드 IRR</b> = 무차입 기준(−총투자액, 연 NOI, 매각연도 +순매각가)</div>
+      <div class="md-f"><b>DSCR</b> = NOI ÷ (이자 + 원금상환)　상환방식: 만기일시 · 원리금균등 · 원금균등<br>분자는 <b>NOI 기준</b>(자본적지출·레징비용 차감 전) — 대주 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.</div>
+      <div class="md-f"><b>레버드 IRR</b> = 자기자본 현금흐름의 내부수익률(이분법)<br><b>Equity Multiple</b> = 총회수 ÷ 자기자본　·　<b>평균 배당수익률</b> = 보유 중 연 자기자본 CF ÷ <b>초기 자기자본</b>(매각 회수 제외, 운영 배당만)<br><b>언레버드 IRR</b> = 무차입 기준(−총투자액, 연 NOI, 매각연도 +순매각가)</div>
     </div>
 
     <div class="md-sec">
@@ -1354,7 +1360,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
       <div class="md-f"><b>② 판매 곡선과 납부(Cash-in)</b> — 분양 개시월에 초기 계약률만큼 계약되고, 잔여분은 흡수기간에 균등 판매됩니다. 각 계약(코호트)은 <b>계약금 즉시 → 중도금 회차 시점(분양개시~준공 균등 배치, 늦은 계약분은 경과 회차를 계약 시 일괄 납부) → 잔금 준공월</b> 순으로 현금화됩니다. 상업시설도 같은 납부 일정을 따릅니다.</div>
       <div class="md-f"><b>③ 지출(Cash-out)</b> — 토지비+취득 제세(착수 일괄) · 도급 공사비+설계감리·예비비(공사기간 균등 기성) · 기타 고정비(사업기간 균등) · 분양보증 수수료(개시월 일괄) · 판매비(계약 발생 연동) · 중도금 무이자 시 시행 대납이자(중도금 납부 누적액 × 대출금리, 준공까지).</div>
       <div class="md-f"><b>④ 조달 — 브릿지 → 본PF</b> — 자기자본을 먼저 투입하고, 부족 자금은 차입으로 자동 인출합니다. 착공 전(선행기간)에는 <b>브릿지 금리</b>, 착공 후에는 <b>본PF 금리</b>가 적용되며 착공 시점에 잔액이 본PF로 차환(승계)됩니다. 잉여현금은 차입을 자동 상환하고, 이자는 잔액에 월할로 붙습니다(부족 시 재원도 차입 = 이자 유보 효과).</div>
-      <div class="md-f"><b>⑤ 지표</b> — 사업이익률 = 사업이익 ÷ 분양수입(세전). 필요 브릿지/본PF 한도 = 구간별 최대 인출 잔액. Equity Multiple = 자기자본 회수액 ÷ 투입액, 연환산 IRR = EM^(12/사업개월) − 1. <b>손익분기 분양률</b>(이익 0)과 <b>PF 상환한계 분양률</b>(차입 전액 상환 가능 최소 분양률)은 분양률만 바꿔 엔진을 반복 계산(이분법)해 구합니다.</div>
+      <div class="md-f"><b>⑤ 지표</b> — 사업이익률 = 사업이익 ÷ 분양수입(세전). 필요 브릿지/본PF 한도 = 구간별 최대 인출 잔액. Equity Multiple = 자기자본 회수액 ÷ 투입액, 연환산 IRR = EM^(12/사업개월) − 1 (자기자본 <b>전액 초기 투입 → 종료 일괄 정산</b> 가정 — 이 2점 현금흐름에서는 월별 현금흐름 IRR과 수학적으로 동일. 중간 배당을 모델링하면 달라질 수 있음). <b>손익분기 분양률</b>(이익 0)과 <b>PF 상환한계 분양률</b>(차입 전액 상환 가능 최소 분양률)은 분양률만 바꿔 엔진을 반복 계산(이분법)해 구합니다.</div>
       <div class="md-f"><b>단순화</b> — 토지비 계약금·잔금 2회 분할 · 기성 곡선(균등/S-커브 선택) · 상업시설 균등 판매 · 브릿지 차환 수수료 없음 · 세전 기준(법인세·종부세 미반영). 같은 계산식의 <b>분양수지 엑셀(수식 연결)</b>로 내려받아 검증할 수 있습니다.</div>
     </div>
 
@@ -1533,9 +1539,9 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
         <div id="simBody"></div>
         <div class="sim-cav" id="simCaveat"></div>
         <div class="dl-row" id="dlRow" hidden>
-          <button class="xl-dl" id="xlDownload" type="button">⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span></button>
+          <button class="xl-dl" id="xlDownload" type="button" title="숨김 계산·복원 시트 포함 기준. 렌트롤 반영 시 집계·임차인별 시트가 추가됩니다">⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span></button>
           <button class="xl-dl tz-dl" id="tzDownload" type="button" title="현재 입력값으로 1장짜리 간이 검토 보고서(PPT 양식)를 만듭니다">📄 원페이지 티저 <span class="xl-ext">.pptx</span></button>
-          <button class="xl-dl tz-dl" id="icDownload" type="button" title="표지·투자요약·핵심가정·현금흐름·민감도·리스크점검 6장 — 화면 결과 그대로, 재계산 없음">📑 IC 패키지 6장 <span class="xl-ext">.pptx</span></button>
+          <button class="xl-dl tz-dl" id="icDownload" type="button" title="표지·투자요약·자본구조·핵심가정·현금흐름·민감도·리스크점검 7장 — 화면 결과 그대로(민감도 표만 동일 엔진으로 재산출)">📑 IC 패키지 7장 <span class="xl-ext">.pptx</span></button>
         </div>
         <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> — 받는 사람이 클릭·스캔 한 번으로 라이브 모델에 이어집니다. 링크에는 화면의 가정 수치가 담기며(임차인 실명은 자동 마스킹) 파일 자체와 같은 정보입니다.</span></label>
       </div>
@@ -1647,7 +1653,7 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
           <span>상업용 부동산 금융 9년차 · 상장리츠 · PF · 구조화금융 · <a href="https://www.linkedin.com/in/seonghoonk/" target="_blank" rel="noopener">LinkedIn</a></span>
         </div>
       </div>
-      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 2026-07-02</p>
+      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 <span id="footUpd"></span></p>
       <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
       <p class="foot-guide"><a href="/guide">부동산 금융 용어사전</a> · <a href="/howto">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a> · <a href="/trust">보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다</a> · <a href="/verification">파리티 검증 — 화면=엑셀 재현 증거</a></p>
     </div>
@@ -1733,7 +1739,7 @@ const SHEET_INFO={
 /* ---------- 자본구조 트랜치 (공통 컴포넌트) ---------- */
 const TRANCHES=[
  {id:"senior",name:"선순위 대출",sr:"SENIOR",cls:"sr-senior",on:true,ltv:"55",rate:"4.2",rateLabel:"금리",extra:{label:"상환방식",type:"select",opts:["만기일시","원리금균등","원금균등","거치후 원리금균등"]}},
- {id:"mezz",name:"중순위 (메자닌)",sr:"MEZZ",cls:"sr-mezz",on:false,ltv:"10",rate:"8.0",rateLabel:"금리",extra:{label:"상환방식",type:"select",opts:["만기일시상환","이자만 지급"]}},
+ {id:"mezz",name:"중순위 (메자닌) · 계산 미반영(메모용)",sr:"MEZZ",cls:"sr-mezz",on:false,ltv:"10",rate:"8.0",rateLabel:"금리",extra:{label:"상환방식",type:"select",opts:["만기일시상환","이자만 지급"]}},
  {id:"pref",name:"우선주",sr:"PREF",cls:"sr-pref",on:true,ltv:"30",rate:"6.0",rateLabel:"요구 CoC",extra:{label:"우선배당",type:"select",opts:["누적적","비누적적"]}},
  {id:"common",name:"보통주 자기자본",sr:"EQUITY",cls:"sr-equity",on:true,ltv:"15",rate:"",extra:null,equity:true}
 ];
@@ -1754,8 +1760,8 @@ const DEALS={
     ]},
     {h:"운영 수입", gl:"②", adv:1, f:[
       {k:"noimode",l:"입력 방식",t:"select",opts:["임대료·관리비로 산출","NOI 직접 입력"],hint:"국내 실무는 보통 평당 월 임대료·관리비와 보증금에서 NOI를 산출합니다. IM에 NOI만 있으면 직접 입력을 선택하세요."},
-      {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"62,000",min:0,hint:"전용 또는 임대면적 1평당 월 임대료(부가세 제외). 임대차계약서·Rent Roll 기준. 연면적과 곱해 월 임대료 총액을 산출합니다."},
-      {k:"campp",l:"평당 월 관리비",u:"원/평·월",t:"num",ph:"21,000",min:0,hint:"1평당 월 관리비 수입. 임대인 귀속분 기준. 연면적과 곱해 월 관리비 총액을 산출합니다."},
+      {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"62,000",min:0,hint:"전용 또는 임대면적 1평당 월 임대료(부가세 제외). 임대차계약서·Rent Roll 기준. 임대가능면적(연면적의 88%/97%)×임대율과 곱해 월 임대료 총액을 산출합니다."},
+      {k:"campp",l:"평당 월 관리비",u:"원/평·월",t:"num",ph:"21,000",min:0,hint:"1평당 월 관리비 수입. 임대인 귀속분 기준. 임대가능면적×임대율과 곱해 월 관리비 총액을 산출합니다."},
       {k:"depmult",adv:true,l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 국내 상업용은 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
       {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
       {k:"opfee",adv:true,l:"운용보수율",u:"%",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"자산운용사(AM) 운용보수를 취득가 대비 연 %로. 배당재원에서 차감됩니다. 보통 0.3~0.5%."},
@@ -1788,7 +1794,7 @@ const DEALS={
     ]},
     {h:"운영 수입", gl:"②", adv:1, f:[
       {k:"noimode",l:"입력 방식",t:"select",opts:["임대료·관리비로 산출","NOI 직접 입력"],hint:"물류는 단일 임차인 책임임대차가 많아 평당 월 임대료에서 바로 NOI가 산출됩니다. NOI만 알면 직접 입력을 선택하세요."},
-      {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"28,000",min:0,hint:"창고 1평당 월 임대료. 저온·상온 혼합이면 가중평균. 연면적과 곱해 월 임대료 총액을 산출합니다."},
+      {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"28,000",min:0,hint:"창고 1평당 월 임대료. 저온·상온 혼합이면 가중평균. 임대가능면적(연면적의 88%/97%)×임대율과 곱해 월 임대료 총액을 산출합니다."},
       {k:"campp",l:"평당 월 관리비",u:"원/평·월",t:"num",ph:"1,700",min:0,hint:"1평당 월 관리비 수입(임대인 귀속분). 책임임대차로 임차인이 직접 부담하면 0에 가깝습니다."},
       {k:"depmult",adv:true,l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
       {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
@@ -1924,8 +1930,10 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-10·003110971d';
+window.MT_BUILD='2026-07-10·2582cc2f8b';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
+// 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
+try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
 /* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
  * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
  * "사용자가 일부를 수정했는데(혼합 상태) 예시 키가 남아 있으면" 칩·산출물 확인·꼬리표로 알린다. */
@@ -4850,7 +4858,7 @@ function shareLink(readonly, src){
 function recoverOn(){ try{ var c=document.getElementById('recoverChk'); return c?!!c.checked:true; }catch(e){ return true; } }
 function recoverUrl(src){ if(!recoverOn()) return null; try{ return shareLink(true, src)||null; }catch(e){ return null; } }
 function copyShare(url, label){
-  var done=function(){ toast(label+" 링크가 복사되었습니다"); };
+  var done=function(){ toast(label+" 링크가 복사되었습니다"+(url&&url.length>2000?" — 링크가 깁니다("+url.length+"자). 일부 메신저에서 잘릴 수 있으니 안 열리면 QR이나 엑셀 파일로 전달하세요":"")); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(function(){ prompt("이 링크를 복사하세요:",url); }); }
   else{ prompt("이 링크를 복사하세요:",url); }
 }
@@ -5312,7 +5320,15 @@ function shareInputs(){
     '<button type="button" class="sp-opt" data-png="1"><b>🖼️ 요약 카드 이미지 (PNG)</b><span>딜명·핵심 KPI·판정을 한 장 이미지로 — 카톡에 이미지로 바로 첨부</span></button>'+
     (navigator.share?'<button type="button" class="sp-opt" data-sh="1"><b>📲 공유 시트로 바로 보내기</b><span>카톡·메시지 앱으로 한 줄 보고 + 결과 링크를 한 번에</span></button>':'')+
     '<button type="button" class="sp-opt" data-qrx="1"><b>📱 QR로 다른 기기 이어가기</b><span>휴대폰 카메라로 스캔 — 지금 입력 그대로 폰에서 열립니다</span></button>'+
-    '<div class="sp-note">서버에 저장하지 않습니다 — 딜 정보는 링크 안에만 담기고, 임차인 실명은 링크에서 마스킹됩니다.</div>';
+    (function(){
+      // 프리플라이트 — 보내기 전에 무엇이 담기는지 현재 입력 기준으로 보여줌(지시서 15.3 축소 수용)
+      var inc=[]; try{
+        if(((state&&state.asset)||'').trim()) inc.push('딜명');
+        inc.push('입력 가정(가격·면적·임대료/NOI·대출 조건)','계산 결과');
+        if(window.rrModel&&window.rrModel.on) inc.push('렌트롤 요약(면적·단가·만기 — 임차인명 제외)');
+      }catch(e){ inc=['입력 가정','계산 결과']; }
+      return '<div class="sp-note"><b>이 링크에 담기는 것</b> — '+inc.join(' · ')+'. 서버에 저장하지 않고 링크 안에만 담깁니다.<br><b>자동 제외</b> — 임차인 실명(마스킹) · API 키·렌트롤 원본·메모는 어떤 링크에도 담기지 않습니다.</div>';
+    })();
   document.body.appendChild(pop);
   var r=btn.getBoundingClientRect();
   pop.style.top=(r.bottom+window.scrollY+6)+'px';
@@ -5779,6 +5795,38 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       o['C34']={n:400}; o['C35']={n:1000}; o['C36']={n:400}; o['C37']={n:800}; o['C38']={n:400};
       o['C43']={n:4000};
     }
+    // NOI 직접 입력 — 엔진·엑셀은 평당 단가 드라이버 기반이라, 목표 1차연도 NOI가 나오는
+    // 평당 월 임대료를 이분법으로 역산해 C23에 주입(관리비 C24=0). 화면과 엑셀에 같은 값이 실려
+    // 파리티가 유지된다. (이전에는 이 매핑이 없어 직접 입력값이 조용히 무시되고 템플릿 기본 단가로 계산됐음)
+    var _dm=((s['noimode']||'').indexOf('직접')>=0), _n1=n('noi1');
+    if(_dm && _n1!=null && _n1>0 && !assumOverrides.__solving && typeof calcModel==='function' && typeof assumFull==='function'){
+      var _ck=JSON.stringify([cur,_n1,s['gfa'],s['vacancy'],s['depmult'],s['depassume'],s['price'],s['opfee'],s['fixcost'],s['hold']]);
+      var _cc=assumOverrides.__noiCache;
+      if(_cc && _cc.k===_ck){ o['C23']={n:_cc.v}; o['C24']={n:0}; }
+      else{
+        assumOverrides.__solving=true;
+        try{
+          var _noiAt=function(x){
+            var bm=s['noimode'], br=s['rentpp'], bc=s['campp'];
+            s['noimode']='임대료·관리비로 산출'; s['rentpp']=String(x); s['campp']='0';
+            var v=null;
+            try{ var rr=calcModel(assumFull()); if(rr&&rr.NOI&&isFinite(rr.NOI[0])) v=rr.NOI[0]; }catch(_e){}
+            s['noimode']=bm; s['rentpp']=br; s['campp']=bc;
+            return v;
+          };
+          var lo=0, hi=100000, vh=_noiAt(hi), it;
+          for(it=0; it<20 && vh!=null && vh<_n1; it++){ hi*=2; vh=_noiAt(hi); }
+          if(vh!=null && vh>=_n1){
+            for(it=0; it<44; it++){ var mid=(lo+hi)/2, vm=_noiAt(mid); if(vm==null) break; if(vm<_n1) lo=mid; else hi=mid; }
+            var sol=(lo+hi)/2, chk=_noiAt(sol);
+            if(chk!=null && Math.abs(chk-_n1)<=Math.max(1,_n1*2e-4)){
+              o['C23']={n:sol}; o['C24']={n:0};
+              assumOverrides.__noiCache={k:_ck, v:sol};
+            }
+          }
+        } finally{ assumOverrides.__solving=false; }
+      }
+    }
     return o;
   }
 
@@ -6223,7 +6271,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   function notes(){
     var s=(typeof state!=='undefined'&&state)?state:{}, k=(typeof stackState!=='undefined'&&stackState)?stackState:{}, w=[];
     var hold=parseN(s['hold']); if(hold!=null && hold!==5) w.push('보유기간 '+hold+'년 반영 — 화면·엑셀 IRR 동일. 엑셀 내장 민감도표는 5년 기준일 때만 채워집니다(민감도는 화면 히트맵 참조).');
-    var mode=(s['noimode']||''); if(mode.indexOf('직접')>=0) w.push('엑셀 모델은 평당 임대료·관리비 드라이버 기반이라, NOI 직접입력 값 대신 평당 단가로 NOI를 산출합니다.');
+    var mode=(s['noimode']||''); if(mode.indexOf('직접')>=0) w.push('NOI 직접 입력: 목표 NOI에 맞는 평당 임대료로 환산해 화면·엑셀에 동일 반영합니다(관리비 수입은 0 처리 — 세부 항목이 필요하면 임대료·관리비 산출 방식 사용).');
     if(k['mezz_on']===true) w.push('이 템플릿의 자본구조는 선순위+우선주+보통주 3단이라 메자닌은 반영되지 않습니다.');
     return w;
   }
@@ -6450,7 +6498,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
   window.__refiTemplate=refiTemplate;
 
-  /* ── 공동주택 분양 사업수지 워크북(5시트·수식 연결) — 화면 엔진(simDevResi)과 동일 로직을 수식으로 재현 ── */
+  /* ── 공동주택 분양 사업수지 워크북(6시트·수식 연결) — 화면 엔진(simDevResi)과 동일 로직을 수식으로 재현 ── */
   function devTemplate(ctx){
     if(typeof devResiInputs!=='function') return null;
     var I=devResiInputs(); if(!I) return null;
@@ -7592,6 +7640,10 @@ function parseDelimited(text){
 function toNum(v){ if(v==null)return null; if(typeof v==='number')return v;
   var s=String(v).replace(/[, ₩원\s]/g,'').replace(/[^0-9.\-]/g,''); if(s===''||s==='-')return null;
   var x=parseFloat(s); return isFinite(x)?x:null; }
+// 렌트롤 상승률 열 정규화 — 실무 시트는 '3'(=3%)이나 '3%'로 쓰는 경우가 대부분이라
+// 0.15 초과 값은 %로 보고 소수로 변환한다(엔진 mktStepUp과 같은 소수 스케일).
+// 변환 없이는 '3'이 연 300% 복리로 해석돼 롤오버 임대료가 폭증하는 단위 사고가 난다.
+function normStepUp(v){ if(v==null||!isFinite(v))return null; var x=(Math.abs(v)>0.15)?v/100:v; return Math.max(-0.1,Math.min(0.3,x)); }
 
 // 헤더 키워드
 var KW={
@@ -7683,7 +7735,7 @@ function extractLeases(grid, headerRowIdx, map, opts){
     leases.push({name:nm,area:area,netArea:(netA!=null&&netA>0?netA:null),rentPP:rentPP||0,camPP:camPP||0,deposit:dep||0,
       end:endD, yrsToExp:yrsToExp,
       rentFree:map.rentfree!=null?(toNum(row[map.rentfree])||0):0,
-      stepUp:map.stepup!=null?(toNum(row[map.stepup])||null):null});
+      stepUp:map.stepup!=null?normStepUp(toNum(row[map.stepup])):null});
   }
   return {leases:leases, areaUnit:areaUnit, asOf:asOf};
 }
@@ -11024,7 +11076,37 @@ var qrcode = function() {
 /* ── 방법론(가정·계산식) 모달 ── */
 (function(){
   var ov=document.getElementById('mdOverlay'); if(!ov) return;
-  function open(){ ov.hidden=false; document.body.style.overflow='hidden'; if(window.mtTrack) try{ mtTrack('method'); }catch(e){} }
+  // 내 숫자 대입(표시 전용) — 화면 KPI 문자열(simModel().kpis)을 라벨로 찾아 그대로 재사용.
+  //  이 창에서 재계산·별도 산식 구현 금지(화면=엑셀 파리티 원칙과 동일한 단일 엔진 소비).
+  function kv(m,lab){ if(!m||!m.kpis) return null; for(var i=0;i<m.kpis.length;i++){ if(m.kpis[i].l===lab) return m.kpis[i].v; } return null; }
+  function e2(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function renderMine(){
+    var sec=document.getElementById('mdMineSec'), body=document.getElementById('mdMineBody'), dl=document.getElementById('mdMineDeal');
+    if(!sec||!body) return;
+    var m=null; try{ m=(typeof simModel==='function')?simModel():null; }catch(e){}
+    var lines=[];
+    function add(formula,lab,note){ var v=kv(m,lab); if(v==null||v==='—') return;
+      lines.push('<div class="md-f" data-kpi="'+e2(lab)+'" data-v="'+e2(v)+'">'+formula+' = <b>'+e2(v)+'</b>'+(note?('<br>'+note):'')+'</div>'); }
+    if(m&&(cur==='office'||cur==='logistics')){
+      add('<b>레버드 IRR(세전)</b> — 자기자본 현금흐름(초기 −자기자본 → 연 배당 → 매각 순회수)의 IRR','Levered IRR (세전)');
+      add('<b>레버드 IRR(세후)</b> — 비도관: 법인세 반영 후','Levered IRR (세후)');
+      add('<b>Equity Multiple</b> = 총회수 ÷ 자기자본','Equity Multiple');
+      add('<b>최소 DSCR</b> = min(연차별 NOI ÷ 원리금) — 분자 NOI 기준','최소 DSCR');
+      add('<b>언레버드 IRR</b> — 무차입: −총투자액 → 연 NOI → 매각연도 순매각가','Unlevered IRR');
+      add('<b>자기자본</b> = 총투자액 − 대출 − 우선주 − 보증금 승계','자기자본');
+    } else if(m&&cur==='dev'){
+      add('<b>Equity Multiple</b> = 회수 자기자본 ÷ 투입 자기자본','Equity Multiple');
+      add('<b>연환산 IRR(자기자본)</b> = EM^(12/사업개월) − 1','연환산 IRR(자기자본)','자기자본 전액 초기 투입 → 종료 일괄 정산 가정(중간 배당 없음) — 이 2점 흐름에서는 월별 현금흐름 IRR과 동일한 값입니다.');
+      add('<b>사업이익률</b> = 사업이익 ÷ 분양수입(세전)','사업이익률(매출)');
+      add('<b>손익분기 분양률</b> — 이익 0이 되는 분양률(엔진 반복 계산·이분법)','손익분기 분양률');
+      add('<b>필요 본PF 한도</b> = 본PF 구간 최대 인출 잔액','필요 본PF 한도(최대)');
+    }
+    if(!lines.length){ body.innerHTML=''; sec.hidden=true; return; }
+    if(dl) dl.textContent=(((typeof state!=='undefined'&&state.asset)||'').trim())||((typeof DEALS!=='undefined'&&DEALS[cur])?DEALS[cur].label:'');
+    body.innerHTML=lines.join('');
+    sec.hidden=false;
+  }
+  function open(){ try{ renderMine(); }catch(e){ try{ var _s=document.getElementById('mdMineSec'); if(_s) _s.hidden=true; }catch(e2){} } ov.hidden=false; document.body.style.overflow='hidden'; if(window.mtTrack) try{ mtTrack('method'); }catch(e){} }
   function close(){ ov.hidden=true; document.body.style.overflow=''; }
   var op=document.getElementById('mdOpen'); if(op) op.addEventListener('click',open);
   var x=document.getElementById('mdClose'); if(x) x.addEventListener('click',close);
