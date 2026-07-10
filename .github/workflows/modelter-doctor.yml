@@ -1,0 +1,53 @@
+# 모델터 파이프 진단 — 시크릿이 왜 안 보이는지 / Cloudflare 연결이 되는지 확인
+#
+# 왜: 스냅샷·패턴 워크플로우가 "시크릿 없음"으로 조용히 건너뛸 때, 원인이
+#     ① 이름 오타 ② Secrets가 아닌 Variables에 등록 ③ 미등록 중 무엇인지 로그로 판별합니다.
+# 안전: 시크릿 값은 절대 출력하지 않습니다(있음/없음과 글자 수만). 응답도 상태 코드와
+#       집계 행 수만 — 트래픽 원본·토큰이 로그에 남지 않습니다.
+
+name: Modelter pipeline doctor
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  doctor:
+    runs-on: ubuntu-latest
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      V_ACCOUNT: ${{ vars.CF_ACCOUNT_ID }}
+      V_TOKEN: ${{ vars.CF_API_TOKEN }}
+    steps:
+      - name: 어디에 등록되어 있나 (값은 출력하지 않음)
+        run: |
+          p() { if [ -n "$2" ]; then echo "  ✓ $1 — 있음 (${#2}자)"; else echo "  ✗ $1 — 없음"; fi; }
+          echo "[Repository secrets — 올바른 위치]"
+          p "secrets.CF_ACCOUNT_ID" "$CF_ACCOUNT_ID"
+          p "secrets.CF_API_TOKEN"  "$CF_API_TOKEN"
+          echo "[Repository variables — 여기 있으면 잘못 등록된 것]"
+          p "vars.CF_ACCOUNT_ID" "$V_ACCOUNT"
+          p "vars.CF_API_TOKEN"  "$V_TOKEN"
+          if [ -z "$CF_ACCOUNT_ID$V_ACCOUNT$CF_API_TOKEN$V_TOKEN" ]; then
+            echo "→ 넷 다 없음: Settings → Secrets and variables → Actions → 'Secrets' 탭 → New repository secret 로"
+            echo "  CF_ACCOUNT_ID / CF_API_TOKEN 두 개를 등록하세요 (Environment secrets·Codespaces 탭 아님)."
+          fi
+
+      - name: Cloudflare Analytics 연결 시험 (상태 코드·행 수만)
+        if: env.CF_ACCOUNT_ID != '' && env.CF_API_TOKEN != ''
+        run: |
+          CODE=$(curl -s -o /tmp/resp -w "%{http_code}" \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/analytics_engine/sql" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            --data "SELECT count() AS n FROM Modelter WHERE timestamp > now() - INTERVAL '1' DAY")
+          echo "HTTP $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "실패 응답(토큰 권한 'Account Analytics : Read'와 계정 ID를 확인하세요):"
+            head -c 300 /tmp/resp; echo
+            exit 1
+          fi
+          echo "✓ 연결 성공 — 최근 24시간 이벤트 집계:"
+          cat /tmp/resp
