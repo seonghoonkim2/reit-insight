@@ -87,6 +87,7 @@
 | `house_set` | 하우스 기준 설정 | |
 | `house_apply` | 하우스 기준 적용(#h= 수신 포함) | |
 | `house_share` | 하우스 기준 배포 링크 생성 | |
+| `term_help` | KPI 라벨 옆 용어 도움말(?) 클릭 → /guide 앵커 이동 | |
 | `sens_axis` | 민감도 축 전환(axis=growth·rate) | |
 | `solver` | 손익분기 솔버 실행 | |
 | `method` | 방법론(산식) 모달 열기 | |
@@ -112,6 +113,8 @@
 | `nudge_save` | 저장 넛지 노출(computed 25초 후 1회) | |
 
 <!-- EVENTS:END -->
+
+앱이 발화하지 않는데 데이터에 존재하는 이름: `ci_probe_live`(운영자 수집 경로 점검용 수동 비콘 — 앱 코드에 없음, 소량이라 판독 영향 없음). 구 클라이언트 캐시의 `reit` 딜 잔존도 같은 부류(자연 소멸 대기).
 
 ## 5. 스냅샷 스키마 (`data/ae-snapshots/<날짜>.json`)
 

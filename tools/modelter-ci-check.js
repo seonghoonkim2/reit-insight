@@ -128,7 +128,8 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const metricsPath = path.join(__dirname, '..', 'docs', 'METRICS.md');
   ok(fs.existsSync(metricsPath), '계측 사전: docs/METRICS.md 존재');
   const md = fs.existsSync(metricsPath) ? fs.readFileSync(metricsPath, 'utf8') : '';
-  const codeEvents = [...new Set([...html.matchAll(/(?:mtTrack|track)\('([a-z_0-9]+)'/g)].map(m => m[1]))].sort();
+  // \\* — HTML 속성 문자열 안의 이스케이프 발화(onclick="...mtTrack(\'term_help\')...")도 추출
+  const codeEvents = [...new Set([...html.matchAll(/(?:mtTrack|track)\(\\*'([a-z_0-9]+)\\*'/g)].map(m => m[1]))].sort();
   ok(codeEvents.length >= 50, '계측 사전: 코드 이벤트 추출 50+ (' + codeEvents.length + '건 — 추출 정규식 파손 감지 하한)');
   const secM = md.match(/<!-- EVENTS:BEGIN -->([\s\S]*?)<!-- EVENTS:END -->/);
   ok(!!secM, '계측 사전: 이벤트 표 마커(EVENTS:BEGIN/END) 존재');
