@@ -278,6 +278,13 @@ html,body{overflow-x:clip}
 .fgroup.adv.collapsed .chev{transform:rotate(-90deg)}
 .fgroup.adv.collapsed .fields{display:none}
 .fgroup.adv .opt-badge{font-size:10.5px; font-weight:600; color:var(--muted); background:var(--bg); border:1px solid var(--line-soft); padding:2px 7px; border-radius:5px; text-transform:none; letter-spacing:0}
+.fields>details.fsub{grid-column:1/-1; margin-top:6px; border:1px dashed var(--line); border-radius:10px; background:var(--bg)}
+details.fsub>summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:7px; padding:9px 13px; font-size:12px; font-weight:600; color:var(--ink-3)}
+details.fsub>summary::-webkit-details-marker{display:none}
+details.fsub>summary .chev{margin-left:auto; transition:transform .2s; font-size:12.5px; color:var(--muted)}
+details.fsub[open]>summary .chev{transform:rotate(180deg)}
+details.fsub>.fields{padding:2px 13px 12px}
+@media(max-width:760px){ .panel-head .ex.ghost.wiz-launch{flex:1 1 100%; order:-1; background:var(--accent-solid); color:var(--on-accent); border:none; font-weight:700; font-size:14.5px; padding:12px 14px; border-radius:10px; justify-content:center; box-shadow:0 3px 10px rgba(143,98,32,.28)} }
 
 /* output step indicator */
 .out-step{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:#cda557; background:rgba(205,165,87,.12); padding:3px 9px; border-radius:999px}
@@ -1741,18 +1748,18 @@ const DEALS={
       {k:"asset",l:"자산명",t:"text",ph:"강남 A타워",def:"강남 A타워"},
       {k:"gfa",l:"연면적",u:"평",t:"num",ph:"8,400",min:0,hint:"건물 전체 바닥면적 합계. 평당 단가·NOI 산정의 기준입니다. 건축물대장이나 매각 자료(IM)에서 확인합니다."},
       {k:"price",l:"매입가",u:"백만원",t:"num",ph:"120,000",min:0,hint:"부동산 자체 취득가격(부대비용 제외). Sources & Uses의 핵심 입력입니다. 매도자 제시가나 입찰가에서 확인합니다."},
-      {k:"acqtax",l:"취득세율",u:"%",t:"num",ph:"4.6",min:0,max:30,pct:1,hint:"취득세·농특세·교육세 합산 세율. 일반 4.6% · 수도권 과밀억제권역 중과 시 최대 9.4% · 리츠·펀드 감면 케이스는 별도. 딜에 맞는 값을 넣으세요."},
-      {k:"acqfee",l:"기타 취득부대비",u:"%",t:"num",ph:"1.5",min:0,max:30,pct:1,hint:"중개·실사·자문·등기 등 세금 외 부대비용을 매입가 대비 %로. 보통 1~2%."},
+      {k:"acqtax",adv:true,l:"취득세율",u:"%",t:"num",ph:"4.6",min:0,max:30,pct:1,hint:"취득세·농특세·교육세 합산 세율. 일반 4.6% · 수도권 과밀억제권역 중과 시 최대 9.4% · 리츠·펀드 감면 케이스는 별도. 딜에 맞는 값을 넣으세요."},
+      {k:"acqfee",adv:true,l:"기타 취득부대비",u:"%",t:"num",ph:"1.5",min:0,max:30,pct:1,hint:"중개·실사·자문·등기 등 세금 외 부대비용을 매입가 대비 %로. 보통 1~2%."},
       {k:"appraisal",l:"감정평가액",u:"백만원",t:"num",ph:"123,500",min:0,hint:"LTV 산정 기준액. 대출 한도가 이 값에 연동됩니다. 감정평가서나 대주 제시 자료에서 확인합니다."}
     ]},
     {h:"운영 수입", gl:"②", adv:1, f:[
       {k:"noimode",l:"입력 방식",t:"select",opts:["임대료·관리비로 산출","NOI 직접 입력"],hint:"국내 실무는 보통 평당 월 임대료·관리비와 보증금에서 NOI를 산출합니다. IM에 NOI만 있으면 직접 입력을 선택하세요."},
       {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"62,000",min:0,hint:"전용 또는 임대면적 1평당 월 임대료(부가세 제외). 임대차계약서·Rent Roll 기준. 연면적과 곱해 월 임대료 총액을 산출합니다."},
       {k:"campp",l:"평당 월 관리비",u:"원/평·월",t:"num",ph:"21,000",min:0,hint:"1평당 월 관리비 수입. 임대인 귀속분 기준. 연면적과 곱해 월 관리비 총액을 산출합니다."},
-      {k:"depmult",l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 국내 상업용은 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
-      {k:"depassume",l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
-      {k:"opfee",l:"운용보수율",u:"%",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"자산운용사(AM) 운용보수를 취득가 대비 연 %로. 배당재원에서 차감됩니다. 보통 0.3~0.5%."},
-      {k:"fixcost",l:"기타 고정비",u:"백만원/년",t:"num",ph:"0",min:0,hint:"신탁보수·사무수탁·감사 등 연 고정비(백만원). 없으면 0."},
+      {k:"depmult",adv:true,l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 국내 상업용은 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
+      {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
+      {k:"opfee",adv:true,l:"운용보수율",u:"%",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"자산운용사(AM) 운용보수를 취득가 대비 연 %로. 배당재원에서 차감됩니다. 보통 0.3~0.5%."},
+      {k:"fixcost",adv:true,l:"기타 고정비",u:"백만원/년",t:"num",ph:"0",min:0,hint:"신탁보수·사무수탁·감사 등 연 고정비(백만원). 없으면 0."},
       {k:"noi1",l:"1차연도 NOI",u:"백만원",t:"num",ph:"6,000",min:0,hint:"[NOI 직접 입력 방식] 순영업이익을 연 단위로 직접 입력. 임대료 기반 산출을 쓰면 비워둡니다."},
       {k:"noig",l:"NOI 성장률",u:"%/년",t:"num",ph:"2.0",min:-20,max:30,pct:1,hint:"임대료 상승·재계약을 반영한 연간 NOI 증가율. 보통 1~3%. 임대차계약의 상승률 조항을 참고합니다."},
       {k:"vacancy",l:"안정 공실률",u:"%",t:"num",ph:"5",min:0,max:100,pct:1,hint:"안정화 상태의 평균 공실률. 임대수입에 (1−공실률)로 반영됩니다. 오피스는 보통 3~8%. 렌트롤을 올리면 실제 공실이 우선합니다."}
@@ -1760,10 +1767,10 @@ const DEALS={
     {h:"매각 / 보유", gl:"③", f:[
       {k:"hold",l:"보유기간",u:"년",t:"range",min:3,max:10,step:1,hint:"취득부터 매각까지 기간(3~10년). 슬라이더를 움직이면 IRR·멀티플이 실시간으로 바뀝니다. 화면·엑셀 동일 기준."},
       {k:"exitcap",l:"Exit Cap",u:"%",t:"num",ph:"4.8",min:0,max:30,pct:1,hint:"매각 시점 자본환원율(매각가 대비 NOI 비율). 매각가 = 매각연도 NOI ÷ Exit Cap. 진입 Cap보다 보수적으로(높게) 잡는 것이 일반적이며, 최근 거래사례 Cap을 참고합니다."},
-      {k:"salefee",l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 시 중개·자문 수수료를 매각가 대비 %로. 보통 1~2%."},
-      {k:"prepayfee",l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
-      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"자산운용사(AM)에 지급하는 성과보수를 매각 차익(순매각가 − 총투자액) 대비 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
-      {k:"sellerirr",l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다. 없으면 비워두세요."}
+      {k:"salefee",adv:true,l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 시 중개·자문 수수료를 매각가 대비 %로. 보통 1~2%."},
+      {k:"prepayfee",adv:true,l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
+      {k:"dispfee",adv:true,l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"자산운용사(AM)에 지급하는 성과보수를 매각 차익(순매각가 − 총투자액) 대비 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
+      {k:"sellerirr",adv:true,l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다. 없으면 비워두세요."}
     ]}
    ]},
 
@@ -1775,18 +1782,18 @@ const DEALS={
       {k:"asset",l:"자산명",t:"text",ph:"이천 물류센터",def:"이천 물류센터"},
       {k:"gfa",l:"연면적",u:"평",t:"num",ph:"35,000",min:0,hint:"창고 전체 바닥면적. 저온·상온 구분이 있으면 합산. 평당 단가·NOI 기준입니다."},
       {k:"price",l:"매입가",u:"백만원",t:"num",ph:"210,000",min:0,hint:"부동산 자체 취득가격(부대비용 제외). 매도자 제시가나 입찰가에서 확인합니다."},
-      {k:"acqtax",l:"취득세율",u:"%",t:"num",ph:"4.6",min:0,max:30,pct:1,hint:"취득세·농특세·교육세 합산 세율. 일반 4.6% · 수도권 과밀억제권역 중과 시 최대 9.4% · 리츠·펀드 감면 케이스는 별도. 딜에 맞는 값을 넣으세요."},
-      {k:"acqfee",l:"기타 취득부대비",u:"%",t:"num",ph:"1.5",min:0,max:30,pct:1,hint:"중개·실사·자문·등기 등 세금 외 부대비용을 매입가 대비 %로."},
+      {k:"acqtax",adv:true,l:"취득세율",u:"%",t:"num",ph:"4.6",min:0,max:30,pct:1,hint:"취득세·농특세·교육세 합산 세율. 일반 4.6% · 수도권 과밀억제권역 중과 시 최대 9.4% · 리츠·펀드 감면 케이스는 별도. 딜에 맞는 값을 넣으세요."},
+      {k:"acqfee",adv:true,l:"기타 취득부대비",u:"%",t:"num",ph:"1.5",min:0,max:30,pct:1,hint:"중개·실사·자문·등기 등 세금 외 부대비용을 매입가 대비 %로."},
       {k:"appraisal",l:"감정평가액",u:"백만원",t:"num",ph:"215,000",min:0,hint:"LTV 산정 기준액. 감정평가서나 대주 제시 자료에서 확인합니다."}
     ]},
     {h:"운영 수입", gl:"②", adv:1, f:[
       {k:"noimode",l:"입력 방식",t:"select",opts:["임대료·관리비로 산출","NOI 직접 입력"],hint:"물류는 단일 임차인 책임임대차가 많아 평당 월 임대료에서 바로 NOI가 산출됩니다. NOI만 알면 직접 입력을 선택하세요."},
       {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"28,000",min:0,hint:"창고 1평당 월 임대료. 저온·상온 혼합이면 가중평균. 연면적과 곱해 월 임대료 총액을 산출합니다."},
       {k:"campp",l:"평당 월 관리비",u:"원/평·월",t:"num",ph:"1,700",min:0,hint:"1평당 월 관리비 수입(임대인 귀속분). 책임임대차로 임차인이 직접 부담하면 0에 가깝습니다."},
-      {k:"depmult",l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
-      {k:"depassume",l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
-      {k:"opfee",l:"운용보수율",u:"%",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"자산운용사(AM) 운용보수를 취득가 대비 연 %로. 배당재원에서 차감됩니다. 보통 0.3~0.5%."},
-      {k:"fixcost",l:"기타 고정비",u:"백만원/년",t:"num",ph:"0",min:0,hint:"신탁보수·사무수탁·감사 등 연 고정비(백만원). 없으면 0."},
+      {k:"depmult",adv:true,l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
+      {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
+      {k:"opfee",adv:true,l:"운용보수율",u:"%",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"자산운용사(AM) 운용보수를 취득가 대비 연 %로. 배당재원에서 차감됩니다. 보통 0.3~0.5%."},
+      {k:"fixcost",adv:true,l:"기타 고정비",u:"백만원/년",t:"num",ph:"0",min:0,hint:"신탁보수·사무수탁·감사 등 연 고정비(백만원). 없으면 0."},
       {k:"noi1",l:"1차연도 NOI",u:"백만원",t:"num",ph:"11,000",min:0,hint:"[NOI 직접 입력 방식] 순영업이익을 연 단위로 직접 입력. 임대료 기반 산출을 쓰면 비워둡니다."},
       {k:"noig",l:"NOI 성장률",u:"%/년",t:"num",ph:"2.5",min:-20,max:30,pct:1,hint:"임대료 상승·재계약 반영 연간 NOI 증가율. 물류는 장기 책임임대차가 많아 계약 상승률을 참고합니다."},
       {k:"vacancy",l:"안정 공실률",u:"%",t:"num",ph:"5",min:0,max:100,pct:1,hint:"안정화 상태의 평균 공실률. 임대수입에 (1−공실률)로 반영됩니다. 물류는 단일 책임임대차면 낮게(0~3%). 렌트롤을 올리면 실제 공실이 우선합니다."}
@@ -1794,10 +1801,10 @@ const DEALS={
     {h:"매각 / 보유", gl:"③", f:[
       {k:"hold",l:"보유기간",u:"년",t:"range",min:3,max:10,step:1,hint:"취득부터 매각까지 기간(3~10년). 슬라이더를 움직이면 IRR·멀티플이 실시간으로 바뀝니다. 화면·엑셀 동일 기준."},
       {k:"exitcap",l:"Exit Cap",u:"%",t:"num",ph:"5.4",min:0,max:30,pct:1,hint:"매각 시점 자본환원율. 매각가 = 매각연도 NOI ÷ Exit Cap. 물류는 입지·임차인 신용에 따라 차이가 큽니다."},
-      {k:"salefee",l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 중개·자문 수수료를 매각가 대비 %로."},
-      {k:"prepayfee",l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
-      {k:"dispfee",l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"자산운용사(AM)에 지급하는 성과보수를 매각 차익(순매각가 − 총투자액) 대비 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
-      {k:"sellerirr",l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다."}
+      {k:"salefee",adv:true,l:"매각 수수료율",u:"%",t:"num",ph:"1.8",min:0,max:30,pct:1,hint:"매각 중개·자문 수수료를 매각가 대비 %로."},
+      {k:"prepayfee",adv:true,l:"중도상환수수료율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"매각 시 대출 잔액을 조기상환할 때 대주에게 내는 수수료를 잔액 대비 %로. 대출 약정서의 조기상환 조항을 참고합니다. 없으면 0."},
+      {k:"dispfee",adv:true,l:"매각성과보수율",u:"%",t:"num",ph:"0",min:0,max:30,pct:1,hint:"자산운용사(AM)에 지급하는 성과보수를 매각 차익(순매각가 − 총투자액) 대비 %로. 차익이 있을 때만 적용됩니다. 없으면 0."},
+      {k:"sellerirr",adv:true,l:"매도자 제시 IRR",u:"%",t:"num",ph:"",min:0,max:100,pct:1,hint:"IM·티저에 기재된 매도자/자문사 제시 수익률(선택). 입력하면 자동 판정에 내 계산과의 차이를 한 줄로 보여줍니다."}
     ]}
    ]},
 
@@ -1813,7 +1820,7 @@ const DEALS={
       {k:"tpc",l:"총사업비",u:"백만원",t:"num",ph:"320,000",min:0,hint:"토지비+공사비+금융비+기타를 모두 포함한 총투입. 자본구조 비중의 분모입니다."},
       {k:"landcost",l:"토지비",u:"백만원",t:"num",ph:"180,000",min:0,hint:"토지 매입가(제세 제외). 취득 제세는 ④사업비 세부의 비율로 얹습니다."},
       {k:"conscost",l:"도급 공사비",u:"백만원",t:"num",ph:"290,000",min:0,hint:"직접 공사비. 아래 기성 곡선에 따라 공사기간에 투입되며, 설계·감리·예비비는 ④에서 비율로 얹습니다."},
-      {k:"conscurve",l:"기성 곡선",t:"select",opts:["균등 기성","S-커브(20/60/20)"],hint:"공사비 투입 패턴. S-커브는 공사기간을 3등분해 20%/60%/20%로 투입합니다. 초기 지출이 적어 브릿지·PF 이자가 줄어들고, 실제 기성 흐름에도 가깝습니다."}
+      {k:"conscurve",adv:true,l:"기성 곡선",t:"select",opts:["균등 기성","S-커브(20/60/20)"],hint:"공사비 투입 패턴. S-커브는 공사기간을 3등분해 20%/60%/20%로 투입합니다. 초기 지출이 적어 브릿지·PF 이자가 줄어들고, 실제 기성 흐름에도 가깝습니다."}
     ]},
     {h:"분양 수입", gl:"②", f:[
       {k:"saleprice",l:"분양가/임대가",u:"평당 만원·연",t:"text",ph:"평당 1,150만",hint:"분양은 평당 분양가, 임대는 평당 연임대료로 입력."},
@@ -1824,8 +1831,8 @@ const DEALS={
     ]},
     {h:"일정 · 납부", gl:"③", adv:1, f:[
       {k:"preperiod",l:"토지 선매입~착공",u:"개월",t:"num",ph:"8",min:0,max:120,hint:"토지 계약(브릿지 실행)부터 착공(본PF 전환)까지의 인허가·준비 기간. 이 기간에는 브릿지 금리가 적용됩니다. 0이면 착공과 동시 매입."},
-      {k:"landdp",l:"토지 계약금",u:"% 토지비",t:"num",ph:"10",min:0,max:100,pct:1,hint:"토지 매매 계약 시(0개월차) 지급 비율. 비워두면 100%(일괄 매입)로 계산합니다."},
-      {k:"landpay",l:"토지 잔금 시점",u:"개월차",t:"num",ph:"2",min:0,max:120,hint:"토지 잔금+취득 제세를 지급하는 시점. 0이면 계약과 동시. 잔금이 늦을수록 초기 브릿지 소요가 줄어듭니다."},
+      {k:"landdp",adv:true,l:"토지 계약금",u:"% 토지비",t:"num",ph:"10",min:0,max:100,pct:1,hint:"토지 매매 계약 시(0개월차) 지급 비율. 비워두면 100%(일괄 매입)로 계산합니다."},
+      {k:"landpay",adv:true,l:"토지 잔금 시점",u:"개월차",t:"num",ph:"2",min:0,max:120,hint:"토지 잔금+취득 제세를 지급하는 시점. 0이면 계약과 동시. 잔금이 늦을수록 초기 브릿지 소요가 줄어듭니다."},
       {k:"consperiod",l:"공사기간",u:"개월",t:"num",ph:"32",min:1,max:200,hint:"착공부터 준공까지. 잔금(입주)은 준공월에 들어오고, 건설이자도 이 기간에 쌓입니다."},
       {k:"saleopen",l:"분양 개시",u:"개월차",t:"num",ph:"3",min:0,max:200,hint:"착공 후 몇 개월 차에 분양(청약·계약)을 시작하는지."},
       {k:"absorb",l:"흡수기간",u:"개월",t:"num",ph:"18",min:1,max:200,hint:"분양 개시 후 최종 분양률에 도달하기까지 걸리는 기간."},
@@ -1841,8 +1848,8 @@ const DEALS={
       {k:"salespct",l:"판매비(분양대행·광고)",u:"% 분양수입",t:"num",ph:"3.0",min:0,max:30,pct:1,hint:"분양대행 수수료·모델하우스·광고비를 분양수입 대비 %로. 계약 발생 시점에 연동해 지출됩니다. 보통 2~4%."},
       {k:"hugpct",l:"분양보증 수수료",u:"% 분양수입",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"HUG 분양보증 수수료를 분양수입 대비 %로. 분양 개시 시점 일괄 지출로 계산합니다."},
       {k:"othercost",l:"기타 고정비",u:"백만원",t:"num",ph:"12,000",min:0,hint:"신탁보수·PM·각종 분담금·민원처리 등 위 비율에 안 잡히는 고정성 비용 합계. 사업기간에 균등 배분."},
-      {k:"midfree",l:"중도금 무이자(시행 부담)",t:"select",opts:["미반영","반영"],hint:"중도금 대출이자를 시행사가 대납하는 무이자 분양이면 '반영'. 납부된 중도금 누적액에 아래 금리로 준공까지 이자를 지출로 얹습니다."},
-      {k:"midrate",l:"중도금대출 금리",u:"%/년",t:"num",ph:"5.5",min:0,max:30,pct:1,hint:"수분양자 중도금 대출 금리. 무이자 '반영'일 때만 사용됩니다."}
+      {k:"midfree",adv:true,l:"중도금 무이자(시행 부담)",t:"select",opts:["미반영","반영"],hint:"중도금 대출이자를 시행사가 대납하는 무이자 분양이면 '반영'. 납부된 중도금 누적액에 아래 금리로 준공까지 이자를 지출로 얹습니다."},
+      {k:"midrate",adv:true,l:"중도금대출 금리",u:"%/년",t:"num",ph:"5.5",min:0,max:30,pct:1,hint:"수분양자 중도금 대출 금리. 무이자 '반영'일 때만 사용됩니다."}
     ]},
     {h:"금융(브릿지 · 본PF)", gl:"⑤", f:[
       {k:"equity",l:"자기자본",u:"백만원",t:"num",ph:"60,000",min:0,hint:"시행 자기자본. 먼저 투입되고 부족 자금은 브릿지→본PF로 조달합니다."},
@@ -1917,7 +1924,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-09·9e7ad0346c';
+window.MT_BUILD='2026-07-10·eeddaf95b7';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 /* ── 예시값 잔존 추적 — 샘플 숫자가 보고서·공유로 그대로 나가는 신뢰 사고 방지 ──
  * fillExample()이 채운 키를 기억하고, 사용자가 직접 수정한 키는 지운다.
@@ -2309,13 +2316,17 @@ function renderForm(){
     });
     d.groups.forEach((g,gi)=>{
       const ff=visibleFields(g);
-      const cols = ff.length>=3 && ff.every(x=>!x.full) ? (ff.length%3===0?'three':(ff.length%2===0?'':'')) : (ff.some(x=>x.full)?'one':'');
       const extra = (rrEligible && g.h==="운영 수입") ? rrFormBlockHtml() : ((cur==="dev" && devResi() && g.h==="분양 수입") ? devGridsHtml() : "");
       if(!ff.length && !extra) return;
+      // 복잡도 다이어트 — 30일 로그에서 거의 손대지 않는 부대비·보수·정산 계열(adv 필드)은 그룹 안 "세부 항목"으로 접어 첫 화면을 가볍게.
+      // 값은 예시·통상값이 그대로 적용되고, 펼치면 언제든 수정 가능(기능 제거 아님).
+      const main=ff.filter(x=>!x.adv), advF=ff.filter(x=>x.adv);
+      const cols = main.length>=3 && main.every(x=>!x.full) ? (main.length%3===0?'three':(main.length%2===0?'':'')) : (main.some(x=>x.full)?'one':'');
+      const sub = advF.length?`<details class="fsub"><summary>세부 항목 ${advF.length}개 — 통상값 적용 중 · 펼쳐서 수정<span class="chev">▾</span></summary><div class="fields">${advF.map(fieldHtml).join("")}</div></details>`:"";
       if(g.adv){
-        html+=`<div class="fgroup adv" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">세부 · 접기</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
+        html+=`<div class="fgroup adv collapsed" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">통상값 적용 중 · 펼쳐서 수정</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }else{
-        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
+        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></div><div class="fields ${cols}">${main.map(fieldHtml).join("")}${extra}${sub}</div></div>`;
       }
     });
   }
@@ -2366,6 +2377,10 @@ function renderForm(){
   // collapse toggles for advanced groups
   $("formBody").querySelectorAll(".fgroup.adv .fgroup-h").forEach(h=>{
     h.addEventListener("click",()=>h.parentElement.classList.toggle("collapsed"));
+  });
+  // 세부 항목(fsub) 펼침 계측 — 접기의 발견성·수요를 다음 판독에서 확인
+  $("formBody").querySelectorAll("details.fsub").forEach(dt=>{
+    dt.addEventListener("toggle",()=>{ if(dt.open&&window.mtTrack){ try{ mtTrack('fsub_open'); }catch(e){} } });
   });
 }
 
@@ -5077,6 +5092,10 @@ function renderAdjBar(){
   var defs=(ADJ_DEFS&&ADJ_DEFS[cur])||null;
   if(!defs||window.__mtReadonly){ bar.hidden=true; return; }
   bar.hidden=false;
+  // 데스크톱 첫 결과에서 1회 자동 오픈 — 슬라이더 조작이 "내 숫자" 첫 행동이 되게(수동 오픈 지표 adj_open과는 분리)
+  if(!bar.open && window.innerWidth>760){
+    try{ if(!sessionStorage.getItem('mt_adjauto')){ sessionStorage.setItem('mt_adjauto','1'); window.__adjAuto=1; bar.open=true; return; } }catch(e){}
+  }
   if(!bar.open) return;
   var body=$('adjBody'); if(!body) return;
   body.innerHTML=defs.map(function(d,i){
@@ -5096,7 +5115,8 @@ function renderAdjBar(){
       ADJ_BASE={};
       defs.forEach(function(d){ var key=d.sk||d.k; ADJ_BASE[key]={sk:!!d.sk, v:d.sk?stackState[d.sk]:state[d.k]}; });
       renderAdjBar();
-      if(window.mtTrack) try{ mtTrack('adj_open'); }catch(e){}
+      if(!window.__adjAuto && window.mtTrack) try{ mtTrack('adj_open'); }catch(e){}
+      window.__adjAuto=0;
     }
   });
   bar.addEventListener('click',function(e){
@@ -5119,6 +5139,7 @@ function renderAdjBar(){
     if(d.min!=null&&nv<d.min) nv=d.min;
     if(d.max!=null&&nv>d.max) nv=d.max;
     adjSet(d,nv);
+    if(window.__mtActivate) window.__mtActivate();   // 조정 바 ± 조작 = 자기 숫자 만지기(활성화 신호)
     update();
   });
 })();
