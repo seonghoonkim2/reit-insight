@@ -19,7 +19,7 @@ CI(`tools/modelter-ci-check.js`)는 구조·행동 검사까지만 하므로,
 node tools/parity/gen-xlsx.js office      # 오피스 13시트
 node tools/parity/gen-xlsx.js logistics   # 물류 13시트
 node tools/parity/gen-xlsx.js dev         # 분양수지 6시트
-node tools/parity/gen-xlsx.js refi        # 리파이낸싱 4시트 (생성·수식 존재 확인용)
+node tools/parity/gen-xlsx.js refi        # 리파이낸싱 4시트
 
 # 2) 검증 — 엑셀을 python 수식 엔진으로 재계산해 화면 값과 비교
 python3 tools/parity/check.py office
@@ -40,7 +40,7 @@ python3 tools/parity/check.py dev
 |---|---|---|
 | office/logistics | 09_Return_Summary | E5 세전 IRR · E6 세후 IRR · E7 EM (총자기자본), C8 CoC(보통주), C12 언레버드, C13 최소 DSCR |
 | dev | 04_PROFITABILITY | C5 분양수입 · C14 이자 · C16 본PF 한도 · C21 이익 · C22 이익률 · C26 미상환 · C28 EM · C29 IRR |
-| refi | — | 생성 단계에서 엔진 결과(3안·minDSCR)·블롭 캡처 확인, PMT/INDEX 수식은 CI 스모크가 확인 |
+| refi | 02_Term_Sheets C/D/E열 | 대안 1~3 × (대출금·1차년 DSCR·최소 DSCR·총이자·만기잔액) 15지표 재계산 대조 |
 
 주의: 시트 구조(셀 위치)를 바꾸면 `check.py`의 셀 맵도 함께 갱신해야 합니다.
 09_Return_Summary는 C=보통주 · D=우선주 · E=총자기자본 열 구조입니다.

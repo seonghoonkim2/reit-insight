@@ -22,7 +22,7 @@
 
 ```bash
 node tools/parity/gen-xlsx.js office|logistics|dev|refi   # 생성
-python3 tools/parity/check.py office|logistics|dev        # 재계산 비교 (pip install formulas)
+python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pip install formulas) — 4딜 전수
 ```
 
 ### 작업 절차 (매 변경마다)

@@ -10,11 +10,13 @@ on:
     paths:
       - "dart-search/web/modelter/**"
       - "tools/modelter-ci-check.js"
+      - "tools/parity/**"
       - ".github/workflows/modelter-ci.yml"
   pull_request:
     paths:
       - "dart-search/web/modelter/**"
       - "tools/modelter-ci-check.js"
+      - "tools/parity/**"
       - ".github/workflows/modelter-ci.yml"
   workflow_dispatch:
 
@@ -29,3 +31,23 @@ jobs:
           node-version: "20"
       - name: 모델터 검증
         run: node tools/modelter-ci-check.js
+
+  parity:
+    name: 파리티 4딜 (화면 = 엑셀 재계산)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: formulas 설치 (엑셀 수식 독립 재계산)
+        run: pip install --quiet formulas
+      - name: 파리티 전수 (office·logistics·dev·refi)
+        run: |
+          for d in office logistics dev refi; do
+            node tools/parity/gen-xlsx.js "$d"
+            python3 tools/parity/check.py "$d"
+          done

@@ -17,7 +17,7 @@ const ROOT = path.join(__dirname, '..');
 const DIR = path.join(ROOT, 'dart-search', 'web', 'modelter');
 const OUT = path.join(DIR, 'verification.html');
 const BASE = 'https://modelter.com';
-const DEALS = [{ k: 'office', n: '오피스 매입 (13시트)' }, { k: 'logistics', n: '물류센터 매입 (13시트)' }, { k: 'dev', n: '공동주택 분양 사업수지 (6시트)' }];
+const DEALS = [{ k: 'office', n: '오피스 매입 (13시트)' }, { k: 'logistics', n: '물류센터 매입 (13시트)' }, { k: 'dev', n: '공동주택 분양 사업수지 (6시트)' }, { k: 'refi', n: '리파이낸싱 비교 (4시트)' }];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function runParity(deal) {
@@ -130,8 +130,8 @@ footer a{color:var(--ink-3)}
     <ol class="steps">
       <li><code>pip install formulas</code> — 엑셀 수식 재계산 라이브러리 설치</li>
       <li><code>node tools/parity/gen-xlsx.js office</code> — 예시 딜로 엑셀 생성 + 화면 계산값(기대치) 기록</li>
-      <li><code>python3 tools/parity/check.py office</code> — 생성된 엑셀의 <b>수식을 재계산</b>해 화면 계산값과 대조(허용 오차 5e-4 이내면 PASS)</li>
-      <li><code>office</code> 자리에 <code>logistics</code>·<code>dev</code>를 넣어 딜별로 반복</li>
+      <li><code>python3 tools/parity/check.py office</code> — 생성된 엑셀의 <b>수식을 재계산</b>해 화면 계산값과 대조(허용 오차는 지표별 1e-3~1e-2 — 실측 오차는 e-10 이하)</li>
+      <li><code>office</code> 자리에 <code>logistics</code>·<code>dev</code>·<code>refi</code>를 넣어 딜별로 반복 — 4딜 전수</li>
     </ol>
     <p>허용 오차는 부동소수점 반올림 수준(위 결과의 실제 오차는 그보다 몇 자릿수 작습니다). 계산·엑셀 로직을 고치면 이 대조가 배포 게이트로 다시 돌아, 어긋나면 배포가 막힙니다.</p>
   </section>

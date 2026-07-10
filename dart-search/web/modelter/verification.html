@@ -65,12 +65,12 @@ footer a{color:var(--ink-3)}
     <div class="eyebrow">재현성 · 파리티 공표</div>
     <h1>화면 = 다운로드 엑셀,<br>직접 재현해 확인하세요.</h1>
     <p class="lead">모델터는 화면에 보이는 수치와 내려받는 엑셀의 수식이 같은 결과를 낸다고 말합니다. 그 주장을 개발자 말이 아니라 <b>제3자가 재계산해 검증할 수 있는 공개 증거</b>로 둡니다. 아래는 파이썬 <code>formulas</code> 라이브러리로 엑셀 수식을 독립 재계산해 화면 계산값과 대조한 결과와, 누구나 따라 할 수 있는 재현 절차입니다.</p>
-    <div class="build">빌드 <b>2026-07-10·003110971d</b> · git fbc1633 · 2026-07-10</div>
+    <div class="build">빌드 <b>2026-07-10·2582cc2f8b</b> · git a821782 · 2026-07-10</div>
   </div>
 
   <section>
     <h2>파리티 결과 — 전 딜 일치</h2>
-    <table class="res"><tr><th>딜 유형</th><th>판정</th><th>세부</th></tr><tr><td>오피스 매입 (13시트)</td><td><span class="pass">PASS</span></td><td>최대 오차 2.2e-15 · 6개 지표</td></tr><tr><td>물류센터 매입 (13시트)</td><td><span class="pass">PASS</span></td><td>최대 오차 4.4e-16 · 6개 지표</td></tr><tr><td>공동주택 분양 사업수지 (6시트)</td><td><span class="pass">PASS</span></td><td>최대 오차 1.2e-10 · 8개 지표</td></tr></table>
+    <table class="res"><tr><th>딜 유형</th><th>판정</th><th>세부</th></tr><tr><td>오피스 매입 (13시트)</td><td><span class="pass">PASS</span></td><td>최대 오차 2.2e-15 · 6개 지표</td></tr><tr><td>물류센터 매입 (13시트)</td><td><span class="pass">PASS</span></td><td>최대 오차 4.4e-16 · 6개 지표</td></tr><tr><td>공동주택 분양 사업수지 (6시트)</td><td><span class="pass">PASS</span></td><td>최대 오차 1.2e-10 · 8개 지표</td></tr><tr><td>리파이낸싱 비교 (4시트)</td><td><span class="pass">PASS</span></td><td>최대 오차 1.8e-12 · 15개 지표</td></tr></table>
     <p>각 산출물(엑셀 자가검증 시트·IC PPT 표지·요약 카드 PNG·검토 메모)에 위 <b>빌드 식별자</b>가 찍힙니다. 3월 IC에 올린 숫자를 9월 감사에서 "이 빌드가 만들었고, 그 빌드는 파리티를 통과했다"로 설명할 수 있습니다.</p>
   </section>
 
@@ -80,8 +80,8 @@ footer a{color:var(--ink-3)}
     <ol class="steps">
       <li><code>pip install formulas</code> — 엑셀 수식 재계산 라이브러리 설치</li>
       <li><code>node tools/parity/gen-xlsx.js office</code> — 예시 딜로 엑셀 생성 + 화면 계산값(기대치) 기록</li>
-      <li><code>python3 tools/parity/check.py office</code> — 생성된 엑셀의 <b>수식을 재계산</b>해 화면 계산값과 대조(허용 오차 5e-4 이내면 PASS)</li>
-      <li><code>office</code> 자리에 <code>logistics</code>·<code>dev</code>를 넣어 딜별로 반복</li>
+      <li><code>python3 tools/parity/check.py office</code> — 생성된 엑셀의 <b>수식을 재계산</b>해 화면 계산값과 대조(허용 오차는 지표별 1e-3~1e-2 — 실측 오차는 e-10 이하)</li>
+      <li><code>office</code> 자리에 <code>logistics</code>·<code>dev</code>·<code>refi</code>를 넣어 딜별로 반복 — 4딜 전수</li>
     </ol>
     <p>허용 오차는 부동소수점 반올림 수준(위 결과의 실제 오차는 그보다 몇 자릿수 작습니다). 계산·엑셀 로직을 고치면 이 대조가 배포 게이트로 다시 돌아, 어긋나면 배포가 막힙니다.</p>
   </section>
