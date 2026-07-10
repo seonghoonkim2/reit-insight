@@ -17,7 +17,7 @@
  * 수집 원칙(불변): 이벤트명·딜유형·활성기능 플래그·기기·유입 호스트만. 수치·PII 없음.
  *
  * AE 스키마 (worker.js writeDataPoint 기준):
- *   blob1=이벤트  blob2=딜  blob3=깊이  blob4=기기  blob5=유입호스트  blob6=국가  blob7=feats  blob8=axis  blob9=src(채널)
+ *   blob1=이벤트  blob2=딜  blob3=깊이  blob4=기기  blob5=유입호스트  blob6=국가  blob7=feats  blob8=axis  blob9=src(채널)  blob10=bot(자동화 태깅 — 기본 제외, --include-bots로 포함)
  *   double1=rr    double2=featN    index1=이벤트    _sample_interval=표본가중치(합이 추정 실건수)
  *
  * 채널 어트리뷰션:
@@ -41,7 +41,8 @@ const FLAG_ATTR = process.argv.includes('--attribution');    // src·유입호�
 const ACCOUNT = arg('account', process.env.CF_ACCOUNT_ID || '');
 const TOKEN = arg('token', process.env.CF_API_TOKEN || '');
 const DAYS = parseInt(arg('days', '7'), 10) || 7;
-const WHERE = `timestamp > now() - INTERVAL '${DAYS}' DAY`;
+const FLAG_BOTS = process.argv.includes('--include-bots');  // 기본은 봇 제외(blob10='1' 태깅분) — 구 데이터(blob10='')는 그대로 포함
+const WHERE = `timestamp > now() - INTERVAL '${DAYS}' DAY` + (FLAG_BOTS ? '' : " AND blob10 != '1'");
 
 // ── 쿼리 정의 ──
 const Q = {

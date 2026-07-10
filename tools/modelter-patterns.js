@@ -22,7 +22,9 @@ const DAYS = Math.max(7, parseInt(arg('days', '30'), 10) || 30);
 const ACCOUNT = process.env.CF_ACCOUNT_ID || arg('account', '');
 const TOKEN = process.env.CF_API_TOKEN || arg('token', '');
 const D = 'Modelter';
-const W = `timestamp > now() - INTERVAL '${DAYS}' DAY`;
+const INCLUDE_BOTS = process.argv.includes('--include-bots');
+const BOTW = INCLUDE_BOTS ? '' : " AND blob10 != '1'";   // 봇 태깅분 기본 제외(구 데이터 blob10=''는 포함)
+const W = `timestamp > now() - INTERVAL '${DAYS}' DAY${BOTW}`;
 
 /* 데이터 주의 각주(날짜 상수) — 이 날짜들이 창에 걸릴 때만 의미가 있으나, 항상 명시해 오독 방지 */
 const NOTE_ACTIVATE_SINCE = '2026-07-07';   // activate·computed 신호가 존재하기 시작한 날
@@ -30,7 +32,7 @@ const NOTE_FIX_DEPLOYED = '2026-07-09';     // 계측 보정(리파이·분양�
 
 const Q = {
   daily: `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN ('session','activate','computed','xlsx_download','prompt_copy') GROUP BY d, ev ORDER BY d`,
-  wow: `SELECT if(timestamp > now() - INTERVAL '7' DAY, 'this', 'prev') AS w, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE timestamp > now() - INTERVAL '14' DAY GROUP BY w, ev`,
+  wow: `SELECT if(timestamp > now() - INTERVAL '7' DAY, 'this', 'prev') AS w, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE timestamp > now() - INTERVAL '14' DAY${BOTW} GROUP BY w, ev`,
   dealOut: `SELECT blob2 AS deal, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN (${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY deal, ev`,
   devEv: `SELECT blob4 AS dev, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN ('session','deal_select','activate','computed','xlsx_download','prompt_copy','onboard') GROUP BY dev, ev`,
   hour: `SELECT toHour(timestamp) AS h, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='session' GROUP BY h ORDER BY h`,

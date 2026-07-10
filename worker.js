@@ -26,7 +26,12 @@ export default {
           const axis = s(d.axis, 12);                          // sens_axis 이벤트의 축(growth|rate)
           const featN = feats ? feats.split(",").filter(Boolean).length : 0;
           const src = s(d.src, 8).replace(/[^A-Za-z0-9_]/g, ""); // 채널 어트리뷰션 태그(화이트리스트 문자만) — 채널명뿐, 수치·PII 없음
-          const rec = { ev, deal: s(d.deal, 16), depth: s(d.depth, 12), rr: d.rr ? 1 : 0, feats, featN, axis, dev, ref: refHost, cc, src };
+          // 봇 판별 — 검색 착지 개설로 JS 실행 크롤러가 방문 분모에 섞이는 것을 태깅(제외는 조회 시).
+          //  단어경계 일반어 + 국내외 크롤러 명시 목록 + 클라이언트 webdriver 신호(d.wd). UA 원문은 저장하지 않음.
+          //  접미 경계 (…)\b — Googlebot·Bingbot 같은 합성명을 잡되, 실기기 오탐(CUBOT 폰)은 명시 제외
+          const BOT_RE = /(bot|spider|crawler|crawling|scraper)\b|headlesschrome|phantomjs|puppeteer|playwright|selenium|slurp|yeti|daumoa|kakaotalk-scrap|kakaostory|facebookexternalhit|whatsapp|telegram|bingpreview|google-inspectiontool|lighthouse|bytespider|petalbot|semrush|ahrefs|mj12|embedly/i;
+          const bot = ((BOT_RE.test(ua) && !/cubot/i.test(ua)) || d.wd === 1 || d.wd === true) ? 1 : 0;
+          const rec = { ev, deal: s(d.deal, 16), depth: s(d.depth, 12), rr: d.rr ? 1 : 0, feats, featN, axis, dev, ref: refHost, cc, src, bot };
           // Workers Logs 로 남김 (대시보드 Observability → Query Builder 에서 필드로 필터·그룹 조회)
           //  · 순수 JSON 객체로 로깅해야 Cloudflare가 ev·deal·dev 등을 개별 필드로 파싱함
           //    ("mtevent {json}" 처럼 접두어가 붙으면 파싱이 안 돼 필드 필터가 막힘)
@@ -36,7 +41,7 @@ export default {
           if (env.AE) {
             env.AE.writeDataPoint({
               indexes: [ev],
-              blobs: [ev, rec.deal, rec.depth, dev, refHost, s(cc, 4), feats, axis, src],  // blob9=src(채널)
+              blobs: [ev, rec.deal, rec.depth, dev, refHost, s(cc, 4), feats, axis, src, bot ? "1" : "0"],  // blob9=src(채널) blob10=bot
               doubles: [rec.rr, featN],
             });
           }
