@@ -101,6 +101,16 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const workerSrc2 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
   ok(/const dr = s\(d\.dr, 40\)\.replace\(\/\[\^A-Za-z0-9.\\-\]\/g, ""\);/.test(workerSrc2) && workerSrc2.includes('if (dr) refHost = dr;'), 'worker.js: dr(진짜 유입원) 정화 후 ref로 기록');
 }
+
+/* ── 1j) 사용성 v3(로그 기반) — 복잡도 다이어트·조정 바·위저드 발견성 ── */
+ok(html.includes('details.fsub') && html.includes('class="fsub"'), '사용성: 세부 항목 접기(fsub) 존재');
+ok((html.match(/adv:true/g) || []).length >= 20, '사용성: 세부 필드 지정(adv:true) 20+ (' + (html.match(/adv:true/g) || []).length + '곳)');
+ok(html.includes("mtTrack('fsub_open')"), '사용성: fsub 펼침 계측');
+ok(html.includes('fgroup adv collapsed'), '사용성: adv 그룹 기본 접힘(사업비 세부)');
+ok(html.includes("sessionStorage.getItem('mt_adjauto')"), '사용성: 조정 바 데스크톱 1회 자동 오픈');
+ok(html.includes('!window.__adjAuto && window.mtTrack'), '사용성: 자동 오픈은 adj_open 미집계(지표 오염 방지)');
+ok(html.includes('조정 바 ± 조작 = 자기 숫자 만지기'), '사용성: 조정 바 조작 → activate 신호');
+ok(html.includes('.wiz-launch{flex:1 1 100%'), '사용성: 모바일 위저드 버튼 승격(전폭·강조)');
 ok(html.includes('const DEAL_SOON=') && html.includes('deal-soon'), '수요 가짜 문: 준비 중 딜 타일(DEAL_SOON) 존재');
 ok(html.includes("track('deal_want'"), '수요 가짜 문: deal_want 수집(딜 유형명만)');
 {
