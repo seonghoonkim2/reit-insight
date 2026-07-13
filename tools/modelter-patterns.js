@@ -22,6 +22,8 @@ const DAYS = Math.max(7, parseInt(arg('days', '30'), 10) || 30);
 const ACCOUNT = process.env.CF_ACCOUNT_ID || arg('account', '');
 const TOKEN = process.env.CF_API_TOKEN || arg('token', '');
 const D = 'Modelter';
+const MD = arg('md', '');            // 마크다운 요약 파일( GitHub Actions run Summary 에 그대로 붙임)
+const FIXTURE = arg('fixture', '');  // 쿼리 결과 JSON 고정 입력 — 토큰 없는 환경에서 렌더 검증용
 const INCLUDE_BOTS = process.argv.includes('--include-bots');
 const BOTW = INCLUDE_BOTS ? '' : " AND blob10 != '1'";   // 봇 태깅분 기본 제외(구 데이터 blob10=''는 포함)
 const W = `timestamp > now() - INTERVAL '${DAYS}' DAY${BOTW}`;
@@ -41,6 +43,9 @@ const Q = {
   axis: `SELECT blob8 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='sens_axis' AND blob8!='' GROUP BY k ORDER BY n DESC LIMIT 8`,
   depth: `SELECT blob3 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='deal_select' AND blob3!='' GROUP BY k ORDER BY n DESC`,
   featCombo: `SELECT blob7 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob7!='' AND blob1='computed' GROUP BY k ORDER BY n DESC LIMIT 8`,
+  dealWant: `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='deal_want' GROUP BY k ORDER BY n DESC LIMIT 10`,
+  refFun: `SELECT blob5 AS g, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN ('session','activate','computed',${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY g, ev`,
+  srcFun: `SELECT blob9 AS g, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob9!='' AND blob1 IN ('session','activate','computed',${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY g, ev`,
 };
 
 async function runSQL(sql) {
@@ -112,9 +117,14 @@ function barList(pairs, opt) {
 const toPairs = (rows, labelMap) => { const m = {}; for (const r of rows) { const k = String(r.k == null ? '' : r.k); m[k] = (m[k] || 0) + Number(r.n || 0); } return Object.entries(m).sort((a, b) => b[1] - a[1]).map(([k, v]) => [(labelMap && labelMap[k]) || k, v]); };
 
 async function main() {
-  if (!ACCOUNT || !TOKEN) { console.error('CF_ACCOUNT_ID · CF_API_TOKEN 환경변수가 필요합니다.'); process.exit(1); }
-  const raw = {};
-  for (const [k, sql] of Object.entries(Q)) raw[k] = await runSQL(sql);
+  let raw = {};
+  if (FIXTURE) {
+    raw = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+    for (const k of Object.keys(Q)) if (!raw[k]) raw[k] = [];
+  } else {
+    if (!ACCOUNT || !TOKEN) { console.error('CF_ACCOUNT_ID · CF_API_TOKEN 환경변수가 필요합니다.'); process.exit(1); }
+    for (const [k, sql] of Object.entries(Q)) raw[k] = await runSQL(sql);
+  }
 
   /* ── 모델 구성 ── */
   const days = [];
@@ -140,6 +150,30 @@ async function main() {
 
   const hours = []; { const m = {}; for (const r of raw.hour) m[Number(r.h)] = Number(r.n) || 0; for (let k = 0; k < 24; k++) { const kst = (k + 9) % 24; hours.push({ kst, v: m[k] || 0 }); } hours.sort((a, b) => a.kst - b.kst); }
   const dows = []; { const m = {}; for (const r of raw.dow) m[Number(r.dw)] = Number(r.n) || 0; for (let i = 1; i <= 7; i++) dows.push({ k: DOW_LABEL[i], v: m[i] || 0 }); }
+
+  /* ── 수요·유입/채널 퍼널·전 이벤트(주간 비교) ── */
+  function funBy(rows) {
+    const m = {};
+    for (const r of rows || []) {
+      const g = String(r.g == null ? '' : r.g) || '(직접/미상)';
+      const o = m[g] = m[g] || { session: 0, activate: 0, computed: 0, output: 0 };
+      const ev = String(r.ev), n = Number(r.n) || 0;
+      if (ev === 'session' || ev === 'activate' || ev === 'computed') o[ev] += n; else o.output += n;
+    }
+    return Object.entries(m).sort((a, b) => b[1].session - a[1].session);
+  }
+  const refFun = funBy(raw.refFun), srcFun = funBy(raw.srcFun);
+  const dealWantPairs = (raw.dealWant || []).map(r => [DEAL_LABEL[r.k] || String(r.k), Number(r.n) || 0]).sort((a, b) => b[1] - a[1]);
+  const evRows = Object.entries(wow).map(([ev, w]) => [ev, w.this || 0, w.prev || 0]).sort((a, b) => b[1] - a[1]);
+
+  /* KPI v1 트래커 (docs/STRATEGY.md 2026-07-13 확정) — K3은 act 플래그 계측(7/24 이후) 전까지 준비 중 */
+  const _s7 = wget('session');
+  const kpiV1 = [
+    ['K1 주간 방문', num(_s7.this), '목표 800', _s7.this >= 800],
+    ['K2 활성화율', pct(wget('activate').this, _s7.this), '목표 10%+ (다음 15%)', _s7.this > 0 && wget('activate').this / _s7.this >= 0.10],
+    ['K3 실사용 산출물', '계측 준비 중', '7/24 이후 act 플래그 → 8월 기준선', null],
+    ['K4 회수 재진입(착지)', num(wget('landing').this), '목표 주 15', (wget('landing').this || 0) >= 15],
+  ];
 
   /* ── 자동 관찰(규칙 기반 · 데이터 없으면 생략) ── */
   const obs = [];
@@ -236,6 +270,9 @@ td:first-child,th:first-child{text-align:left}.mx td.z{color:var(--muted)}
 
 ${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></h2><ul class="obs">${obs.map(o => '<li>' + o + '</li>').join('')}</ul></div>` : ''}
 
+<div class="card"><h2>KPI v1 트래커 <span>주 7일 창 · 목표는 docs/STRATEGY.md</span></h2>
+<div class="tblwrap"><table><tr><th>지표</th><th>이번 주</th><th>목표</th><th>상태</th></tr>${kpiV1.map(k => `<tr><td>${esc(k[0])}</td><td>${esc(k[1])}</td><td>${esc(k[2])}</td><td>${k[3] === null ? '—' : (k[3] ? '✅ 달성' : '진행 중')}</td></tr>`).join('')}</table></div></div>
+
 <div class="card"><h2>일별 추이 <span>방문 · 엑셀 · 직접입력</span></h2>${trend}</div>
 
 <div class="row2">
@@ -250,6 +287,18 @@ ${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></
     <p class="note">모바일 유입이 커도 작업 전환이 낮으면 "링크 확인" 방문일 가능성 — src 태그(E5)로 확인.</p></div>
   <div class="card"><h2>딜 × 산출물 <span>최근 ${DAYS}일</span></h2>${dealMatrix}</div>
 </div>
+
+<div class="row2">
+  <div class="card"><h2>수요 신호 <span>준비 중 딜 클릭(deal_want)</span></h2>
+    ${dealWantPairs.length ? barList(dealWantPairs, { top: 8 }) : '<p class="empty">(아직 없음)</p>'}
+    <p class="note">착수 기준: 단일 유형 4주 누적 50건.</p></div>
+  <div class="card"><h2>유입 호스트별 퍼널 <span>방문→입력→결과→산출물</span></h2>
+    <div class="tblwrap"><table><tr><th>유입</th><th>방문</th><th>입력</th><th>결과</th><th>산출물</th></tr>${refFun.slice(0, 8).map(([g, f]) => `<tr><td>${esc(g)}</td><td>${num(f.session)}</td><td>${num(f.activate)}</td><td>${num(f.computed)}</td><td>${num(f.output)}</td></tr>`).join('')}</table></div>
+    ${srcFun.length ? `<p class="note" style="margin-top:8px">채널(src) 태그: ${srcFun.map(([g, f]) => esc(g) + ' ' + num(f.session) + '·산출 ' + num(f.output)).join(' / ')}</p>` : ''}</div>
+</div>
+
+<div class="card"><h2>전 이벤트 주간 비교 <span>이번 7일 vs 지난 7일 · ${evRows.length}종</span></h2>
+<details class="tbl" open><summary>표 접기/펼치기</summary><div class="tblwrap"><table><tr><th>이벤트</th><th>라벨</th><th>이번 주</th><th>지난 주</th><th>추세</th></tr>${evRows.map(([ev, t, p]) => `<tr><td>${esc(ev)}</td><td>${esc(EV_LABEL[ev] || '')}</td><td>${num(t)}</td><td>${num(p)}</td><td>${p > 0 ? (t >= p ? '▲' : '▼') + ' ' + multTxt(t, p) : (t > 0 ? '신규' : '—')}</td></tr>`).join('')}</table></div></details></div>
 
 <div class="row2">
   <div class="card"><h2>국가 <span>세션</span></h2>${barList(toPairs(raw.cc.map(r => ({ k: r.cc, n: r.n }))))}</div>
@@ -299,6 +348,34 @@ ${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></
     console.error('보고서 파일을 쓰지 못했습니다: ' + OUT + '\n  → ' + e.message); process.exit(1);
   }
   console.log('✅ 패턴 보고서 생성: ' + path.relative(ROOT, OUT));
+
+  /* ── 마크다운 요약 — GitHub Actions run Summary 에 그대로 붙여 '다운로드 없이 보기' ── */
+  if (MD) {
+    const fmtT = (t, p) => p > 0 ? ((t >= p ? '▲' : '▼') + multTxt(t, p)) : (t > 0 ? '신규' : '—');
+    const md = [];
+    md.push(`# 모델터 사용 보고 — ${today} (최근 ${DAYS}일 · 봇 제외)`);
+    md.push('');
+    md.push('## KPI v1 (주 7일 창)');
+    md.push('| 지표 | 이번 주 | 목표 | 상태 |');
+    md.push('|---|---|---|---|');
+    kpiV1.forEach(k => md.push(`| ${k[0]} | ${k[1]} | ${k[2]} | ${k[3] === null ? '—' : (k[3] ? '✅ 달성' : '진행 중')} |`));
+    md.push('');
+    const outThis = OUTPUT_EVENTS.reduce((a, e) => a + (wget(e).this || 0), 0);
+    md.push(`**주간 퍼널**: 방문 ${num(sW.this)} → 직접 입력 ${num(wget('activate').this)} → 결과 ${num(wget('computed').this)} → 산출물 ${num(outThis)}`);
+    md.push('');
+    if (dealWantPairs.length) md.push('**수요(deal_want)**: ' + dealWantPairs.slice(0, 6).map(p => `${p[0]} ${num(p[1])}`).join(' · '));
+    const extRef = refFun.filter(([g]) => g && g.indexOf('modelter.com') < 0 && g !== '(직접/미상)').slice(0, 6);
+    if (extRef.length) md.push('**외부 유입(방문·산출물)**: ' + extRef.map(([g, f]) => `${g} ${num(f.session)}·${num(f.output)}`).join(' · '));
+    md.push('');
+    md.push('## 이번 주 이벤트 상위 15');
+    md.push('| 이벤트 | 라벨 | 이번 주 | 지난 주 | 추세 |');
+    md.push('|---|---|---|---|---|');
+    evRows.slice(0, 15).forEach(([ev, t, p]) => md.push(`| ${ev} | ${EV_LABEL[ev] || ''} | ${num(t)} | ${num(p)} | ${fmtT(t, p)} |`));
+    md.push('');
+    md.push('_전체 상세(차트·기기·시간대·유입 퍼널)는 Artifacts → modelter-usage-report 의 patterns.html_');
+    fs.writeFileSync(MD, md.join('\n') + '\n');
+    console.log('✅ 마크다운 요약: ' + path.relative(ROOT, MD));
+  }
 }
 
 main().catch(e => { console.error('조회 실패: ' + e.message + '\n· CF_ACCOUNT_ID·CF_API_TOKEN 과 토큰 권한(Account Analytics : Read)을 확인하세요.'); process.exit(1); });

@@ -48,9 +48,13 @@ jobs:
         with:
           node-version: "20"
 
-      - name: 사용 패턴 보고서 생성 (라이브 AE → data/patterns.html)
+      - name: 사용 패턴 보고서 생성 (라이브 AE → data/patterns.html + 요약 md)
         if: ${{ steps.guard.outputs.ready == 'true' }}
-        run: node tools/modelter-patterns.js
+        run: node tools/modelter-patterns.js --md data/patterns.md
+
+      - name: 실행 페이지 요약 (다운로드 없이 바로 보기)
+        if: ${{ steps.guard.outputs.ready == 'true' }}
+        run: cat data/patterns.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: 누적 대시보드 생성 (커밋된 스냅샷 → data/dashboard.html)
         if: ${{ steps.guard.outputs.ready == 'true' }}
