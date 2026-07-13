@@ -150,7 +150,7 @@ footer a{color:var(--ink-3)}
 
     <div class="term" id="dscr"><h3>DSCR <span class="en">부채상환계수 · Debt Service Coverage Ratio</span></h3>
       <span class="formula">DSCR = NOI ÷ 연간 원리금(DS)</span>
-      <p>NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금의 1.2배를 버는 것으로, 대주는 보통 1.2x 이상을 요구합니다. 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다.</p></div>
+      <p>NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금의 1.2배를 버는 것으로, 대주는 보통 1.2x 이상을 요구합니다. 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다. 모델터의 분자는 <b>NOI 기준</b>(자본적지출·레징비용 차감 전)이라, 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.</p></div>
 
     <div class="term" id="icr"><h3>ICR <span class="en">이자보상배율</span></h3>
       <span class="formula">ICR = NOI ÷ 연간 이자</span>
@@ -162,7 +162,8 @@ footer a{color:var(--ink-3)}
 
     <div class="term" id="dy"><h3>Debt Yield <span class="en">부채수익률</span></h3>
       <span class="formula">Debt Yield = NOI ÷ 대출 잔액</span>
-      <p>대출 1원당 자산이 얼마의 NOI를 내는지 보는 지표로, 금리·상환구조와 무관하게 대출의 안전마진을 봅니다. 낮을수록 대주에게 위험합니다.</p></div>
+      <p>대출 1원당 자산이 얼마의 NOI를 내는지 보는 지표로, 금리·상환구조와 무관하게 대출의 안전마진을 봅니다. 낮을수록 대주에게 위험합니다.</p>
+      <p class="note">분모 기준: 모델터 커버넌트 표는 연도별 <b>기말잔액</b>, 리파이 텀시트·IC PPT는 <b>당초 한도</b>를 씁니다 — 만기일시 상환이면 두 값이 같습니다.</p></div>
 
     <div class="term" id="repay"><h3>상환 방식 <span class="en">만기일시 · 원리금균등 · 원금균등</span></h3>
       <p><b>만기일시(이자만)</b>는 보유 중 이자만 내고 원금은 만기에 한 번에 갚는 방식으로 국내 상업용 부동산 대출의 기본형입니다. <b>원리금균등</b>은 매기 갚는 금액(원금+이자)이 일정하고, <b>원금균등</b>은 매기 원금을 같은 금액씩 갚아 이자가 점점 줄어듭니다. 원금을 갚아나가는 방식일수록 DSCR 부담이 커지는 대신 만기 상환(벌룬) 위험이 줄어듭니다. 모델터 리파이낸싱 비교에서 방식별 연도별 DSCR을 나란히 볼 수 있습니다.</p></div>

@@ -69,7 +69,9 @@
 ```bash
 node tools/modelter-ci-check.js   # 마커 200+ · 헤드리스 4딜 실행 · 성능 예산 · 신뢰/회수/팀기준/착지/재현성 게이트
 node tools/qa/smoke.js            # 실브라우저 32검사 (위저드·IC·BYOK·성능 + 신뢰/회수/팀기준/노트 표면)
-node tools/parity/gen-xlsx.js <딜> && python3 tools/parity/check.py <딜>   # 계산·엑셀 변경 시
+node tools/parity/gen-xlsx.js <딜> && python3 tools/parity/check.py <딜>   # 계산·엑셀 변경 시 (4딜 + office_nopref|nonpass|hold7 변형)
+node tools/qa/invariants.js       # 엔진 경제 단조성 17건 (계산 변경 시 — GitHub CI도 매 푸시 실행)
+node tools/qa/offline.js          # 무네트워크 동작 실증 8검사 (부트·다운로드 경로 변경 시)
 grep -c "__mtCalc" dart-search/web/modelter/index.html   # 0이어야 함
 ```
 
