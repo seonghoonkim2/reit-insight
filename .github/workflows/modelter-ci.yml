@@ -31,6 +31,8 @@ jobs:
           node-version: "20"
       - name: 모델터 검증
         run: node tools/modelter-ci-check.js
+      - name: 엔진 불변식 (경제적 단조성 17건)
+        run: node tools/qa/invariants.js
 
   parity:
     name: 파리티 4딜 (화면 = 엑셀 재계산)
