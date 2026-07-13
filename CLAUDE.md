@@ -23,12 +23,14 @@
 ```bash
 node tools/parity/gen-xlsx.js office|logistics|dev|refi   # 생성
 python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pip install formulas) — 4딜 전수
+# 자본구조 변형(우선주 오프·비도관·보유 7년): office_nopref|office_nonpass|office_hold7
 ```
 
 ### 작업 절차 (매 변경마다)
 
 1. `dart-search/web/modelter/index.html` 편집 (세션 로컬 사본을 쓰면 이 경로로 cp — **저장소 사본이 진실**)
 2. `node tools/modelter-ci-check.js` — 마커 + 헤드리스 행동 검사 (배포 경로 파일을 읽음)
+   + `node tools/qa/invariants.js` — 엔진 경제 단조성 17건(의존성 없음, ~2초)
 3. 계산·엑셀 로직 변경 시: 파리티 2단계
 4. Playwright QA (`/opt/pw-browsers/chromium-*/chrome-linux/chrome`, http 서버로 서빙 — file:// 불가)
 5. `grep -c "__mtCalc" dart-search/web/modelter/index.html` → **0** 확인
