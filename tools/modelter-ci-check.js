@@ -643,7 +643,18 @@ const driver = `;(function(){
     var _codes = _wB.map(function(w){return w.code;});
     ["RR_ZERO_AREA","RR_NEGATIVE_RENT","RR_DEPOSIT_WITHOUT_RENT","RR_EXPIRED_LEASE","RR_DATE_PARSE_FAILED","RR_AREA_SUM_EXCEEDS_NLA"].forEach(function(cd){
       if (_codes.indexOf(cd) < 0) throw new Error("렌트롤 검증 미검출: " + cd + " (got " + _codes.join(",") + ")");
+    });    // 신규 검사 4종: 보증금 음수·만기<시작·합계>연면적·행 단위 임대료 스케일
+    var _gN = [["임차인","임대면적(평)","월임대료","보증금","계약시작","계약만기"],
+      ["n1",1000,80000000,-500000000,"2024-01","2028-06"],
+      ["n2",800,60000000,0,"2029-01","2027-06"],
+      ["n3",700,500,0,"2024-01","2028-06"]];
+    var _mN = RENTROLL.autoMap(_gN[0]), _eN = RENTROLL.extractLeases(_gN, 0, _mN, {});
+    var _wN = RENTROLL.validateLeases(_gN, 0, _mN, _eN, {rentable: 10000, gfa: 2000});
+    var _cN = _wN.map(function(w){return w.code;});
+    ["RR_NEGATIVE_DEPOSIT","RR_END_BEFORE_START","RR_AREA_SUM_EXCEEDS_GFA","RR_RENT_UNIT_SUSPECT"].forEach(function(cd){
+      if (_cN.indexOf(cd) < 0) throw new Error("렌트롤 신규 검증 미검출: " + cd + " (got " + _cN.join(",") + ")");
     });
+    if (_wN.some(function(w){return w.sev === "error";})) throw new Error("신규 렌트롤 검사가 error를 반환(경고여야 함): " + JSON.stringify(_wN));
   }
   // 임대차 리스크 지표: WALE(면적)=(100*1+300*3)/400=2.5, top1=쿠팡 300/400=0.75, 만기 스케줄
   if (typeof rrRiskMetrics === "function") {

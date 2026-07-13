@@ -1345,6 +1345,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       <div class="md-f"><b>자기자본</b> = 총 투자액 − 대출 − 우선주 − 보증금 승계 (잔액 plug)<br>보증금 승계 = 임차인 보증금(무이자)을 취득자금으로 사용 → 자기자본 절감, 매각 시 성장 반영해 정산 (선택, 기본 반영)</div>
       <div class="md-f"><b>운용보수·고정비</b> = 취득가 × 운용보수율(기본 0.4%) + 기타 고정비 → 매 기간 배당재원에서 차감</div>
       <div class="md-f"><b>DSCR</b> = NOI ÷ (이자 + 원금상환)　상환방식: 만기일시 · 원리금균등 · 원금균등<br>분자는 <b>NOI 기준</b>(자본적지출·레징비용 차감 전) — 대주 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.</div>
+      <div class="md-f"><b>Debt Yield</b> = NOI ÷ 대출잔액 — 커버넌트 표는 연도별 <b>기말잔액</b>, 리파이 텀시트·IC PPT는 <b>당초 한도</b> 기준(만기일시 상환이면 동일)</div>
       <div class="md-f"><b>레버드 IRR</b> = 자기자본 현금흐름의 내부수익률(이분법)<br><b>Equity Multiple</b> = 총회수 ÷ 자기자본　·　<b>평균 배당수익률</b> = 보유 중 연 자기자본 CF ÷ <b>초기 자기자본</b>(매각 회수 제외, 운영 배당만)<br><b>언레버드 IRR</b> = 무차입 기준(−총투자액, 연 NOI, 매각연도 +순매각가)</div>
     </div>
 
@@ -1937,7 +1938,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-10·2c43ebf23a';
+window.MT_BUILD='2026-07-13·79912e2b2e';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2810,7 +2811,12 @@ function mtChecks(){
     var m=null; try{ m=simModel(); }catch(e){}
     var r=m&&m.raw;
     if(r){
-      if(r.IRR==null) add('IRR_FAILED','error','IRR이 계산되지 않습니다. 매입가, 임대료, Exit Cap을 확인해 주세요.');
+      if(r.IRR==null) add('IRR_FAILED','error','IRR이 계산되지 않습니다. 매입가, 임대료, Exit Cap을 확인해 주세요.');      // 부호전환 2회 이상이면 IRR 해가 여러 개일 수 있음(데카르트 부호 규칙) — 이분법이 그중 하나만 찾으므로 경고
+      if(r.IRR!=null&&r.dist&&r.dist.length&&isFinite(r.equity)){
+        var _cf=[-r.equity].concat(r.dist), _fl=0, _pv=0, _ci;
+        for(_ci=0;_ci<_cf.length;_ci++){ var _sg=_cf[_ci]>0?1:(_cf[_ci]<0?-1:0); if(_sg===0) continue; if(_pv!==0&&_sg!==_pv) _fl++; _pv=_sg; }
+        if(_fl>=2) add('IRR_MULTI','warning','자기자본 현금흐름의 부호가 '+_fl+'회 바뀝니다 — IRR 해가 유일하지 않을 수 있어 EM·DSCR을 함께 확인하세요');
+      }
       if(isFinite(r.equity)&&r.equity<=0) add('DEBT_NEGATIVE_EQUITY','error','자기자본이 0 이하로 계산됩니다. LTV나 우선주 비중이 과하지 않은지 확인해 주세요.');
       if(r.NOI&&r.DSCR&&r.NOI.slice(0,r.DSCR.length).some(function(v){return v<0;})) add('CF_NEGATIVE_NOI','warning','NOI가 음수인 연도가 있습니다. 임대료와 운영비 가정을 확인해 주세요.');
       if(isFinite(r.minDSCR)&&r.minDSCR<1) add('DSCR_BELOW_1','warning','최소 DSCR '+r.minDSCR.toFixed(2)+'x. 운영현금으로 원리금을 못 갚는 구간이 있습니다.');
@@ -4566,7 +4572,7 @@ function renderSim(){
       ['일회성 비용', function(x){ return money(x.fees); }],
       ['순 조달(비용 차감)', function(x){ return signed(x.net); }],
       ['Y1 이자(기존대비)', function(x){ return money(x.newInt)+(isFinite(x.dInt)?(' ('+(x.dInt<=0?'−':'+')+meok(Math.abs(x.dInt))+')'):''); }],
-      ['Debt Yield', function(x){ return x.dy!=null?mfmt(x.dy*100,1)+'%':'—'; }],
+      ['Debt Yield (당초 한도 기준)', function(x){ return x.dy!=null?mfmt(x.dy*100,1)+'%':'—'; }],
       ['Y1 DSCR', function(x){ return x.dscr!=null?fx2(x.dscr)+'x':'—'; }],
       ['최소 DSCR(전 기간)', function(x){ var st=x.pass===false?' style="color:var(--red);font-weight:800"':(x.pass===true?' style="color:var(--green);font-weight:800"':''); return {html:'<td'+st+'>'+(x.minDSCR!=null?fx2(x.minDSCR)+'x':'—')+'</td>'}; }],
       ['총이자(만기까지)', function(x){ return money(x.totInt); }],
@@ -6009,7 +6015,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       var opn=judge?' open':'';
       return '<details class="sim-cf cov-d"'+opn+'><summary>부채 커버넌트 · 리파이 참고 ▾</summary>'
         +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><button type="button" class="sl-btn" onclick="if(window.housePop)housePop()" title="브라우저 공통 허들 — 판정·차환·대주 뷰에 반영">🎯 내 기준</button><span>기준을 비워두면 내 기준(설정해 둔 경우)으로, 그것도 없으면 판정 없이 숫자만 보여줍니다</span></div>'
-        +'<div class="cov-wrap"><table class="sens-tbl cov-tbl"><tr><th>연차</th><th>NOI</th><th>원리금</th><th>DSCR</th><th>ICR</th><th>Debt Yield</th><th>내재 LTV</th><th>판정</th></tr>'+rows+'</table></div>'+refi+lender+'</details>';
+        +'<div class="cov-wrap"><table class="sens-tbl cov-tbl"><tr><th>연차</th><th>NOI</th><th>원리금</th><th>DSCR</th><th>ICR</th><th title="NOI ÷ 그 해 기말 대출잔액">Debt Yield<br><span style="font-weight:400;font-size:10px;color:var(--muted)">(기말잔액 기준)</span></th><th>내재 LTV</th><th>판정</th></tr>'+rows+'</table></div>'+refi+lender+'</details>';
     }catch(e){ return ''; }
   }
   // 커버넌트 기준 입력 → state 저장(블러 시) → 재계산
@@ -6709,6 +6715,24 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   }
   window.__devTemplate=devTemplate;
 
+  /* 가정 출처 태그 → 01_Assumptions F열 — 오피스 13시트(6770 부근)와 같은 규칙을 dev·refi에 재사용 */
+  function mtSrcColApply(tpl, rowMap){
+    try{
+      if(!tpl||typeof srcTags!=='object'||!Object.keys(srcTags).length) return;
+      var _as=null,_i; for(_i=0;_i<tpl.sheets.length;_i++) if(tpl.sheets[_i].name==='01_Assumptions'){ _as=tpl.sheets[_i]; break; }
+      if(!_as) return;
+      Object.keys(srcTags).forEach(function(_k){
+        var _row=rowMap[_k], _t=srcTags[_k]; if(!_row||!_t||!_t.s) return;
+        var _txt='['+_t.s+(_t.d?(' · '+_t.d):'')+']';
+        var _ref='F'+_row, _fc=null,_ci;
+        for(_ci=0;_ci<_as.cells.length;_ci++){ if(_as.cells[_ci].r===_ref){ _fc=_as.cells[_ci]; break; } }
+        // 수식 비고(dev F21 납부 합계 검증 등)는 불가침 — 텍스트 비고만 태그를 앞에 붙이고 옛 태그는 교체
+        if(_fc){ if(_fc.f) return; _fc.s=_txt+' '+String(_fc.s||'').replace(/^\[[^\]]*\]\s*/,''); }
+        else _as.cells.push({r:_ref, role:'no', s:_txt});
+      });
+    }catch(eSrcA){}
+  }
+
   function downloadXlsx(ctx){
     if(typeof exConfirmOutput==='function'&&!exConfirmOutput('엑셀 모델')) return;
     try{
@@ -6720,7 +6744,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       // 리파이낸싱: 텀시트 비교 워크북
       if(typeof cur!=='undefined'&&cur==='refi'&&typeof refiTemplate==='function'){
         var rft=refiTemplate(ctx);
-        if(!rft){ try{ toast('NOI·감정가와 대안 조건을 입력하면 받을 수 있습니다'); }catch(eR0){} return; }
+        if(!rft){ try{ toast('NOI·감정가와 대안 조건을 입력하면 받을 수 있습니다'); }catch(eR0){} return; }        // 가정 출처·기준일 → 01_Assumptions F열 (이 시트 F열은 빈 열 · check.py가 보는 02_Term_Sheets C/D/E와 무관)
+        try{ mtSrcColApply(rft, {noi:5,noig:6,appraisal:7,dscrmin:8,oldbal:11,oldrate:12,prepayfee:15,newfee:16}); }catch(eSrcR){}
         var bytesR=XLSXGEN.buildXlsx(rft,null,null);
         var blobR=new Blob([bytesR],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         var nmR=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset).replace(/[\\\/:*?"<>|]/g,'').trim():'자산';
@@ -6741,7 +6766,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       // 개발 · 공동주택 분양: 전용 분양수지 워크북
       if(typeof cur!=='undefined'&&cur==='dev'&&typeof devResi==='function'&&devResi()){
         var dvt=devTemplate(ctx);
-        if(!dvt){ try{ toast('평형별 분양가와 사업비를 입력하면 받을 수 있습니다'); }catch(e0){} return; }
+        if(!dvt){ try{ toast('평형별 분양가와 사업비를 입력하면 받을 수 있습니다'); }catch(e0){} return; }        // 가정 출처·기준일 → 01_Assumptions F열 (행 번호는 devTemplate 고정 셀 주석과 1:1 · C21 합계 등 수식 행 제외 · check.py가 보는 04_PROFITABILITY C열과 무관)
+        try{ mtSrcColApply(dvt, {landcost:5,conscost:6,othercost:7,taxpct:8,consperiod:10,saleopen:11,absorb:12,preperiod:13,aptsold:15,aptinit:16,dpct:17,mpct:18,mcount:19,rpct:20,equity:24,pfrate:25,pffee:26,brate:27,engpct:30,rsvpct:31,salespct:32,hugpct:33,midfree:34,midrate:35,landdp:36,landpay:37,conscurve:38}); }catch(eSrcD){}
         var bytesD=XLSXGEN.buildXlsx(dvt,null,null);
         var blobD=new Blob([bytesD],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         var nmD=(typeof state!=='undefined'&&state&&state.asset)?String(state.asset).replace(/[\\\/:*?"<>|]/g,'').trim():'분양사업';
@@ -7380,7 +7406,7 @@ function buildIcPptx(){
       var noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null;
       var dm=[['부채 지표','값','기준·비고'],
         ['최소 DSCR (전 기간)', fx2(raw.minDSCR), '통상 1.2x 이상'],
-        ['Y1 Debt Yield', (noi0!=null&&raw.loan>0)?fpct(noi0/raw.loan,1):'—', 'NOI ÷ 대출'],
+        ['Y1 Debt Yield', (noi0!=null&&raw.loan>0)?fpct(noi0/raw.loan,1):'—', 'NOI ÷ 대출 (당초 한도 기준)'],
         ['진입 Cap', (noi0!=null&&raw.price>0)?fpct(noi0/raw.price,2):'—', 'Y1 NOI ÷ 매입가'],
         ['Exit Cap', fpct(raw.exitCap,2), '매각가 = fwd NOI ÷ Cap'],
         ['순매각가(부대비 차감)', fm(raw.netSale), '보유 만기 시점']];
@@ -7426,7 +7452,7 @@ function buildIcPptx(){
         ['일회성 비용(수수료 등)'].concat(r.rows.map(function(x){ return fm(x.fees); })),
         ['순 조달(비용 차감)'].concat(r.rows.map(function(x){ return isFinite(x.net)?((x.net>=0?'+':'−')+meok(Math.abs(x.net))):'—'; })),
         ['Y1 이자(기존 대비)'].concat(r.rows.map(function(x){ return fm(x.newInt)+(isFinite(x.dInt)?(' ('+(x.dInt<=0?'−':'+')+meok(Math.abs(x.dInt))+')'):''); })),
-        ['Y1 Debt Yield'].concat(r.rows.map(function(x){ return x.dy!=null?fpct(x.dy,1):'—'; })),
+        ['Y1 Debt Yield (당초 한도 기준)'].concat(r.rows.map(function(x){ return x.dy!=null?fpct(x.dy,1):'—'; })),
         ['Y1 DSCR'].concat(r.rows.map(function(x){ return fx2(x.dscr); })),
         ['최소 DSCR(전 기간)'].concat(r.rows.map(function(x){ return fx2(x.minDSCR); })),
         ['총이자(만기까지)'].concat(r.rows.map(function(x){ return fm(x.totInt); })),
@@ -7842,7 +7868,7 @@ function validateLeases(grid, headerRowIdx, map, ex, opts){
   var areaCol=(map.leasearea!=null)?map.leasearea:((map.area!=null)?map.area:map.netarea);
   function add(code,sev,msg){ W.push({code:code,sev:sev,msg:msg}); }
   // 이름은 있는데 면적이 없어 제외된 행
-  var dropped=0, negRent=0, expired=0, depNoRent=0, dateFail=0, dupNames={}, dup=0;
+  var dropped=0, negRent=0, expired=0, depNoRent=0, dateFail=0, dupNames={}, dup=0, negDep=0, endBeforeStart=0;
   dataRows.forEach(function(row){
     var nm=map.name!=null?String(row[map.name]||'').trim():'';
     if(!nm||isTotalRow(nm)) return;
@@ -7851,10 +7877,14 @@ function validateLeases(grid, headerRowIdx, map, ex, opts){
     var rent=map.rent!=null?toNum(row[map.rent]):null;
     if(rent!=null&&rent<0) negRent++;
     var dep=map.deposit!=null?toNum(row[map.deposit]):null;
+    if(dep!=null&&dep<0) negDep++;
     if((dep||0)>0&&(rent==null||rent===0)) depNoRent++;
-    if(map.end!=null){ var raw=row[map.end]; var dd=parseDate(raw);
+    var dd=null;
+    if(map.end!=null){ var raw=row[map.end]; dd=parseDate(raw);
       if(raw!=null&&String(raw).trim()!==''&&!dd) dateFail++;
       else if(dd&&dd<asOf) expired++; }
+    // 종료<시작은 WALE·만기분포 계산을 통째로 왜곡하므로 행 단위로 잡는다
+    if(map.start!=null&&dd){ var sd=parseDate(row[map.start]); if(sd&&dd<sd) endBeforeStart++; }
     if(dupNames[nm]) dup++; dupNames[nm]=1;
   });
   if(dropped>0) add('RR_ZERO_AREA','error','면적이 없거나 0 이하인 임차인 행 '+dropped+'개 — 계산에서 제외됩니다. 면적 열 매핑을 확인하세요.');
@@ -7862,18 +7892,25 @@ function validateLeases(grid, headerRowIdx, map, ex, opts){
   if(dateFail>0) add('RR_DATE_PARSE_FAILED','warning','만기일 형식을 인식하지 못한 행 '+dateFail+'개 — 해당 임차인은 만기 없음으로 처리됩니다.');
   if(expired>0) add('RR_EXPIRED_LEASE','warning','만기일이 기준일 이전인 행 '+expired+'개 — 갱신 여부를 확인하세요.');
   if(depNoRent>0) add('RR_DEPOSIT_WITHOUT_RENT','warning','보증금은 있으나 임대료가 없는 행 '+depNoRent+'개 — 무상임대 또는 누락 여부를 확인하세요.');
-  if(dup>0) add('RR_DUPLICATE_TENANT','info','동일 임차인명이 반복된 행 '+dup+'개 — 복수 호실이면 정상, 중복 입력이면 확인하세요.');
+  if(dup>0) add('RR_DUPLICATE_TENANT','info','동일 임차인명이 반복된 행 '+dup+'개 — 복수 호실이면 정상, 중복 입력이면 확인하세요.');  if(negDep>0) add('RR_NEGATIVE_DEPOSIT','warning','보증금이 음수인 행 '+negDep+'개 — 부호·단위를 확인하세요.');
+  if(endBeforeStart>0) add('RR_END_BEFORE_START','warning','계약만기가 계약시작보다 빠른 행 '+endBeforeStart+'개 — 시작·만기 열 매핑과 원본 날짜를 확인하세요.');
   // 임대면적 합계 vs 임대가능면적
   if(ex&&ex.leases&&ex.leases.length&&opts.rentable>0){
     var sumA=0; ex.leases.forEach(function(l){ sumA+=l.area||0; });
     if(sumA>opts.rentable*1.05) add('RR_AREA_SUM_EXCEEDS_NLA','warning','임대면적 합계('+Math.round(sumA).toLocaleString()+'평)가 임대가능면적('+Math.round(opts.rentable).toLocaleString()+'평)을 5% 이상 초과합니다 — 연면적·면적 단위를 확인하세요.');
+  }  // 연면적 자체를 넘으면 임대가능면적 초과보다 강한 신호 — 평/㎡ 단위 사고 가능성이 크다
+  if(ex&&ex.leases&&ex.leases.length&&opts.gfa>0){
+    var sumG=0; ex.leases.forEach(function(l){ sumG+=l.area||0; });
+    if(sumG>opts.gfa) add('RR_AREA_SUM_EXCEEDS_GFA','warning','임대면적 합계('+Math.round(sumG).toLocaleString()+'평)가 연면적('+Math.round(opts.gfa).toLocaleString()+'평)을 초과합니다 — 평/㎡ 단위 또는 연면적 입력을 확인하세요.');
   }
   // 평당 임대료 스케일 의심 (통상 평당 월 5천~40만원)
   if(ex&&ex.leases&&ex.leases.length){
     var meds=ex.leases.map(function(l){return l.rentPP;}).filter(function(x){return x>0;});
     if(meds.length){ var md=median(meds);
       if(md>400000||md<5000) add('RR_MONTHLY_ANNUAL_AMBIGUOUS','warning','평당 월임대료 중앙값이 '+Math.round(md).toLocaleString()+'원으로 통상 범위를 벗어납니다 — 월세/연세·평/㎡ 단위를 확인하세요.');
-    }
+    }    // 중앙값 검사는 전체 스케일만 잡으므로, 소수 행에 섞인 연세·총액·㎡ 오입력은 행 단위로 본다
+    var oddRent=meds.filter(function(x){return x<1000||x>1000000;}).length;
+    if(oddRent>0) add('RR_RENT_UNIT_SUSPECT','warning','평당 월임대료가 1천원 미만이거나 100만원을 넘는 행 '+oddRent+'개 — 해당 행의 월세/연세·총액/평당 구분을 확인하세요.');
   }
   return W;
 }
@@ -7897,14 +7934,14 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   }
   function gfaNow(){ var v=parseFloat(String((typeof state!=='undefined'&&state.gfa)||'').replace(/,/g,'')); return isFinite(v)?v:0; }
 
-  var RR_FLDS=[['name','임차인'],['leasearea','임대면적'],['netarea','전용면적'],['area','면적(단일)'],['rent','월임대료'],['cam','관리비'],['deposit','보증금'],['start','계약시작'],['end','계약만기'],['rentfree','렌트프리'],['stepup','상승률'],['','사용 안 함']];
+  var RR_FLDS=[['name','임차인'],['leasearea','임대면적'],['netarea','전용면적'],['area','면적(단일)'],['rent','월임대료'],['cam','관리비'],['deposit','보증금'],['start','계약시작(참고)'],['end','계약만기'],['rentfree','렌트프리'],['stepup','상승률'],['','사용 안 함']];
   function recompute(){
     var p=pending; if(!p) return false;
     var ex=RENTROLL.extractLeases(p.grid, p.hr, p.map, {});
     var ratio=(typeof cur!=='undefined'&&cur==='logistics')?0.97:0.88;
     var agg=RENTROLL.aggregate(ex.leases, gfaNow(), ratio);
     p.ex=ex; p.agg=agg;
-    p.warns=RENTROLL.validateLeases(p.grid, p.hr, p.map, ex, {rentable:gfaNow()*ratio});
+    p.warns=RENTROLL.validateLeases(p.grid, p.hr, p.map, ex, {rentable:gfaNow()*ratio, gfa:gfaNow()});
     return ex.leases.length>0;
   }
   function processGrid(grid){
