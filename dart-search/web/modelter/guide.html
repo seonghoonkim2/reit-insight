@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>부동산 금융 용어사전 · 재무모델 가이드 | 모델터</title>
-<meta name="description" content="Cap rate·NOI·IRR·DSCR·LTC·렌트프리·NOC·전용률·책임임대차·보증금 승계·도관과세·브릿지론과 본PF·분양수지까지 — 한국 상업용 부동산(CRE) 재무모델·임대차 실무 용어를 실무 기준으로 정의합니다. 모델터에서 바로 계산해 볼 수 있습니다." />
+<meta name="description" content="Cap rate·NOI·IRR·DSCR·LTC·렌트프리·NOC·전용률·책임임대차·보증금 승계·도관과세·브릿지론과 본PF·분양수지, 호텔 ADR·OCC·RevPAR·GOP·FF&amp;E, 데이터센터 IT부하·PUE까지 — 한국 상업용 부동산(CRE) 재무모델·임대차 실무 용어를 실무 기준으로 정의합니다. 모델터에서 바로 계산해 볼 수 있습니다." />
 <link rel="canonical" href="https://modelter.com/guide" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
@@ -27,6 +27,7 @@
 {"@type":"Question","name":"입력한 딜 정보가 서버에 저장되나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 모든 계산은 브라우저 안에서 이뤄지고, 매입가·임대료·렌트롤 같은 딜 정보는 서버로 전송되지 않습니다. 저장은 사용자 브라우저(localStorage)에만 하며, 공유 링크도 서버 저장 없이 링크 안에 담기고 임차인 실명은 자동 마스킹됩니다."}},
 {"@type":"Question","name":"화면 숫자와 다운로드 엑셀이 정말 같나요?","acceptedAnswer":{"@type":"Answer","text":"네. 화면의 IRR·Equity Multiple·DSCR 등은 내려받는 엑셀과 같은 계산식에서 나옵니다. 엑셀 파일을 실제 수식 엔진으로 다시 계산해 화면 값과 소수점 수준까지 일치하는지 검증하며, '화면 = 다운로드 엑셀' 배지가 붙은 딜 유형이 그 대상입니다."}},
 {"@type":"Question","name":"어떤 딜 유형을 지원하나요?","acceptedAnswer":{"@type":"Answer","text":"오피스·물류센터 매입(레버드 DCF 13시트), 공동주택 분양 사업수지(브릿지→본PF·중도금 6시트), 리파이낸싱 대안 비교(텀시트·연도별 DSCR 4시트)를 지원하며, 모두 수식이 살아있는 엑셀로 내려받을 수 있습니다."}},
+{"@type":"Question","name":"호텔·데이터센터 딜도 계산할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"아직입니다. 호텔·리테일·임대주택·데이터센터는 준비 중이며, 앱의 '준비중' 탭에서 유형별 수요 투표를 받아 수요가 모이는 순서대로 추가할 예정입니다. 마스터리스(책임임대차) 구조라면 수입 구조가 오피스와 같아 지금도 매입 딜 엔진으로 검토할 수 있습니다. ADR·RevPAR·GOP·PUE 같은 용어는 용어사전의 '운영형 자산' 절에 정리돼 있습니다."}},
 {"@type":"Question","name":"DSCR은 어떻게 계산하나요?","acceptedAnswer":{"@type":"Answer","text":"DSCR(부채상환계수)은 순영업이익(NOI)을 연간 원리금 상환액(DS)으로 나눈 값입니다. DSCR = NOI ÷ 원리금. 1.2x라면 원리금의 1.2배에 해당하는 NOI가 나온다는 뜻으로, 대주는 보통 1.2x 이상을 요구합니다."}},
 {"@type":"Question","name":"브릿지론과 본PF는 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"브릿지론은 토지 계약부터 착공(인허가·사업 준비 기간)까지 쓰는 단기 고금리 차입이고, 본PF는 착공 이후 공사비를 조달하는 프로젝트 파이낸싱입니다. 착공 시점에 브릿지 잔액이 본PF로 차환(승계)되는 것이 일반적입니다."}},
 {"@type":"Question","name":"NOC와 명목 임대료는 뭐가 다른가요?","acceptedAnswer":{"@type":"Answer","text":"명목 임대료는 계약서상 임대면적당 금액이고, NOC(Net Occupancy Cost)는 렌트프리·관리비·전용률까지 반영해 임차인이 전용면적 1평당 실제 부담하는 비용입니다. 빌딩 간 임차 조건 비교는 NOC 기준으로 하는 것이 국내 오피스 실무 표준입니다."}}]}
@@ -97,6 +98,7 @@ footer a{color:var(--ink-3)}
       <a href="#debt">부채·커버리지</a>
       <a href="#korea">국내 실무</a>
       <a href="#dev">개발금융</a>
+      <a href="#operating">운영형 자산</a>
       <a href="#faq">자주 묻는 질문</a>
     </nav>
   </div>
@@ -217,12 +219,48 @@ footer a{color:var(--ink-3)}
       <p class="try"><a href="/#t=dev">→ 분양수지로 브릿지→본PF 계산해보기</a></p>
   </section>
 
+  <section id="operating">
+    <h2>운영형 자산 <span class="en">호텔 · 데이터센터</span></h2>
+    <p class="sec-intro">임대료가 아니라 영업 실적이 수입을 만드는 자산들입니다. 오피스와 같은 매입 딜이지만 NOI로 가는 길이 다릅니다. (호텔·데이터센터 딜 유형은 모델터에서 준비 중이며, 앱의 ‘준비중’ 탭에서 수요 투표를 받고 있습니다.)</p>
+
+    <div class="term" id="adr"><h3>ADR <span class="en">평균객실단가 · Average Daily Rate</span></h3>
+      <span class="formula">ADR = 객실매출 ÷ 판매된 객실 수(박)</span>
+      <p>하루 동안 실제로 판매된 객실 1실이 평균 얼마에 팔렸는지를 보는 호텔의 가격 지표입니다. 무료 제공(컴프) 객실은 분모에서 빼는 것이 원칙입니다. 점유율(OCC)과 함께 호텔 수입의 두 축으로, 성수기·비수기 편차가 커서 연평균으로 모델에 넣습니다.</p></div>
+
+    <div class="term" id="occ"><h3>OCC <span class="en">객실 점유율 · Occupancy</span></h3>
+      <span class="formula">OCC = 판매된 객실 수 ÷ 판매 가능 객실 수</span>
+      <p>전체 객실 중 실제로 팔린 비율입니다. 가격(ADR)을 지키면서 점유율을 채우는 것이 운영의 핵심 과제로, 신규 개관 호텔은 안정화(ramp-up)까지 1~2년에 걸쳐 OCC가 올라오는 것을 모델에 반영합니다.</p></div>
+
+    <div class="term" id="revpar"><h3>RevPAR <span class="en">판매가능객실당 매출</span></h3>
+      <span class="formula">RevPAR = ADR × OCC = 객실매출 ÷ 판매 가능 객실 수</span>
+      <p>가격과 점유율을 한 숫자로 합친 호텔 비교의 표준 지표입니다. ADR이 높아도 OCC가 낮으면 RevPAR가 깎여, 경쟁 호텔 간 성과 비교와 시장 리포트가 모두 RevPAR 기준으로 이뤄집니다.</p></div>
+
+    <div class="term" id="gop"><h3>GOP <span class="en">영업총이익 · Gross Operating Profit</span></h3>
+      <span class="formula">GOP = 총매출(객실+F&amp;B+기타) − 부문별 비용 − 미배분 영업비용</span>
+      <p>호텔 회계 기준(USALI)에서 운영 성과를 보는 대표 지표로, 총매출 대비 GOP 마진(%)으로 표현합니다. 여기서 운영위탁수수료·FF&amp;E 적립·보험·재산세 등을 더 빼면 부동산 투자자가 보는 NOI가 됩니다. 임대형 자산과 달리 매출·비용이 모두 변동이라 NOI 변동성이 큽니다.</p></div>
+
+    <div class="term" id="ffe"><h3>FF&amp;E 적립 <span class="en">가구·비품·설비 적립금</span></h3>
+      <p>객실 가구·비품·주방 설비처럼 주기적으로 교체해야 하는 자산을 위해 매년 총매출의 일정 비율(통상 3~5%)을 적립하는 항목입니다. 대주와 투자자는 이 적립을 선택이 아닌 필수 차감으로 보고, NOI 산정에 반영해야 호텔 수익성이 과대평가되지 않습니다.</p></div>
+
+    <div class="term" id="hmc"><h3>위탁운영 계약 <span class="en">HMC · Hotel Management Contract</span></h3>
+      <p>소유주가 브랜드 운영사에 호텔 운영을 맡기고 기본수수료(총매출의 2~3%)와 인센티브수수료(GOP의 8~10% 수준)를 지급하는 구조입니다. 영업 성과의 위험과 과실이 소유주에게 귀속됩니다. 반대로 <b>마스터리스(책임임대차)</b>로 임대료만 받으면 수입 구조가 사실상 오피스와 같아져, 같은 호텔이라도 계약 구조에 따라 모델이 완전히 달라집니다.</p></div>
+
+    <div class="term" id="itload"><h3>IT 부하 <span class="en">데이터센터 용량 · IT Load</span></h3>
+      <p>데이터센터의 규모는 연면적이 아니라 서버에 공급 가능한 전력 용량(MW)으로 말합니다. 임대료도 면적당이 아니라 <b>계약 전력 kW당 월 임대료</b>로 매기는 것이 표준입니다. 상면(랙) 임대·코로케이션 계약의 단가 비교, 수전 용량 확보 여부가 딜 검토의 출발점입니다.</p></div>
+
+    <div class="term" id="pue"><h3>PUE <span class="en">전력효율지수 · Power Usage Effectiveness</span></h3>
+      <span class="formula">PUE = 데이터센터 총 사용 전력 ÷ IT 장비 전력</span>
+      <p>냉각·조명 등 부대 전력을 포함한 총 전력이 IT 전력의 몇 배인지 보는 효율 지표입니다. 1에 가까울수록 효율적이며 신축 기준 1.3~1.5 수준이 일반적입니다. 전력비가 데이터센터 운영비의 대부분이라 PUE가 NOI 마진을 직접 좌우합니다.</p></div>
+      <p class="try"><a href="/#t=office">→ 마스터리스 구조라면 매입 딜 엔진으로 계산해보기</a></p>
+  </section>
+
   <section id="faq">
     <h2>자주 묻는 질문 <span class="en">FAQ</span></h2>
     <details class="faq"><summary>모델터는 무료인가요?</summary><p>네. 가입·설치 없이 무료로 쓸 수 있는 웹 도구입니다. 개인 프로젝트로 운영되며 광고나 유료 기능이 없습니다.</p></details>
     <details class="faq"><summary>입력한 딜 정보가 서버에 저장되나요?</summary><p>아니요. 모든 계산은 브라우저 안에서 이뤄지고, 매입가·임대료·렌트롤 같은 딜 정보는 서버로 전송되지 않습니다. 저장은 사용자 브라우저에만 하며, 공유 링크도 서버 저장 없이 링크 안에 담기고 임차인 실명은 자동으로 마스킹됩니다.</p></details>
     <details class="faq"><summary>화면 숫자와 다운로드 엑셀이 정말 같나요?</summary><p>네. 화면의 IRR·Equity Multiple·DSCR 등은 내려받는 엑셀과 같은 계산식에서 나옵니다. 엑셀을 실제 수식 엔진으로 다시 계산해 화면 값과 소수점 수준까지 일치하는지 검증하며, ‘화면 = 다운로드 엑셀’ 배지가 그 대상입니다.</p></details>
     <details class="faq"><summary>어떤 딜 유형을 지원하나요?</summary><p>오피스·물류센터 매입(레버드 DCF), 공동주택 분양 사업수지(브릿지→본PF·중도금), 리파이낸싱 대안 비교(텀시트·연도별 DSCR)를 지원하며, 모두 수식이 살아있는 엑셀로 내려받을 수 있습니다.</p></details>
+    <details class="faq"><summary>호텔·데이터센터 딜도 계산할 수 있나요?</summary><p>아직입니다. 호텔·리테일·임대주택·데이터센터는 준비 중이며, 앱의 ‘준비중’ 탭에서 유형별 수요 투표를 받아 수요가 모이는 순서대로 추가할 예정입니다. 다만 마스터리스(책임임대차)로 임대료만 받는 구조라면 수입 구조가 오피스와 같아 지금도 매입 딜 엔진으로 검토할 수 있고, ADR·RevPAR·GOP·PUE 같은 용어는 이 사전의 ‘운영형 자산’ 절에 정리돼 있습니다.</p></details>
     <details class="faq"><summary>만든 모델을 팀에 어떻게 공유하나요?</summary><p>공유 아이콘에서 ‘읽기 전용 결과 링크’ 또는 ‘편집용 링크’를 복사해 보내면 됩니다. 서버 없이 링크 하나로 전달되고, 받는 사람은 설치·가입 없이 결과를 봅니다. 엑셀·PPT로 내려받아 전달할 수도 있습니다.</p></details>
     <details class="faq"><summary>NOC와 명목 임대료는 뭐가 다른가요?</summary><p>명목 임대료는 계약서상 임대면적당 금액이고, NOC(Net Occupancy Cost)는 렌트프리·관리비·전용률까지 반영해 임차인이 전용면적 1평당 실제 부담하는 비용입니다. 렌트프리가 많거나 전용률이 낮으면 명목 임대료가 같아도 NOC는 크게 달라져, 빌딩 간 임차 조건 비교는 NOC 기준으로 합니다.</p></details>
   </section>
