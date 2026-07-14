@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>책임임대차 뜻·계산식·실무 예시 | 모델터</title>
-<meta name="description" content="책임임대차(마스터리스 · Master Lease)의 정의와 계산식, 상업용 부동산 실무 예시. 한 임차인이 건물 전체를 통임차하며 공실 위험을 떠안으면 NOI가 안정돼 대주·투자자가 선호하지만, 임대료 상승 여력은 그만큼 제한됩니다. 모델터에서 물류 딜로 바로 계산해 보세요." />
-<link rel="canonical" href="https://modelter.com/t/masterlease" />
+<title>ADR 뜻·계산식·실무 예시 | 모델터</title>
+<meta name="description" content="ADR(평균객실단가 · Average Daily Rate)의 정의와 계산식, 상업용 부동산 실무 예시. 호텔 수입의 가격 축으로, 점유율과 곱해져 객실매출 전체를 결정하는 첫 가정입니다. 모델터에서 오피스 딜로 바로 계산해 보세요." />
+<link rel="canonical" href="https://modelter.com/t/adr" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="책임임대차 뜻·계산식·실무 예시 | 모델터" />
-<meta property="og:description" content="책임임대차(마스터리스 · Master Lease)의 정의와 계산식, 상업용 부동산 실무 예시. 한 임차인이 건물 전체를 통임차하며 공실 위험을 떠안으면 NOI가 안정돼 대주·투자자가 선호하지만, 임대료 상승 여력은 그만큼 제한됩니다. 모델터에서 물류 딜로 바로 계산해 보세요." />
-<meta property="og:url" content="https://modelter.com/t/masterlease" />
+<meta property="og:title" content="ADR 뜻·계산식·실무 예시 | 모델터" />
+<meta property="og:description" content="ADR(평균객실단가 · Average Daily Rate)의 정의와 계산식, 상업용 부동산 실무 예시. 호텔 수입의 가격 축으로, 점유율과 곱해져 객실매출 전체를 결정하는 첫 가정입니다. 모델터에서 오피스 딜로 바로 계산해 보세요." />
+<meta property="og:url" content="https://modelter.com/t/adr" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"DefinedTerm","@id":"https://modelter.com/t/masterlease#term","name":"책임임대차","alternateName":"마스터리스 · Master Lease","description":"한 임차인(운용사·물류사 등)이 건물 전체를 통임차하고 공실 위험을 떠안는 구조입니다. 물류센터 매입에서 특히 흔하며, 임대인 입장에서는 공실·운영비 부담이 줄어 NOI가 안정되는 대신 임대료 상승 여력은 제한됩니다. 모델터의 물류 기본값(저운영비·고효율)이 이 관행을 반영합니다.","inDefinedTermSet":"https://modelter.com/guide"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"용어사전","item":"https://modelter.com/guide"},{"@type":"ListItem","position":3,"name":"책임임대차","item":"https://modelter.com/t/masterlease"}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"DefinedTerm","@id":"https://modelter.com/t/adr#term","name":"ADR","alternateName":"평균객실단가 · Average Daily Rate","description":"ADR = 객실매출 ÷ 판매된 객실 수(박) 하루 동안 실제로 판매된 객실 1실이 평균 얼마에 팔렸는지를 보는 호텔의 가격 지표입니다. 무료 제공(컴프) 객실은 분모에서 빼는 것이 원칙입니다. 점유율(OCC)과 함께 호텔 수입의 두 축으로, 성수기·비수기 편차가 커서 연평균으로 모델에 넣습니다.","inDefinedTermSet":"https://modelter.com/guide"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"용어사전","item":"https://modelter.com/guide"},{"@type":"ListItem","position":3,"name":"ADR","item":"https://modelter.com/t/adr"}]}]}
 </script>
 <style>:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--green:#2e7d4f;--red:#b4552d;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
 @media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f;--green:#57b07f;--red:#d98a5f}}
@@ -67,27 +67,28 @@ footer a{color:var(--ink-3)}</style>
   <a class="back" href="/guide">← 용어사전</a>
 </div></header>
 <main class="wrap">
-  <nav class="crumb"><a href="/">모델터</a> › <a href="/guide">용어사전</a> › 책임임대차</nav>
+  <nav class="crumb"><a href="/">모델터</a> › <a href="/guide">용어사전</a> › ADR</nav>
   <div class="hero">
     <div class="eyebrow">부동산 금융 용어</div>
-    <h1>책임임대차<span class="en">마스터리스 · Master Lease</span></h1>
+    <h1>ADR<span class="en">평균객실단가 · Average Daily Rate</span></h1>
   </div>
   <section>
     <h2>정의</h2>
-    <p>한 임차인(운용사·물류사 등)이 건물 전체를 통임차하고 공실 위험을 떠안는 구조입니다. 물류센터 매입에서 특히 흔하며, 임대인 입장에서는 공실·운영비 부담이 줄어 NOI가 안정되는 대신 임대료 상승 여력은 제한됩니다. 모델터의 물류 기본값(저운영비·고효율)이 이 관행을 반영합니다.</p>
+    <span class="formula">ADR = 객실매출 ÷ 판매된 객실 수(박)</span>
+      <p>하루 동안 실제로 판매된 객실 1실이 평균 얼마에 팔렸는지를 보는 호텔의 가격 지표입니다. 무료 제공(컴프) 객실은 분모에서 빼는 것이 원칙입니다. 점유율(OCC)과 함께 호텔 수입의 두 축으로, 성수기·비수기 편차가 커서 연평균으로 모델에 넣습니다.</p>
   </section>
   <section>
     <h2>왜 중요한가</h2>
-    <p>한 임차인이 건물 전체를 통임차하며 공실 위험을 떠안으면 NOI가 안정돼 대주·투자자가 선호하지만, 임대료 상승 여력은 그만큼 제한됩니다.</p>
+    <p>호텔 수입의 가격 축으로, 점유율과 곱해져 객실매출 전체를 결정하는 첫 가정입니다.</p>
   </section>
   <section class="ex">
     <h2>실무 예시</h2>
-    <p>물류센터를 물류사가 10년 책임임대차로 통임차하면 공실률을 0에 가깝게 두고 NOI를 잡습니다. 같은 임대료라도 멀티테넌트 오피스보다 수입 변동성이 낮게 평가됩니다.</p>
+    <p>300실 호텔의 연평균 ADR이 15만원이고 OCC가 75%면 객실매출은 연 약 123억입니다. ADR을 5% 올려 잡으면 그만큼 매출·GOP가 통째로 움직입니다.</p>
   </section>
   <section>
-    <a class="cta" href="/#t=logistics&src=seo">물류 딜로 책임임대차 바로 계산하기 →<span class="sub">숫자만 넣으면 화면에서 바로 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
+    <a class="cta" href="/#t=office&src=seo">오피스 딜로 ADR 바로 계산하기 →<span class="sub">숫자만 넣으면 화면에서 바로 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
     <h2 style="margin-top:14px">관련 용어</h2>
-    <div class="chips"><a href="/t/itload">IT 부하</a><a href="/t/pue">PUE</a><a href="/t/irr">IRR</a><a href="/calc/logistics">물류 계산기</a></div>
+    <div class="chips"><a href="/t/irr">IRR</a><a href="/t/em">Equity Multiple</a><a href="/t/coc">현금수익률</a><a href="/calc/office">오피스 계산기</a></div>
   </section>
 </main>
 <footer><div class="wrap">

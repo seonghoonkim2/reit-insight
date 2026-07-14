@@ -1142,7 +1142,20 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .ob-skip:hover{color:var(--ink-2);background:var(--line-soft)}
 .ob-trust{margin:10px 0 0;font-size:11.5px;color:var(--muted);text-align:center}
 .ob-trust a{color:var(--ink-3);font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
-@media(max-width:520px){ .ob-roles{grid-template-columns:1fr} .ob-h{font-size:22px} .ob-card{max-width:none} }
+/* 모바일: 화면을 덮는 모달 대신 바텀시트 — 뒤로 예시 결과가 보여 "무엇인지" 먼저 체감 (외부 유입 착지 개선) */
+@media(max-width:520px){
+  .ob-overlay{align-items:flex-end;padding:0;background:rgba(20,14,4,.28);backdrop-filter:none}
+  .ob-card{max-width:none;width:100%;margin:0;border-radius:18px 18px 0 0;padding:16px 16px 12px;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+  .ob-eyebrow{margin-bottom:6px}
+  .ob-h{font-size:19px;margin-bottom:4px}
+  .ob-sub{font-size:12.5px;margin-bottom:12px}
+  .ob-roles{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .ob-role{padding:10px 12px;border-radius:11px}
+  .ob-role .ob-ic{font-size:19px;margin-bottom:2px}
+  .ob-role b{font-size:13.5px}
+  .ob-role .ob-d{display:none}
+  .ob-trust{margin-top:6px}
+}
 /* 핵심 입력 진행률 */
 .inp-prog{display:flex;align-items:center;gap:8px;padding:0 20px 10px;font-size:11.5px;color:var(--ink-3)}
 .inp-prog .ip-bar{flex:1;height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden}
@@ -1938,7 +1951,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-13·a841bbfc04';
+window.MT_BUILD='2026-07-14·6ba2399c33';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -3490,6 +3503,20 @@ function buildPrintSummary(){
     try{ var sm=sens2Data((typeof sensAxis!=='undefined'&&sensAxis)?sensAxis:'growth'); if(sm) sensHtml='<h2>민감도 — 레버드 IRR (Exit Cap × '+esc(String(sm.gLabel))+')</h2><div class="ps-sens">'+renderHeat(sm)+'</div>'; }catch(e){}
   }
   var sheetHtml=sheets.map(function(x,i){return (i+1)+'. '+x;}).join('   ·   ');
+  /* 회수 QR — 종이로 받은 사람이 폰 스캔 한 번으로 이 가정 그대로 라이브 모델에 착지 (옵트인·읽기 전용·임차인명 마스킹) */
+  var recHtml='';
+  try{
+    var _ru=(typeof recoverUrl==='function')?recoverUrl('pdf'):null;
+    if(_ru&&typeof window.__mtQR==='function'){
+      var _q=null,_t2; for(_t2=5;_t2<=40;_t2++){ try{ var _qq=window.__mtQR(_t2,'M'); _qq.addData(_ru,'Byte'); _qq.make(); _q=_qq; break; }catch(_eq){} }
+      if(_q){ var _n=_q.getModuleCount(),_sc=Math.max(2,Math.floor(480/(_n+8))),_qm=4*_sc,_sz=_n*_sc+_qm*2;
+        var _cv=document.createElement('canvas'); _cv.width=_sz; _cv.height=_sz; var _g=_cv.getContext('2d');
+        _g.fillStyle='#ffffff'; _g.fillRect(0,0,_sz,_sz); _g.fillStyle='#000000';
+        for(var _qr=0;_qr<_n;_qr++) for(var _qc=0;_qc<_n;_qc++) if(_q.isDark(_qr,_qc)) _g.fillRect(_qm+_qc*_sc,_qm+_qr*_sc,_sc,_sc);
+        recHtml='<div class="ps-recover" style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin:8px 0 2px"><span style="font-size:9.5px;color:#666;max-width:200px;line-height:1.5;text-align:right">휴대폰으로 스캔하면 이 가정 그대로 라이브 모델이 열립니다 (읽기 전용 · 임차인명 마스킹)</span><img src="'+_cv.toDataURL('image/png')+'" alt="이 모델 열기 QR" style="width:34mm;height:34mm;image-rendering:pixelated"/></div>';
+      }
+    }
+  }catch(eQR){}
   $('printSummary').innerHTML=
     '<div class="ps-head"><div class="ps-brand">모델터 · 부동산 재무모델 빌더</div><div class="ps-date">'+date+'</div></div>'+
     '<h1 class="ps-title">'+esc(title)+' <span>'+esc(d.label)+' · '+esc(dp.label)+' ('+sheets.length+'시트)</span></h1>'+
@@ -3498,6 +3525,7 @@ function buildPrintSummary(){
     '<div class="ps-col"><h2>핵심 가정</h2><table class="ps-tbl">'+asRows+'</table></div></div>'+
     sensHtml+
     '<h2>생성될 시트 구조</h2><p class="ps-sheets">'+esc(sheetHtml)+'</p>'+
+    recHtml+
     '<div class="ps-foot">modelter.com · 코람코자산신탁 상장리츠팀 김성훈 · 본 요약은 입력값 기반 직접계산·추정치이며 투자 권유가 아닙니다.</div>';
 }
 function printSummary(){ if(typeof exConfirmOutput==='function'&&!exConfirmOutput('한 장 요약(인쇄)')) return; buildPrintSummary(); document.body.classList.add('psum'); window.print(); }
@@ -4860,7 +4888,7 @@ function sharePayload(){
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
 window.__mtSnapForXlsx=function(){ try{ return encodeState()||null; }catch(e){ return null; } };
 // 채널 태그 정화 — 산출물 회수 링크가 붙이는 src 값은 화이트리스트 채널명만(수치·PII 불가)
-var SRC_CHANNELS={xlsx:1,ppt:1,png:1,qr:1,share:1,notes:1,team:1,hero:1};
+var SRC_CHANNELS={xlsx:1,ppt:1,png:1,qr:1,share:1,notes:1,team:1,hero:1,pdf:1,sns:1};
 function srcTag(src){ src=String(src||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,8); return SRC_CHANNELS[src]?src:''; }
 function shareLink(readonly, src){
   var enc=encodeState();
@@ -6854,6 +6882,12 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
             _cov.cells.push({r:'B'+_lr, role:'se', s:'이 모델을 브라우저에서 열기'});
             _cov.cells.push({r:'B'+(_lr+1), role:'lbb', s:'📱 modelter.com에서 이 모델 열기 →', link:_rl});
             _cov.cells.push({r:'B'+(_lr+2), role:'da', s:'클릭하면 이 가정 그대로 라이브 모델이 열립니다(읽기 전용). 값을 바꾸려면 「내 모델로 열기」. 임차인 실명은 링크에서 자동 마스킹됩니다.'});
+          }
+          // 가정 시트에도 같은 링크 — 파일 받은 사람이 실제로 여는 시트는 표지가 아니라 01_Assumptions (회수 착지 30일 2건의 가시성 대응)
+          var _asx=null,_ai; for(_ai=0;_ai<_TPL.sheets.length;_ai++) if(_TPL.sheets[_ai].name==='01_Assumptions'){_asx=_TPL.sheets[_ai];break;}
+          if(_asx){
+            var _amr=0; _asx.cells.forEach(function(c){ var am=/^[A-Z]+(\d+)$/.exec(c.r); if(am){ var an=+am[1]; if(an>_amr)_amr=an; } });
+            _asx.cells.push({r:'B'+(_amr+2), role:'lbb', s:'📱 modelter.com에서 이 모델 열기 → 이 가정 그대로 라이브 재계산(읽기 전용 · 임차인명 마스킹)', link:_rl});
           }
         }
       }catch(eRL){}
@@ -11080,6 +11114,8 @@ var qrcode = function() {
     var t=document.getElementById('builder-start');
     if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth',block:'start'});
     setTimeout(function(){
+      // 모바일은 포커스 생략 — 키보드가 올라와 결과 카드(폼 위에 배치됨)를 가림
+      try{ if(window.matchMedia&&matchMedia('(max-width:920px)').matches) return; }catch(e){}
       try{ var el=document.querySelector('#formBody [data-k]'); if(el&&el.focus){ el.focus({preventScroll:true}); el.select&&el.select(); } }catch(e){}
     },650);
   }
@@ -11327,7 +11363,14 @@ var qrcode = function() {
   document.addEventListener('click', function(e){
     var t=e.target; if(!t||!t.closest) return;
     var el;
-    if((el=t.closest('.deal-soon'))){ track('deal_want',{deal:(el.dataset&&el.dataset.want)||''}); if(typeof toast==='function') toast('관심 감사합니다 — 수요가 모이면 이 딜 유형을 먼저 만들겠습니다'); return; }
+    if((el=t.closest('.deal-soon'))){
+      // 브라우저당 유형별 1표 — 반복 클릭이 수요 집계를 부풀리지 않게 (2026-07-14부터, 이전 데이터는 클릭 수)
+      var _dw=(el.dataset&&el.dataset.want)||'', _dwDone=false;
+      try{ _dwDone=localStorage.getItem('mt_dw_'+_dw)==='1'; }catch(_e){}
+      if(!_dwDone){ track('deal_want',{deal:_dw}); try{ localStorage.setItem('mt_dw_'+_dw,'1'); }catch(_e){} }
+      if(typeof toast==='function') toast(_dwDone?'이미 접수되어 있습니다 — 수요가 모이면 이 딜 유형을 먼저 만들겠습니다':'관심 감사합니다 — 수요가 모이면 이 딜 유형을 먼저 만들겠습니다');
+      return;
+    }
     if((el=t.closest('.deal-tab'))){ track('deal_select',{deal:(el.dataset&&el.dataset.k)||''}); return; }
     if(t.closest('#fillExample')){ track('example_fill'); return; }
     if(t.closest('#fillStd')){ track('fill_std'); return; }

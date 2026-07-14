@@ -30,7 +30,7 @@
 | AE | 필드 | 내용 |
 |---|---|---|
 | blob1 (index) | ev | 이벤트명 |
-| blob2 | deal | 딜 유형(office·logistics·dev·refi) |
+| blob2 | deal | 딜 유형(office·logistics·dev·refi). `hotel`·`retail`·`rental`·`datacenter`는 deal_want 투표값. ⚠ `reit`는 2026-07-06 제거된 옛 '리츠·펀드 운용' 탭의 잔상 — 07-06 이전 구간을 포함하는 집계 창에만 나타나며 이후 신규 발화 없음 |
 | blob3 | depth | 입력 깊이(quick·standard·full) |
 | blob4 | dev | 기기(desktop·mobile) |
 | blob5 | ref | 유입 호스트 — 클라이언트 `dr`(진입 document.referrer 호스트) 우선, 없으면 비콘 referer |
@@ -130,3 +130,5 @@
 | ~2026-07-07 | 계측 확장 배포 전 | daily에서 activate=0은 "없음"이 아니라 **미계측** |
 | 2026-07-09 | activate 미계측 6경로 수정(리파이 텀시트·분양 그리드 등) | 이전 활성화율(4.3%)은 과소 — 이후와 비교 금지 |
 | 2026-07-10 | `dr`(진짜 유입원)·`bot`(blob10)·사용성 v3 이벤트(fsub_open 등) 추가, 조회 기본 분모=봇 제외 | ref 채널 분해·봇 제외 분모는 이날 이후 데이터만 유효 |
+| 2026-07-14 | `deal_want` 브라우저당 유형별 1회 dedupe(localStorage) | 이전 deal_want는 **클릭 수**(중복 포함), 이후는 브라우저 단위 표 수 — 커버리지 게이트(단일 유형 50건)는 07-14 이후 집계 기준으로 판정 |
+| 2026-07-14 | src 채널 `pdf`(인쇄 요약 QR)·`sns`(직접 게시 링크) 추가, 엑셀 회수 링크를 01_Assumptions 시트에도 삽입 | 회수 착지(K4) 채널 분해에 pdf·sns 등장 가능 — 퍼널 4이벤트 발화는 무변경 |
