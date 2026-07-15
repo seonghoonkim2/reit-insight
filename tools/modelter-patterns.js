@@ -291,7 +291,7 @@ ${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></
 <div class="row2">
   <div class="card"><h2>수요 신호 <span>준비 중 딜 클릭(deal_want)</span></h2>
     ${dealWantPairs.length ? barList(dealWantPairs, { top: 8 }) : '<p class="empty">(아직 없음)</p>'}
-    <p class="note">착수 기준: 단일 유형 4주 누적 50건.</p></div>
+    <p class="note">착수 기준: 단일 유형 4주 누적 50건 — <b>2026-07-14부터 브라우저당 유형별 1표</b>(이전 수치는 반복 클릭 포함, 게이트 판정은 07-14 이후 집계만).</p></div>
   <div class="card"><h2>유입 호스트별 퍼널 <span>방문→입력→결과→산출물</span></h2>
     <div class="tblwrap"><table><tr><th>유입</th><th>방문</th><th>입력</th><th>결과</th><th>산출물</th></tr>${refFun.slice(0, 8).map(([g, f]) => `<tr><td>${esc(g)}</td><td>${num(f.session)}</td><td>${num(f.activate)}</td><td>${num(f.computed)}</td><td>${num(f.output)}</td></tr>`).join('')}</table></div>
     ${srcFun.length ? `<p class="note" style="margin-top:8px">채널(src) 태그: ${srcFun.map(([g, f]) => esc(g) + ' ' + num(f.session) + '·산출 ' + num(f.output)).join(' / ')}</p>` : ''}</div>
@@ -363,7 +363,7 @@ ${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></
     const outThis = OUTPUT_EVENTS.reduce((a, e) => a + (wget(e).this || 0), 0);
     md.push(`**주간 퍼널**: 방문 ${num(sW.this)} → 직접 입력 ${num(wget('activate').this)} → 결과 ${num(wget('computed').this)} → 산출물 ${num(outThis)}`);
     md.push('');
-    if (dealWantPairs.length) md.push('**수요(deal_want)**: ' + dealWantPairs.slice(0, 6).map(p => `${p[0]} ${num(p[1])}`).join(' · '));
+    if (dealWantPairs.length) md.push('**수요(deal_want)**: ' + dealWantPairs.slice(0, 6).map(p => `${p[0]} ${num(p[1])}`).join(' · ') + ' _(07-14부터 브라우저당 1표 — 게이트 50건은 그 이후 집계로 판정)_');
     const extRef = refFun.filter(([g]) => g && g.indexOf('modelter.com') < 0 && g !== '(직접/미상)').slice(0, 6);
     if (extRef.length) md.push('**외부 유입(방문·산출물)**: ' + extRef.map(([g, f]) => `${g} ${num(f.session)}·${num(f.output)}`).join(' · '));
     md.push('');
