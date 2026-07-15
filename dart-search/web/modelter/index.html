@@ -1951,7 +1951,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-14·6ba2399c33';
+window.MT_BUILD='2026-07-15·d5f470a69c';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -7259,7 +7259,9 @@ function box(x,y,w,h,paras,opt){
   var geom=opt.rounded?('<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 8000"/></a:avLst></a:prstGeom>'):'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>';
   var body=paras.map(function(p){
     var runs=(p.runs||[]).map(function(r){
-      return '<a:r><a:rPr lang="ko-KR" sz="'+(r.sz||1400)+'"'+(r.b?' b="1"':'')+' dirty="0"><a:solidFill><a:srgbClr val="'+(r.color||C.ink)+'"/></a:solidFill></a:rPr><a:t>'+xe(r.t)+'</a:t></a:r>';
+      // r.link = 슬라이드 rels의 관계 ID — 조립 루프가 같은 ID로 External 관계를 넣어야 유효한 pptx가 된다
+      var hl=r.link?('<a:hlinkClick r:id="'+r.link+'"/>'):'';
+      return '<a:r><a:rPr lang="ko-KR" sz="'+(r.sz||1400)+'"'+(r.b?' b="1"':'')+(r.link?' u="sng"':'')+' dirty="0"><a:solidFill><a:srgbClr val="'+(r.color||C.ink)+'"/></a:solidFill>'+hl+'</a:rPr><a:t>'+xe(r.t)+'</a:t></a:r>';
     }).join('');
     return '<a:p><a:pPr'+(p.align?(' algn="'+p.align+'"'):'')+(p.spcB?('><a:spcBef><a:spcPts val="'+p.spcB+'"/></a:spcBef></a:pPr>'):'/>')+runs+'</a:p>';
   }).join('');
@@ -7605,7 +7607,14 @@ function buildIcPptx(){
       {runs:[{t:'· 본 패키지의 모든 수치는 modelter.com 화면과 동일한 계산 엔진에서 나왔으며, 엑셀 다운로드와도 같은 계산식입니다(파리티 검증).',sz:1000,color:C.mut}],spcB:400},
       {runs:[{t:'· 딜 데이터는 서버에 저장·전송되지 않고 브라우저 안에서만 계산됩니다.',sz:1000,color:C.mut}],spcB:200},
       {runs:[{t:'· 수치는 입력 가정 기반 추정치로, 감정평가·실사 결과를 대체하지 않습니다.',sz:1000,color:C.mut}],spcB:200},
-      {runs:[{t:'▶ 이 모델을 바로 열어 보기: ',sz:1000,b:1,color:C.acc},{t:'modelter.com',sz:1000,b:1,color:C.acc2},{t:'  —  휴대폰은 요약 카드(PNG)의 QR을 스캔하면 이 가정 그대로 열립니다. 엑셀 표지에도 「이 모델 열기」 링크가 있습니다.',sz:1000,color:C.mut}],spcB:300}
+      (function(){
+        // 회수 링크(옵트인) — 클릭 시 이 가정 그대로 라이브 모델(읽기 전용·임차인명 마스킹), 채널 src=ppt
+        var _rec=(typeof recoverUrl==='function')?recoverUrl('ppt'):null;
+        if(_rec) slides.__hl={idx:slides.length, url:_rec};   // 이 슬라이드는 아직 push 전 → 현재 length가 곧 이 슬라이드의 인덱스
+        return {runs:[{t:'▶ 이 모델을 바로 열어 보기: ',sz:1000,b:1,color:C.acc},
+          {t:_rec?'modelter.com에서 열기 (클릭 — 이 가정 그대로)':'modelter.com',sz:1000,b:1,color:C.acc2,link:_rec?'rIdHL':null},
+          {t:'  —  휴대폰은 요약 카드(PNG)의 QR을 스캔하면 이 가정 그대로 열립니다. 엑셀 표지에도 「이 모델 열기」 링크가 있습니다.',sz:1000,color:C.mut}],spcB:300};
+      })()
     ],{fill:C.bg,line:C.line,rounded:true}));
     slides.push(slideXml(s));
   })();
@@ -7661,7 +7670,9 @@ function buildIcPptx(){
   files.push(['ppt/slideLayouts/_rels/slideLayout1.xml.rels', enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>')]);
   slides.forEach(function(sx,i){
     files.push(['ppt/slides/slide'+(i+1)+'.xml', enc.encode(sx)]);
-    files.push(['ppt/slides/_rels/slide'+(i+1)+'.xml.rels', enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>')]);
+    // 회수 하이퍼링크 관계 — 링크가 심긴 슬라이드에만 rIdHL(External) 추가
+    var _ext=(slides.__hl&&slides.__hl.idx===i)?('<Relationship Id="rIdHL" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="'+xe(slides.__hl.url)+'" TargetMode="External"/>'):'';
+    files.push(['ppt/slides/_rels/slide'+(i+1)+'.xml.rels', enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>'+_ext+'</Relationships>')]);
   });
   return global.__mtZip(files);
 }
