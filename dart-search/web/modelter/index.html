@@ -1951,7 +1951,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-15·d5f470a69c';
+window.MT_BUILD='2026-07-18·c0c2c10cde';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -4899,7 +4899,9 @@ function shareLink(readonly, src){
 }
 // 산출물 회수 링크 — 옵트인 체크박스(기본 켜짐). 산출물에 「이 모델 열기」 링크·QR을 넣을지.
 function recoverOn(){ try{ var c=document.getElementById('recoverChk'); return c?!!c.checked:true; }catch(e){ return true; } }
-function recoverUrl(src){ if(!recoverOn()) return null; try{ return shareLink(true, src)||null; }catch(e){ return null; } }
+// 회수 링크. 상태(#v=)가 너무 길면(렌트롤 다건 등) Excel 하이퍼링크(주소 한도 ≈2079자)가 조용히 잘려 깨지므로,
+// 1900자 초과 시 상태 없는 채널 링크(#src=)로 폴백 — 받은 사람이 클릭하면 항상 앱에 착지(딜은 미리 채워지지 않음). 깨진 링크보다 낫다.
+function recoverUrl(src){ if(!recoverOn()) return null; try{ var u=shareLink(true, src)||null; if(u&&u.length>1900){ var s=srcTag(src); return location.origin+location.pathname+(s?('#src='+s):''); } return u; }catch(e){ return null; } }
 function copyShare(url, label){
   var done=function(){ toast(label+" 링크가 복사되었습니다"+(url&&url.length>2000?" — 링크가 깁니다("+url.length+"자). 일부 메신저에서 잘릴 수 있으니 안 열리면 QR이나 엑셀 파일로 전달하세요":"")); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(function(){ prompt("이 링크를 복사하세요:",url); }); }
