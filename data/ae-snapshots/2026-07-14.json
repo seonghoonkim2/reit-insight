@@ -1,52 +1,52 @@
 {
  "schema": 2,
  "botExcluded": true,
- "endDate": "2026-07-15",
+ "endDate": "2026-07-14",
  "week": "2026-W29",
  "days": 30,
- "generatedAt": "2026-07-15T23:05:40.206Z",
+ "generatedAt": "2026-07-14T23:05:15.496Z",
  "funnel": {
-  "session": 1232,
-  "activate": 78,
-  "computed": 78,
-  "output": 282
+  "session": 1187,
+  "activate": 73,
+  "computed": 73,
+  "output": 274
  },
  "events": {
-  "session": 1232,
-  "deal_select": 665,
-  "onboard": 292,
-  "depth_change": 279,
-  "xlsx_download": 144,
-  "dev_view": 128,
-  "activate": 78,
-  "computed": 78,
-  "nudge_save": 58,
-  "sens_axis": 51,
-  "deal_want": 51,
-  "fsub_open": 47,
-  "tip_next": 44,
+  "session": 1187,
+  "deal_select": 643,
+  "onboard": 279,
+  "depth_change": 274,
+  "xlsx_download": 138,
+  "dev_view": 118,
+  "computed": 73,
+  "activate": 73,
+  "nudge_save": 53,
+  "sens_axis": 50,
+  "deal_want": 46,
+  "fsub_open": 45,
+  "tip_next": 40,
   "prompt_copy": 38,
   "solver": 35,
-  "teaser": 32,
+  "teaser": 31,
   "ic_ppt": 25,
-  "method": 23,
   "example_fill": 23,
-  "fill_std": 22,
-  "sample_download": 19,
-  "term_help": 18,
+  "method": 22,
+  "fill_std": 20,
+  "sample_download": 18,
   "src_tag": 16,
-  "slot_save": 14,
   "sample_deal": 14,
-  "ex_ack": 13,
-  "adj_open": 12,
-  "im_quick_open": 11,
+  "slot_save": 14,
+  "term_help": 13,
+  "adj_open": 11,
+  "ex_ack": 10,
   "im_open": 9,
-  "ws_open": 9,
-  "im_checklist_open": 9,
-  "rentroll_upload": 8,
+  "im_quick_open": 8,
+  "ws_open": 8,
+  "im_checklist_open": 8,
   "wizard": 7,
-  "landing": 7,
   "ws_save": 6,
+  "landing": 6,
+  "rentroll_upload": 6,
   "pdf_export": 5,
   "share_link": 4,
   "recover_cta": 2,
@@ -59,43 +59,42 @@
   "im_checklist": 1
  },
  "deals": {
-  "office": 2205,
-  "dev": 826,
-  "logistics": 232,
-  "refi": 144,
+  "office": 2126,
+  "dev": 773,
+  "logistics": 224,
+  "refi": 140,
   "reit": 57,
-  "hotel": 34,
-  "rental": 8,
-  "retail": 6,
+  "hotel": 32,
+  "rental": 7,
+  "retail": 4,
   "datacenter": 3
  },
  "device": {
-  "desktop": 2139,
-  "mobile": 1397
+  "desktop": 2020,
+  "mobile": 1366
  },
  "ref": {
-  "modelter.com": 3056,
-  "www.linkedin.com": 174,
-  "www.google.com": 114,
-  "blog.naver.com": 57,
-  "com.linkedin.android": 54,
-  "teams.public.onecdn.static.microsoft": 33,
+  "modelter.com": 2982,
+  "www.linkedin.com": 160,
+  "www.google.com": 98,
+  "com.linkedin.android": 50,
+  "blog.naver.com": 39,
   "statics.teams.cdn.office.net": 14,
+  "teams.public.onecdn.static.microsoft": 11,
   "www.bing.com": 10
  },
  "feats": {
   "scen": 9,
   "dep,fee": 2,
   "hold": 2,
-  "pref": 108,
+  "pref": 107,
   "vac,pref": 4,
-  "resi": 599,
+  "resi": 550,
   "bido": 18,
-  "fee,vac,hold": 6,
   "dep,fee,vac,hold": 4,
-  "resi,pref": 2,
   "hold,pref": 4,
-  "dep,fee,vac,pref": 1857,
+  "resi,pref": 2,
+  "dep,fee,vac,pref": 1778,
   "dep,fee,vac,scen": 1,
   "dep,fee,pref": 1,
   "bido,resi": 2,
@@ -107,9 +106,9 @@
   "rr,dep,fee,vac,pref,scen": 9,
   "dep,fee,vac,pref,scen": 55,
   "rr,dep,fee,vac,hold,pref": 6,
-  "rr,dep,fee,vac,pref": 28,
+  "rr,dep,fee,vac,pref": 24,
   "rr,dep,fee,bido,vac,scen": 3,
-  "dep,fee,vac,hold,pref": 99,
+  "dep,fee,vac,hold,pref": 96,
   "dep,fee,bido,vac,pref": 13,
   "rr,dep,fee,bido,vac,pref,scen": 5,
   "dep,fee,vac,hold,pref,scen": 27,
@@ -117,31 +116,31 @@
   "rr,dep,fee,vac,hold,pref,scen": 23
  },
  "depth": {
-  "standard": 3024,
-  "deep": 364,
-  "quick": 123
+  "standard": 2907,
+  "deep": 363,
+  "quick": 92
  },
  "src": {
-  "xlsx": 11,
+  "xlsx": 9,
   "pwa": 9,
   "seo": 1
  },
  "attribution": {
   "bySrc": {
    "(직접/미상)": {
-    "session": 1225,
-    "activate": 78,
-    "computed": 78,
-    "output": 282
+    "session": 1181,
+    "activate": 73,
+    "computed": 73,
+    "output": 274
    },
-   "pwa": {
-    "session": 4,
+   "xlsx": {
+    "session": 2,
     "activate": 0,
     "computed": 0,
     "output": 0
    },
-   "xlsx": {
-    "session": 3,
+   "pwa": {
+    "session": 4,
     "activate": 0,
     "computed": 0,
     "output": 0
@@ -155,45 +154,39 @@
   },
   "byRef": {
    "modelter.com": {
-    "session": 1107,
-    "activate": 64,
-    "computed": 64,
-    "output": 246
+    "session": 1075,
+    "activate": 62,
+    "computed": 62,
+    "output": 242
    },
    "www.linkedin.com": {
-    "session": 36,
-    "activate": 3,
-    "computed": 3,
-    "output": 25
+    "session": 34,
+    "activate": 2,
+    "computed": 2,
+    "output": 23
    },
    "com.linkedin.android": {
-    "session": 33,
+    "session": 31,
     "activate": 0,
     "computed": 0,
     "output": 0
    },
    "blog.naver.com": {
-    "session": 8,
+    "session": 5,
     "activate": 3,
     "computed": 3,
-    "output": 4
+    "output": 3
    },
    "teams.public.onecdn.static.microsoft": {
-    "session": 7,
-    "activate": 1,
-    "computed": 1,
-    "output": 1
-   },
-   "search.naver.com": {
-    "session": 1,
+    "session": 6,
     "activate": 0,
     "computed": 0,
     "output": 0
    },
    "www.google.com": {
-    "session": 29,
-    "activate": 6,
-    "computed": 6,
+    "session": 25,
+    "activate": 5,
+    "computed": 5,
     "output": 5
    },
    "statics.teams.cdn.office.net": {
@@ -387,8 +380,8 @@
    "ci_probe_live": 1,
    "ws_save": 1,
    "method": 1,
-   "im_checklist_open": 4,
    "activate": 14,
+   "im_checklist_open": 4,
    "sample_deal": 2,
    "adj_open": 6,
    "nudge_save": 12,
@@ -423,8 +416,8 @@
    "sample_deal": 1,
    "im_checklist": 1,
    "activate": 12,
-   "adj_open": 2,
    "deal_want": 8,
+   "adj_open": 2,
    "coach_ok": 1,
    "im_quick_open": 1,
    "ic_ppt": 1,
@@ -507,7 +500,7 @@
   {
    "day": "2026-07-14",
    "ws_open": 4,
-   "session": 109,
+   "session": 107,
    "rr_mask": 2,
    "computed": 15,
    "im_checklist_open": 1,
@@ -538,37 +531,9 @@
    "term_help": 1,
    "xlsx_download": 26,
    "teaser": 4,
-   "onboard": 37,
+   "onboard": 36,
    "solver": 8,
    "pipeline_copy": 1
-  },
-  {
-   "day": "2026-07-15",
-   "adj_open": 1,
-   "deal_want": 5,
-   "im_quick_open": 3,
-   "activate": 5,
-   "rentroll_upload": 2,
-   "method": 1,
-   "sens_axis": 1,
-   "sample_download": 1,
-   "fsub_open": 2,
-   "nudge_save": 5,
-   "im_checklist_open": 1,
-   "computed": 5,
-   "ws_open": 1,
-   "landing": 1,
-   "session": 43,
-   "teaser": 1,
-   "onboard": 12,
-   "term_help": 5,
-   "xlsx_download": 6,
-   "depth_change": 5,
-   "tip_next": 4,
-   "dev_view": 10,
-   "fill_std": 2,
-   "deal_select": 22,
-   "ex_ack": 3
   }
  ]
 }

@@ -3,52 +3,52 @@
  "botExcluded": true,
  "endDate": "2026-07-18",
  "week": "2026-W29",
- "days": 14,
- "generatedAt": "2026-07-18T03:19:43.818Z",
+ "days": 30,
+ "generatedAt": "2026-07-18T23:04:53.188Z",
  "funnel": {
-  "session": 1027,
-  "activate": 84,
-  "computed": 84,
-  "output": 244
+  "session": 1297,
+  "activate": 85,
+  "computed": 85,
+  "output": 292
  },
  "events": {
-  "session": 1027,
-  "deal_select": 492,
+  "session": 1297,
+  "deal_select": 699,
   "onboard": 303,
-  "depth_change": 220,
+  "depth_change": 288,
+  "xlsx_download": 150,
   "dev_view": 131,
-  "xlsx_download": 119,
-  "activate": 84,
-  "computed": 84,
-  "nudge_save": 64,
-  "deal_want": 62,
+  "activate": 85,
+  "computed": 85,
+  "nudge_save": 65,
+  "deal_want": 63,
   "fsub_open": 58,
   "sens_axis": 53,
   "tip_next": 49,
+  "prompt_copy": 38,
   "solver": 38,
   "teaser": 33,
-  "prompt_copy": 30,
   "ic_ppt": 27,
+  "example_fill": 26,
+  "method": 25,
   "fill_std": 25,
   "term_help": 20,
-  "example_fill": 20,
+  "sample_download": 19,
   "src_tag": 16,
-  "method": 16,
-  "sample_download": 15,
-  "ex_ack": 14,
   "sample_deal": 14,
+  "ex_ack": 14,
+  "slot_save": 14,
   "adj_open": 13,
-  "slot_save": 12,
   "im_quick_open": 12,
   "im_checklist_open": 10,
   "ws_open": 9,
   "im_open": 9,
   "landing": 8,
-  "rentroll_upload": 7,
+  "rentroll_upload": 8,
   "wizard": 7,
   "ws_save": 6,
-  "pdf_export": 5,
-  "share_link": 2,
+  "pdf_export": 6,
+  "share_link": 4,
   "recover_cta": 2,
   "rr_mask": 2,
   "check_open": 1,
@@ -59,23 +59,23 @@
   "im_checklist": 1
  },
  "deals": {
-  "office": 1962,
-  "dev": 740,
-  "logistics": 211,
-  "refi": 116,
+  "office": 2318,
+  "dev": 862,
+  "logistics": 263,
+  "refi": 153,
+  "reit": 57,
   "hotel": 38,
-  "reit": 16,
-  "rental": 11,
+  "rental": 12,
   "retail": 8,
   "datacenter": 5
  },
  "device": {
-  "desktop": 1909,
-  "mobile": 1215
+  "desktop": 2289,
+  "mobile": 1448
  },
  "ref": {
-  "modelter.com": 2585,
-  "www.linkedin.com": 179,
+  "modelter.com": 3189,
+  "www.linkedin.com": 184,
   "www.google.com": 152,
   "com.linkedin.android": 66,
   "blog.naver.com": 57,
@@ -84,22 +84,24 @@
   "www.bing.com": 10
  },
  "feats": {
-  "scen": 8,
+  "scen": 9,
   "dep,fee": 2,
   "hold": 2,
-  "pref": 88,
-  "vac,pref": 1,
+  "pref": 110,
+  "vac,pref": 4,
   "resi": 631,
   "bido": 18,
   "fee,vac,hold": 6,
   "dep,fee,vac,hold": 4,
-  "resi,pref": 2,
   "hold,pref": 4,
-  "dep,fee,vac,pref": 1837,
+  "resi,pref": 2,
+  "dep,fee,vac,pref": 1996,
+  "dep,fee,vac,scen": 1,
+  "dep,fee,pref": 1,
   "resi,scen": 2,
   "bido,resi": 2,
-  "pref,scen": 2,
-  "dep,fee,vac": 1,
+  "pref,scen": 3,
+  "dep,fee,vac": 2,
   "bido,scen": 1,
   "dep,fee,bido,vac": 1,
   "fee,vac,pref,scen": 3,
@@ -108,7 +110,7 @@
   "rr,dep,fee,vac,hold,pref": 6,
   "rr,dep,fee,vac,pref": 28,
   "rr,dep,fee,bido,vac,scen": 3,
-  "dep,fee,vac,hold,pref": 101,
+  "dep,fee,vac,hold,pref": 108,
   "dep,fee,bido,vac,pref": 13,
   "rr,dep,fee,bido,vac,pref,scen": 5,
   "dep,fee,vac,hold,pref,scen": 32,
@@ -116,9 +118,9 @@
   "rr,dep,fee,vac,hold,pref,scen": 23
  },
  "depth": {
-  "standard": 2639,
-  "deep": 361,
-  "quick": 107
+  "standard": 3179,
+  "deep": 410,
+  "quick": 123
  },
  "src": {
   "xlsx": 13,
@@ -128,10 +130,10 @@
  "attribution": {
   "bySrc": {
    "(직접/미상)": {
-    "session": 1019,
-    "activate": 84,
-    "computed": 84,
-    "output": 244
+    "session": 1289,
+    "activate": 85,
+    "computed": 85,
+    "output": 292
    },
    "pwa": {
     "session": 4,
@@ -154,15 +156,15 @@
   },
   "byRef": {
    "modelter.com": {
-    "session": 881,
+    "session": 1150,
     "activate": 68,
     "computed": 68,
-    "output": 208
+    "output": 255
    },
    "www.linkedin.com": {
-    "session": 40,
-    "activate": 3,
-    "computed": 3,
+    "session": 41,
+    "activate": 4,
+    "computed": 4,
     "output": 25
    },
    "com.linkedin.android": {
@@ -225,14 +227,14 @@
     "computed": 0,
     "output": 0
    },
-   "lnkd.in": {
-    "session": 2,
-    "activate": 0,
-    "computed": 0,
-    "output": 0
-   },
    "(직접/미상)": {
     "session": 0,
+    "activate": 0,
+    "computed": 0,
+    "output": 1
+   },
+   "lnkd.in": {
+    "session": 2,
     "activate": 0,
     "computed": 0,
     "output": 0
@@ -241,20 +243,56 @@
  },
  "daily": [
   {
+   "day": "2026-07-01",
+   "session": 65,
+   "example_fill": 3,
+   "depth_change": 19,
+   "xlsx_download": 9,
+   "deal_select": 47,
+   "prompt_copy": 2,
+   "rentroll_upload": 1
+  },
+  {
+   "day": "2026-07-02",
+   "sample_download": 1,
+   "prompt_copy": 2,
+   "deal_select": 84,
+   "xlsx_download": 11,
+   "method": 4,
+   "depth_change": 29,
+   "example_fill": 2,
+   "session": 94
+  },
+  {
+   "day": "2026-07-03",
+   "session": 97,
+   "pdf_export": 1,
+   "method": 4,
+   "sample_download": 3,
+   "slot_save": 2,
+   "example_fill": 1,
+   "prompt_copy": 3,
+   "share_link": 2,
+   "depth_change": 15,
+   "deal_select": 71,
+   "xlsx_download": 11
+  },
+  {
    "day": "2026-07-04",
-   "method": 1,
+   "method": 2,
    "sample_download": 1,
    "sample_deal": 3,
    "sens_axis": 2,
-   "session": 28,
+   "session": 35,
    "src_tag": 16,
    "teaser": 1,
    "xlsx_download": 4,
    "solver": 4,
-   "deal_select": 20,
+   "deal_select": 24,
    "example_fill": 1,
-   "depth_change": 11,
-   "slot_save": 1
+   "depth_change": 16,
+   "slot_save": 1,
+   "prompt_copy": 1
   },
   {
    "day": "2026-07-05",
@@ -356,8 +394,8 @@
    "ci_probe_live": 1,
    "ws_save": 1,
    "method": 1,
-   "activate": 14,
    "im_checklist_open": 4,
+   "activate": 14,
    "sample_deal": 2,
    "adj_open": 6,
    "nudge_save": 12,
@@ -392,8 +430,8 @@
    "sample_deal": 1,
    "im_checklist": 1,
    "activate": 12,
-   "adj_open": 2,
    "deal_want": 8,
+   "adj_open": 2,
    "coach_ok": 1,
    "im_quick_open": 1,
    "ic_ppt": 1,
@@ -582,10 +620,15 @@
   },
   {
    "day": "2026-07-18",
+   "nudge_save": 1,
+   "activate": 1,
+   "deal_want": 1,
    "ic_ppt": 1,
-   "session": 5,
+   "session": 12,
+   "computed": 1,
    "example_fill": 1,
    "onboard": 1,
+   "deal_select": 1,
    "tip_next": 1,
    "xlsx_download": 1
   }
