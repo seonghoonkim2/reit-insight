@@ -38,7 +38,7 @@
 <style>
 :root{
   color-scheme:light;
-  --bg:#f3f1ec; --panel:#fdfcf9; --ink:#1b2230; --ink-2:#46505f; --ink-3:#6a7280; --muted:#8b8f98;
+  --bg:#f3f1ec; --panel:#fdfcf9; --ink:#1b2230; --ink-2:#46505f; --ink-3:#6a7280; --muted:#696d76;
   --line:#e3e0d8; --line-soft:#efece4;
   --accent:#a9792b; --accent-deep:#86601f; --blue:#3a5a78; --green:#2f7d57; --red:#b3472f; --accent-solid:#8f6220; --on-accent:#ffffff; --on-accent-soft:rgba(255,255,255,.86);
   --shadow:0 18px 50px rgba(30,35,48,.13); --soft:0 6px 22px rgba(30,35,48,.08);
@@ -844,6 +844,7 @@ header{background:rgba(253,252,249,.82)}
 .rr-mi input{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%;box-sizing:border-box}
 .rr-mi input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(169,121,43,.12)}
 /* ── UX: 접근성 포커스 · 줄바꿈 방지 · 터치타깃 ── */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 button:focus-visible,select:focus-visible,a:focus-visible,[role="button"]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:8px}
 .obtn,.out-step,.out-head .badge,.sl-btn,.depth-opt b,.mx-flag,.badge{white-space:nowrap}
 .f-lab{display:flex; align-items:center; gap:5px}
@@ -1128,7 +1129,7 @@ body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #c
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
 
 /* 첫 방문 온보딩 역할 선택 */
-.ob-card{max-width:560px;text-align:center}
+.ob-card{max-width:560px;text-align:center;background:var(--panel);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.28)}
 .ob-eyebrow{display:inline-block;font-size:11.5px;font-weight:700;color:var(--accent-deep);background:rgba(169,121,43,.1);padding:5px 12px;border-radius:20px;margin-bottom:12px}
 .ob-h{font-family:var(--serif);font-size:26px;font-weight:500;color:var(--ink);margin-bottom:8px;line-height:1.25}
 .ob-sub{font-size:14px;color:var(--ink-3);line-height:1.55;margin-bottom:20px;max-width:440px;margin-left:auto;margin-right:auto}
@@ -1144,8 +1145,8 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .ob-trust a{color:var(--ink-3);font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
 /* 모바일: 화면을 덮는 모달 대신 바텀시트 — 뒤로 예시 결과가 보여 "무엇인지" 먼저 체감 (외부 유입 착지 개선) */
 @media(max-width:520px){
-  .ob-overlay{align-items:flex-end;padding:0;background:rgba(20,14,4,.28);backdrop-filter:none}
-  .ob-card{max-width:none;width:100%;margin:0;border-radius:18px 18px 0 0;padding:16px 16px 12px;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+  .ob-overlay{align-items:flex-end;padding:0;background:rgba(20,14,4,.44);backdrop-filter:blur(1.5px)}
+  .ob-card{max-width:none;width:100%;margin:0;border-radius:18px 18px 0 0;border-bottom:none;padding:16px 16px 12px;box-shadow:0 -8px 30px rgba(0,0,0,.2)}
   .ob-eyebrow{margin-bottom:6px}
   .ob-h{font-size:19px;margin-bottom:4px}
   .ob-sub{font-size:12.5px;margin-bottom:12px}
@@ -1298,9 +1299,9 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 </div>
 
 <div class="wn-overlay ob-overlay" id="obOverlay" hidden>
-  <div class="wn-card ob-card">
+  <div class="wn-card ob-card" role="dialog" aria-modal="true" aria-labelledby="obH">
     <div class="ob-eyebrow">환영합니다 · 30초면 첫 결과가 나옵니다</div>
-    <h2 class="ob-h">어떤 일을 하고 계신가요?</h2>
+    <h2 class="ob-h" id="obH">어떤 일을 하고 계신가요?</h2>
     <p class="ob-sub">고르시면 거기에 맞는 딜 유형과 예시가 자동으로 준비됩니다. 숫자만 바꾸면 IRR·멀티플이 바로 나옵니다.</p>
     <div class="ob-roles">
       <button type="button" class="ob-role" data-role="acq">
@@ -1553,7 +1554,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
         <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관, 보유 3~10년 모든 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
         <div class="coach" id="coachMark" hidden><b>결과, 이 순서로 보면 됩니다</b><ol><li><b>① 큰 숫자 세 개부터</b> — IRR(연 수익률)·EM(원금의 몇 배)·배당률</li><li><b>② 바로 아래 판정 한 줄</b> — 이 숫자가 좋은 건지 나쁜 건지</li><li><b>③ 민감도·시나리오</b> — 가정이 빗나가면 어디까지 버티는지</li></ol><button type="button" class="sl-btn" id="coachOk">확인했어요, 그만 보기</button></div>
         <div class="sim-kpis" id="simKpis"></div>
-        <div class="sim-verdict" id="simVerdict" hidden></div>
+        <div class="sim-verdict" id="simVerdict" role="status" aria-live="polite" hidden></div>
         <details class="adj-d" id="adjBar" hidden><summary>🎛 즉석 조정 <span class="adj-sub">미팅 중 핵심 드라이버만 ± — 입력 폼과 즉시 동기화</span></summary><div id="adjBody"></div></details>
         <div id="simBody"></div>
         <div class="sim-cav" id="simCaveat"></div>
@@ -1951,7 +1952,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-18·c0c2c10cde';
+window.MT_BUILD='2026-07-20·4bba2fb3ea';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2105,7 +2106,7 @@ function refreshConvHints(){
 function fieldHtml(f){
   const id="f_"+f.k;
   const unit=(f.u && f.t!=="range")?`<span class="unit">${f.u}</span>`:"";
-  const help=f.hint?`<span class="help" tabindex="0">?<span class="tip">${f.hint}</span></span>`:"";
+  const help=f.hint?`<span class="help" tabindex="0" role="button" aria-label="${f.l} 설명 보기">?<span class="tip">${f.hint}</span></span>`:"";
   let input;
   if(f.t==="select"){
     input=`<select id="${id}" data-k="${f.k}">${f.opts.map(o=>`<option>${o}</option>`).join("")}</select>`;
@@ -2116,9 +2117,10 @@ function fieldHtml(f){
   }else{
     const it=f.t==="num"?'inputmode="decimal"':'';
     const vattr=[f.t==="num"?'data-num="1"':'', f.min!==undefined?`data-min="${f.min}"`:'', f.max!==undefined?`data-max="${f.max}"`:'', f.pct?'data-pct="1"':''].filter(Boolean).join(' ');
-    input=`<input id="${id}" data-k="${f.k}" ${it} ${vattr} placeholder="${f.ph||''}" />`;
+    const desc=f.t==="num"?`aria-describedby="err_${f.k}"`:"";
+    input=`<input id="${id}" data-k="${f.k}" ${it} ${vattr} ${desc} placeholder="${f.ph||''}" />`;
   }
-  const err=f.t==="num"?`<span class="err" id="err_${f.k}"></span>`:"";
+  const err=f.t==="num"?`<span class="err" id="err_${f.k}" role="alert"></span>`:"";
   const ref=(fieldRef(f.k)&&f.t==="num")?`<span class="f-ref">${fieldRef(f.k)}${(function(){var mm=(typeof fieldRefMeta==='function')?fieldRefMeta(f.k):null;return mm?` <span class="f-src" title="출처: ${mm.s} · ${mm.d} 기준 · 참고치이며 개별 자산별로 다릅니다">· ${mm.d} · ${mm.s}</span>`:'';})()}</span>`:"";
   // 백만원 단위 필드: 입력 즉시 억/조 환산 표시 — 단위 착오(억을 그대로 입력) 방어
   const isWon=f.t==="num"&&/^백만원/.test(f.u||"");
@@ -2134,17 +2136,17 @@ function stackHtml(mode){
   const rows=TRANCHES.map(t=>{
     const on=stackState[t.id]!==undefined?stackState[t.id]:t.on;
     const v=k=>{ const s=stackState[t.id+"_"+k]; return s!==undefined?s:(t[k]||""); };
-    const extra = t.extra ? `<div class="f"><label>${t.extra.label}</label><select data-sk="${t.id}_extra">${t.extra.opts.map(o=>`<option>${o}</option>`).join("")}</select></div>${t.id==="senior"?`<div class="f"><label>거치 <span class="unit">년</span></label><input data-sk="senior_grace" inputmode="numeric" placeholder="0" title="상환방식이 거치후 원리금균등일 때만 사용 — 거치기간엔 이자만 냅니다" /></div>`:""}` : (t.equity?`<div class="f"><label>비고</label><input data-sk="${t.id}_extra" placeholder="잔여 지분" /></div>`:"");
+    const extra = t.extra ? `<div class="f"><label>${t.extra.label}</label><select data-sk="${t.id}_extra" aria-label="${t.name} ${t.extra.label}">${t.extra.opts.map(o=>`<option>${o}</option>`).join("")}</select></div>${t.id==="senior"?`<div class="f"><label>거치 <span class="unit">년</span></label><input data-sk="senior_grace" inputmode="numeric" aria-label="선순위 거치 년" placeholder="0" title="상환방식이 거치후 원리금균등일 때만 사용 — 거치기간엔 이자만 냅니다" /></div>`:""}` : (t.equity?`<div class="f"><label>비고</label><input data-sk="${t.id}_extra" aria-label="${t.name} 비고" placeholder="잔여 지분" /></div>`:"");
     const rateField = t.equity
-      ? `<div class="f"><label>목표 IRR <span class="unit">%</span></label><input data-sk="${t.id}_coc" inputmode="decimal" placeholder="${t.rate||'12'}" /></div>`
-      : `<div class="f"><label>${t.rateLabel||'금리'} <span class="unit">%</span></label><input data-sk="${t.id}_${t.id==='pref'?'coc':'rate'}" inputmode="decimal" placeholder="${t.rate}" /></div>`;
+      ? `<div class="f"><label>목표 IRR <span class="unit">%</span></label><input data-sk="${t.id}_coc" inputmode="decimal" aria-label="${t.name} 목표 IRR %" placeholder="${t.rate||'12'}" /></div>`
+      : `<div class="f"><label>${t.rateLabel||'금리'} <span class="unit">%</span></label><input data-sk="${t.id}_${t.id==='pref'?'coc':'rate'}" inputmode="decimal" aria-label="${t.name} ${t.rateLabel||'금리'} %" placeholder="${t.rate}" /></div>`;
     return `<div class="tranche ${on?'':'off'}" data-tr="${t.id}">
       <div class="tranche-top">
         <div class="tranche-name"><span class="seniority ${t.cls}">${t.sr}</span>${t.name}</div>
         <label class="tg"><input type="checkbox" data-sk="${t.id}_on" ${on?'checked':''} aria-label="${t.name} 포함"/><span class="track"></span></label>
       </div>
       <div class="tranche-fields">
-        <div class="f"><label>${mode==='dev'?'비중(총사업비)':'비중(취득원가)'} <span class="unit">%</span></label><input data-sk="${t.id}_ltv" inputmode="decimal" placeholder="${v('ltv')}" /></div>
+        <div class="f"><label>${mode==='dev'?'비중(총사업비)':'비중(취득원가)'} <span class="unit">%</span></label><input data-sk="${t.id}_ltv" inputmode="decimal" aria-label="${t.name} ${mode==='dev'?'비중(총사업비)':'비중(취득원가)'} %" placeholder="${v('ltv')}" /></div>
         ${rateField}
         ${extra}
       </div>
@@ -2159,10 +2161,10 @@ function stackHtml(mode){
 
 function refiHtml(){
   const alt=(n)=>`<div class="refi-alt"><div class="ra-h">대안 ${n}</div><div class="refi-fields">
-    <div class="f"><label>LTV <span class="unit">%</span></label><input data-rk="a${n}_ltv" inputmode="decimal" placeholder="${n===1?'50':n===2?'55':'60'}" /></div>
-    <div class="f"><label>금리 <span class="unit">%</span></label><input data-rk="a${n}_rate" inputmode="decimal" placeholder="${n===1?'4.0':n===2?'4.3':'4.6'}" /></div>
-    <div class="f"><label>만기 <span class="unit">년</span></label><input data-rk="a${n}_mat" inputmode="decimal" placeholder="${n===1?'3':n===2?'5':'7'}" /></div>
-    <div class="f"><label>상환</label><select data-rk="a${n}_repay"><option>만기일시</option><option>원리금균등</option><option>원금균등</option></select></div>
+    <div class="f"><label>LTV <span class="unit">%</span></label><input data-rk="a${n}_ltv" inputmode="decimal" aria-label="대안 ${n} LTV %" placeholder="${n===1?'50':n===2?'55':'60'}" /></div>
+    <div class="f"><label>금리 <span class="unit">%</span></label><input data-rk="a${n}_rate" inputmode="decimal" aria-label="대안 ${n} 금리 %" placeholder="${n===1?'4.0':n===2?'4.3':'4.6'}" /></div>
+    <div class="f"><label>만기 <span class="unit">년</span></label><input data-rk="a${n}_mat" inputmode="decimal" aria-label="대안 ${n} 만기 년" placeholder="${n===1?'3':n===2?'5':'7'}" /></div>
+    <div class="f"><label>상환</label><select data-rk="a${n}_repay" aria-label="대안 ${n} 상환방식"><option>만기일시</option><option>원리금균등</option><option>원금균등</option></select></div>
   </div></div>`;
   return `<div class="fgroup"><div class="fgroup-h"><span class="gl">③</span> 신규 대출 대안 (3안 비교)</div>
     ${alt(1)}${alt(2)}${alt(3)}</div>`;
@@ -2420,7 +2422,7 @@ function validateField(el){
   const wrap=el.closest(".f"); if(!wrap) return true;
   const errEl=wrap.querySelector(".err");
   const raw=el.value.trim();
-  if(raw===""){ wrap.classList.remove("invalid"); if(errEl) errEl.textContent=""; return true; }
+  if(raw===""){ wrap.classList.remove("invalid"); if(errEl) errEl.textContent=""; el.setAttribute("aria-invalid","false"); return true; }
   const n=parseNum(raw);
   let msg="";
   if(isNaN(n)){ msg="숫자를 입력하세요."; }
@@ -2430,6 +2432,7 @@ function validateField(el){
     if(min!==null && n<min) msg=`${min} 이상이어야 합니다.`;
     else if(max!==null && n>max) msg=el.dataset.pct?`${max}% 이하로 입력하세요.`:`${max} 이하여야 합니다.`;
   }
+  el.setAttribute("aria-invalid", msg?"true":"false");
   if(msg){ wrap.classList.add("invalid"); if(errEl) errEl.textContent=msg; return false; }
   wrap.classList.remove("invalid"); if(errEl) errEl.textContent=""; return true;
 }
@@ -4626,7 +4629,7 @@ function renderSim(){
       '<details class="sim-cf"><summary>연도별 DSCR 전개 ▾</summary><table class="sens-tbl sim-tbl">'+yh+yb+'</table><div class="scen-note">빨간 값 = DSCR 기준('+(isFinite(r.dmin)?mfmt(r.dmin,2)+'x':'—')+') 미달 연차</div></details>';
   } else {
     var bigs=r.kpis.filter(function(k){return k.big;});
-    function skTile(k,mn){ return '<div class="sim-kpi'+(mn?' main':'')+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+termHelp(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div></div>'; }
+    function skTile(k,mn){ var tw=k.tone==='warn'?'<span class="sr-only"> · 주의</span>':(k.tone==='good'?'<span class="sr-only"> · 양호</span>':''); return '<div class="sim-kpi'+(mn?' main':'')+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+termHelp(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div>'+tw+'</div>'; }
     kp.innerHTML=bigs.length?(skTile(bigs[0],true)+(bigs.length>1?('<div class="sim-kpi-sub">'+bigs.slice(1).map(function(k){return skTile(k,false);}).join('')+'</div>'):'')):'';
     var small=r.kpis.filter(function(k){return !k.big;});
     var sh=small.length?('<div class="sim-grid">'+small.map(function(k){return '<div class="mx-item"><div class="mx-l">'+esc(k.l)+termHelp(k.l)+'</div><div class="mx-v">'+esc(k.v)+'</div></div>';}).join('')+'</div>'):'';
