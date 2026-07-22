@@ -270,6 +270,9 @@ function calcPage(deal, terms) {
 
 /* ── sitemap 갱신 ── */
 function buildSitemap(slugs, deals) {
+  // lastmod — 배포 스탬프 날짜(data/build.json). 크롤러가 최신 변경을 우선 크롤하도록.
+  let lastmod = '';
+  try { const bj = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'build.json'), 'utf8')); if (/^\d{4}-\d{2}-\d{2}$/.test(bj.date || '')) lastmod = bj.date; } catch (e) {}
   const urls = [
     { loc: BASE + '/', freq: 'weekly', pri: '1.0' },
     { loc: BASE + '/guide', freq: 'monthly', pri: '0.8' },
@@ -284,8 +287,9 @@ function buildSitemap(slugs, deals) {
     const nd = path.join(DIR, 'notes');
     if (fs.existsSync(nd)) fs.readdirSync(nd).filter(f => f.endsWith('.html')).sort().forEach(f => urls.push({ loc: `${BASE}/notes/${f.replace(/\.html$/, '')}`, freq: 'yearly', pri: '0.5' }));
   } catch (e) {}
+  const lm = lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : '';
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.pri}</priority>\n  </url>`).join('\n') +
+    urls.map(u => `  <url>\n    <loc>${u.loc}</loc>${lm}\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.pri}</priority>\n  </url>`).join('\n') +
     '\n</urlset>\n';
 }
 
