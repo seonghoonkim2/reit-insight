@@ -31,7 +31,9 @@ export default {
           //  접미 경계 (…)\b — Googlebot·Bingbot 같은 합성명을 잡되, 실기기 오탐(CUBOT 폰)은 명시 제외
           const BOT_RE = /(bot|spider|crawler|crawling|scraper)\b|headlesschrome|phantomjs|puppeteer|playwright|selenium|slurp|yeti|daumoa|kakaotalk-scrap|kakaostory|facebookexternalhit|whatsapp|telegram|bingpreview|google-inspectiontool|lighthouse|bytespider|petalbot|semrush|ahrefs|mj12|embedly/i;
           const bot = ((BOT_RE.test(ua) && !/cubot/i.test(ua)) || d.wd === 1 || d.wd === true) ? 1 : 0;
-          const rec = { ev, deal: s(d.deal, 16), depth: s(d.depth, 12), rr: d.rr ? 1 : 0, feats, featN, axis, dev, ref: refHost, cc, src, bot };
+          // 실사용 표식(북극성 K3) — 이 세션이 자기 숫자를 직접 입력했는지(activate 발화 후)만. 수치·PII 없음
+          const act = (d.act === 1 || d.act === true) ? 1 : 0;
+          const rec = { ev, deal: s(d.deal, 16), depth: s(d.depth, 12), rr: d.rr ? 1 : 0, feats, featN, axis, dev, ref: refHost, cc, src, bot, act };
           // Workers Logs 로 남김 (대시보드 Observability → Query Builder 에서 필드로 필터·그룹 조회)
           //  · 순수 JSON 객체로 로깅해야 Cloudflare가 ev·deal·dev 등을 개별 필드로 파싱함
           //    ("mtevent {json}" 처럼 접두어가 붙으면 파싱이 안 돼 필드 필터가 막힘)
@@ -41,7 +43,7 @@ export default {
           if (env.AE) {
             env.AE.writeDataPoint({
               indexes: [ev],
-              blobs: [ev, rec.deal, rec.depth, dev, refHost, s(cc, 4), feats, axis, src, bot ? "1" : "0"],  // blob9=src(채널) blob10=bot
+              blobs: [ev, rec.deal, rec.depth, dev, refHost, s(cc, 4), feats, axis, src, bot ? "1" : "0", act ? "1" : "0"],  // blob9=src(채널) blob10=bot blob11=act(실사용)
               doubles: [rec.rr, featN],
             });
           }

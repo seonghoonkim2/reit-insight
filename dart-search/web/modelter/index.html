@@ -1955,7 +1955,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-22·0310bd10bd';
+window.MT_BUILD='2026-07-25·2f0886a354';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -11323,6 +11323,7 @@ var qrcode = function() {
       var _d0=''; try{ _d0=sessionStorage.getItem('mt_ref0')||''; }catch(_e){}
       if(_d0) b.dr=_d0;  // 진짜 유입원 — 비콘 referer 헤더는 항상 자기 페이지라, 진입 시 document.referrer 호스트만 별도 전달
       if(navigator.webdriver) b.wd=1;   // 자동화 브라우저 신호 — 서버가 봇으로 태깅(판독 분모 위생)
+      if(actFired) b.act=1;   // 실사용 표식(북극성 K3) — 이 세션이 자기 숫자를 직접 입력했는지 여부만. 수치·PII 없음
       if(extra){ for(var k in extra) b[k]=extra[k]; }
       var body=JSON.stringify(b);
       if(navigator.sendBeacon){ navigator.sendBeacon('/e', body); }
