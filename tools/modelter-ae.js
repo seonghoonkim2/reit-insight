@@ -17,7 +17,7 @@
  * 수집 원칙(불변): 이벤트명·딜유형·활성기능 플래그·기기·유입 호스트만. 수치·PII 없음.
  *
  * AE 스키마 (worker.js writeDataPoint 기준):
- *   blob1=이벤트  blob2=딜  blob3=깊이  blob4=기기  blob5=유입호스트  blob6=국가  blob7=feats  blob8=axis  blob9=src(채널)  blob10=bot(자동화 태깅 — 기본 제외, --include-bots로 포함)
+ *   blob1=이벤트  blob2=딜  blob3=깊이  blob4=기기  blob5=유입호스트  blob6=국가  blob7=feats  blob8=axis  blob9=src(채널)  blob10=bot(자동화 태깅 — 기본 제외, --include-bots로 포함)  blob11=act(실사용 표식 — 자기 숫자 입력 세션, 북극성 K3)
  *   double1=rr    double2=featN    index1=이벤트    _sample_interval=표본가중치(합이 추정 실건수)
  *
  * 채널 어트리뷰션:

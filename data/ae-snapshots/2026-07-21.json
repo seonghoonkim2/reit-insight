@@ -1,42 +1,42 @@
 {
  "schema": 2,
  "botExcluded": true,
- "endDate": "2026-07-20",
+ "endDate": "2026-07-21",
  "week": "2026-W30",
  "days": 30,
- "generatedAt": "2026-07-20T23:05:06.789Z",
+ "generatedAt": "2026-07-21T23:06:19.831Z",
  "funnel": {
-  "session": 1355,
-  "activate": 99,
-  "computed": 98,
-  "output": 318
+  "session": 1380,
+  "activate": 104,
+  "computed": 103,
+  "output": 324
  },
  "events": {
-  "session": 1355,
-  "deal_select": 722,
-  "onboard": 321,
-  "depth_change": 305,
-  "xlsx_download": 165,
-  "dev_view": 137,
-  "activate": 99,
-  "computed": 98,
-  "nudge_save": 78,
-  "fsub_open": 68,
-  "deal_want": 67,
+  "session": 1380,
+  "deal_select": 732,
+  "onboard": 329,
+  "depth_change": 306,
+  "xlsx_download": 166,
+  "dev_view": 141,
+  "activate": 104,
+  "computed": 103,
+  "nudge_save": 81,
+  "deal_want": 74,
+  "fsub_open": 72,
   "solver": 67,
-  "tip_next": 58,
-  "sens_axis": 53,
+  "tip_next": 59,
+  "sens_axis": 55,
   "prompt_copy": 40,
-  "teaser": 37,
+  "teaser": 38,
   "fill_std": 33,
-  "ic_ppt": 28,
+  "ic_ppt": 29,
   "example_fill": 28,
   "method": 27,
   "term_help": 23,
-  "sample_download": 22,
-  "ex_ack": 19,
+  "sample_download": 23,
+  "ex_ack": 20,
+  "slot_save": 17,
   "src_tag": 16,
-  "slot_save": 15,
   "sample_deal": 14,
   "adj_open": 14,
   "im_quick_open": 12,
@@ -60,25 +60,25 @@
   "im_checklist": 1
  },
  "deals": {
-  "office": 2525,
-  "dev": 884,
-  "logistics": 286,
-  "refi": 159,
+  "office": 2557,
+  "dev": 907,
+  "logistics": 304,
+  "refi": 161,
   "reit": 57,
-  "hotel": 40,
-  "rental": 12,
-  "retail": 10,
-  "datacenter": 5
+  "hotel": 43,
+  "rental": 13,
+  "retail": 12,
+  "datacenter": 6
  },
  "device": {
-  "desktop": 2512,
-  "mobile": 1488
+  "desktop": 2572,
+  "mobile": 1510
  },
  "ref": {
-  "modelter.com": 3296,
-  "www.google.com": 228,
-  "www.linkedin.com": 191,
-  "com.linkedin.android": 76,
+  "modelter.com": 3365,
+  "www.google.com": 236,
+  "www.linkedin.com": 192,
+  "com.linkedin.android": 79,
   "blog.naver.com": 72,
   "teams.public.onecdn.static.microsoft": 58,
   "www.bing.com": 27,
@@ -88,15 +88,15 @@
   "scen": 9,
   "dep,fee": 2,
   "hold": 2,
-  "pref": 113,
+  "pref": 114,
   "vac,pref": 4,
-  "resi": 652,
+  "resi": 673,
   "bido": 18,
   "fee,vac,hold": 6,
-  "dep,fee,vac,hold": 4,
-  "resi,pref": 2,
+  "dep,fee,vac,hold": 12,
   "hold,pref": 4,
-  "dep,fee,vac,pref": 2193,
+  "resi,pref": 2,
+  "dep,fee,vac,pref": 2233,
   "dep,fee,vac,scen": 1,
   "dep,fee,pref": 2,
   "resi,scen": 2,
@@ -108,11 +108,11 @@
   "fee,vac,pref,scen": 3,
   "rr,dep,fee,vac,pref,scen": 9,
   "dep,fee,vac,pref,scen": 64,
-  "rr,dep,fee,vac,hold,pref": 6,
+  "rr,dep,fee,vac,hold,pref": 8,
   "rr,dep,fee,vac,pref": 28,
   "dep,fee,pref,scen": 1,
   "rr,dep,fee,bido,vac,scen": 3,
-  "dep,fee,vac,hold,pref": 123,
+  "dep,fee,vac,hold,pref": 125,
   "dep,fee,bido,vac,pref": 13,
   "rr,dep,fee,bido,vac,pref,scen": 5,
   "dep,fee,vac,hold,pref,scen": 32,
@@ -120,8 +120,8 @@
   "rr,dep,fee,vac,hold,pref,scen": 23
  },
  "depth": {
-  "standard": 3331,
-  "deep": 504,
+  "standard": 3407,
+  "deep": 510,
   "quick": 139
  },
  "src": {
@@ -132,10 +132,10 @@
  "attribution": {
   "bySrc": {
    "(직접/미상)": {
-    "session": 1347,
-    "activate": 99,
-    "computed": 98,
-    "output": 318
+    "session": 1372,
+    "activate": 104,
+    "computed": 103,
+    "output": 324
    },
    "pwa": {
     "session": 4,
@@ -158,19 +158,19 @@
   },
   "byRef": {
    "modelter.com": {
-    "session": 1184,
-    "activate": 72,
-    "computed": 71,
-    "output": 266
+    "session": 1202,
+    "activate": 76,
+    "computed": 75,
+    "output": 272
    },
    "www.linkedin.com": {
-    "session": 45,
+    "session": 46,
     "activate": 4,
     "computed": 4,
     "output": 25
    },
    "com.linkedin.android": {
-    "session": 43,
+    "session": 45,
     "activate": 2,
     "computed": 2,
     "output": 0
@@ -194,9 +194,9 @@
     "output": 0
    },
    "www.google.com": {
-    "session": 47,
-    "activate": 12,
-    "computed": 12,
+    "session": 50,
+    "activate": 13,
+    "computed": 13,
     "output": 15
    },
    "www.bing.com": {
@@ -213,6 +213,12 @@
    },
    "naver.com": {
     "session": 2,
+    "activate": 0,
+    "computed": 0,
+    "output": 0
+   },
+   "br.nate.com": {
+    "session": 1,
     "activate": 0,
     "computed": 0,
     "output": 0
@@ -687,6 +693,27 @@
    "tip_next": 8,
    "dev_view": 5,
    "im_open": 1
+  },
+  {
+   "day": "2026-07-21",
+   "sens_axis": 2,
+   "fsub_open": 4,
+   "nudge_save": 3,
+   "deal_want": 7,
+   "activate": 5,
+   "ic_ppt": 1,
+   "sample_download": 1,
+   "computed": 5,
+   "session": 25,
+   "teaser": 1,
+   "depth_change": 1,
+   "onboard": 8,
+   "xlsx_download": 1,
+   "deal_select": 10,
+   "ex_ack": 1,
+   "slot_save": 2,
+   "tip_next": 1,
+   "dev_view": 4
   }
  ]
 }

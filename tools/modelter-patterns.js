@@ -46,6 +46,8 @@ const Q = {
   dealWant: `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='deal_want' GROUP BY k ORDER BY n DESC LIMIT 10`,
   refFun: `SELECT blob5 AS g, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN ('session','activate','computed',${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY g, ev`,
   srcFun: `SELECT blob9 AS g, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob9!='' AND blob1 IN ('session','activate','computed',${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY g, ev`,
+  // 북극성 K3 — 자기 숫자를 넣은 세션(blob11=act)의 산출물. act 계측 배포(2026-07-26) 이전 데이터는 blob11=''
+  actOut: `SELECT if(timestamp > now() - INTERVAL '7' DAY, 'this', 'prev') AS w, blob11 AS act, sum(_sample_interval) AS n FROM ${D} WHERE timestamp > now() - INTERVAL '14' DAY${BOTW} AND blob1 IN (${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY w, act`,
 };
 
 async function runSQL(sql) {
@@ -166,12 +168,21 @@ async function main() {
   const dealWantPairs = (raw.dealWant || []).map(r => [DEAL_LABEL[r.k] || String(r.k), Number(r.n) || 0]).sort((a, b) => b[1] - a[1]);
   const evRows = Object.entries(wow).map(([ev, w]) => [ev, w.this || 0, w.prev || 0]).sort((a, b) => b[1] - a[1]);
 
-  /* KPI v1 트래커 (docs/STRATEGY.md 2026-07-13 확정) — K3은 act 플래그 계측(7/24 이후) 전까지 준비 중 */
+  /* KPI v1 트래커 (docs/STRATEGY.md 2026-07-13 확정) — K3 = act 플래그가 붙은 산출물(북극성) */
   const _s7 = wget('session');
+  //  act 계측 배포(2026-07-26) 이전 이벤트는 blob11=''이므로 '1'만 실사용으로 집계.
+  //  아직 표식이 하나도 없으면(배포 직후) 기준선 수집 중임을 그대로 표기해 0을 성과 하락으로 오독하지 않게 함.
+  const actAgg = { this: 0, prev: 0 }; let actTagged = 0;
+  for (const r of (raw.actOut || [])) {
+    const n = Number(r.n) || 0;
+    if (String(r.act) === '1') { actAgg[r.w === 'this' ? 'this' : 'prev'] += n; actTagged += n; }
+  }
+  const k3Val = actTagged > 0 ? num(actAgg.this) + '건' : '기준선 수집 중';
+  const k3Goal = actTagged > 0 ? ('전주 ' + num(actAgg.prev) + ' · 8월 기준선 → +30%') : 'act 계측 2026-07-26 배포 → 8월 기준선';
   const kpiV1 = [
     ['K1 주간 방문', num(_s7.this), '목표 800', _s7.this >= 800],
     ['K2 활성화율', pct(wget('activate').this, _s7.this), '목표 10%+ (다음 15%)', _s7.this > 0 && wget('activate').this / _s7.this >= 0.10],
-    ['K3 실사용 산출물', '계측 준비 중', '7/24 이후 act 플래그 → 8월 기준선', null],
+    ['K3 실사용 산출물', k3Val, k3Goal, actTagged > 0 ? (actAgg.this >= actAgg.prev) : null],
     ['K4 회수 재진입(착지)', num(wget('landing').this), '목표 주 15', (wget('landing').this || 0) >= 15],
   ];
 
