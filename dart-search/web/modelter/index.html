@@ -1158,6 +1158,9 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
   .ob-role .ob-d{display:none}
   .ob-trust{margin-top:6px}
 }
+/* 핵심 입력 우선 그룹 — 간소화를 '모드'가 아니라 기본 동선으로 */
+.core-g{border-color:var(--line-2)}
+.core-note{padding:0 20px 10px;font-size:12px;color:var(--ink-3);line-height:1.5;margin-top:-4px}
 /* 핵심 입력 진행률 */
 .inp-prog{display:flex;align-items:center;gap:8px;padding:0 20px 10px;font-size:11.5px;color:var(--ink-3)}
 .inp-prog .ip-bar{flex:1;height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden}
@@ -1955,7 +1958,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-31·416d66ca85';
+window.MT_BUILD='2026-07-31·61f1ea33be';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2131,7 +2134,7 @@ function fieldHtml(f){
   return `<div class="f ${f.full?'full':''}" data-field="${f.k}"><div class="f-lab"><label for="${id}">${f.l} ${unit}</label>${help}</div>${input}${conv}${ref}${err}</div>`;
 }
 
-function stackHtml(mode){
+function stackHtml(mode,gl){
   const title = mode==="dev" ? "자금 구조 (PF · 트랜치)" : "자본구조 (Capital Stack)";
   const hint = mode==="dev"
     ? "PF 선순위에 더해 중순위(브릿지)·우선주를 켜면 시트와 분배 구조가 추가됩니다. 비중은 총사업비 대비 %."
@@ -2155,21 +2158,21 @@ function stackHtml(mode){
       </div>
     </div>`;
   }).join("");
-  return `<div class="fgroup"><div class="fgroup-h"><span class="gl">④</span> ${title}</div>
+  return `<div class="fgroup"><div class="fgroup-h"><span class="gl">${gl||'④'}</span> ${title}</div>
     <div class="stack-hint">${hint}</div>
     ${rows}
     <div class="stack-sum ok" id="stackSum"><span>트랜치 비중 합계</span><span id="stackSumV">—</span></div>
   </div>`;
 }
 
-function refiHtml(){
+function refiHtml(gl){
   const alt=(n)=>`<div class="refi-alt"><div class="ra-h">대안 ${n}</div><div class="refi-fields">
     <div class="f"><label>LTV <span class="unit">%</span></label><input data-rk="a${n}_ltv" inputmode="decimal" aria-label="대안 ${n} LTV %" placeholder="${n===1?'50':n===2?'55':'60'}" /></div>
     <div class="f"><label>금리 <span class="unit">%</span></label><input data-rk="a${n}_rate" inputmode="decimal" aria-label="대안 ${n} 금리 %" placeholder="${n===1?'4.0':n===2?'4.3':'4.6'}" /></div>
     <div class="f"><label>만기 <span class="unit">년</span></label><input data-rk="a${n}_mat" inputmode="decimal" aria-label="대안 ${n} 만기 년" placeholder="${n===1?'3':n===2?'5':'7'}" /></div>
     <div class="f"><label>상환</label><select data-rk="a${n}_repay" aria-label="대안 ${n} 상환방식"><option>만기일시</option><option>원리금균등</option><option>원금균등</option></select></div>
   </div></div>`;
-  return `<div class="fgroup"><div class="fgroup-h"><span class="gl">③</span> 신규 대출 대안 (3안 비교)</div>
+  return `<div class="fgroup"><div class="fgroup-h"><span class="gl">${gl||'③'}</span> 신규 대출 대안 (3안 비교)</div>
     ${alt(1)}${alt(2)}${alt(3)}</div>`;
 }
 
@@ -2177,12 +2180,12 @@ function depthHtml(){
   const depthBtns=Object.entries(DEPTHS).map(([k,v])=>`<button type="button" class="depth-opt ${k===depth?'on':''}" data-depth="${k}"><b>${v.label}</b><span>${v.range}</span></button>`).join("");
   return `<div class="depth-pick"><div class="dp-head">모델 깊이 <span class="help" tabindex="0">?<span class="tip">시트 수가 많다고 더 좋은 모델은 아닙니다. 빠른 검토는 핵심만, 표준은 실무용, 심층은 위원회·실사용. 엑셀·AI 지시문 구성에 반영됩니다.</span></span></div>
    <div class="depth-seg" id="depthSeg">${depthBtns}</div>
-   <div class="depth-desc" id="depthDesc">${DEPTHS[depth].desc}</div>
+   <div class="depth-desc" id="depthDesc">${DEPTHS[depth].desc}${(function(){ try{ var n=(typeof sheetListFor==='function')?sheetListFor().length:0; return n?` <b>지금 ${n}시트</b> — 깊이는 <b>내려받는 엑셀·AI 지시문의 시트 구성</b>을 정합니다(화면 입력 항목은 동일).`:''; }catch(e){ return ''; } })()}</div>
   </div>`;
 }
 
-function commonHtml(){
-  return `<div class="fgroup"><div class="fgroup-h"><span class="gl">⑤</span> 공통 설정</div>
+function commonHtml(gl){
+  return `<div class="fgroup"><div class="fgroup-h"><span class="gl">${gl||'⑤'}</span> 공통 설정</div>
    <div class="fields">
      <div class="f"><label>현금흐름 주기</label><select id="c_freq"><option>연간</option><option>반기</option><option>월</option></select></div>
      <div class="f"><label>대출 상환 만기 <span class="unit">년</span></label><input id="f_maturity" data-k="maturity" data-num="1" data-min="1" data-max="50" inputmode="decimal" placeholder="20" /></div>
@@ -2315,6 +2318,8 @@ function bindDevGrids(){
 
 function renderForm(){
   const d=DEALS[cur];
+  const GL=['①','②','③','④','⑤','⑥','⑦','⑧','⑨'];   // 그룹 번호는 실제 렌더 순서대로 부여(핵심 입력 그룹 추가로 고정 번호가 어긋나지 않게)
+  let gn=0;
   const isQuick = depth==="quick";
   const rrEligible = (cur==="office"||cur==="logistics");
   let quickKeys = QUICK_FIELDS[cur]||[];
@@ -2331,7 +2336,7 @@ function renderForm(){
     allFields.sort((a,b)=>quickKeys.indexOf(a.k)-quickKeys.indexOf(b.k));
     const cols=allFields.some(x=>x.full)?'one':'';
     const qExtra = rrEligible ? rrFormBlockHtml() : (devResi()? devGridsHtml() : "");
-    html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">①</span> 핵심 가정값 <span class="opt-badge" style="background:rgba(169,121,43,.1);color:var(--accent-deep);border-color:transparent">빠른 검토 · 필수 항목만</span></div><div class="fields ${cols}">${allFields.map(fieldHtml).join("")}${qExtra}</div></div>`;
+    html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${GL[gn++]}</span> 핵심 가정값 <span class="opt-badge" style="background:rgba(169,121,43,.1);color:var(--accent-deep);border-color:transparent">빠른 검토 · 필수 항목만</span></div><div class="fields ${cols}">${allFields.map(fieldHtml).join("")}${qExtra}</div></div>`;
   }else{
     const mode=(state["noimode"]||"").trim();
     const rentBased = mode==="" || mode.startsWith("임대료");
@@ -2348,26 +2353,40 @@ function renderForm(){
       }
       return true;
     });
+    /* 핵심 입력 우선 — 2주 판독(2026-07-31): quick 깊이 2.4%·모바일 위저드 3회로 '간이 모드' 2종이 모두 실패했다.
+       원인은 간소화가 아니라 **사용자가 골라야만 보이는 옵션**이었다는 것. 같은 핵심 필드 묶음(QUICK_FIELDS)을
+       표준·심층에서도 맨 앞 그룹으로 노출해 간소화를 기본 동선으로 만든다.
+       중복 렌더 금지 — 여기 올린 필드는 아래 원래 그룹에서 제외한다(입력 1개당 DOM 1개 유지). */
+    const coreSet=new Set(quickKeys), coreFields=[];
+    d.groups.forEach(g=>visibleFields(g).forEach(f=>{ if(coreSet.has(f.k)) coreFields.push(f); }));
+    coreFields.sort((a,b)=>quickKeys.indexOf(a.k)-quickKeys.indexOf(b.k));
+    if(coreFields.length){
+      const ccols=coreFields.some(x=>x.full)?'one':'';
+      html+=`<div class="fgroup core-g"><div class="fgroup-h"><span class="gl">${GL[gn++]}</span> 핵심 입력<span class="gh-cnt"></span></div>`
+        +`<div class="core-note">이 ${coreFields.length}개만 넣어도 결과가 나옵니다 — 나머지는 통상값이 적용되고, 아래에서 언제든 조정할 수 있습니다.</div>`
+        +`<div class="fields ${ccols}">${coreFields.map(fieldHtml).join("")}</div></div>`;
+    }
     d.groups.forEach((g,gi)=>{
-      const ff=visibleFields(g);
+      const ff=visibleFields(g).filter(f=>!coreSet.has(f.k));
       const extra = (rrEligible && g.h==="운영 수입") ? rrFormBlockHtml() : ((cur==="dev" && devResi() && g.h==="분양 수입") ? devGridsHtml() : "");
       if(!ff.length && !extra) return;
+      const gl=GL[gn++]||g.gl;
       // 복잡도 다이어트 — 30일 로그에서 거의 손대지 않는 부대비·보수·정산 계열(adv 필드)은 그룹 안 "세부 항목"으로 접어 첫 화면을 가볍게.
       // 값은 예시·통상값이 그대로 적용되고, 펼치면 언제든 수정 가능(기능 제거 아님).
       const main=ff.filter(x=>!x.adv), advF=ff.filter(x=>x.adv);
       const cols = main.length>=3 && main.every(x=>!x.full) ? (main.length%3===0?'three':(main.length%2===0?'':'')) : (main.some(x=>x.full)?'one':'');
       const sub = advF.length?`<details class="fsub"><summary>세부 항목 ${advF.length}개 — 통상값 적용 중 · 펼쳐서 수정<span class="chev">▾</span></summary><div class="fields">${advF.map(fieldHtml).join("")}</div></details>`:"";
       if(g.adv){
-        html+=`<div class="fgroup adv collapsed" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">통상값 적용 중 · 펼쳐서 수정</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
+        html+=`<div class="fgroup adv collapsed" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">통상값 적용 중 · 펼쳐서 수정</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }else{
-        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${g.gl}</span> ${g.h}<span class="gh-cnt"></span></div><div class="fields ${cols}">${main.map(fieldHtml).join("")}${extra}${sub}</div></div>`;
+        html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${gl}</span> ${g.h}<span class="gh-cnt"></span></div><div class="fields ${cols}">${main.map(fieldHtml).join("")}${extra}${sub}</div></div>`;
       }
     });
   }
-  if(d.stack && !isQuick && !devResi()) html+=stackHtml(d.stackMode);
-  if(d.refi) html+=refiHtml();
+  if(d.stack && !isQuick && !devResi()) html+=stackHtml(d.stackMode,GL[gn++]);
+  if(d.refi) html+=refiHtml(GL[gn++]);
   if(!isQuick) html+=scenHtml();
-  html+=commonHtml();
+  html+=commonHtml(GL[gn++]);
   $("formBody").innerHTML=html;
 
   // bind inputs + inline validation
