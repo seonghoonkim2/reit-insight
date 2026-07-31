@@ -59,7 +59,29 @@ p{margin-bottom:11px;color:var(--ink-2)}
 .io li{padding:3px 0 3px 16px;position:relative}
 .io li::before{content:"·";position:absolute;left:3px;color:var(--accent);font-weight:700}
 footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:12.5px;margin-top:8px}
-footer a{color:var(--ink-3)}</style>
+footer a{color:var(--ink-3)}
+/* 계산 예시 표 · 단계 · FAQ (검색 착지 심화) */
+.wex{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px 16px 10px;margin:10px 0}
+.wex table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.wex td,.wex th{padding:8px 4px;font-size:14px;border-bottom:1px solid var(--line-soft);text-align:right}
+.wex td:first-child,.wex th:first-child{text-align:left;color:var(--ink-2)}
+.wex th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.wex tr:last-child td{border-bottom:none}
+.wex .r{font-family:var(--mono);font-weight:700;color:var(--ink)}
+.wex .out .r{color:var(--accent-deep);font-size:15px}
+.wex tr.out td{background:#fdf8ef}
+.steps{counter-reset:s;list-style:none;margin:8px 0}
+.steps li{position:relative;padding:9px 0 9px 34px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--line-soft)}
+.steps li:last-child{border-bottom:none}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:9px;width:22px;height:22px;border-radius:50%;background:var(--accent-soft,rgba(169,121,43,.12));color:var(--accent-deep);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.steps b{color:var(--ink)}
+.faq{border-bottom:1px solid var(--line-soft);padding:12px 0}
+.faq:last-of-type{border-bottom:none}
+.faq summary{font-size:15px;font-weight:700;cursor:pointer;list-style:none;color:var(--ink)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"＋";color:var(--accent);font-weight:800;margin-right:9px}
+.faq[open] summary::before{content:"－"}
+.faq p{font-size:14px;color:var(--ink-2);padding:9px 0 2px 23px;line-height:1.65}</style>
 </head>
 <body>
 <header><div class="wrap">

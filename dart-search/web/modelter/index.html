@@ -1679,7 +1679,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 <span id="footUpd"></span></p>
       <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
       <p class="foot-guide"><a href="/guide">부동산 금융 용어사전</a> · <a href="/howto">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a> · <a href="/trust">보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다</a> · <a href="/verification">파리티 검증 — 화면=엑셀 재현 증거</a></p>
-      <p class="foot-guide">계산기: <a href="/calc/office">오피스 매입</a> · <a href="/calc/logistics">물류센터 매입</a> · <a href="/calc/dev">분양 사업수지</a> · <a href="/calc/refi">리파이낸싱 비교</a></p>
+      <p class="foot-guide">계산기: <a href="/calc/office">오피스 매입</a> · <a href="/calc/logistics">물류센터 매입</a> · <a href="/calc/dev">분양 사업수지</a> · <a href="/calc/refi">리파이낸싱 비교</a> · <a href="/calc/hotel">호텔(준비중) — ADR·RevPAR 구조</a></p>
       <p class="foot-guide">자주 찾는 용어: <a href="/t/caprate">Cap rate</a> · <a href="/t/noi">NOI</a> · <a href="/t/irr">IRR</a> · <a href="/t/dscr">DSCR</a> · <a href="/t/em">Equity Multiple</a> · <a href="/t/ltv">LTV·LTC</a> · <a href="/t/rentfree">렌트프리</a> · <a href="/t/noc">NOC</a> · <a href="/t/deposit">보증금 승계</a> · <a href="/t/bep">손익분기 분양률</a> · <a href="/t/adr">ADR</a> · <a href="/t/revpar">RevPAR</a> · <a href="/guide">전체 32개 →</a></p>
     </div>
   </div>
@@ -1955,7 +1955,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-07-25·2f0886a354';
+window.MT_BUILD='2026-07-31·416d66ca85';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
