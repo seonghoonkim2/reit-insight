@@ -22,22 +22,74 @@ const DEALS = {
     lede: '매입가·임대료·대출 조건을 넣으면 레버드 IRR·Equity Multiple·DSCR·Cap Rate를 화면에서 바로 보여주고, 수식이 살아있는 13시트 엑셀을 그 자리에서 만듭니다.',
     inputs: ['매입가·감정가', '평당 임대료·관리비', '공실률·임대면적', '선순위 LTV·금리·상환방식', 'Exit Cap·보유기간'],
     outputs: ['레버드/언레버드 IRR (세전·세후)', 'Equity Multiple·현금수익률', '최소 DSCR·ICR·Debt Yield', 'Exit Cap 민감도(5×5)'],
-    terms: ['irr', 'caprate', 'dscr', 'noi', 'em'] },
+    terms: ['irr', 'caprate', 'dscr', 'noi', 'em'],
+    ex: { title: '예시 — 강남 A타워 (앱에 미리 채워져 있는 딜)',
+      in: [['연면적', '8,400 평'], ['매입가', '1,200억 (감정가 1,235억)'], ['평당 임대료 · 관리비', '62,000원 · 21,000원 /월'], ['공실률 · NOI 성장률', '5% · 연 2.0%'], ['선순위 LTV · 금리', '55% · 4.2% (만기일시)'], ['Exit Cap · 보유기간', '4.8% · 5년']],
+      out: [['Levered IRR (세전)', '8.94%'], ['Equity Multiple', '1.48x'], ['Unlevered IRR', '6.58%'], ['최소 DSCR', '2.16x'], ['필요 자기자본', '545억']],
+      note: '위 입력만으로 나오는 실제 산출값입니다. 우선주 30%·보통주 15% 구조와 도관과세(위탁관리리츠)가 함께 반영됩니다.' },
+    steps: [['딜 유형에서 <b>오피스 매입</b>을 고릅니다', '예시 딜이 자동으로 채워져 첫 결과가 바로 보입니다'],
+      ['<b>매입가·연면적·평당 임대료</b>를 내 딜 숫자로 바꿉니다', '입력하는 즉시 IRR·DSCR이 다시 계산됩니다'],
+      ['<b>LTV·금리·상환방식</b>으로 대출 조건을 맞춥니다', '최소 DSCR·Debt Yield가 대주 기준을 넘는지 확인합니다'],
+      ['<b>Exit Cap·보유기간</b>으로 매각 가정을 잡습니다', '민감도 표(Exit Cap × 성장률)에서 하방을 함께 봅니다'],
+      ['<b>엑셀 13시트</b>를 내려받습니다', '수식이 살아있어 파일 안에서 값을 바꿔도 재계산됩니다']],
+    faqs: [['오피스 매입 IRR은 어떻게 계산하나요?', '초기 자기자본 투입(−), 매년 배당 현금흐름(+), 매각 회수(+)를 시점별로 늘어놓고 순현재가치가 0이 되는 할인율을 구합니다. 모델터는 취득부대비·보증금 승계·대출 원리금·도관과세까지 반영해 레버드 IRR과 무차입 기준 언레버드 IRR을 함께 보여줍니다.'],
+      ['보증금 승계는 어떻게 반영되나요?', '국내 상업용 임대차의 무이자 보증금(통상 월 임대료의 10~12개월)을 승계하면 취득자금(Sources)으로 잡혀 필요 자기자본이 줄고, 매각 시 반환합니다. 보증금 운용수익도 수입에 가산됩니다 — 이 처리를 빼면 자기자본과 IRR이 잘못 계산됩니다.'],
+      ['Exit Cap은 얼마로 잡아야 하나요?', '통상 진입 Cap보다 보수적으로(높게) 잡습니다. 모델터는 Exit Cap이 진입보다 낮으면 공격적 가정이라고 표시하고, Exit Cap × 성장률 5×5 민감도로 IRR이 어디까지 빠지는지 함께 보여줍니다.'],
+      ['화면 숫자와 엑셀이 정말 같나요?', '네. 엑셀을 실제 수식 엔진으로 다시 계산해 화면 값과 일치하는지 매 배포마다 검증하며, 결과는 /verification 에 공개합니다.']] },
   logistics: { name: '물류센터 매입 재무모델', short: '물류', kw: '물류센터 매입 재무모델, 책임임대차·Cap 계산',
     lede: '수도권 물류센터 매입을 오피스와 같은 13시트 엔진으로 검토합니다. 저운영비·책임임대차(마스터리스) 관행을 기본값으로 반영하고 화면=엑셀 파리티를 지킵니다.',
     inputs: ['매입가·연면적(평)', '평당 임대료(저층·고층 구분)', '마스터리스 여부', 'LTV·금리·상환', 'Exit Cap·보유기간'],
     outputs: ['레버드/언레버드 IRR', 'Equity Multiple·CoC', '최소 DSCR·Debt Yield', 'Cap×성장률 민감도'],
-    terms: ['caprate', 'masterlease', 'vacancy', 'dscr', 'wale'] },
+    terms: ['caprate', 'masterlease', 'vacancy', 'dscr', 'wale'],
+    ex: { title: '예시 — 이천 물류센터 (앱에 미리 채워져 있는 딜)',
+      in: [['연면적', '35,000 평'], ['매입가', '2,100억 (감정가 2,150억)'], ['평당 임대료 · 관리비', '33,000원 · 1,700원 /월'], ['공실률 · NOI 성장률', '5% · 연 2.5%'], ['선순위 LTV · 금리', '55% · 4.2% (만기일시)'], ['Exit Cap · 보유기간', '5.3% · 5년']],
+      out: [['Levered IRR (세전)', '10.60%'], ['Equity Multiple', '1.58x'], ['Unlevered IRR', '7.38%'], ['최소 DSCR', '2.25x'], ['필요 자기자본', '924억']],
+      note: '오피스와 같은 13시트 엔진이지만 저운영비·낮은 관리비 등 물류 관행이 기본값으로 반영됩니다.' },
+    steps: [['딜 유형에서 <b>물류센터 매입</b>을 고릅니다', '물류 관행(저운영비·고효율)이 기본값으로 들어갑니다'],
+      ['<b>연면적·평당 임대료</b>를 실제 조건으로 바꿉니다', '저층·고층 임대료가 다르면 가중평균으로 넣습니다'],
+      ['<b>책임임대차(마스터리스)</b> 여부를 반영합니다', '통임차면 공실률을 낮춰 NOI 안정성을 반영합니다'],
+      ['<b>LTV·Exit Cap</b>으로 금융·매각 가정을 맞춥니다', '물류는 오피스보다 Exit Cap을 높게 보는 것이 일반적입니다'],
+      ['<b>엑셀 13시트</b>를 내려받습니다', '화면 수치와 같은 계산식이 그대로 담깁니다']],
+    faqs: [['물류센터는 오피스와 무엇이 다른가요?', '수익 구조는 같은 임대형이라 동일한 레버드 DCF 엔진을 쓰지만, 운영비 비중이 낮고 관리비 단가가 작으며 책임임대차(마스터리스) 비중이 높습니다. 모델터는 이 관행을 물류 딜의 기본값으로 반영합니다.'],
+      ['책임임대차(마스터리스)는 어떻게 반영하나요?', '한 임차인이 건물 전체를 통임차하고 공실 위험을 떠안는 구조이므로 공실률을 낮춰 NOI 안정성을 반영합니다. 대신 임대료 상승 여력이 제한된다는 점을 성장률 가정에 반영하는 것이 실무입니다.'],
+      ['평당 임대료가 층별로 다르면?', '저층·고층 단가가 다르면 면적 가중평균으로 넣거나, 렌트롤을 붙여 임차인별 조건(만기·렌트프리·상승률)을 그대로 반영할 수 있습니다.']] },
   dev: { name: '공동주택 분양 사업수지', short: '분양', kw: '분양 사업수지 엑셀, 브릿지·본PF·중도금·손익분기 분양률',
     lede: '토지비·공사비·분양수입을 월별로 전개해 브릿지→본PF 금융비용, 중도금 대납이자, 손익분기 분양률(BEP), 사업이익률을 계산하고 6시트 엑셀로 내려받습니다.',
     inputs: ['토지비·공사비(기성 곡선)', '분양가·분양률·평형 구성', '계약금·중도금·잔금 비율', '브릿지·본PF 금리·수수료', '제세·판매비·분양보증'],
     outputs: ['자기자본 IRR·사업이익률', '필요 PF 한도·건설이자', '손익분기 분양률·PF상환한계', '분양률×분양가 민감도(4×5)'],
-    terms: ['bridge', 'midpay', 'bep', 'devmargin'] },
+    terms: ['bridge', 'midpay', 'bep', 'devmargin'],
+    ex: { title: '예시 — 판교 A지구 공동주택 (앱에 미리 채워져 있는 딜)',
+      in: [['대지 · 연면적', '9,500평 · 52,000평'], ['토지비 · 공사비', '1,800억 · 2,900억 (S-커브 20/60/20)'], ['인허가 · 공사기간', '8개월 · 32개월'], ['분양 개시 · 소진기간', '착공 3개월 후 · 18개월'], ['분양률(아파트)', '100%'], ['계약금 · 중도금', '10% · 60%(무이자 대납)']],
+      out: [['사업이익률 (매출 대비)', '9%'], ['연환산 자기자본 IRR', '22.3%'], ['Equity Multiple', '1.96x'], ['분양수입 · 총사업비', '6,401억 · 5,828억'], ['사업이익', '573억'], ['손익분기 분양률', '90.7%'], ['PF 상환한계 분양률', '80.6%'], ['브릿지 · 본PF 최대 한도', '1,356억 · 1,500억']],
+      note: '월별로 전개해 브릿지→본PF 차환, 중도금 대납이자, 필요 한도의 최대 인출 잔액까지 산출합니다.' },
+    steps: [['딜 유형에서 <b>개발 · PF</b>를 고릅니다', '공동주택 분양 사업수지 양식이 열립니다'],
+      ['<b>토지비·공사비·기간</b>을 넣습니다', '공사비는 S-커브(기성 곡선)로 월별 전개됩니다'],
+      ['<b>분양가·분양률·납부 조건</b>을 설정합니다', '계약금·중도금·잔금 시점이 현금흐름과 필요 PF 한도를 좌우합니다'],
+      ['<b>브릿지·본PF 금리와 수수료</b>를 넣습니다', '착공 시점에 브릿지가 본PF로 차환되는 구조로 계산됩니다'],
+      ['<b>손익분기 분양률</b>을 확인합니다', '대주 관점은 PF 상환한계 분양률로 함께 봅니다 — 대주 뷰 토글 제공'],
+      ['<b>엑셀 6시트</b>를 내려받습니다', '월별 자금수지가 수식 그대로 담깁니다']],
+    faqs: [['분양 사업수지에서 손익분기 분양률이란?', '사업이익이 0이 되는 최소 분양률입니다. 이 아래로 팔리면 적자입니다. 함께 보는 PF 상환한계 분양률은 차입을 전액 상환할 수 있는 최소 분양률로 대주의 안전선이며, 모델터는 분양률을 바꿔가며 두 값을 역산합니다.'],
+      ['브릿지론과 본PF는 어떻게 이어지나요?', '토지 계약부터 착공까지는 브릿지(단기·고금리), 착공 이후 공사비는 본PF로 조달하며 착공 시점에 브릿지 잔액이 본PF로 차환됩니다. 필요 한도는 각 구간의 최대 인출 잔액으로 산정합니다.'],
+      ['중도금 무이자는 어떻게 반영하나요?', '무이자 분양이면 시행사가 수분양자의 중도금 대출이자를 대납하므로 그만큼을 사업비에 반영해야 합니다. 모델터는 중도금 회차·이자율·무이자 여부를 입력받아 대납이자를 월별로 계산합니다.'],
+      ['대주(PF 심사) 관점으로도 볼 수 있나요?', '네. 대주 뷰로 전환하면 LTC·분양률 스트레스·상환 안전성 중심으로 같은 딜을 다시 봅니다.']] },
   refi: { name: '리파이낸싱 비교', short: '리파이', kw: '대출 리파이낸싱 비교, DSCR·중도상환수수료·텀시트',
     lede: '현재 대출과 신규 텀시트 3안을 나란히 놓고, 연도별 DSCR·중도상환수수료·순조달액을 비교해 어느 안이 유리한지 판정하고 4시트 엑셀로 정리합니다.',
     inputs: ['잔여 대출·금리·만기', '신규 텀시트 3안(금리·LTV·상환)', '중도상환수수료·취급수수료', '최소 DSCR 기준'],
     outputs: ['안별 연도 DSCR 전개', '순조달액·총금융비용 비교', '추천 대안 자동 판정', '만기 잔액(balloon)'],
-    terms: ['ltv', 'dscr', 'repay', 'icr'] },
+    terms: ['ltv', 'dscr', 'repay', 'icr'],
+    ex: { title: '예시 — 분당 B빌딩 차환 검토 (앱에 미리 채워져 있는 딜)',
+      in: [['자산 NOI · 성장률', '42억 · 연 1.5%'], ['감정평가액', '850억'], ['기존 대출 잔액 · 금리', '460억 · 3.6%'], ['기존 만기 잔존', '0.5년'], ['중도상환수수료 · 취급수수료', '0.5% · 0.3%'], ['요구 최소 DSCR', '1.2x']],
+      out: [['대안 3안별 연도별 DSCR 전개', '만기까지 연차별'], ['순조달액 (수수료 차감 후)', '안별 비교'], ['총금융비용 (이자+수수료)', '안별 비교'], ['만기 잔액 (벌룬)', '상환방식별'], ['추천 대안', '자동 판정']],
+      note: '신규 텀시트 3안(LTV·금리·만기·상환방식)을 나란히 놓고 비교합니다. 수치는 입력한 텀시트에 따라 달라집니다.' },
+    steps: [['딜 유형에서 <b>리파이낸싱</b>을 고릅니다', '기존 대출과 신규 3안 비교 양식이 열립니다'],
+      ['<b>자산 NOI·감정가</b>와 기존 대출 조건을 넣습니다', '잔액·금리·잔존 만기가 비교의 기준선이 됩니다'],
+      ['<b>신규 텀시트 3안</b>(LTV·금리·만기·상환)을 입력합니다', '대주에게 받은 조건을 그대로 넣으면 됩니다'],
+      ['<b>중도상환수수료·취급수수료</b>를 반영합니다', '순조달액과 총금융비용에 바로 반영됩니다'],
+      ['<b>연도별 DSCR</b>로 안별 안전성을 확인합니다', '요구 DSCR 미달 연차가 붉게 표시됩니다'],
+      ['<b>엑셀 4시트</b>로 텀시트 비교표를 내려받습니다', 'IC·대주 협의 자료로 그대로 씁니다']],
+    faqs: [['리파이낸싱은 무엇을 기준으로 비교하나요?', '금리만 보면 안 됩니다. 순조달액(수수료 차감 후 실제 손에 쥐는 금액), 총금융비용, 연도별 DSCR, 만기 잔액(벌룬)을 함께 봐야 합니다. 모델터는 3안을 같은 기준으로 나란히 계산하고 추천안을 판정합니다.'],
+      ['중도상환수수료는 어떻게 반영하나요?', '기존 대출을 조기 상환할 때 내는 비용으로, 신규 조달의 실익을 갉아먹습니다. 잔액 대비 요율로 입력하면 순조달액과 총금융비용에 자동 반영되어 "갈아탈 만한가"를 정확히 볼 수 있습니다.'],
+      ['상환방식이 DSCR에 어떤 영향을 주나요?', '만기일시(이자만)는 보유 중 DSCR이 편한 대신 만기에 원금을 한 번에 갚아야 하고, 원리금균등·원금균등은 매기 부담이 커지는 대신 만기 잔액이 줄어듭니다. 모델터는 방식별 연도별 DSCR을 나란히 보여줍니다.']] },
 };
 
 /* ── 용어별 실무 메타 (deal=관련 계산기 · why=왜 중요 · ex=실무 예시) ──
@@ -133,7 +185,29 @@ p{margin-bottom:11px;color:var(--ink-2)}
 .io li{padding:3px 0 3px 16px;position:relative}
 .io li::before{content:"·";position:absolute;left:3px;color:var(--accent);font-weight:700}
 footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:12.5px;margin-top:8px}
-footer a{color:var(--ink-3)}`;
+footer a{color:var(--ink-3)}
+/* 계산 예시 표 · 단계 · FAQ (검색 착지 심화) */
+.wex{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px 16px 10px;margin:10px 0}
+.wex table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.wex td,.wex th{padding:8px 4px;font-size:14px;border-bottom:1px solid var(--line-soft);text-align:right}
+.wex td:first-child,.wex th:first-child{text-align:left;color:var(--ink-2)}
+.wex th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.wex tr:last-child td{border-bottom:none}
+.wex .r{font-family:var(--mono);font-weight:700;color:var(--ink)}
+.wex .out .r{color:var(--accent-deep);font-size:15px}
+.wex tr.out td{background:#fdf8ef}
+.steps{counter-reset:s;list-style:none;margin:8px 0}
+.steps li{position:relative;padding:9px 0 9px 34px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--line-soft)}
+.steps li:last-child{border-bottom:none}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:9px;width:22px;height:22px;border-radius:50%;background:var(--accent-soft,rgba(169,121,43,.12));color:var(--accent-deep);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.steps b{color:var(--ink)}
+.faq{border-bottom:1px solid var(--line-soft);padding:12px 0}
+.faq:last-of-type{border-bottom:none}
+.faq summary{font-size:15px;font-weight:700;cursor:pointer;list-style:none;color:var(--ink)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"＋";color:var(--accent);font-weight:800;margin-right:9px}
+.faq[open] summary::before{content:"－"}
+.faq p{font-size:14px;color:var(--ink-2);padding:9px 0 2px 23px;line-height:1.65}`;
 
 function shell(o) {
   return `<!doctype html>
@@ -233,15 +307,19 @@ function calcPage(deal, terms) {
   const desc = `${d.kw}. ${d.lede}`;
   const canonical = `${BASE}/calc/${deal}`;
   const chips = d.terms.map(s => `<a href="/t/${s}">${esc(terms[s].ko)}</a>`).join('');
-  const ld = {
-    '@context': 'https://schema.org', '@graph': [
-      { '@type': 'SoftwareApplication', name: d.name + ' — 모델터', applicationCategory: 'FinanceApplication', operatingSystem: 'Web', offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' }, description: d.lede, url: canonical },
-      { '@type': 'BreadcrumbList', itemListElement: [
-        { '@type': 'ListItem', position: 1, name: '모델터', item: BASE + '/' },
-        { '@type': 'ListItem', position: 2, name: '계산기', item: BASE + '/' },
-        { '@type': 'ListItem', position: 3, name: d.name, item: canonical } ] },
-    ]
-  };
+  const graph = [
+    { '@type': 'SoftwareApplication', name: d.name + ' — 모델터', applicationCategory: 'FinanceApplication', operatingSystem: 'Web', isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' }, description: d.lede, url: canonical },
+    { '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '모델터', item: BASE + '/' },
+      { '@type': 'ListItem', position: 2, name: '계산기', item: BASE + '/' },
+      { '@type': 'ListItem', position: 3, name: d.name, item: canonical } ] },
+  ];
+  const strip = s => String(s).replace(/<[^>]+>/g, '');
+  if (d.steps) graph.push({ '@type': 'HowTo', name: `${d.name} 만드는 법`, description: d.lede, totalTime: 'PT5M',
+    step: d.steps.map((s, i) => ({ '@type': 'HowToStep', position: i + 1, name: strip(s[0]), text: strip(s[0]) + ' — ' + strip(s[1]), url: canonical + '#step' + (i + 1) })) });
+  if (d.faqs) graph.push({ '@type': 'FAQPage', inLanguage: 'ko',
+    mainEntity: d.faqs.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
+  const ld = { '@context': 'https://schema.org', '@graph': graph };
   const body = `  <nav class="crumb"><a href="/">모델터</a> › 계산기 › ${esc(d.name)}</nav>
   <div class="hero">
     <div class="eyebrow">온라인 재무모델 계산기</div>
@@ -257,13 +335,107 @@ function calcPage(deal, terms) {
       <div class="card"><h2>나오는 값</h2><ul>${d.outputs.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
     </div>
   </section>
-  <section>
+${d.ex ? `  <section>
+    <h2>계산 예시 — 숫자를 넣으면 이렇게 나옵니다</h2>
+    <p class="lead" style="font-size:14.5px">${esc(d.ex.title)}</p>
+    <div class="wex"><table>
+      <tr><th>넣은 값</th><th></th></tr>
+      ${d.ex.in.map(r => `<tr><td>${esc(r[0])}</td><td class="r">${esc(r[1])}</td></tr>`).join('\n      ')}
+      <tr><th>나온 결과</th><th></th></tr>
+      ${d.ex.out.map(r => `<tr class="out"><td>${esc(r[0])}</td><td class="r">${esc(r[1])}</td></tr>`).join('\n      ')}
+    </table></div>
+    <p class="tip">${esc(d.ex.note)}</p>
+    <a class="cta" href="/#t=${deal}&src=seo">이 예시로 직접 열어보기 →<span class="sub">숫자만 내 딜로 바꾸면 결과가 실시간으로 갱신됩니다</span></a>
+  </section>
+` : ''}${d.steps ? `  <section>
+    <h2>사용법 — ${esc(d.short)} 모델 만드는 순서</h2>
+    <ol class="steps">
+      ${d.steps.map((s, i) => `<li id="step${i + 1}">${s[0]}<br><span style="font-size:13px;color:var(--muted)">${esc(strip(s[1]))}</span></li>`).join('\n      ')}
+    </ol>
+  </section>
+` : ''}  <section>
     <h2>화면 = 다운로드 엑셀</h2>
-    <p>화면에 보이는 수치와 내려받는 엑셀의 수식은 같은 계산식입니다(파리티 검증). 받은 사람이 파일 안에서 값을 바꿔도 그대로 재계산됩니다. 딜 데이터는 서버로 전송되지 않고 브라우저 안에서만 계산됩니다.</p>
+    <p>화면에 보이는 수치와 내려받는 엑셀의 수식은 같은 계산식입니다(파리티 검증). 받은 사람이 파일 안에서 값을 바꿔도 그대로 재계산됩니다. 딜 데이터는 서버로 전송되지 않고 브라우저 안에서만 계산됩니다. <a href="/verification">검증 결과 보기 →</a></p>
+  </section>
+${d.faqs ? `  <section>
+    <h2>자주 묻는 질문</h2>
+    ${d.faqs.map(f => `<details class="faq"><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('\n    ')}
+  </section>
+` : ''}  <section>
+    <h2>관련 용어</h2>
+    <div class="chips">${chips}<a href="/guide">용어사전 전체</a></div>
+  </section>
+  <section>
+    <h2>다른 딜 유형</h2>
+    <div class="chips">${Object.keys(DEALS).filter(k => k !== deal).map(k => `<a href="/calc/${k}">${esc(DEALS[k].short)} 계산기</a>`).join('')}<a href="/calc/hotel">호텔 (준비중)</a></div>
+  </section>`;
+  return shell({ title, desc, canonical, ld, backHref: '/', backLabel: '← 모델터 홈', body });
+}
+
+/* ── 준비 중 딜 착지면 (수요 선점) ──
+ *  딜 구현 전에도 검색 수요를 흡수한다. 과장 금지: '준비 중'을 명시하고, 지금 가능한 대안(마스터리스→매입 엔진)을 제시. */
+const SOON = {
+  hotel: { name: '호텔 재무모델', short: '호텔', vote: '호텔',
+    kw: '호텔 매입 재무모델·ADR·RevPAR·GOP 계산',
+    lede: '호텔은 임대료가 아니라 영업 실적이 수입을 만듭니다. ADR·객실 점유율에서 RevPAR·GOP를 거쳐 NOI에 이르는 구조를 정리하고, 지금 바로 검토할 수 있는 방법과 준비 중인 기능을 안내합니다.',
+    terms: ['adr', 'occ', 'revpar', 'gop', 'ffe', 'hmc', 'caprate', 'dscr'],
+    chain: [['객실 매출', 'ADR × 객실 수 × 점유율(OCC) × 365 — RevPAR(=ADR×OCC)로 비교'],
+      ['총매출', '객실 매출 + 부대 매출(F&B·연회 등, 객실 매출 대비 비율)'],
+      ['GOP', '총매출 − 부문별 비용 − 미배분 영업비용 (USALI 기준, 총매출 대비 마진 %로 관리)'],
+      ['NOI', 'GOP − 운영위탁수수료(기본+인센티브) − FF&E 적립(총매출 3~5%) − 보험·재산세'],
+      ['자산가치', 'NOI ÷ Cap rate — 이후 부채·자기자본 구조는 오피스 매입과 동일']],
+    now: [['마스터리스(책임임대차) 구조라면 <b>지금 바로 가능합니다</b>',
+        '운영사에 통임차를 주고 고정 임대료만 받는 구조는 수입 구조가 오피스와 같습니다. 오피스 매입 계산기에 임대료·기간·대출 조건을 넣으면 IRR·DSCR·엑셀까지 그대로 나옵니다.', '/calc/office'],
+      ['위탁운영(HMC) 구조는 <b>준비 중입니다</b>',
+        'ADR·OCC·GOP 마진·수수료·FF&E 적립을 직접 넣는 전용 엔진을 준비하고 있습니다. 아래에서 수요를 알려주시면 우선순위가 올라갑니다.', null]],
+    faqs: [['호텔 재무모델은 오피스와 무엇이 다른가요?', '오피스는 계약 임대료가 수입을 확정하지만, 호텔은 매일의 영업 실적(ADR×점유율)이 수입을 만들고 인건비·운영비도 함께 변동합니다. 그래서 NOI 변동성이 훨씬 크고, GOP·운영위탁수수료·FF&E 적립이라는 호텔 고유 단계를 거쳐 NOI에 도달합니다. 부채·자기자본·매각 구조는 매입 딜과 동일합니다.'],
+      ['RevPAR와 ADR은 어떻게 다른가요?', 'ADR은 실제로 팔린 객실의 평균 단가이고, RevPAR는 판매 가능한 전체 객실 기준 매출(= ADR × 점유율)입니다. 가격만 높고 점유율이 낮으면 ADR은 좋아 보여도 RevPAR가 깎이므로, 호텔 간 성과 비교는 RevPAR로 합니다.'],
+      ['FF&E 적립을 왜 꼭 빼야 하나요?', '객실 가구·비품·설비는 주기적으로 교체해야 하는 필수 지출입니다. 통상 총매출의 3~5%를 매년 적립하며, 이를 빼지 않으면 NOI와 자산가치가 체계적으로 과대평가됩니다. 대주와 투자자 모두 선택이 아닌 필수 차감으로 봅니다.'],
+      ['호텔 딜은 언제 추가되나요?', '준비 중 딜의 수요 투표를 집계해 가장 많이 요청된 유형부터 만듭니다. 현재 호텔이 1순위이며, 설계는 이미 완료해 두었습니다. 이 페이지 아래 버튼으로 수요를 알려주시면 반영됩니다.']] },
+};
+function soonPage(key, terms) {
+  const d = SOON[key];
+  const title = `${d.name} — ADR·RevPAR·GOP 계산 구조 | 모델터`;
+  const desc = `${d.kw}. ${d.lede}`.slice(0, 155);
+  const canonical = `${BASE}/calc/${key}`;
+  const chips = d.terms.filter(s => terms[s]).map(s => `<a href="/t/${s}">${esc(terms[s].ko)}</a>`).join('');
+  const ld = { '@context': 'https://schema.org', '@graph': [
+    { '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '모델터', item: BASE + '/' },
+      { '@type': 'ListItem', position: 2, name: '계산기', item: BASE + '/' },
+      { '@type': 'ListItem', position: 3, name: d.name, item: canonical } ] },
+    { '@type': 'FAQPage', inLanguage: 'ko', mainEntity: d.faqs.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) },
+  ] };
+  const body = `  <nav class="crumb"><a href="/">모델터</a> › 계산기 › ${esc(d.name)}</nav>
+  <div class="hero">
+    <div class="eyebrow">운영형 자산 · 딜 유형 준비 중</div>
+    <h1>${esc(d.name)}</h1>
+    <p class="lead">${esc(d.lede)}</p>
+  </div>
+  <section>
+    <h2>수입이 만들어지는 순서 — ADR에서 NOI까지</h2>
+    <div class="wex"><table>
+      <tr><th>단계</th><th>산출 방식</th></tr>
+      ${d.chain.map(r => `<tr><td><b>${esc(r[0])}</b></td><td style="text-align:left;color:var(--ink-2);font-size:13.5px">${esc(r[1])}</td></tr>`).join('\n      ')}
+    </table></div>
+    <p class="tip">임대형 자산의 <b>NOI = EGI − OPEX</b> 자리에 호텔은 <b>GOP − 수수료 − FF&amp;E 적립</b>이 들어갑니다. 그 뒤 Cap rate 환원·부채·자기자본·매각 구조는 오피스 매입과 동일합니다.</p>
+  </section>
+  <section>
+    <h2>지금 검토하는 방법</h2>
+    ${d.now.map(r => `<div class="ex"><h2>${r[0]}</h2><p>${r[1]}</p>${r[2] ? `<p class="try" style="margin-top:8px"><a href="${r[2]}">${esc(d.short === '호텔' ? '오피스 매입 계산기로 열기' : '열기')} →</a></p>` : ''}</div>`).join('\n    ')}
+    <a class="cta" href="/#src=seo">모델터 열고 ${esc(d.vote)} 수요 알리기 →<span class="sub">딜 탭 오른쪽 &lsquo;${esc(d.vote)} · 준비중&rsquo;을 한 번 누르면 익명으로 집계됩니다 — 수요가 모이는 순서로 만듭니다</span></a>
+  </section>
+  <section>
+    <h2>자주 묻는 질문</h2>
+    ${d.faqs.map(f => `<details class="faq"><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('\n    ')}
   </section>
   <section>
     <h2>관련 용어</h2>
     <div class="chips">${chips}<a href="/guide">용어사전 전체</a></div>
+  </section>
+  <section>
+    <h2>지금 쓸 수 있는 딜 유형</h2>
+    <div class="chips">${Object.keys(DEALS).map(k => `<a href="/calc/${k}">${esc(DEALS[k].short)} 계산기</a>`).join('')}</div>
   </section>`;
   return shell({ title, desc, canonical, ld, backHref: '/', backLabel: '← 모델터 홈', body });
 }
@@ -281,6 +453,7 @@ function buildSitemap(slugs, deals) {
     { loc: BASE + '/verification', freq: 'monthly', pri: '0.6' },
   ];
   deals.forEach(d => urls.push({ loc: `${BASE}/calc/${d}`, freq: 'monthly', pri: '0.7' }));
+  Object.keys(SOON).forEach(k => urls.push({ loc: `${BASE}/calc/${k}`, freq: 'monthly', pri: '0.6' }));
   slugs.forEach(s => urls.push({ loc: `${BASE}/t/${s}`, freq: 'monthly', pri: '0.6' }));
   // 분기 시장 노트(E8) — notes/*.html 자동 등록
   try {
@@ -305,6 +478,7 @@ function main() {
   const files = [];
   slugs.forEach(s => files.push(['t/' + s + '.html', termPage(s, terms)]));
   deals.forEach(d => files.push(['calc/' + d + '.html', calcPage(d, terms)]));
+  Object.keys(SOON).forEach(k => files.push(['calc/' + k + '.html', soonPage(k, terms)]));
   files.push(['sitemap.xml', buildSitemap(slugs, deals)]);
 
   if (CHECK) {

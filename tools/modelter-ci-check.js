@@ -206,7 +206,9 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const tFiles = fs.existsSync(tDir) ? fs.readdirSync(tDir).filter(f => f.endsWith('.html')) : [];
   const cFiles = fs.existsSync(cDir) ? fs.readdirSync(cDir).filter(f => f.endsWith('.html')) : [];
   ok(tFiles.length >= 24, '검색 착지: 용어 페이지 24+ (' + tFiles.length + '개)');
-  ok(cFiles.length === 4, '검색 착지: 계산기 페이지 4개 (' + cFiles.length + '개)');
+  // 실딜 4종 + 준비 중 딜 착지면(수요 선점, 예: hotel). 실딜 4종은 반드시 존재해야 한다.
+  const realCalc = ['office', 'logistics', 'dev', 'refi'].filter(k => cFiles.includes(k + '.html'));
+  ok(realCalc.length === 4 && cFiles.length >= 4, '검색 착지: 계산기 페이지 실딜 4종 + 준비중 ' + (cFiles.length - 4) + '개 (총 ' + cFiles.length + '개)');
   // sitemap 에 새 URL 등록 수 일치
   if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
     const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
@@ -226,7 +228,8 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     const jm = ph.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
     try { JSON.parse(jm[1]); } catch (e) { jsonBad++; }
     if (!/rel="canonical" href="https:\/\/modelter\.com\//.test(ph)) canonBad++;
-    if (!/href="\/#t=(office|logistics|dev|refi)&src=seo"/.test(ph)) ctaBad++;
+    // 앱 CTA + seo 귀속. 준비 중 딜 착지면(호텔 등)은 열 딜 탭이 없어 딜 인자 없이 `#src=seo` 형태를 허용.
+    if (!/href="\/#(t=(office|logistics|dev|refi)&)?src=seo"/.test(ph)) ctaBad++;
     for (const mm of ph.matchAll(/href="\/(t|calc)\/([a-z0-9]+)"/g)) if (!existsPage(mm[1] + '/' + mm[2] + '.html')) linkBad++;
   }
   ok(jsonBad === 0, '검색 착지: 전 페이지 JSON-LD 유효 (' + jsonBad + ' 실패)');
