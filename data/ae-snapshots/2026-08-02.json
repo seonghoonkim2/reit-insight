@@ -1,41 +1,41 @@
 {
  "schema": 2,
  "botExcluded": true,
- "endDate": "2026-07-31",
+ "endDate": "2026-08-02",
  "week": "2026-W31",
  "days": 30,
- "generatedAt": "2026-07-31T23:05:09.671Z",
+ "generatedAt": "2026-08-02T23:05:35.955Z",
  "funnel": {
-  "session": 1685,
+  "session": 1511,
   "activate": 144,
   "computed": 143,
-  "output": 426
+  "output": 392
  },
  "events": {
-  "session": 1685,
-  "deal_select": 904,
-  "onboard": 432,
-  "depth_change": 367,
-  "xlsx_download": 202,
-  "dev_view": 189,
+  "session": 1511,
+  "deal_select": 764,
+  "onboard": 436,
+  "depth_change": 326,
+  "dev_view": 190,
+  "xlsx_download": 182,
   "activate": 144,
   "computed": 143,
   "fsub_open": 124,
   "nudge_save": 120,
   "deal_want": 101,
   "solver": 92,
-  "tip_next": 86,
-  "sens_axis": 79,
-  "prompt_copy": 63,
+  "tip_next": 87,
+  "sens_axis": 80,
+  "prompt_copy": 58,
   "fill_std": 48,
   "teaser": 46,
   "ic_ppt": 42,
   "term_help": 37,
-  "example_fill": 35,
+  "example_fill": 32,
   "ex_ack": 32,
-  "method": 32,
-  "slot_save": 29,
-  "sample_download": 27,
+  "slot_save": 27,
+  "method": 25,
+  "sample_download": 23,
   "landing": 19,
   "adj_open": 18,
   "sample_deal": 17,
@@ -46,9 +46,9 @@
   "im_checklist_open": 13,
   "im_open": 11,
   "wizard": 10,
-  "pdf_export": 10,
+  "pdf_export": 9,
   "rentroll_upload": 7,
-  "share_link": 6,
+  "share_link": 4,
   "mydef_save": 4,
   "recover_cta": 2,
   "rr_mask": 2,
@@ -61,50 +61,49 @@
   "im_checklist": 1
  },
  "deals": {
-  "office": 3244,
-  "dev": 1218,
-  "logistics": 384,
-  "refi": 221,
+  "office": 3004,
+  "dev": 1161,
+  "logistics": 353,
+  "refi": 196,
   "hotel": 56,
-  "reit": 52,
   "rental": 17,
   "retail": 17,
+  "reit": 16,
   "datacenter": 11
  },
  "device": {
-  "desktop": 3466,
-  "mobile": 1779
+  "desktop": 3234,
+  "mobile": 1619
  },
  "ref": {
-  "modelter.com": 4035,
-  "www.google.com": 400,
+  "modelter.com": 3617,
+  "www.google.com": 425,
   "www.linkedin.com": 235,
   "blog.naver.com": 191,
   "www.bing.com": 93,
   "com.linkedin.android": 86,
   "teams.public.onecdn.static.microsoft": 81,
-  "search.naver.com": 55
+  "search.naver.com": 56
  },
  "feats": {
-  "scen": 25,
+  "scen": 24,
   "dep,fee": 2,
   "hold": 2,
-  "pref": 123,
-  "vac,pref": 4,
-  "resi": 968,
+  "pref": 101,
+  "vac,pref": 3,
+  "resi": 983,
   "bido": 21,
   "fee,vac,hold": 6,
   "dep,fee,vac,hold": 14,
   "hold,pref": 8,
   "resi,pref": 2,
-  "dep,fee,vac,pref": 2981,
-  "dep,fee,vac,scen": 1,
+  "dep,fee,vac,pref": 2872,
   "fee,vac,pref": 1,
-  "dep,fee,pref": 4,
+  "dep,fee,pref": 3,
   "resi,scen": 9,
   "bido,resi": 2,
   "pref,scen": 7,
-  "dep,fee,vac": 35,
+  "dep,fee,vac": 34,
   "bido,scen": 1,
   "dep,fee,bido,vac": 1,
   "fee,vac,pref,scen": 27,
@@ -114,7 +113,7 @@
   "rr,dep,fee,vac,pref": 42,
   "dep,fee,pref,scen": 1,
   "rr,dep,fee,bido,vac,scen": 3,
-  "dep,fee,vac,hold,pref": 140,
+  "dep,fee,vac,hold,pref": 137,
   "dep,fee,bido,vac,pref": 17,
   "rr,dep,fee,bido,vac,pref,scen": 5,
   "dep,fee,vac,hold,pref,scen": 32,
@@ -122,9 +121,9 @@
   "rr,dep,fee,vac,hold,pref,scen": 23
  },
  "depth": {
-  "standard": 4359,
-  "deep": 713,
-  "quick": 148
+  "standard": 4010,
+  "deep": 681,
+  "quick": 140
  },
  "src": {
   "seo": 18,
@@ -134,10 +133,10 @@
  "attribution": {
   "bySrc": {
    "(직접/미상)": {
-    "session": 1664,
+    "session": 1490,
     "activate": 144,
     "computed": 143,
-    "output": 426
+    "output": 392
    },
    "seo": {
     "session": 9,
@@ -160,10 +159,10 @@
   },
   "byRef": {
    "modelter.com": {
-    "session": 1415,
+    "session": 1231,
     "activate": 100,
     "computed": 99,
-    "output": 322
+    "output": 287
    },
    "www.linkedin.com": {
     "session": 52,
@@ -190,16 +189,16 @@
     "output": 6
    },
    "search.naver.com": {
-    "session": 10,
+    "session": 11,
     "activate": 2,
     "computed": 2,
     "output": 4
    },
    "www.google.com": {
-    "session": 91,
+    "session": 100,
     "activate": 18,
     "computed": 18,
-    "output": 31
+    "output": 32
    },
    "www.bing.com": {
     "session": 14,
@@ -265,34 +264,12 @@
  },
  "daily": [
   {
-   "day": "2026-07-01",
-   "deal_select": 1,
-   "session": 6
-  },
-  {
-   "day": "2026-07-02",
-   "prompt_copy": 2,
-   "method": 4,
-   "depth_change": 29,
-   "example_fill": 2,
-   "session": 94,
-   "sample_download": 1,
-   "deal_select": 84,
-   "xlsx_download": 11
-  },
-  {
    "day": "2026-07-03",
-   "method": 4,
-   "prompt_copy": 3,
-   "session": 97,
-   "sample_download": 3,
-   "slot_save": 2,
-   "share_link": 2,
-   "xlsx_download": 11,
-   "deal_select": 71,
-   "pdf_export": 1,
-   "example_fill": 1,
-   "depth_change": 15
+   "method": 1,
+   "session": 2,
+   "xlsx_download": 1,
+   "deal_select": 7,
+   "depth_change": 3
   },
   {
    "day": "2026-07-04",
@@ -939,6 +916,22 @@
    "depth_change": 1,
    "fsub_open": 1,
    "activate": 1
+  },
+  {
+   "day": "2026-08-01",
+   "tip_next": 1,
+   "deal_select": 3,
+   "sens_axis": 1,
+   "xlsx_download": 1,
+   "onboard": 1,
+   "session": 7
+  },
+  {
+   "day": "2026-08-02",
+   "dev_view": 1,
+   "deal_select": 6,
+   "session": 14,
+   "onboard": 3
   }
  ]
 }
