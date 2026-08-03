@@ -4,15 +4,15 @@
  "endDate": "2026-08-03",
  "week": "2026-W32",
  "days": 30,
- "generatedAt": "2026-08-03T21:38:16.926Z",
+ "generatedAt": "2026-08-03T23:06:08.333Z",
  "funnel": {
-  "session": 1505,
+  "session": 1506,
   "activate": 147,
   "computed": 146,
   "output": 397
  },
  "events": {
-  "session": 1505,
+  "session": 1506,
   "deal_select": 747,
   "onboard": 440,
   "depth_change": 316,
@@ -62,7 +62,7 @@
   "ci_probe_live": 1
  },
  "deals": {
-  "office": 3008,
+  "office": 3009,
   "dev": 1160,
   "logistics": 345,
   "refi": 200,
@@ -73,11 +73,11 @@
   "reit": 9
  },
  "device": {
-  "desktop": 3290,
+  "desktop": 3291,
   "mobile": 1556
  },
  "ref": {
-  "modelter.com": 3539,
+  "modelter.com": 3540,
   "www.google.com": 493,
   "www.linkedin.com": 235,
   "blog.naver.com": 191,
@@ -98,9 +98,9 @@
   "fee,vac,hold": 6,
   "fee,hold,pref": 3,
   "dep,fee,vac,hold": 14,
-  "resi,pref": 2,
   "hold,pref": 7,
-  "dep,fee,vac,pref": 2874,
+  "resi,pref": 2,
+  "dep,fee,vac,pref": 2875,
   "fee,vac,pref": 1,
   "dep,fee,pref": 4,
   "resi,scen": 9,
@@ -124,7 +124,7 @@
   "rr,dep,fee,vac,hold,pref,scen": 23
  },
  "depth": {
-  "standard": 3964,
+  "standard": 3965,
   "deep": 725,
   "quick": 135
  },
@@ -136,7 +136,7 @@
  "attribution": {
   "bySrc": {
    "(직접/미상)": {
-    "session": 1483,
+    "session": 1484,
     "activate": 147,
     "computed": 146,
     "output": 397
@@ -162,7 +162,7 @@
   },
   "byRef": {
    "modelter.com": {
-    "session": 1219,
+    "session": 1220,
     "activate": 101,
     "computed": 100,
     "output": 281
@@ -932,7 +932,7 @@
    "term_help": 1,
    "depth_change": 9,
    "landing": 1,
-   "session": 28,
+   "session": 29,
    "example_fill": 5,
    "im_quick": 1,
    "deal_select": 8,
