@@ -122,6 +122,10 @@
 
 - **v2** (2026-07-10~): `schema: 2` + `botExcluded`(이 스냅샷의 분모가 봇 제외인지) 필드 추가. 필수 키: `endDate`(YYYY-MM-DD)·`week`(YYYY-Www)·`days`·`generatedAt`·`funnel{session,activate,computed,output 숫자}`·`events`(비어 있지 않음). 그 외 `deals`·`device`·`ref`·`feats`·`depth`·`src`·`attribution`·`daily`.
 - **v1** (schema 필드 부재 = 2026-07-09.json): 하위호환으로 그대로 읽는다 — **기존 스냅샷 원자료는 수정 금지.**
+- **additive 필드 (2026-08-10~, schema는 2 유지 — 기존 소비자 무영향)**:
+  - `outputsByAct: {act, nonact, unknown, since:'2026-07-26'}` — 북극성 K3. 산출물이 **자기 숫자 세션**(blob11=1)에서 나왔는지. `unknown`은 act 계측 개시(07-26) 이전 구간이므로 **act/nonact와 합산 금지**.
+  - `dealWantGate: {<딜>:표수, since:'2026-07-14', target:50}` — 커버리지 착수 게이트. 조회 창(`--days`)과 무관한 **절대 기간 누적**(dedupe 배포일 이후). ⚠ AE 보존기간(약 90일) 초과 시 과소집계 — 2026-10 이후 커밋된 스냅샷 누적 합산으로 전환 필요.
+  - 참고: `daily[]`에는 `depth_change`·`fsub_open`을 포함한 **전 이벤트**가 이미 들어 있다(별도 추가 불필요).
 
 ### 계측 변경 이력 (판독 시 소급 참고)
 
