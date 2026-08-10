@@ -16,6 +16,7 @@ VARIANTS = {
     'office_nopref': 'office',    # 우선주 끔
     'office_nonpass': 'office',   # 비도관(법인세 적용) → 세후 IRR이 세전과 달라야 함
     'office_hold7': 'office',     # 보유기간 7년
+    'office_nodebt': 'office',    # 무차입(LTV 0) — 커버리지 분모 0 경계
 }
 KNOWN = ('office', 'logistics', 'dev', 'refi') + tuple(VARIANTS)
 
@@ -63,9 +64,11 @@ if base in ('office', 'logistics'):
         ('세후 IRR(총자기자본)', cell('09_Return_Summary', 'E6'), exp['IRRat'], 0.001),
         ('EM(총자기자본)', cell('09_Return_Summary', 'E7'), exp['EM'], 0.01),
         ('평균 CoC(보통주)', cell('09_Return_Summary', 'C8'), exp['coc'], 0.001),
-        ('최소 DSCR', cell('09_Return_Summary', 'C13'), exp['minDSCR'], 0.01),
         ('언레버드 IRR', cell('09_Return_Summary', 'C12'), exp['unlev'], 0.001),
     ]
+    # 무차입 변형은 커버리지 지표가 정의되지 않아 공란이 정답 — 값 비교 대신 아래 변형 검사에서 '공란'을 확인한다.
+    if deal != 'office_nodebt':
+        checks.insert(4, ('최소 DSCR', cell('09_Return_Summary', 'C13'), exp['minDSCR'], 0.01))
 elif base == 'dev':  # dev — 04_PROFITABILITY 요약 열 C
     checks = [
         ('분양수입', cell('04_PROFITABILITY', 'C5'), exp['rev'], max(1e-6, abs(exp['rev']) * 1e-9)),
@@ -123,6 +126,30 @@ elif deal == 'office_nopref':
     for ref, nm in (('D5', '세전 IRR'), ('D6', '세후 IRR'), ('D7', 'EM')):
         v = cell_raw('09_Return_Summary', ref)
         extra.append(('우선주 %s(%s) 비어있음' % (nm, ref), pref_unused(v), '값=%s' % (v,)))
+elif deal == 'office_nodebt':
+    # 무차입에서는 커버리지 지표가 정의되지 않는다. 요구사항은 두 가지:
+    #  ① 파일이 손상되지 않을 것(비유한값이 숫자 셀에 들어가면 엑셀이 열지 못함)
+    #  ② 오류 토큰(#DIV/0! 등)이 어디에도 남지 않을 것 — 표지까지 전파되면 신뢰가 깨진다
+    import zipfile as _zip
+    import re as _re
+    with _zip.ZipFile(xlsx) as _z:
+        nulls = [n for n in _z.namelist() if n.endswith('.xml') and b'<v>null</v>' in _z.read(n)]
+    extra.append(('숫자 셀에 비유한값 없음', not nulls, '위반=%s' % (nulls or '없음',)))
+    _ERR = ('#DIV/0!', '#VALUE!', '#REF!', '#NAME?', '#NUM!', '#N/A', '#NULL!')
+    err_cells = []
+    for _k, _v in sol.items():
+        try:
+            _val = _v.value[0][0]
+        except Exception:
+            continue
+        if any(e in str(_val) for e in _ERR):
+            _m = _re.search(r"'\[.*?\]([^']+)'!([A-Z]+\d+)", _k)
+            err_cells.append(_m.group(1) + '!' + _m.group(2) if _m else _k)
+    extra.append(('엑셀 오류 토큰 0', not err_cells, '검출=%s' % (sorted(set(err_cells))[:6] or '없음',)))
+    for ref, nm in (('C13', '최소 DSCR'),):
+        v = cell_raw('09_Return_Summary', ref)
+        blank = v is None or str(v).strip() == ''
+        extra.append(('%s(%s) 공란 — 0 으로 오독 금지' % (nm, ref), blank, '값=%r' % (v,)))
 
 for name, okc, detail in extra:
     print(('  V ' if okc else '  X ') + '%-22s %s' % (name, detail))

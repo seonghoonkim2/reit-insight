@@ -47,9 +47,10 @@ jobs:
           python-version: "3.11"
       - name: formulas 설치 (엑셀 수식 독립 재계산)
         run: pip install --quiet formulas openpyxl
-      - name: 파리티 전수 (office·logistics·dev·refi)
+      - name: 파리티 전수 (4딜 + 경계 변형)
         run: |
-          for d in office logistics dev refi; do
+          # 무차입(office_nodebt)은 커버리지 분모 0 경계 — 파일 손상·#DIV/0! 회귀를 막는 상시 게이트
+          for d in office logistics dev refi office_nodebt; do
             node tools/parity/gen-xlsx.js "$d"
             python3 tools/parity/check.py "$d"
           done

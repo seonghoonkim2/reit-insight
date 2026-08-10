@@ -423,7 +423,11 @@ ok(html.includes('보수적으로 눌러 보면'), '판정 다운사이드 한 �
 ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfirmOutput'), '예시값 잔존 추적 + 산출물 확인 존재');
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
 ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
-ok(html.includes('자가 검증 — 생성 시점 웹 계산값') && html.includes('IF(ABS(C19-D19)<0.0005,"PASS","FAIL")'), '엑셀 자가 검증 스탬프(11시트 PASS/FAIL) 존재');
+// PASS/FAIL 수식은 _row() 헬퍼가 행 번호로 조립한다(무차입 등 정의되지 않는 지표는 '해당 없음'으로 우회).
+ok(html.includes('자가 검증 — 생성 시점 웹 계산값') && /IF\(ABS\(C'\+r\+'-D'\+r\+'\)<'\+cmp\+',"PASS","FAIL"\)/.test(html)
+  && html.includes("_row(19,'세전 IRR"), '엑셀 자가 검증 스탬프(11시트 PASS/FAIL) 존재');
+ok(html.includes('isFinite(c.n)') && /\+_nv\+'<\/v><\/c>'/.test(html), '엑셀 숫자 셀 비유한값 가드(파일 손상 방지)');
+ok((html.match(/IFERROR\(04_Operating_ProForma!'\+c\+'18/g) || []).length >= 3, '엑셀 커버리지 지표 0 분모 가드(DSCR·ICR·DY)');
 ok(html.includes('만기에 갚을 잔액') && html.includes('통상 잡는 LTV 60%'), '만기 차환 갭 테스트 한 줄 존재');
 ok(html.includes('function wsDupDeal') && html.includes('data-ws="dup"'), '딜 복제(새 딜 시작) 존재');
 ok(html.includes('function myDefSave') && html.includes("localStorage.getItem('mt_mydef')"), '내 기본값 프리셋(딜 유형별) 존재');
