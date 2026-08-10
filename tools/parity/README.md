@@ -25,6 +25,7 @@ node tools/parity/gen-xlsx.js refi        # 리파이낸싱 4시트
 node tools/parity/gen-xlsx.js office_nopref    # 우선주 끔
 node tools/parity/gen-xlsx.js office_nonpass   # 비도관(법인세 적용)
 node tools/parity/gen-xlsx.js office_hold7     # 보유기간 7년
+node tools/parity/gen-xlsx.js office_nodebt    # 무차입(LTV 0) — 커버리지 분모 0 경계
 
 # 2) 검증 — 엑셀을 python 수식 엔진으로 재계산해 화면 값과 비교
 python3 tools/parity/check.py office
@@ -34,6 +35,7 @@ python3 tools/parity/check.py refi
 python3 tools/parity/check.py office_nopref    # 변형도 같은 방식 + 변형별 추가 확인
 python3 tools/parity/check.py office_nonpass
 python3 tools/parity/check.py office_hold7
+python3 tools/parity/check.py office_nodebt
 ```
 
 모두 `PARITY OK`가 나와야 배포 안전. 출력물은 `out/`에 쌓이며 git에는 올라가지 않습니다.
@@ -53,6 +55,7 @@ python3 tools/parity/check.py office_hold7
 | office_nopref (변형) | 09_Return_Summary | office와 동일 6지표 + 우선주 D열(D5·D6·D7)에 숫자가 남지 않음(0·빈 값·#NUM!/#DIV/0! 허용 — CF 전부 0) |
 | office_nonpass (변형) | 09_Return_Summary | office와 동일 6지표 + 세후 IRR(E6)이 세전(E5)과 달라야 함 — 엑셀·엔진 양쪽 확인 |
 | office_hold7 (변형) | 09_Return_Summary | office와 동일 6지표를 보유 7년 상태로 대조 (IRR 범위 재지정 검증) |
+| office_nodebt (변형) | 09_Return_Summary + 전 시트 | 무차입 경계 — 비유한값이 숫자 셀에 없을 것(파일 손상 방지), 오류 토큰 0, 최소 DSCR 공란(0 오독 금지) |
 
 변형 케이스는 예시 딜 1개 상태만 검증하던 편향을 깨는 자본구조 매트릭스입니다.
 생성 단계(gen-xlsx.js)가 fillExample() 뒤 state/stackState를 패치하고, 패치 전후
