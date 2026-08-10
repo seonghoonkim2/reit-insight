@@ -428,6 +428,14 @@ ok(html.includes('자가 검증 — 생성 시점 웹 계산값') && /IF\(ABS\(C
   && html.includes("_row(19,'세전 IRR"), '엑셀 자가 검증 스탬프(11시트 PASS/FAIL) 존재');
 ok(html.includes('isFinite(c.n)') && /\+_nv\+'<\/v><\/c>'/.test(html), '엑셀 숫자 셀 비유한값 가드(파일 손상 방지)');
 ok((html.match(/IFERROR\(04_Operating_ProForma!'\+c\+'18/g) || []).length >= 3, '엑셀 커버리지 지표 0 분모 가드(DSCR·ICR·DY)');
+// IRR은 현금흐름이 부호를 바꾸지 않으면 #NUM! 을 낸다 — 표지까지 새지 않도록 전부 IFERROR로 감싼다.
+ok(!/"f":"IRR\(/.test(html) && (html.match(/IFERROR\(IRR\(08_Equity_Cashflow/g) || []).length >= 4,
+  '엑셀 IRR 수식 #NUM! 가드(템플릿·동적 재생성 양쪽)');
+// 조달 합계에서 승계 보증금이 빠지면 검증 시트가 스스로 'Uses=Sources FAIL' 을 띄운다.
+ok((html.match(/IF\(01_Assumptions!\$C\$74=1,01_Assumptions!\$C\$75,0\)/g) || []).length >= 4,
+  '엑셀 조달(Sources)에 승계 보증금 포함 — 표지·S&U·캐피털스택·검증');
+ok(/function wOf\(id,amt\)\{ if\(r\.uses>0/.test(html) && html.includes('trn-dep'),
+  '화면 트랜치 비중 = 금액÷Uses (합 100%, 보증금 승계 포함)');
 ok(html.includes('만기에 갚을 잔액') && html.includes('통상 잡는 LTV 60%'), '만기 차환 갭 테스트 한 줄 존재');
 ok(html.includes('function wsDupDeal') && html.includes('data-ws="dup"'), '딜 복제(새 딜 시작) 존재');
 ok(html.includes('function myDefSave') && html.includes("localStorage.getItem('mt_mydef')"), '내 기본값 프리셋(딜 유형별) 존재');

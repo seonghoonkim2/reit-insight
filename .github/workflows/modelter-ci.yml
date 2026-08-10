@@ -49,8 +49,11 @@ jobs:
         run: pip install --quiet formulas openpyxl
       - name: 파리티 전수 (4딜 + 경계 변형)
         run: |
-          # 무차입(office_nodebt)은 커버리지 분모 0 경계 — 파일 손상·#DIV/0! 회귀를 막는 상시 게이트
-          for d in office logistics dev refi office_nodebt; do
+          # 경계 변형은 상시 게이트다.
+          #  office_nodebt : 무차입 — 커버리지 분모 0(파일 손상·#DIV/0! 회귀 차단)
+          #  office_vac100 : 공실 100% — 수입 0(IRR 미정의 시 #NUM! 이 표지로 새는 것 차단)
+          # 전 딜 공통으로 "비유한값 0 · 오류 토큰 0 · 검증 시트 종합 판정 PASS" 도 함께 검사한다.
+          for d in office logistics dev refi office_nodebt office_vac100; do
             node tools/parity/gen-xlsx.js "$d"
             python3 tools/parity/check.py "$d"
           done

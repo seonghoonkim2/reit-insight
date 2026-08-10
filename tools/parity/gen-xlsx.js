@@ -25,6 +25,11 @@ const VARIANTS = {
   // 무차입(LTV 0) — 커버리지 지표(DSCR·ICR·Debt Yield)의 분모가 0이 되는 경계.
   // 가드가 빠지면 #DIV/0! 이 표지까지 전파되고, 비유한값이 숫자 셀에 들어가 엑셀이 파일을 거부한다.
   office_nodebt:  { base: 'office', patch: "stackState['senior_ltv']='0'; stackState['pref_ltv']='0';" },
+  // 공실 100% — 수입 0 경계. 엔진이 IRR·NOI·DSCR을 null로 돌려주는데도 다운로드는 그대로 실행된다.
+  // degenerate: 수치 대조는 성립하지 않고, "파일이 열리는가 · 오류가 노출되지 않는가"만 검사한다.
+  office_vac100:  { base: 'office', patch: "state['vacancy']='100';", degenerate: true },
+  // ※ 분양률 0%(dev)는 변형에 넣지 않았다 — 엔진이 결과 자체를 내지 않아 다운로드가 만들어지지 않는다.
+  //    검사할 산출물이 없으므로 경계로서 의미가 없다(2026-08-10 확인).
 };
 
 const BASE_DEALS = ['office', 'logistics', 'dev', 'refi'];
@@ -76,18 +81,20 @@ G.URL = { createObjectURL: () => 'blob:x', revokeObjectURL() {} };
 G.IntersectionObserver = function () { this.observe = () => {}; this.disconnect = () => {}; };
 
 /* 딜별 드라이버 — 예시 로드 → (변형이면 상태 패치) → 엔진 결과 확인 → 엑셀 바이트 캡처 */
-function dcfDriver(engineDeal, patch) {
+function dcfDriver(engineDeal, patch, degenerate) {
   // 변형은 패치 전 기준값을 함께 재서, 오버라이드가 엔진에 실제 반영됐음을 보증
   const pre = patch ? 'var r0 = simModel();\n    ' + patch : '';
   const guard = patch ? `
     // coc 포함 이유: 우선주 온/오프는 총자기자본 CF를 나누기만 해서 IRR·EM은 그대로고 보통주 CoC만 움직임
     var sig = function(x){ return JSON.stringify([x.raw.IRR, x.raw.IRRat, x.raw.EM, x.raw.coc, x.raw.equity]); };
     if (sig(r) === sig(r0)) throw new Error("변형 미반영 — 패치가 simModel 결과를 바꾸지 못했습니다");` : '';
+  // degenerate 변형은 IRR이 null인 게 정상 — 그래도 앱은 다운로드를 실행하므로 산출물을 검사해야 한다
+  const engineOk = degenerate ? 'r && r.raw' : 'r && r.raw && r.raw.IRR != null';
   return `;(function(){
     cur = ${JSON.stringify(engineDeal)}; window.rrModel = null; fillExample();
     ${pre}
     var r = simModel();
-    if (!(r && r.raw && r.raw.IRR != null)) throw new Error("engine null");${guard}
+    if (!(${engineOk})) throw new Error("engine null");${guard}
     window.__downloadXlsx();
     var blob = globalThis.__lastBlob;
     if (!blob || !blob.parts || !blob.parts[0] || !blob.parts[0].length) throw new Error("blob 미캡처");
@@ -116,7 +123,7 @@ const DRIVERS = {
   })();`,
 };
 DRIVERS.logistics = dcfDriver('logistics');
-Object.keys(VARIANTS).forEach(k => { DRIVERS[k] = dcfDriver(VARIANTS[k].base, VARIANTS[k].patch); });
+Object.keys(VARIANTS).forEach(k => { DRIVERS[k] = dcfDriver(VARIANTS[k].base, VARIANTS[k].patch, VARIANTS[k].degenerate); });
 
 new Function(main + '\n' + inj + '\n' + DRIVERS[DEAL])();
 const out = globalThis.__OUT;
