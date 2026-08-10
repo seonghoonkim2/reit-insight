@@ -294,7 +294,7 @@ function termPage(slug, terms) {
     <p>${esc(meta.ex)}</p>
   </section>
   <section>
-    <a class="cta" href="/#t=${meta.deal}&src=seo">${esc(deal.short)} 딜로 ${esc(t.ko)} 바로 계산하기 →<span class="sub">숫자만 넣으면 화면에서 바로 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
+    <a class="cta" href="/#t=${meta.deal}&src=seo">${esc(deal.short)} 딜에 내 숫자 넣고 ${esc(t.ko)} 계산하기 →<span class="sub">예시가 채워진 채로 열립니다 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
     <h2 style="margin-top:14px">관련 용어</h2>
     <div class="chips">${chips}<a href="/calc/${meta.deal}">${esc(deal.short)} 계산기</a></div>
   </section>`;
@@ -327,7 +327,7 @@ function calcPage(deal, terms) {
     <p class="lead">${esc(d.lede)}</p>
   </div>
   <section>
-    <a class="cta" href="/#t=${deal}&src=seo">${esc(d.short)} 계산기 바로 열기 →<span class="sub">예시 딜이 미리 채워져 있어 숫자만 바꾸면 결과가 바로 나옵니다</span></a>
+    <a class="cta" href="/#t=${deal}&src=seo">내 딜 숫자로 계산하기 →<span class="sub">예시가 채워진 채로 열립니다 — 매입가부터 바꾸면 IRR·DSCR이 즉시 갱신됩니다</span></a>
   </section>
   <section>
     <div class="io">
@@ -345,7 +345,7 @@ ${d.ex ? `  <section>
       ${d.ex.out.map(r => `<tr class="out"><td>${esc(r[0])}</td><td class="r">${esc(r[1])}</td></tr>`).join('\n      ')}
     </table></div>
     <p class="tip">${esc(d.ex.note)}</p>
-    <a class="cta" href="/#t=${deal}&src=seo">이 예시로 직접 열어보기 →<span class="sub">숫자만 내 딜로 바꾸면 결과가 실시간으로 갱신됩니다</span></a>
+    <a class="cta" href="/#t=${deal}&src=seo">이 예시를 내 숫자로 바꿔보기 →<span class="sub">위 표의 값이 그대로 채워진 채 열립니다 — 한 칸만 바꿔도 결과가 다시 계산됩니다</span></a>
   </section>
 ` : ''}${d.steps ? `  <section>
     <h2>사용법 — ${esc(d.short)} 모델 만드는 순서</h2>

@@ -48,7 +48,11 @@ const Q = {
   srcFun: `SELECT blob9 AS g, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob9!='' AND blob1 IN ('session','activate','computed',${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY g, ev`,
   // 북극성 K3 — 자기 숫자를 넣은 세션(blob11=act)의 산출물. act 계측 배포(2026-07-26) 이전 데이터는 blob11=''
   actOut: `SELECT if(timestamp > now() - INTERVAL '7' DAY, 'this', 'prev') AS w, blob11 AS act, sum(_sample_interval) AS n FROM ${D} WHERE timestamp > now() - INTERVAL '14' DAY${BOTW} AND blob1 IN (${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY w, act`,
+  /* 커버리지 게이트 — deal_want 는 2026-07-14 부터 브라우저당 유형별 1표. 조회 창(--days)과 무관한 절대 기간 누적.
+     ⚠ AE 보존기간(약 90일) 초과 시 과소집계 — 2026-10 이후 커밋된 스냅샷 누적 합산으로 전환할 것. */
+  wantGate: `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${D} WHERE blob1='deal_want' AND blob2!='' AND timestamp > toDateTime('2026-07-14 00:00:00')${BOTW} GROUP BY k ORDER BY n DESC`,
 };
+const GATE_TARGET = 50;
 
 async function runSQL(sql) {
   const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/analytics_engine/sql`;
@@ -166,6 +170,9 @@ async function main() {
   }
   const refFun = funBy(raw.refFun), srcFun = funBy(raw.srcFun);
   const dealWantPairs = (raw.dealWant || []).map(r => [DEAL_LABEL[r.k] || String(r.k), Number(r.n) || 0]).sort((a, b) => b[1] - a[1]);
+  // 커버리지 게이트 — 누적 표 수 / 목표. 선두 유형이 목표에 닿으면 해당 딜 구현 착수.
+  const gatePairs = (raw.wantGate || []).map(r => [DEAL_LABEL[r.k] || String(r.k), Number(r.n) || 0]).sort((a, b) => b[1] - a[1]);
+  const gateLead = gatePairs[0] || null;
   const evRows = Object.entries(wow).map(([ev, w]) => [ev, w.this || 0, w.prev || 0]).sort((a, b) => b[1] - a[1]);
 
   /* KPI v1 트래커 (docs/STRATEGY.md 2026-07-13 확정) — K3 = act 플래그가 붙은 산출물(북극성) */
@@ -271,6 +278,12 @@ th,td{border:1px solid var(--line2);padding:5px 9px;text-align:right}th{color:va
 td:first-child,th:first-child{text-align:left}.mx td.z{color:var(--muted)}
 .tbl{margin-top:8px;font-size:12px}.tbl summary{cursor:pointer;color:var(--muted)}
 .note,.empty{font-size:11px;color:var(--muted)}.note{margin:9px 0 0;line-height:1.6}
+.gate{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.gate-h{font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+.gate-h span{font-weight:400;color:var(--muted)}
+.gbar{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--line);vertical-align:middle;overflow:hidden;margin-right:5px}
+.gfill{display:block;height:100%;background:var(--accent);border-radius:3px}
+.up{color:var(--green)}
 .foot{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.7}
 .tip{position:fixed;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11.5px;box-shadow:0 4px 14px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;font-variant-numeric:tabular-nums;z-index:9}
 </style></head><body><div class="wrap">
@@ -302,7 +315,12 @@ ${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></
 <div class="row2">
   <div class="card"><h2>수요 신호 <span>준비 중 딜 클릭(deal_want)</span></h2>
     ${dealWantPairs.length ? barList(dealWantPairs, { top: 8 }) : '<p class="empty">(아직 없음)</p>'}
-    <p class="note">착수 기준: 단일 유형 4주 누적 50건 — <b>2026-07-14부터 브라우저당 유형별 1표</b>(이전 수치는 반복 클릭 포함, 게이트 판정은 07-14 이후 집계만).</p></div>
+    ${gatePairs.length ? `<div class="gate"><div class="gate-h">커버리지 게이트 — 누적 표 수 / ${GATE_TARGET} <span>2026-07-14 이후(브라우저당 1표)</span></div>
+      <div class="tblwrap"><table><tr><th>딜 유형</th><th>누적</th><th>진행</th><th>판정</th></tr>
+      ${gatePairs.slice(0, 6).map(([k, n]) => { const p = Math.min(100, Math.round(n / GATE_TARGET * 100));
+        return `<tr><td>${esc(k)}</td><td>${num(n)} / ${GATE_TARGET}</td><td><span class="gbar"><span class="gfill" style="width:${p}%"></span></span> ${p}%</td><td>${n >= GATE_TARGET ? '<b class="up">착수 가능</b>' : '대기'}</td></tr>`;
+      }).join('')}</table></div></div>` : ''}
+    <p class="note">착수 기준: 단일 유형 누적 <b>${GATE_TARGET}표</b> — <b>2026-07-14부터 브라우저당 유형별 1표</b>(이전 수치는 반복 클릭 포함, 게이트 판정은 07-14 이후 집계만). 위 막대는 조회 기간과 무관한 <b>절대 누적</b>입니다.</p></div>
   <div class="card"><h2>유입 호스트별 퍼널 <span>방문→입력→결과→산출물</span></h2>
     <div class="tblwrap"><table><tr><th>유입</th><th>방문</th><th>입력</th><th>결과</th><th>산출물</th></tr>${refFun.slice(0, 8).map(([g, f]) => `<tr><td>${esc(g)}</td><td>${num(f.session)}</td><td>${num(f.activate)}</td><td>${num(f.computed)}</td><td>${num(f.output)}</td></tr>`).join('')}</table></div>
     ${srcFun.length ? `<p class="note" style="margin-top:8px">채널(src) 태그: ${srcFun.map(([g, f]) => esc(g) + ' ' + num(f.session) + '·산출 ' + num(f.output)).join(' / ')}</p>` : ''}</div>
@@ -375,6 +393,9 @@ ${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></
     md.push(`**주간 퍼널**: 방문 ${num(sW.this)} → 직접 입력 ${num(wget('activate').this)} → 결과 ${num(wget('computed').this)} → 산출물 ${num(outThis)}`);
     md.push('');
     if (dealWantPairs.length) md.push('**수요(deal_want)**: ' + dealWantPairs.slice(0, 6).map(p => `${p[0]} ${num(p[1])}`).join(' · ') + ' _(07-14부터 브라우저당 1표 — 게이트 50건은 그 이후 집계로 판정)_');
+    if (gateLead) md.push(`**커버리지 게이트**: ${gateLead[0]} **${num(gateLead[1])}/${GATE_TARGET}**` +
+      (gateLead[1] >= GATE_TARGET ? ' — ✅ **착수 가능**' : ` (${Math.round(gateLead[1] / GATE_TARGET * 100)}%)`) +
+      (gatePairs.length > 1 ? ' · 다음: ' + gatePairs.slice(1, 4).map(p => `${p[0]} ${num(p[1])}`).join(' · ') : '') + ' _(07-14 이후 절대 누적)_');
     const extRef = refFun.filter(([g]) => g && g.indexOf('modelter.com') < 0 && g !== '(직접/미상)').slice(0, 6);
     if (extRef.length) md.push('**외부 유입(방문·산출물)**: ' + extRef.map(([g, f]) => `${g} ${num(f.session)}·${num(f.output)}`).join(' · '));
     md.push('');

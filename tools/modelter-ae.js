@@ -59,6 +59,13 @@ const Q_ATTR_SRC = `SELECT blob9 AS g, blob1 AS k, sum(_sample_interval) AS n FR
 const Q_ATTR_REF = `SELECT blob5 AS g, blob1 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} GROUP BY g, k`;
 // 일자별 핵심 이벤트 시계열 — 한 번의 스냅샷 안에서도 추세를 보이게 (best-effort: AE 날짜함수 실패 시 생략)
 const Q_DAILY = `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, blob1 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} GROUP BY d, k ORDER BY d`;
+/* 북극성(K3) — 산출물이 '자기 숫자'로 만들어졌는지. blob11=act(1=활성화 세션). 2026-07-26 계측 개시.
+   blob11='' 은 미계측 구간이므로 unknown 으로 분리한다(act/nonact 와 합치면 기준선이 오염됨). */
+const Q_ACT_OUT = `SELECT blob11 AS a, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob1 IN (${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY a`;
+/* 딜 커버리지 게이트 — deal_want 는 2026-07-14 부터 브라우저당 유형별 1표(dedupe). 그 이전은 클릭 수라 섞으면 안 된다.
+   ⚠ AE 보존기간(약 90일)을 넘기면 이 절대 기간 쿼리는 과소집계된다 — 2026-10 이후엔 커밋된 스냅샷 누적 합산으로 전환할 것. */
+const GATE_SINCE = '2026-07-14 00:00:00';
+const Q_WANT_GATE = `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${DATASET} WHERE blob1='deal_want' AND blob2 != '' AND timestamp > toDateTime('${GATE_SINCE}')${FLAG_BOTS ? '' : " AND blob10 != '1'"} GROUP BY k ORDER BY n DESC`;
 
 // ── AE SQL API 호출 ──
 async function runSQL(sql) {
@@ -182,7 +189,7 @@ function validateSnap(snap) {
   if (!snap.events || typeof snap.events !== 'object' || !Object.keys(snap.events).length) errs.push('events 비어 있음');
   return errs;
 }
-async function writeSnapshot(data, daily, attribution) {
+async function writeSnapshot(data, daily, attribution, extra) {
   const path = require('path'), fs = require('fs');
   const dir = path.join(__dirname, '..', 'data', 'ae-snapshots');
   fs.mkdirSync(dir, { recursive: true });
@@ -196,6 +203,9 @@ async function writeSnapshot(data, daily, attribution) {
     ref: data.ref, feats: data.feats, depth: data.depth, src: data.src || {},
     attribution: attribution || null,
     daily: daily || null,
+    // 북극성(K3) 기준선 · 딜 커버리지 게이트 — 둘 다 additive(구 스냅샷 소비자 무영향)
+    outputsByAct: (extra && extra.outputsByAct) || null,
+    dealWantGate: (extra && extra.dealWantGate) || null,
   };
   const errs = validateSnap(snap);
   if (errs.length) { console.error('❌ 스냅샷 스키마 검증 실패 — 저장 안 함:\n  - ' + errs.join('\n  - ')); process.exit(1); }
@@ -250,7 +260,24 @@ async function main() {
         }
         daily = Object.keys(byDay).sort().map(d => Object.assign({ day: d }, byDay[d]));
       } catch (_) { /* 날짜함수 미지원 시 시계열 없이 저장 */ }
-      const rel = await writeSnapshot(data, daily, attribution);
+      const extra = {};
+      try {                                            // 북극성 K3 — 산출물의 act 분해 (best-effort)
+        const rows = await runSQL(Q_ACT_OUT);
+        const o = { act: 0, nonact: 0, unknown: 0 };
+        for (const r of rows) {
+          const a = String(r.a == null ? '' : r.a), n = Number(r.n || 0);
+          if (a === '1') o.act += n; else if (a === '0') o.nonact += n; else o.unknown += n;
+        }
+        o.since = '2026-07-26';                        // act 계측 개시일 — unknown 은 그 이전 구간
+        extra.outputsByAct = o;
+      } catch (e) { console.error('act 분해 조회 건너뜀: ' + e.message); }
+      try {                                            // 딜 커버리지 게이트 (dedupe 이후 절대 기간)
+        const rows = await runSQL(Q_WANT_GATE);
+        const g = { since: GATE_SINCE.slice(0, 10), target: 50 };
+        for (const r of rows) { const k = String(r.k || ''); if (k) g[k] = Number(r.n || 0); }
+        extra.dealWantGate = g;
+      } catch (e) { console.error('게이트 조회 건너뜀: ' + e.message); }
+      const rel = await writeSnapshot(data, daily, attribution, extra);
       console.log('\n📸 스냅샷 저장: ' + rel + '  (git에 커밋하면 영구 누적)');
       console.log('   대시보드 생성:  node tools/modelter-report.js');
     }
