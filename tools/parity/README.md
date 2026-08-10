@@ -21,11 +21,12 @@ node tools/parity/gen-xlsx.js logistics   # 물류 13시트
 node tools/parity/gen-xlsx.js dev         # 분양수지 6시트
 node tools/parity/gen-xlsx.js refi        # 리파이낸싱 4시트
 
-# 1-b) 자본구조 매트릭스 — 예시 딜 1케이스 편향을 깨는 오피스 변형 3종
+# 1-b) 자본구조·경계 매트릭스 — 예시 딜 1케이스 편향을 깨는 오피스 변형 5종
 node tools/parity/gen-xlsx.js office_nopref    # 우선주 끔
 node tools/parity/gen-xlsx.js office_nonpass   # 비도관(법인세 적용)
 node tools/parity/gen-xlsx.js office_hold7     # 보유기간 7년
 node tools/parity/gen-xlsx.js office_nodebt    # 무차입(LTV 0) — 커버리지 분모 0 경계
+node tools/parity/gen-xlsx.js office_vac100    # 공실 100% — 수입 0, IRR 미정의 경계
 
 # 2) 검증 — 엑셀을 python 수식 엔진으로 재계산해 화면 값과 비교
 python3 tools/parity/check.py office
@@ -36,6 +37,7 @@ python3 tools/parity/check.py office_nopref    # 변형도 같은 방식 + 변�
 python3 tools/parity/check.py office_nonpass
 python3 tools/parity/check.py office_hold7
 python3 tools/parity/check.py office_nodebt
+python3 tools/parity/check.py office_vac100
 ```
 
 모두 `PARITY OK`가 나와야 배포 안전. 출력물은 `out/`에 쌓이며 git에는 올라가지 않습니다.
@@ -55,7 +57,18 @@ python3 tools/parity/check.py office_nodebt
 | office_nopref (변형) | 09_Return_Summary | office와 동일 6지표 + 우선주 D열(D5·D6·D7)에 숫자가 남지 않음(0·빈 값·#NUM!/#DIV/0! 허용 — CF 전부 0) |
 | office_nonpass (변형) | 09_Return_Summary | office와 동일 6지표 + 세후 IRR(E6)이 세전(E5)과 달라야 함 — 엑셀·엔진 양쪽 확인 |
 | office_hold7 (변형) | 09_Return_Summary | office와 동일 6지표를 보유 7년 상태로 대조 (IRR 범위 재지정 검증) |
-| office_nodebt (변형) | 09_Return_Summary + 전 시트 | 무차입 경계 — 비유한값이 숫자 셀에 없을 것(파일 손상 방지), 오류 토큰 0, 최소 DSCR 공란(0 오독 금지) |
+| office_nodebt (변형) | 09_Return_Summary + 전 시트 | 무차입 경계 — 최소 DSCR 공란(0 오독 금지) |
+| office_vac100 (변형) | 전 시트 | 공실 100% 경계 — IRR이 존재하지 않는 딜. 화면이 '—'이므로 엑셀도 공란이어야 함(09_Return_Summary!C5·E5, 00_Cover!C25·G25). 수치 대조는 성립하지 않아 건너뜀 |
+
+### 전 딜 공통 구조 검사
+
+수치가 맞아도 파일이 깨지거나 스스로 실패를 선언하면 배포할 수 없습니다. 아래 3건은 **모든 딜·변형**에 적용됩니다.
+
+| 검사 | 왜 |
+|---|---|
+| 숫자 셀에 비유한값 없음 | `<v>null</v>`·NaN·Infinity가 들어가면 엑셀이 "손상된 파일"로 거부 |
+| 엑셀 오류 토큰 0 | `#DIV/0!`·`#NUM!` 등이 09_Return_Summary를 거쳐 00_Cover 표지까지 전파된 전례 |
+| 검증 시트 종합 판정 PASS | 조달 합계에서 승계 보증금이 빠져 모든 오피스·물류 다운로드가 `Uses=Sources FAIL`·`종합 판정 FAIL(9/10)`을 달고 나가던 결함을 잡은 검사 (퇴화 변형 제외 — 공실 100%처럼 경제적으로 실제 실패하는 딜은 FAIL이 정답) |
 
 변형 케이스는 예시 딜 1개 상태만 검증하던 편향을 깨는 자본구조 매트릭스입니다.
 생성 단계(gen-xlsx.js)가 fillExample() 뒤 state/stackState를 패치하고, 패치 전후
