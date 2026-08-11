@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<script>(function(){try{var t=localStorage.getItem('mt_theme');if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('mt_theme');if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}
+/* 재방문 착지 — 써 본 적 있으면 소개를 접고 도구부터. 첫 렌더 전에 걸어야 깜빡임이 없다(테마와 같은 이유) */
+try{if(localStorage.getItem('mt_used')==='1')document.documentElement.setAttribute('data-back','1');}catch(e){}})();</script>
 <title>모델터 · 부동산 재무모델 빌더 — 현직자가 만든 100% 무료</title>
 
 <meta name="description" content="현직자가 만든 100% 무료 부동산 재무모델 빌더. 숫자만 넣으면 IRR·DSCR이 바로, 수식 살아있는 엑셀까지. 오피스·물류·분양·리파이." />
@@ -104,6 +106,15 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .intro .flow .ar{color:var(--accent); font-weight:600}
 .intro-cta{display:inline-block; margin-top:11px; font-size:14.5px; font-weight:600; color:var(--accent-deep); text-decoration:none; border:1px solid var(--line); border-radius:999px; padding:8px 18px; transition:.16s}
 .intro-cta:hover{border-color:var(--accent); background:rgba(169,121,43,.06)}
+/* 재방문 착지(2026-08-11) — 한 번이라도 실제로 써 본 사람은 소개를 접고 딜 탭·입력부터 보이게.
+   처음 온 사람에게는 그대로 소개가 보인다(검색 유입 착지 유지). 소개는 한 줄 링크로 언제든 펼침. */
+html[data-back="1"] .why,html[data-back="1"] .compare{display:none}
+html[data-back="1"] .intro{padding:16px 0 12px}
+html[data-back="1"] .intro .eyebrow,html[data-back="1"] .intro>.wrap>p,html[data-back="1"] .intro-cta{display:none}
+html[data-back="1"] .intro h1{font-size:clamp(21px,2.4vw,27px); margin:5px 0 0}
+.intro-back{display:none; margin-top:9px; background:none; border:none; font-family:var(--font); font-size:12.5px; color:var(--muted); cursor:pointer; padding:5px 10px; border-radius:8px}
+.intro-back:hover{color:var(--ink-2); background:var(--line-soft)}
+html[data-back="1"] .intro-back{display:inline-block}
 
 /* maker byline chip */
 .maker-row{display:flex; justify-content:center; margin-bottom:9px}
@@ -559,6 +570,27 @@ header{background:rgba(253,252,249,.82)}
 .mx-foot{font-size:11px; color:var(--muted); margin-top:11px; line-height:1.45}
 
 /* 딜 보관함 */
+.panel-priv{margin:0; padding:0 20px 2px; font-size:11.5px; color:var(--muted); line-height:1.5}
+.panel-priv a{color:var(--ink-3); font-weight:600; text-decoration:none; border-bottom:1px solid var(--line)}
+.panel-priv a:hover{color:var(--accent-deep); border-color:var(--accent)}
+@media(max-width:600px){ .panel-priv{padding:0 14px 2px} }
+/* 도구 · 저장 — 입력 아래 접이식. 기본 닫힘이라 첫 화면은 '입력 → 결과'만 남는다 */
+.tools-fold{border-top:1px solid var(--line-soft); background:var(--bg)}
+.tools-fold>summary{cursor:pointer; list-style:none; padding:11px 20px; font-size:13px; font-weight:600; color:var(--ink-3); display:flex; align-items:center; gap:8px; transition:.16s}
+.tools-fold>summary::-webkit-details-marker{display:none}
+.tools-fold>summary:hover{color:var(--ink-2); background:var(--line-soft)}
+.tools-fold .tf-ic{font-size:13px; opacity:.75}
+.tools-fold .tf-now{margin-left:auto; font-size:11.5px; font-weight:600; color:var(--muted); background:var(--panel); border:1px solid var(--line-soft); border-radius:20px; padding:2px 9px}
+.tools-fold>summary .chev{font-size:10px; color:var(--muted); transition:.16s}
+.tools-fold[open]>summary .chev{transform:rotate(180deg)}
+.tools-fold[open]>summary{border-bottom:1px solid var(--line-soft)}
+.tf-body{padding:14px 20px 16px}
+.tf-body .depth-pick{margin-bottom:12px}
+.tf-body .slots-bar{padding:10px 0; border-bottom:none; border-top:1px dashed var(--line-soft)}
+.tf-acts{display:flex; flex-wrap:wrap; gap:7px; padding-top:10px; border-top:1px dashed var(--line-soft)}
+.tf-acts .tf-danger{margin-left:auto; color:var(--muted)}
+.tf-acts .tf-danger:hover{color:#b4472f; border-color:#b4472f}
+@media(max-width:600px){ .tools-fold>summary{padding:11px 14px} .tf-body{padding:12px 14px 14px} .tools-fold .tf-now{display:none} }
 .slots-bar{display:flex; align-items:center; gap:8px; padding:10px 20px; border-bottom:1px solid var(--line-soft); flex-wrap:wrap}
 .sl-label{font-size:12px; font-weight:700; color:var(--accent-deep)}
 .sl-sel{font-family:var(--font); font-size:13px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:6px 9px; max-width:190px}
@@ -1130,35 +1162,6 @@ html,body{overflow-x:hidden}
 body.mt-ro .deal-tabs,body.mt-ro .panel-body,body.mt-ro .slots-bar,body.mt-ro #clearBtn,body.mt-ro #fillStd,body.mt-ro #myDefBtn,body.mt-ro #srcBtn,body.mt-ro #chkBtn,body.mt-ro #fillExample{pointer-events:none;opacity:.5}
 body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent-deep);font-weight:700}
 
-/* 첫 방문 온보딩 역할 선택 */
-.ob-card{max-width:560px;text-align:center;background:var(--panel);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.28)}
-.ob-eyebrow{display:inline-block;font-size:11.5px;font-weight:700;color:var(--accent-deep);background:rgba(169,121,43,.1);padding:5px 12px;border-radius:20px;margin-bottom:12px}
-.ob-h{font-family:var(--serif);font-size:26px;font-weight:500;color:var(--ink);margin-bottom:8px;line-height:1.25}
-.ob-sub{font-size:14px;color:var(--ink-3);line-height:1.55;margin-bottom:20px;max-width:440px;margin-left:auto;margin-right:auto}
-.ob-roles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px}
-.ob-role{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:13px;padding:15px 16px;cursor:pointer;transition:.16s}
-.ob-role:hover{border-color:var(--accent);background:var(--bg);transform:translateY(-1px);box-shadow:var(--soft)}
-.ob-role .ob-ic{font-size:24px;line-height:1;margin-bottom:5px}
-.ob-role b{font-size:15px;color:var(--ink);font-weight:700}
-.ob-role .ob-d{font-size:12px;color:var(--ink-3);line-height:1.4}
-.ob-skip{border:none;background:none;color:var(--muted);font-family:var(--font);font-size:13px;cursor:pointer;padding:6px 12px;border-radius:8px}
-.ob-skip:hover{color:var(--ink-2);background:var(--line-soft)}
-.ob-trust{margin:10px 0 0;font-size:11.5px;color:var(--muted);text-align:center}
-.ob-trust a{color:var(--ink-3);font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
-/* 모바일: 화면을 덮는 모달 대신 바텀시트 — 뒤로 예시 결과가 보여 "무엇인지" 먼저 체감 (외부 유입 착지 개선) */
-@media(max-width:520px){
-  .ob-overlay{align-items:flex-end;padding:0;background:rgba(20,14,4,.44);backdrop-filter:blur(1.5px)}
-  .ob-card{max-width:none;width:100%;margin:0;border-radius:18px 18px 0 0;border-bottom:none;padding:16px 16px 12px;box-shadow:0 -8px 30px rgba(0,0,0,.2)}
-  .ob-eyebrow{margin-bottom:6px}
-  .ob-h{font-size:19px;margin-bottom:4px}
-  .ob-sub{font-size:12.5px;margin-bottom:12px}
-  .ob-roles{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-  .ob-role{padding:10px 12px;border-radius:11px}
-  .ob-role .ob-ic{font-size:19px;margin-bottom:2px}
-  .ob-role b{font-size:13.5px}
-  .ob-role .ob-d{display:none}
-  .ob-trust{margin-top:6px}
-}
 /* 핵심 입력 우선 그룹 — 간소화를 '모드'가 아니라 기본 동선으로 */
 .core-g{border-color:var(--line-2)}
 /* 검색 착지 인계 — 도착 직후 '여기부터 바꾸세요'를 잠깐 강조 (표시 전용) */
@@ -1307,25 +1310,8 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
   </div>
 </div>
 
-<div class="wn-overlay ob-overlay" id="obOverlay" hidden>
-  <div class="wn-card ob-card" role="dialog" aria-modal="true" aria-labelledby="obH">
-    <div class="ob-eyebrow">환영합니다 · 30초면 첫 결과가 나옵니다</div>
-    <h2 class="ob-h" id="obH">어떤 일을 하고 계신가요?</h2>
-    <p class="ob-sub">고르시면 거기에 맞는 딜 유형과 예시가 자동으로 준비됩니다. 숫자만 바꾸면 IRR·멀티플이 바로 나옵니다.</p>
-    <div class="ob-roles">
-      <button type="button" class="ob-role" data-role="acq">
-        <span class="ob-ic">🏢</span><b>매입 검토</b><span class="ob-d">운용사·리츠·펀드 — IM 받고 IRR·민감도 빠르게</span></button>
-      <button type="button" class="ob-role" data-role="dev">
-        <span class="ob-ic">🏗️</span><b>개발 · 시행</b><span class="ob-d">공동주택 분양 — 평형별 분양가·중도금·PF 한도</span></button>
-      <button type="button" class="ob-role" data-role="lender">
-        <span class="ob-ic">🏦</span><b>대주 · PF 심사</b><span class="ob-d">LTC·분양률 스트레스·상환 안전성 점검</span></button>
-      <button type="button" class="ob-role" data-role="learn">
-        <span class="ob-ic">🎓</span><b>학습 · 둘러보기</b><span class="ob-d">실무 재무모델 구조를 직접 만들며 익히기</span></button>
-    </div>
-    <button type="button" class="ob-skip" id="obSkip">그냥 둘러볼게요 →</button>
-    <p class="ob-trust">입력한 숫자는 서버로 전송되지 않습니다. <a href="/trust" target="_blank" rel="noopener">보안·개인정보 →</a></p>
-  </div>
-</div>
+<!-- 첫 방문 역할 선택 모달은 제거(2026-08-11) — 도착하자마자 창이 뜨는 대신 예시가 채워진 화면을 바로 보여준다.
+     역할별 진입은 상단 딜 탭과 /calc 착지면이 대신한다. -->
 
 <div class="wn-overlay" id="wnOverlay" hidden>
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
@@ -1459,6 +1445,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <h1>기관급 부동산 재무모델을, <em>누구나 직접</em>.</h1>
     <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. 딜을 고르고 숫자만 넣으면, 나머지는 모델터가 합니다. <b>재무모델이 이 화면 안에서 바로 만들어지고</b>, 수식이 살아있는 <b>Excel 파일로 그 자리에서 내려받을 수 있습니다.</b></p>
     <a class="intro-cta" href="#builder-start">바로 만들어보기 ↓</a>
+    <button type="button" class="intro-back" id="introBack">모델터 소개 · 활용 사례 펼치기 ↓</button>
   </div>
 </section>
 
@@ -1533,29 +1520,43 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <div class="panel">
       <div class="panel-head">
         <div class="t">가정값 입력 <span class="dt" id="dtLabel">오피스 매입</span></div>
+        <!-- 상단에는 '숫자를 넣기 전에 누를 만한 것'만 둔다. 나머지 도구는 입력 아래 '도구 · 저장'으로 내림(2026-08-11) -->
         <div class="ph-actions">
-          <button class="ex ghost ico" id="shareBtn" title="현재 입력값을 링크로 복사" aria-label="공유"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></button>
-          <button class="ex ghost ico" id="clearBtn" title="입력값 전체 지우기" aria-label="비우기"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2zM6 9h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 9z"/></svg></button>
           <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
-          <button class="ex ghost" id="myDefBtn" title="회사 표준 부대비·보수·대출 조건을 저장해 두고 새 딜에 한 번에 적용">내 기본값</button>
-          <button class="ex ghost" id="srcBtn" title="가정별 출처(IM 기재·감정평가·실사·추정·회사 표준)와 기준일 기록 — 엑셀 가정 시트·검토 메모에 반영">출처</button>
-          <button class="ex ghost" id="chkBtn" title="핵심 가정이 통상 참고 범위 안인지 전수 점검 + 매도자·자문사용 검토 질의서 초안">점검</button>
           <button class="ex" id="fillExample">예시 채우기 ↻</button>
         </div>
       </div>
-      <div class="slots-bar">
-        <span class="sl-label">딜 보관함</span>
-        <select id="slotSel" class="sl-sel"><option value="">— 불러오기 —</option></select>
-        <button class="sl-btn" id="slotSave" type="button">딜로 저장</button>
-        <button class="sl-btn" id="wsOpen" type="button" title="버전 목록·산출물 이력·.modelter 백업" hidden>백업·가져오기</button>
-        <button class="sl-btn" id="slotDel" type="button" title="선택 딜 삭제" hidden>삭제</button>
-        <button class="sl-btn sl-cmp" id="cmpOpen" type="button" title="저장한 딜과 현재 입력을 나란히 비교" hidden>딜 비교</button>
-        <span class="ws-dirty" id="wsDirtyTag" hidden title="현재 화면값이 저장된 버전과 다릅니다">● 저장 안 된 변경</span>
-      </div>
+      <!-- 온보딩 모달이 하던 보안 안내를, 닫아버리는 창이 아니라 '숫자를 넣는 자리'에 상시로 둔다 -->
+      <p class="panel-priv">입력한 숫자는 이 브라우저 안에서만 계산됩니다 — 서버로 전송되지 않습니다. <a href="/trust" target="_blank" rel="noopener">보안·개인정보 →</a></p>
       <div class="inp-prog" id="inpProg" hidden><span class="ip-bar"><span class="ip-fill" id="ipFill"></span></span><span class="ip-txt" id="ipTxt"></span></div>
       <button type="button" class="ex-chip" id="exChip" hidden onclick="exChipClick()"></button>
       <div class="panel-body" id="formBody"></div>
+
+      <!-- 도구 · 저장 — 자주 쓰지 않는 것들을 입력 아래 한 곳에 접어 둔다(기본 닫힘).
+           30일 사용량 기준: IM 가져오기 3.6% · 딜 저장 44 · 내 기본값 4 · 공유 10 — 입력칸 위를 차지할 이유가 없다. -->
+      <details class="tools-fold" id="toolsFold">
+        <summary><span class="tf-ic">⚙</span> 도구 · 저장 · 모델 깊이 <span class="tf-now" id="tfNow"></span><span class="chev">▾</span></summary>
+        <div class="tf-body">
+          <div id="toolsDyn"></div>
+          <div class="slots-bar">
+            <span class="sl-label">딜 보관함</span>
+            <select id="slotSel" class="sl-sel"><option value="">— 불러오기 —</option></select>
+            <button class="sl-btn" id="slotSave" type="button">딜로 저장</button>
+            <button class="sl-btn" id="wsOpen" type="button" title="버전 목록·산출물 이력·.modelter 백업" hidden>백업·가져오기</button>
+            <button class="sl-btn" id="slotDel" type="button" title="선택 딜 삭제" hidden>삭제</button>
+            <button class="sl-btn sl-cmp" id="cmpOpen" type="button" title="저장한 딜과 현재 입력을 나란히 비교" hidden>딜 비교</button>
+            <span class="ws-dirty" id="wsDirtyTag" hidden title="현재 화면값이 저장된 버전과 다릅니다">● 저장 안 된 변경</span>
+          </div>
+          <div class="tf-acts">
+            <button class="ex ghost" id="srcBtn" title="가정별 출처(IM 기재·감정평가·실사·추정·회사 표준)와 기준일 기록 — 엑셀 가정 시트·검토 메모에 반영">출처 기록</button>
+            <button class="ex ghost" id="chkBtn" title="핵심 가정이 통상 참고 범위 안인지 전수 점검 + 매도자·자문사용 검토 질의서 초안">가정 점검</button>
+            <button class="ex ghost" id="myDefBtn" title="회사 표준 부대비·보수·대출 조건을 저장해 두고 새 딜에 한 번에 적용">내 기본값</button>
+            <button class="ex ghost" id="shareBtn" title="현재 입력값을 링크로 복사">링크로 공유</button>
+            <button class="ex ghost tf-danger" id="clearBtn" title="입력값 전체 지우기">전체 비우기</button>
+          </div>
+        </div>
+      </details>
     </div>
 
     <div id="resultCol">
@@ -1963,7 +1964,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-10·1a87f49e56';
+window.MT_BUILD='2026-08-11·f60412e0ec';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2189,6 +2190,25 @@ function depthHtml(){
   </div>`;
 }
 
+/* 입력 아래 '도구 · 저장' 블록의 동적 부분 — 모델 깊이 + IM 가져오기.
+   접힌 상태에서도 지금 깊이·시트 수는 요약 줄에 보이게 해 두어, 열지 않아도 상태를 알 수 있게 한다. */
+function renderTools(rrEligible){
+  const dyn=document.getElementById('toolsDyn');
+  if(dyn){
+    let h=depthHtml();
+    // IM 가정 추출(BYOK) — 매입 딜 전용, 읽기 전용에서는 숨김
+    if(rrEligible && !(document.body&&document.body.classList.contains('mt-ro')))
+      h+='<details class="fsub imfold"><summary>📥 IM에서 숫자 가져오기 — 붙여넣기 자동 인식 · AI 정밀(β)<span class="chev">▾</span></summary>'+'<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키·문서 전송 없이 이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 — 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>키·전송 없이</b> 매입가·임대료·Exit Cap 등을 자동 인식해 채웁니다. 복잡한 문서는 AI 정밀 추출(본인 키)로 보완할 수 있습니다.</span></div>'+'</details>';
+    dyn.innerHTML=h;
+  }
+  toolsSummary();
+}
+function toolsSummary(){
+  const now=document.getElementById('tfNow'); if(!now) return;
+  let n=0; try{ n=(typeof sheetListFor==='function')?sheetListFor().length:0; }catch(e){}
+  now.textContent=(DEPTHS[depth]?DEPTHS[depth].label:'')+(n?(' · '+n+'시트'):'');
+}
+
 function commonHtml(gl){
   return `<div class="fgroup"><div class="fgroup-h"><span class="gl">${gl||'⑤'}</span> 공통 설정</div>
    <div class="fields">
@@ -2329,10 +2349,9 @@ function renderForm(){
   const rrEligible = (cur==="office"||cur==="logistics");
   let quickKeys = QUICK_FIELDS[cur]||[];
   if(cur==="dev") quickKeys = devResi()? ["asset","devtype","landcost","conscost","othercost","equity","pfrate"] : ["asset","devtype","tpc","saleprice","exitcap","exitmode"];
-  let html=depthHtml();  // 깊이 선택을 폼 최상단에
-  // IM 가정 추출(BYOK) — 매입 딜 전용, 읽기 전용에서는 숨김
-  if(rrEligible && !(document.body&&document.body.classList.contains('mt-ro')))
-    html+='<details class="fsub imfold"><summary>📥 IM에서 숫자 가져오기 — 붙여넣기 자동 인식 · AI 정밀(β)<span class="chev">▾</span></summary>'+'<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키·문서 전송 없이 이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 — 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>키·전송 없이</b> 매입가·임대료·Exit Cap 등을 자동 인식해 채웁니다. 복잡한 문서는 AI 정밀 추출(본인 키)로 보완할 수 있습니다.</span></div>'+'</details>';
+  // 깊이 선택·IM 가져오기는 '숫자를 넣기 전에 고를 것'이 아니다 → 입력 아래 '도구 · 저장' 블록으로(2026-08-11).
+  // 여기서는 입력 그룹만 만들고, 도구 내용은 renderTools() 가 #toolsDyn 에 따로 그린다.
+  let html='';
   if(isQuick){
     // 빠른 검토: 핵심 필드만 한 그룹으로 모아 노출
     const allFields=[];
@@ -2393,6 +2412,7 @@ function renderForm(){
   if(!isQuick) html+=scenHtml();
   html+=commonHtml(GL[gn++]);
   $("formBody").innerHTML=html;
+  renderTools(rrEligible);
 
   // bind inputs + inline validation
   $("formBody").querySelectorAll("[data-k]").forEach(el=>{
@@ -11177,69 +11197,27 @@ var qrcode = function() {
   var btn=document.getElementById('wizBtn'); if(btn) btn.addEventListener('click',open);
 })();
 
-/* ── 첫 방문 온보딩: 역할 선택 → 딜 탭·예시 자동 세팅 (활성화 유도) ── */
-(function(){
-  var ov=document.getElementById('obOverlay'); if(!ov) return;
-  function onboarded(){ try{ return localStorage.getItem('mt_onboarded')==='1'; }catch(e){ return true; } }
-  function markOnboarded(){ try{ localStorage.setItem('mt_onboarded','1'); }catch(e){} }
-  function close(){ ov.hidden=true; document.body.style.overflow=''; }
-  var ROLE={
-    acq:{deal:'office', view:null},
-    dev:{deal:'dev', view:'sponsor'},
-    lender:{deal:'dev', view:'lender'},
-    learn:{deal:'office', view:null}
-  };
-  function pick(role){
-    markOnboarded(); close();
-    var r=ROLE[role]||ROLE.acq;
-    try{
-      if(typeof cur!=='undefined' && r.deal && typeof DEALS!=='undefined' && DEALS[r.deal]){
-        cur=r.deal;
-        if(typeof fillExample==='function') fillExample();   // 예시 자동 로드(표준 깊이)
-        if(r.view && typeof window.__setDevView==='function') window.__setDevView(r.view);
-      }
-    }catch(e){}
-    if(window.mtTrack) try{ mtTrack('onboard',{role:role}); }catch(e){}
-    // 학습 모드: 용어 설명 진입로 안내 (결과 ? 링크 → 용어사전)
-    if(role==='learn') setTimeout(function(){
-      try{ toast('학습 모드 — 결과 지표 옆 ? 를 누르면 용어 설명(가이드)이 열립니다. 예시 숫자를 바꿔보세요.',4600); }catch(e){}
-    },1400);
-    // 빌더로 부드럽게 이동 + 첫 입력 살짝 강조
-    var t=document.getElementById('builder-start');
-    if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth',block:'start'});
-    setTimeout(function(){
-      // 모바일은 포커스 생략 — 키보드가 올라와 결과 카드(폼 위에 배치됨)를 가림
-      try{ if(window.matchMedia&&matchMedia('(max-width:920px)').matches) return; }catch(e){}
-      try{ var el=document.querySelector('#formBody [data-k]'); if(el&&el.focus){ el.focus({preventScroll:true}); el.select&&el.select(); } }catch(e){}
-    },650);
-  }
-  ov.querySelectorAll('.ob-role').forEach(function(b){ b.addEventListener('click',function(){ pick(b.dataset.role); }); });
-  var sk=document.getElementById('obSkip'); if(sk) sk.addEventListener('click',function(){ markOnboarded(); close(); if(window.mtTrack) try{ mtTrack('onboard',{role:'skip'}); }catch(e){} });
-  ov.addEventListener('click',function(e){ if(e.target===ov){ markOnboarded(); close(); } });
-  // 첫 방문에만 노출 (공유 링크 복원 시엔 건너뜀). 노출하면 이 세션 What's new는 억제
-  if(!onboarded() && !/[#&][evdth]=/.test(location.hash||'')){
-    window.__mtOnboarding=true;
-    ov.hidden=false; document.body.style.overflow='hidden';
-  }
-})();
+  /* 재방문 착지에서 '소개 펼치기' — 접힌 소개를 이 방문에 한해 되돌린다(mt_used 자체는 건드리지 않음) */
+  try{
+    var ib=document.getElementById('introBack');
+    if(ib) ib.addEventListener('click',function(){
+      document.documentElement.removeAttribute('data-back');
+      var t=document.getElementById('top'); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  }catch(e){}
 
   var SNOOZE='mt_wn_snooze_v4';   // 'YYYY-M-D' 저장 → 그날 하루 배너·팝업 자동노출 안 함 (v3: 재노출 위해 키 갱신)
   var bar=document.getElementById('announce'), ov=document.getElementById('wnOverlay');
   if(!bar && !ov) return;
   function today(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function snoozedToday(){ try{ return localStorage.getItem(SNOOZE)===today(); }catch(e){ return false; } }
-  function seenSession(){ try{ return sessionStorage.getItem('mt_wn_seen_v3')==='1'; }catch(e){ return false; } }
   function markSeen(){ try{ sessionStorage.setItem('mt_wn_seen_v3','1'); }catch(e){} }
   function snoozeDay(){ try{ localStorage.setItem(SNOOZE,today()); }catch(e){} }
   function openWN(){ if(ov){ ov.hidden=false; document.body.style.overflow=''; document.body.style.overflow='hidden'; } }
   function closeWN(){ if(ov){ ov.hidden=true; } document.body.style.overflow=''; }
   function dismissModal(){ markSeen(); closeWN(); }            // 닫기(×·바깥·ESC): 이번 방문에만 안 보임
-  // 첫 노출: 오늘 그만보기 상태가 아니면 배너 표시 + (이번 세션 처음이면) 팝업 자동
-  if(!snoozedToday()){
-    if(bar) bar.hidden=false;
-    var deepLink=/[#&][evdth]=/.test(location.hash||'');   // 공유·가이드 딥링크 진입은 목적지 우선 — 팝업으로 막지 않음
-    if(ov && !seenSession() && !window.__mtOnboarding && !deepLink) openWN();   // 첫 방문 온보딩·딥링크와 이중 노출 방지
-  }
+  // 도착하자마자 창을 띄우지 않는다(2026-08-11) — 배너만 보여주고, 팝업은 배너의 '무엇이 바뀌었나 →'를 눌렀을 때만.
+  if(!snoozedToday() && bar) bar.hidden=false;
   var more=document.getElementById('annMore'); if(more) more.addEventListener('click',openWN);
   var ax=document.getElementById('annClose'); if(ax) ax.addEventListener('click',function(){ if(bar) bar.hidden=true; });
   var wx=document.getElementById('wnClose'); if(wx) wx.addEventListener('click',dismissModal);
@@ -11409,7 +11387,8 @@ var qrcode = function() {
   try{ var _mxf=document.getElementById('mxFold'); if(_mxf) _mxf.addEventListener('toggle',function(){ if(_mxf.__auto){ _mxf.__auto=false; return; } _mxf.__user=true; }); }catch(e){}
   // 퍼널 신호(세션당 1회): session(방문) → activate(직접 입력) → computed(자기 딜 결과 도달) → 산출물
   var actFired=false, compFired=false;
-  window.__mtActivate=function(){ if(actFired) return; actFired=true; try{ track('activate'); }catch(e){} };
+  // 실사용 표식 — 다음 방문에 소개를 접고 도구부터 보여주는 기준(수치·PII 없이 '써 봤다' 한 비트만 로컬 저장)
+  window.__mtActivate=function(){ if(actFired) return; actFired=true; try{ localStorage.setItem('mt_used','1'); }catch(e){} try{ track('activate'); }catch(e){} };
   window.__mtComputed=function(){ if(compFired||!actFired) return; compFired=true; try{ track('computed'); }catch(e){}
     // 저장 넛지: 자기 딜 결과까지 봤는데 저장·공유 없이 이탈하기 쉬운 시점에 1회만
     try{

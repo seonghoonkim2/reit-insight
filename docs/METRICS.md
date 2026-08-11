@@ -73,7 +73,6 @@
 | `example_fill` | 예시 딜 채우기 | |
 | `fill_std` | 표준값 채우기 | |
 | `sample_deal` | 예시 딜 카드 선택(key=딜 키) | |
-| `onboard` | 온보딩 역할 선택 | |
 | `wizard` | 모바일 빠른 입력 위저드(open=열림·done=완료) | |
 | `fsub_open` | 세부 항목 접기(fsub) 펼침 — 복잡도 수요 신호 | |
 | `rentroll_upload` | 렌트롤 붙여넣기 인식(내용 비저장) | |

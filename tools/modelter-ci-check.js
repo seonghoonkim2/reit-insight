@@ -88,7 +88,7 @@ if (fs.existsSync(path.join(DIR, 'trust.html'))) {
   ok(trust.includes('api.anthropic.com') && trust.includes('서버'), 'trust.html: BYOK 데이터 흐름(서버 무경유) 명시');
   ok(trust.includes('투자 권유가 아닌'), 'trust.html: 고지 문구');
   // 앱 본체에서 신뢰 센터로 가는 링크(푸터·온보딩·BYOK)
-  ok((html.match(/href="\/trust"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·온보딩·BYOK) 존재');
+  ok((html.match(/href="\/trust"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·입력 패널·BYOK) 존재');
 }
 
 /* ── 1c) 채널 어트리뷰션(E5) — src 태그·수요 가짜 문 ── */
@@ -509,9 +509,19 @@ ok(html.includes('id="roBanner"') && html.includes('window.__mtExitReadonly'), '
 ok(html.includes('body.mt-ro'), '읽기 전용 입력 잠금 CSS 존재');
 ok(html.includes("window.__mtActivate") && html.includes("track('activate')"), '퍼널: 활성화(activate) 이벤트 존재');
 ok(html.includes("window.__mtComputed") && html.includes("track('computed')"), '퍼널: 결과도달(computed) 이벤트 존재');
-ok(html.includes('id="obOverlay"') && html.includes("data-role=\"acq\""), '온보딩 역할 선택 모달 존재');
-ok(html.includes("localStorage.getItem('mt_onboarded')"), '온보딩 첫 방문 게이트 존재');
-ok(html.includes('!window.__mtOnboarding'), "온보딩·What's new 이중 노출 방지");
+// 도착하자마자 뜨는 창은 없다(2026-08-11) — 역할 선택 온보딩 제거 + What's new 자동 노출 중단.
+// What's new 는 공지 배너의 '무엇이 바뀌었나 →'(annMore)로만 열린다.
+ok(!html.includes('id="obOverlay"') && !html.includes('mt_onboarded'), '첫 방문 역할 선택 모달 제거됨');
+ok(!/!seenSession\(\)[^\n]*openWN\(\)/.test(html) && /annMore[^\n]*addEventListener\('click',openWN\)/.test(html),
+  "What's new 자동 팝업 없음 — 배너 버튼으로만 열림");
+// 재방문(써 본 적 있음)은 소개를 접고 도구부터 — 깜빡임 방지를 위해 첫 렌더 전 html[data-back]
+ok(html.includes("localStorage.setItem('mt_used','1')") && html.includes("data-back") && html.includes('id="introBack"'),
+  '재방문 착지: 소개 접기 + 펼치기 토글 존재');
+// 도구·저장·깊이는 입력 아래 접이식 한 곳으로 — 입력칸 위 잡동사니 제거
+ok(html.includes('id="toolsFold"') && html.includes('id="toolsDyn"') && html.includes('function renderTools'),
+  '도구 · 저장 · 모델 깊이 접이식 블록 존재');
+ok(!/let html=depthHtml\(\)/.test(html) && /dyn\.innerHTML=h/.test(html),
+  '모델 깊이·IM 가져오기가 입력 위가 아니라 도구 블록에 있음');
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
 ok(html.includes('href="/guide"'), '홈→가이드 내부 링크(SEO·무확장 정식 URL) 존재');
 ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재');
@@ -539,8 +549,7 @@ ok(html.includes('function oneLineReport') && html.includes('한 줄 보고 복�
 ok(html.includes('cmp-hi'), '딜 비교 최적값 하이라이트 존재');
 ok(html.includes('function wonConv') && html.includes('class="f-conv"'), '원화 환산 라이브 힌트(억/조) 존재');
 ok(html.includes('탭하면 결과로 이동'), '미니 KPI 탭 → 결과 스크롤 존재');
-ok(html.includes('학습 모드 — 결과 지표 옆'), 'learn 온보딩 용어사전 안내 존재');
-ok(html.includes("var deepLink=/[#&][evdth]=/.test(location.hash||'')"), "딥링크 진입 시 What's new 자동 팝업 억제");
+ok(!/openWN\(\);?\s*\/\/\s*첫 방문/.test(html) && !html.includes('__mtOnboarding'), '온보딩 잔재 없음(딥링크 억제 분기 포함)');
 ok(html.includes('window.__wizOpen') && html.includes('id="wizBtn"') && html.includes('wiz-sheet'), '모바일 빠른 입력 위저드 존재');
 ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.includes("['asset','noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 핵심 필드 세트');
 ok(html.includes("_gf=mnum('gfa')"), '임대료 기준 연면적 필수 가드(침묵 기본값 차단)');
