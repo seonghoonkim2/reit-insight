@@ -52,8 +52,9 @@ jobs:
           # 경계 변형은 상시 게이트다.
           #  office_nodebt : 무차입 — 커버리지 분모 0(파일 손상·#DIV/0! 회귀 차단)
           #  office_vac100 : 공실 100% — 수입 0(IRR 미정의 시 #NUM! 이 표지로 새는 것 차단)
+          #  office_mezz(pik) : 중순위 4단 구조 — 현금이자형·이자누적(PIK)형 각각
           # 전 딜 공통으로 "비유한값 0 · 오류 토큰 0 · 검증 시트 종합 판정 PASS" 도 함께 검사한다.
-          for d in office logistics dev refi office_nodebt office_vac100; do
+          for d in office logistics dev refi office_nodebt office_vac100 office_mezz office_mezzpik; do
             node tools/parity/gen-xlsx.js "$d"
             python3 tools/parity/check.py "$d"
           done

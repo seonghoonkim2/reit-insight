@@ -18,6 +18,8 @@ VARIANTS = {
     'office_hold7': 'office',     # 보유기간 7년
     'office_nodebt': 'office',    # 무차입(LTV 0) — 커버리지 분모 0 경계
     'office_vac100': 'office',    # 공실 100% — 수입 0 경계(IRR 미정의)
+    'office_mezz': 'office',      # 중순위(메자닌) 현금이자형 — 4단 자본구조
+    'office_mezzpik': 'office',   # 중순위 이자누적(PIK)형 — 잔액이 불어나 매각 시 일괄 상환
 }
 KNOWN = ('office', 'logistics', 'dev', 'refi') + tuple(VARIANTS)
 
@@ -190,13 +192,38 @@ elif deal == 'office_nodebt':
         v = cell_raw('09_Return_Summary', ref)
         blank = v is None or str(v).strip() == ''
         extra.append(('%s(%s) 공란 — 0 으로 오독 금지' % (nm, ref), blank, '값=%r' % (v,)))
+elif deal in ('office_mezz', 'office_mezzpik'):
+    # 중순위가 '메모'가 아니라 실제로 계산에 들어갔는지 — 금액·이자 지급 방식·잔액 거동을 구조로 확인
+    pik = (deal == 'office_mezzpik')
+    amt = cell('01_Assumptions', 'C85')
+    op0 = cell('05_Debt_Schedule', 'C16')
+    end = cell('05_Debt_Schedule', 'G20')
+    pay1 = cell('05_Debt_Schedule', 'C18')
+    ds1 = cell('05_Debt_Schedule', 'C9')
+    sen1 = cell('05_Debt_Schedule', 'C6') + cell('05_Debt_Schedule', 'C7')
+    extra.append(('중순위 금액 > 0', amt > 0, 'C85=%.2f' % amt))
+    extra.append(('차입 스케줄 기초잔액 = 가정 금액', abs(op0 - amt) < 1e-6, 'C16=%.2f' % op0))
+    if pik:
+        # 이자 누적(PIK): 매기 현금 지급 0, 잔액은 복리로 불어난다
+        extra.append(('PIK 현금이자 0', abs(pay1) < 1e-9, 'C18=%.6f' % pay1))
+        extra.append(('PIK 잔액 증가', end > op0 * 1.0001, 'C16=%.2f → G20=%.2f' % (op0, end)))
+        extra.append(('총 DS = 선순위 단독', abs(ds1 - sen1) < 1e-6, 'C9=%.4f 선순위=%.4f' % (ds1, sen1)))
+    else:
+        # 현금이자형: 매기 이자를 현금으로 내고 잔액은 그대로, 총 DS 는 선순위보다 크다
+        extra.append(('현금이자 > 0', pay1 > 0, 'C18=%.4f' % pay1))
+        extra.append(('잔액 불변(원금 만기 일괄)', abs(end - op0) < 1e-6, 'C16=%.2f → G20=%.2f' % (op0, end)))
+        extra.append(('총 DS > 선순위 단독', ds1 > sen1 + 1e-9, 'C9=%.4f 선순위=%.4f' % (ds1, sen1)))
+    # 커버리지가 중순위를 반영해 선순위 단독보다 보수적이어야 한다(참고행 22 와 비교)
+    dtot = cell('05_Debt_Schedule', 'C10')
+    dsen = cell('05_Debt_Schedule', 'C22')
+    extra.append(('총 DSCR <= 선순위 단독 DSCR', dtot <= dsen + 1e-9, '총=%.4f 선순위=%.4f' % (dtot, dsen)))
 elif deal == 'office_vac100':
     # 수입이 0이면 자기자본 현금흐름이 부호를 바꾸지 않아 IRR 이 존재하지 않는다.
     # 화면은 '—' 를 보여주므로 엑셀도 공란이어야 파리티가 성립한다(#NUM! 노출 금지).
     for sheet, ref, nm in (('09_Return_Summary', 'E5', '세전 IRR(총자기자본)'),
                            ('09_Return_Summary', 'C5', '세전 IRR(보통주)'),
-                           ('00_Cover', 'C25', '표지 보통주 IRR'),
-                           ('00_Cover', 'G25', '표지 총자기자본 IRR')):
+                           ('00_Cover', 'C26', '표지 보통주 IRR'),
+                           ('00_Cover', 'G26', '표지 총자기자본 IRR')):
         v = cell_raw(sheet, ref)
         blank = v is None or str(v).strip() == ''
         extra.append(('%s(%s!%s) 공란' % (nm, sheet, ref), blank, '값=%r' % (v,)))

@@ -14,7 +14,9 @@
 
 - 딜 4종: 오피스·물류 매입(13시트), 공동주택 분양 사업수지(6시트, 브릿지→본PF·중도금 월별 엔진), 리파이낸싱 비교(4시트)
 - 파일: `dart-search/web/modelter/index.html`(앱 전체), `guide.html`(용어사전·SEO), `og.png`, `robots.txt`, `sitemap.xml`, `_headers`
-- 부가: 온보딩(역할 선택), 공유 링크(#v=/#e=, LZW 압축, 임차인명 마스킹), 한 줄 보고 복사, 모바일 위저드(⚡핵심만), 딥링크 `#t=office|logistics|dev|refi(&view=lender)`, IC 원페이저 인쇄, 자동 판정, 억·조 환산 힌트
+- 자본구조 4단: 선순위 → **중순위(메자닌)** → 보증금 승계 → 우선주 → 보통주. 중순위는 이자 지급 방식이 핵심 분기 — `이자만 지급`(현금, DSCR 하락)과 `만기일시상환(이자 누적·PIK)`(잔액 증가, 매각 시 일괄)
+- 부가: 공유 링크(#v=/#e=, LZW 압축, 임차인명 마스킹), 한 줄 보고 복사, 모바일 위저드(⚡핵심만), 딥링크 `#t=office|logistics|dev|refi(&view=lender)`, IC 원페이저 인쇄, 자동 판정, 억·조 환산 힌트
+- **도착 시 자동 팝업 없음**(2026-08-11) — What's new 는 공지 배너 버튼으로만. 재방문(`mt_used`)은 소개를 접고 도구부터
 
 ### 핵심 원칙 — 파리티
 
@@ -24,6 +26,7 @@
 node tools/parity/gen-xlsx.js office|logistics|dev|refi   # 생성
 python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pip install formulas) — 4딜 전수
 # 자본구조·경계 변형: office_nopref|office_nonpass|office_hold7|office_nodebt(무차입)|office_vac100(공실 100%)
+#                     office_mezz(중순위 현금이자)|office_mezzpik(중순위 이자누적 PIK)
 # 전 딜 공통 구조 검사도 함께 돈다 — 비유한값 0 · 엑셀 오류 토큰 0 · 검증 시트 종합 판정 PASS
 ```
 
