@@ -28,6 +28,11 @@ const VARIANTS = {
   // 공실 100% — 수입 0 경계. 엔진이 IRR·NOI·DSCR을 null로 돌려주는데도 다운로드는 그대로 실행된다.
   // degenerate: 수치 대조는 성립하지 않고, "파일이 열리는가 · 오류가 노출되지 않는가"만 검사한다.
   office_vac100:  { base: 'office', patch: "state['vacancy']='100';", degenerate: true },
+  // 중순위(메자닌) — 현금이자형과 이자누적(PIK)형 각각. 4단 자본구조가 엑셀에서도 같은 값을 내는지 본다.
+  // 우선주를 30→15%로 낮춰 보통주가 남는 현실적인 4단 구조로 검증한다
+  // (예시 딜의 30% 그대로면 보통주가 Uses의 1%로 눌려 워터폴 검사가 0 대 0 비교가 된다).
+  office_mezz:    { base: 'office', patch: "stackState['mezz_on']=true; stackState['mezz_ltv']='10'; stackState['mezz_rate']='8.5'; stackState['mezz_extra']='이자만 지급'; stackState['pref_ltv']='15';" },
+  office_mezzpik: { base: 'office', patch: "stackState['mezz_on']=true; stackState['mezz_ltv']='10'; stackState['mezz_rate']='8.5'; stackState['mezz_extra']='만기일시상환(이자 누적)'; stackState['pref_ltv']='15';" },
   // ※ 분양률 0%(dev)는 변형에 넣지 않았다 — 엔진이 결과 자체를 내지 않아 다운로드가 만들어지지 않는다.
   //    검사할 산출물이 없으므로 경계로서 의미가 없다(2026-08-10 확인).
 };

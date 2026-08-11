@@ -21,12 +21,14 @@ node tools/parity/gen-xlsx.js logistics   # 물류 13시트
 node tools/parity/gen-xlsx.js dev         # 분양수지 6시트
 node tools/parity/gen-xlsx.js refi        # 리파이낸싱 4시트
 
-# 1-b) 자본구조·경계 매트릭스 — 예시 딜 1케이스 편향을 깨는 오피스 변형 5종
+# 1-b) 자본구조·경계 매트릭스 — 예시 딜 1케이스 편향을 깨는 오피스 변형 7종
 node tools/parity/gen-xlsx.js office_nopref    # 우선주 끔
 node tools/parity/gen-xlsx.js office_nonpass   # 비도관(법인세 적용)
 node tools/parity/gen-xlsx.js office_hold7     # 보유기간 7년
 node tools/parity/gen-xlsx.js office_nodebt    # 무차입(LTV 0) — 커버리지 분모 0 경계
 node tools/parity/gen-xlsx.js office_vac100    # 공실 100% — 수입 0, IRR 미정의 경계
+node tools/parity/gen-xlsx.js office_mezz      # 중순위(메자닌) 현금이자형 — 4단 자본구조
+node tools/parity/gen-xlsx.js office_mezzpik   # 중순위 이자누적(PIK)형
 
 # 2) 검증 — 엑셀을 python 수식 엔진으로 재계산해 화면 값과 비교
 python3 tools/parity/check.py office
@@ -38,6 +40,8 @@ python3 tools/parity/check.py office_nonpass
 python3 tools/parity/check.py office_hold7
 python3 tools/parity/check.py office_nodebt
 python3 tools/parity/check.py office_vac100
+python3 tools/parity/check.py office_mezz
+python3 tools/parity/check.py office_mezzpik
 ```
 
 모두 `PARITY OK`가 나와야 배포 안전. 출력물은 `out/`에 쌓이며 git에는 올라가지 않습니다.
@@ -58,6 +62,7 @@ python3 tools/parity/check.py office_vac100
 | office_nonpass (변형) | 09_Return_Summary | office와 동일 6지표 + 세후 IRR(E6)이 세전(E5)과 달라야 함 — 엑셀·엔진 양쪽 확인 |
 | office_hold7 (변형) | 09_Return_Summary | office와 동일 6지표를 보유 7년 상태로 대조 (IRR 범위 재지정 검증) |
 | office_nodebt (변형) | 09_Return_Summary + 전 시트 | 무차입 경계 — 최소 DSCR 공란(0 오독 금지) |
+| office_mezz / office_mezzpik (변형) | 09_Return_Summary + 05_Debt_Schedule | 중순위 4단 구조 — 6지표 대조 + 구조 검사: 금액>0, 스케줄 기초잔액=가정 금액, 현금이자형(이자>0·잔액 불변·총 DS>선순위)과 PIK형(현금이자 0·잔액 증가·총 DS=선순위), 총 DSCR ≤ 선순위 단독 DSCR |
 | office_vac100 (변형) | 전 시트 | 공실 100% 경계 — IRR이 존재하지 않는 딜. 화면이 '—'이므로 엑셀도 공란이어야 함(09_Return_Summary!C5·E5, 00_Cover!C25·G25). 수치 대조는 성립하지 않아 건너뜀 |
 
 ### 전 딜 공통 구조 검사

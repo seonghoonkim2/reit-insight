@@ -470,8 +470,18 @@ ok(html.includes('id="solverCard"'), '역산 카드 존재');
 ok(html.includes('function _covBlock'), '부채 커버넌트 표(_covBlock) 존재');
 ok(html.includes('INT:INT,endBal:endBal,exitCap:'), '엔진 INT·endBal·exitCap 노출(2엔진)');
 ok((html.match(/INT:INT,endBal:endBal,exitCap:/g)||[]).length>=2, '두 엔진 모두 노출');
-ok(html.includes('04_Operating_ProForma!C18/C6'), '엑셀 05 ICR 행');
-ok(html.includes('04_Operating_ProForma!C18/C8'), '엑셀 05 Debt Yield 행');
+// 커버리지 분모는 선순위+중순위 합산(2026-08-11 중순위 실계산 편입)
+ok(html.includes("04_Operating_ProForma!'+c+'18/('+c+'6+'+c+'17"), '엑셀 05 ICR 행 (선순위+중순위 이자)');
+ok(html.includes("04_Operating_ProForma!'+c+'18/('+c+'8+'+c+'20"), '엑셀 05 Debt Yield 행 (총 기말잔액)');
+// 중순위가 실제 계산 구조로 들어갔는지 — 가정·스케줄·워터폴·조달 4곳
+ok(html.includes('$C$82*$C$14') && html.includes('$C$21-$C$49-$C$85-$C$53-IF($C$74=1,$C$75,0)'),
+  '엑셀 가정: 중순위 금액 + 보통주 plug 차감');
+ok(html.includes('IF(\'+A+\'$C$84="이자만 지급",\'+c+\'17,0)') && html.includes("put(db,c+'20',c+'16+'+c+'19')"),
+  '엑셀 05: 중순위 이자 현금/누적(PIK) 분기 + 잔액 전개');
+ok(html.includes("05_Debt_Schedule!'+c+'8-05_Debt_Schedule!'+c+'20"), '엑셀 07: 매각 시 중순위 잔액 상환');
+ok(html.includes("05_Debt_Schedule!'+c+'6+05_Debt_Schedule!'+c+'17"), '엑셀 06: 이자비용에 중순위 발생이자 포함');
+ok(!html.includes('계산 미반영(메모용)') && !html.includes('메자닌은 반영되지 않습니다'), '중순위 "미반영" 표기 제거됨');
+ok(html.includes('mezzAmt:mezz') && html.includes("uses-loan-mezz-prefAmt-depSrc"), '엔진: 중순위가 Sources에 반영');
 ok(html.includes('Exit Cap ≥ 진입 Cap − 0.5%p'), '엑셀 11 검증: 역스프레드 체크');
 ok(html.includes('feats:featSnapshot()'), '이벤트 스키마: 활성기능 스냅샷(feats) 전송');
 ok(html.includes("track('share_link')") && html.includes("track('pdf_export')") && html.includes("track('slot_save')"), '이벤트: 공유·PDF·보관함 액션 추적');
