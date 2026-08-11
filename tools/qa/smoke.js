@@ -133,12 +133,12 @@ async function closeOverlays(page) {
     await page.goto(URL0 + '#t=refi'); await page.waitForTimeout(900);
     const st = await page.evaluate(() => ({
       cur: cur,
-      ob: (() => { const o = document.getElementById('obOverlay'); return o ? !o.hidden : false; })(),
+      ob: !!document.getElementById('obOverlay'),
       wn: (() => { const o = document.getElementById('wnOverlay'); return o ? !o.hidden : false; })(),
       res: (() => { const c = document.getElementById('simCard'); return c && !c.hidden && !c.classList.contains('noresult'); })(),
     }));
     ok(st.cur === 'refi' && st.res, '#t=refi → 탭 + 예시 결과');
-    ok(!st.ob && !st.wn, '딥링크 진입 시 온보딩·What\'s new 억제');
+    ok(!st.ob && !st.wn, '딥링크 진입 시 자동 팝업 없음');
     await ctx.close();
   }
 
@@ -183,18 +183,76 @@ async function closeOverlays(page) {
     await ctx.close();
   }
 
-  // ── [6] What's new: 재방문 자동 노출 + v3 라벨 ──
+  // ── [6] What's new: 자동으로 뜨지 않고, 배너 버튼으로만 열림 + v3 라벨 ──
   console.log('\n[6] What\'s new');
   {
     const ctx = await browser.newContext();
-    await ctx.addInitScript(() => { localStorage.setItem('mt_onboarded', '1'); });
     const page = await ctx.newPage();
-    await page.goto(URL0); await page.waitForTimeout(800);
+    await page.goto(URL0); await page.waitForTimeout(1200);
+    const before = await page.evaluate(() => {
+      const ov = document.getElementById('wnOverlay'), bar = document.getElementById('announce');
+      return { auto: !!(ov && !ov.hidden), bar: !!(bar && !bar.hidden) };
+    });
+    ok(!before.auto, '도착 시 What\'s new 자동 팝업 없음');
+    ok(before.bar, '공지 배너는 표시됨(팝업 진입로)');
+    await page.click('#annMore'); await page.waitForTimeout(400);
     const wn = await page.evaluate(() => {
       const ov = document.getElementById('wnOverlay');
       return { shown: ov && !ov.hidden, v3: /What's new · v3/.test(ov ? ov.textContent : '') };
     });
-    ok(wn.shown && wn.v3, '재방문 What\'s new 자동 노출 + v3 라벨');
+    ok(wn.shown && wn.v3, '배너 버튼 클릭 → What\'s new 열림 + v3 라벨');
+    await ctx.close();
+  }
+
+  // ── [6-b] 재방문 착지: 소개 접힘 → 딜 탭이 첫 화면에 ──
+  console.log('\n[6-b] 재방문 착지');
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    await ctx.addInitScript(() => { try { localStorage.setItem('mt_used', '1'); } catch (e) {} });
+    const page = await ctx.newPage();
+    await page.goto(URL0); await page.waitForTimeout(1200);
+    const st = await page.evaluate(() => ({
+      why: getComputedStyle(document.querySelector('.why')).display !== 'none',
+      tabsY: Math.round(document.getElementById('builder-start').getBoundingClientRect().top + scrollY),
+      toggle: getComputedStyle(document.getElementById('introBack')).display !== 'none',
+    }));
+    ok(!st.why && st.tabsY < 400, `재방문: 소개 접고 딜 탭이 첫 화면에 (y=${st.tabsY})`);
+    ok(st.toggle, '소개 펼치기 토글 노출');
+    await page.click('#introBack'); await page.waitForTimeout(400);
+    ok(await page.evaluate(() => getComputedStyle(document.querySelector('.why')).display !== 'none'), '펼치기 → 소개 복원');
+    await ctx.close();
+  }
+
+  // ── [6-c] 도구 · 저장 블록: 기본 닫힘, 열면 깊이·IM·보관함이 그 안에 ──
+  console.log('\n[6-c] 도구 · 저장 블록');
+  {
+    const { ctx, page } = await fresh(browser);
+    await page.goto(URL0 + '#t=office'); await page.waitForTimeout(1400);
+    const st = await page.evaluate(() => {
+      const tf = document.getElementById('toolsFold');
+      const panel = document.querySelector('#formBody').closest('.panel');
+      const first = document.querySelector('#formBody input[data-k]');
+      return {
+        closed: tf && !tf.open,
+        summary: tf ? tf.querySelector('#tfNow').textContent : '',
+        gap: Math.round(first.getBoundingClientRect().top - panel.getBoundingClientRect().top),
+        depthOutside: !!document.querySelector('#formBody #depthSeg'),
+      };
+    });
+    ok(st.closed, '도구 블록 기본 닫힘');
+    ok(/시트/.test(st.summary), `닫힌 채로 현재 깊이 표시 (${st.summary})`);
+    ok(st.gap < 320, `패널 상단→첫 입력칸 ${st.gap}px (<320)`);
+    ok(!st.depthOutside, '깊이 선택이 입력 폼 위에 없음');
+    await page.evaluate(() => { document.getElementById('toolsFold').open = true; });
+    await page.waitForTimeout(300);
+    const inside = await page.evaluate(() => {
+      const tf = document.getElementById('toolsFold');
+      return ['#depthSeg', '.imfold', '#slotSel', '#srcBtn', '#chkBtn', '#myDefBtn', '#shareBtn', '#clearBtn']
+        .filter(s => !tf.querySelector(s));
+    });
+    ok(inside.length === 0, '도구 블록 안에 깊이·IM·보관함·출처·점검·기본값·공유·비우기 모두 존재' + (inside.length ? ' — 누락 ' + inside.join(',') : ''));
+    await page.click('#toolsFold .depth-opt[data-depth="deep"]'); await page.waitForTimeout(900);
+    ok(await page.evaluate(() => /심층/.test(document.getElementById('tfNow').textContent)), '도구 블록 안에서 깊이 전환 동작');
     await ctx.close();
   }
 
