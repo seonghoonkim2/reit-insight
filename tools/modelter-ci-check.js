@@ -32,8 +32,10 @@ if (fs.existsSync(path.join(DIR, 'howto.html'))) {
   const hw = fs.readFileSync(path.join(DIR, 'howto.html'), 'utf8');
   ok(hw.includes('"@type":"HowTo"') && hw.includes('BreadcrumbList'), 'howto.html 구조화 데이터(HowTo·Breadcrumb)');
   ok(hw.includes('/#t=office') && hw.includes('/#t=dev&view=lender'), 'howto.html → 계산기 딥링크');
-  ok(hw.includes('/guide.html'), 'howto ↔ 용어사전 상호 링크');
+  ok(hw.includes('href="/guide"'), 'howto ↔ 용어사전 상호 링크(무확장 정식 URL)');
   ok(hw.includes('투자 권유가 아닌'), 'howto 고지 문구');
+  ok(hw.includes('IM 받았으면, 첫 숫자 15분') && hw.includes('팀에 1차 검토 공유'), '북극성 검색: IM 직후 첫 숫자→팀 전달 워크플로');
+  ok((hw.match(/src=howto/g) || []).length >= 5 && !hw.includes('처음 열면 역할('), '북극성 검색: howto 유입 태그·삭제된 온보딩 설명 없음');
 }
 if (fs.existsSync(path.join(DIR, 'guide.html'))) {
   const g = fs.readFileSync(path.join(DIR, 'guide.html'), 'utf8');
@@ -149,6 +151,9 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   ok(md.includes('blob10') && md.includes('봇 제외'), '계측 사전: 분모 규칙(봇 제외·blob10) 명시');
   const aeSrc3 = fs.readFileSync(path.join(__dirname, 'modelter-ae.js'), 'utf8');
   ok(aeSrc3.includes('SNAP_SCHEMA') && aeSrc3.includes('validateSnap') && aeSrc3.includes('botExcluded'), '스냅샷: 스키마 버전 + 쓰기 전 검증 + botExcluded 표시');
+  const reportSrc3 = fs.readFileSync(path.join(__dirname, 'modelter-report.js'), 'utf8');
+  ok(aeSrc3.includes('Q_TEAM_HANDOFF') && aeSrc3.includes('teamHandoffByAct') && md.includes('teamHandoffByAct'), '북극성 계측: 실사용 팀 전달·실제 링크 act 분해 스냅샷');
+  ok(reportSrc3.includes('북극성 · 팀 전달') && reportSrc3.includes('실제 공유 링크'), '북극성 계기판: 팀 전달 사전 기준 노출');
 }
 
 /* ── 1j) 사용성 v3(로그 기반) — 복잡도 다이어트·조정 바·위저드 발견성 ── */

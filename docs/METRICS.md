@@ -124,6 +124,7 @@
 - **v1** (schema 필드 부재 = 2026-07-09.json): 하위호환으로 그대로 읽는다 — **기존 스냅샷 원자료는 수정 금지.**
 - **additive 필드 (2026-08-10~, schema는 2 유지 — 기존 소비자 무영향)**:
   - `outputsByAct: {act, nonact, unknown, since:'2026-07-26'}` — 북극성 K3. 산출물이 **자기 숫자 세션**(blob11=1)에서 나왔는지. `unknown`은 act 계측 개시(07-26) 이전 구간이므로 **act/nonact와 합산 금지**.
+  - `teamHandoffByAct: {since:'2026-08-15', handoff_open:{act,nonact,unknown}, share_link:{act,nonact,unknown}}` — 첫 숫자의 팀 전달 선행지표. 08-15 배포 뒤 데이터만 집계하며, 사전 기준은 실사용 `handoff_open` 10건·`share_link` 5건이다. 이전 `share_link`는 메뉴 열기만 한 건이 섞여 있어 합산 금지.
   - `dealWantGate: {<딜>:표수, since:'2026-07-14', target:50}` — 커버리지 착수 게이트. 조회 창(`--days`)과 무관한 **절대 기간 누적**(dedupe 배포일 이후). ⚠ AE 보존기간(약 90일) 초과 시 과소집계 — 2026-10 이후 커밋된 스냅샷 누적 합산으로 전환 필요.
   - 참고: `daily[]`에는 `depth_change`·`fsub_open`을 포함한 **전 이벤트**가 이미 들어 있다(별도 추가 불필요).
 
@@ -137,3 +138,4 @@
 | 2026-07-14 | `deal_want` 브라우저당 유형별 1회 dedupe(localStorage) | 이전 deal_want는 **클릭 수**(중복 포함), 이후는 브라우저 단위 표 수 — 커버리지 게이트(단일 유형 50건)는 07-14 이후 집계 기준으로 판정 |
 | 2026-07-14 | src 채널 `pdf`(인쇄 요약 QR)·`sns`(직접 게시 링크) 추가, 엑셀 회수 링크를 01_Assumptions 시트에도 삽입 | 회수 착지(K4) 채널 분해에 pdf·sns 등장 가능 — 퍼널 4이벤트 발화는 무변경 |
 | 2026-08-15 | `handoff_open` 추가, 공유 메뉴 열기를 `share_link`에서 분리 | 이전 `share_link`에는 메뉴 열기만 한 건도 포함됨. 이후부터 실제 링크 생성·복사만 산출물로 세며 전후 절대량 직접 비교 금지 |
+| 2026-08-15 | src 채널 `howto` 추가 | IM 직후 첫 숫자 활용 가이드의 계산기 CTA 유입·활성화·팀 전달을 별도 판독 |
