@@ -46,7 +46,7 @@ node tools/qa/invariants.js
 # 6) 테스트 훅 유출 확인 → 반드시 0
 grep -c "__mtCalc" dart-search/web/modelter/index.html
 
-# 7) 실제 브라우저 스모크 47건
+# 7) 실제 브라우저 스모크 49건
 node tools/qa/smoke.js
 ```
 

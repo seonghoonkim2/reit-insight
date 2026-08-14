@@ -22,8 +22,12 @@ dart-search/web/reits.js
 dart-search/web/bonds.js
 
 # 파이썬 캐시
+.venv/
 __pycache__/
 *.pyc
+
+# 파리티 검증 산출물 — 딜 상태·기대값이 들어갈 수 있어 저장소에 올리지 않음
+tools/parity/out/
 
 # SEO 정적 생성물 (build_site.py 산출물)
 dart-search/dist/

@@ -6,15 +6,15 @@
 <script>(function(){try{var t=localStorage.getItem('mt_theme');if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}
 /* 재방문 착지 — 써 본 적 있으면 소개를 접고 도구부터. 첫 렌더 전에 걸어야 깜빡임이 없다(테마와 같은 이유) */
 try{if(localStorage.getItem('mt_used')==='1')document.documentElement.setAttribute('data-back','1');}catch(e){}})();</script>
-<title>모델터 · 부동산 재무모델 빌더 — 현직자가 만든 100% 무료</title>
+<title>모델터 · CRE 딜 검토 첫 숫자 — 부동산 재무모델</title>
 
-<meta name="description" content="현직자가 만든 100% 무료 부동산 재무모델 빌더. 숫자만 넣으면 IRR·DSCR이 바로, 수식 살아있는 엑셀까지. 오피스·물류·분양·리파이." />
+<meta name="description" content="한국 상업용 부동산 딜 검토의 첫 계산. 매입가·임대료/NOI·대출·Exit Cap을 넣으면 IRR·DSCR·하방과 수식 살아있는 Excel이 바로 나옵니다." />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta name="naver-site-verification" content="cd616751139fa63aa46c35c65255eabc0a321ca7" />
 <link rel="canonical" href="https://modelter.com/" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="모델터 · 부동산 재무모델 빌더 — 현직자가 만든 100% 무료" />
-<meta property="og:description" content="현직자가 만든 100% 무료 부동산 재무모델 빌더. 숫자만 넣으면 IRR·DSCR이 바로, 수식 살아있는 엑셀까지. 오피스·물류·분양·리파이." />
+<meta property="og:title" content="모델터 · CRE 딜 검토, 첫 숫자는 여기서" />
+<meta property="og:description" content="매입가·임대료/NOI·대출·Exit Cap을 넣고 IRR·DSCR·하방을 바로 확인하세요. 수식 살아있는 Excel까지." />
 <meta property="og:url" content="https://modelter.com/" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <meta property="og:image:width" content="1200" />
@@ -22,7 +22,7 @@ try{if(localStorage.getItem('mt_used')==='1')document.documentElement.setAttribu
 <meta name="twitter:card" content="summary_large_image" />
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"현직자가 만든 100% 무료 부동산 재무모델 빌더. 숫자만 넣으면 IRR·DSCR이 바로, 수식 살아있는 엑셀까지. 오피스·물류·분양·리파이낸싱.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"},"featureList":["오피스·물류 매입 레버드 DCF","공동주택 분양 사업수지","리파이낸싱 대안 비교","수식 살아있는 Excel 다운로드","렌트롤 반영"],"subjectOf":{"@type":"Article","name":"부동산 금융 용어사전 · 재무모델 가이드","url":"https://modelter.com/guide"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"한국 상업용 부동산 딜 검토를 시작할 때 첫 숫자를 뽑는 무료 재무모델 도구. IRR·DSCR·하방과 수식 살아있는 Excel을 바로 만듭니다.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"},"featureList":["오피스·물류 매입 레버드 DCF","공동주택 분양 사업수지","리파이낸싱 대안 비교","수식 살아있는 Excel 다운로드","렌트롤 반영"],"subjectOf":{"@type":"Article","name":"부동산 금융 용어사전 · 재무모델 가이드","url":"https://modelter.com/guide"}}
 </script>
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -138,7 +138,7 @@ html[data-back="1"] .intro-back{display:inline-block}
 .why-body p{font-size:14.5px; color:var(--ink-2); line-height:1.55; margin:0 0 6px}
 .why-body b{color:var(--ink); font-weight:600}
 .why-foot{font-size:13.5px!important; color:var(--muted)!important; padding-top:8px; border-top:1px dashed var(--line-soft); margin-bottom:0!important}
-.who-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.who-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
 .who-card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:9px 13px; transition:.16s}
 .who-card:hover{border-color:var(--accent); box-shadow:var(--soft)}
 .who-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:3px}
@@ -476,6 +476,8 @@ header{background:rgba(253,252,249,.82)}
   .deal-tabs{flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start; padding:2px 4px 8px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; scrollbar-width:none}
   .deal-tabs::-webkit-scrollbar{display:none}
   .deal-tab{flex:0 0 auto; scroll-snap-align:center}
+  /* 모바일 첫 방문도 딜 검토가 목적 — 히어로와 중복되는 소개 카드는 접고 첫 입력을 한 화면 안쪽으로 당긴다. */
+  .why,.compare{display:none}
 }
 
 /* 모델 깊이: 인디고 활성 */
@@ -800,6 +802,12 @@ header{background:rgba(253,252,249,.82)}
 .dl-opt-note{color:var(--muted); font-size:11.5px}
 .dl-row .tz-dl{flex:1; background:var(--ink); color:var(--panel); box-shadow:0 4px 14px rgba(0,0,0,.18); font-size:13px; padding:14px 8px}
 .dl-row .tz-dl .xl-ext{opacity:.6}
+.handoff-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:13px 14px;border:1px solid rgba(169,121,43,.28);border-radius:13px;background:rgba(169,121,43,.07)}
+.handoff-copy{min-width:0}.handoff-copy b{display:block;font-size:13.5px;color:var(--ink);letter-spacing:-.01em}.handoff-copy span{display:block;margin-top:2px;font-size:11.5px;color:var(--muted);line-height:1.45}
+.handoff-btn{flex:0 0 auto;border:0;border-radius:10px;background:var(--accent-solid);color:var(--on-accent);font:700 13px var(--font);padding:10px 13px;cursor:pointer;box-shadow:0 5px 14px rgba(169,121,43,.22)}
+.handoff-btn:hover{background:var(--accent-deep)}
+.metrics.noresult .handoff-bar{display:none}
+@media(max-width:560px){.handoff-bar{align-items:stretch;flex-direction:column}.handoff-btn{width:100%}}
 
 
 /* skip link (키보드 접근성) */
@@ -1289,8 +1297,8 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><defs><linearGradient id="mtmark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b9842f"/><stop offset="1" stop-color="#8a5f20"/></linearGradient></defs><rect width="32" height="32" rx="8.5" fill="url(#mtmark)"/><g fill="#fbf6ec"><rect x="8.5" y="17.5" width="3.4" height="6" rx="1.1"/><rect x="14.3" y="14" width="3.4" height="9.5" rx="1.1"/><rect x="20.1" y="10.5" width="3.4" height="13" rx="1.1"/><rect x="7.5" y="24.2" width="17" height="1.7" rx="0.85"/></g></svg></span>
       <div class="wordmark">
         <b>모델터</b>
-        <span class="tag-full">부동산 재무모델 빌더 · 결과·Excel·AI까지</span>
-        <span class="tag-short">재무모델 빌더</span>
+        <span class="tag-full">CRE 딜 검토 · 첫 숫자부터 Excel까지</span>
+        <span class="tag-short">CRE 첫 숫자</span>
       </div>
     </a>
     <div class="head-right">
@@ -1305,7 +1313,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 <div class="announce" id="announce" hidden>
   <div class="wrap announce-in">
     <span class="ann-badge">NEW</span>
-    <span class="ann-msg"><b>모델터가 새로워졌습니다</b> — 이제 이 화면 안에서 재무모델이 바로 돌아가고, 수식이 살아있는 엑셀로 받습니다.</span>
+    <span class="ann-msg"><b>딜 받았으면, 모델터부터</b> — 첫 숫자에서 팀 검토용 Excel·PPT까지 한 흐름으로 이어집니다.</span>
     <button class="ann-more" id="annMore" type="button">무엇이 바뀌었나 →</button>
     <button class="ann-x" id="annClose" type="button" aria-label="공지 닫기">×</button>
   </div>
@@ -1319,14 +1327,15 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
     <div class="wn-eyebrow">What's new · v3</div>
     <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
-    <p class="wn-lead">4개 딜 전부, 검증된 엑셀까지 이어집니다.</p>
+    <p class="wn-lead">딜 검토의 첫 숫자가 더 빨리 보이고, 팀 전달까지 바로 이어집니다.</p>
     <ul class="wn-list">
+      <li><span class="wn-ic">⚡</span><div><b>딜 받았으면, 모델터부터 <span class="wn-tag">NEW</span></b><span>IM·티저에서 첫 IRR·DSCR·하방을 뽑는 순서로 첫 화면과 결과 동선을 정리했습니다.</span></div></li>
       <li><span class="wn-ic">🧮</span><div><b>내 숫자가 대입된 산식 <span class="wn-tag">NEW</span></b><span>방법론 창이 지금 딜의 값으로 IRR·DSCR 계산 과정을 보여줍니다.</span></div></li>
       <li><span class="wn-ic">📎</span><div><b>가정 출처, 전 딜 엑셀에 <span class="wn-tag">NEW</span></b><span>출처·기준일 기록이 분양·리파이 엑셀에도 함께 실립니다.</span></div></li>
       <li><span class="wn-ic">⬇️</span><div><b>스스로 검증하는 엑셀</b><span>생성 시점 값이 파일에 찍혀, 받은 사람도 PASS/FAIL로 확인 — 4딜 전부 공개 파리티.</span></div></li>
       <li><span class="wn-ic">✓</span><div><b>더 깐깐해진 점검 <span class="wn-tag">NEW</span></b><span>렌트롤 단위·보증금·만기 검사와 IRR 다중해 경고가 추가됐습니다.</span></div></li>
     </ul>
-    <button class="wn-cta" id="wnCta" type="button">바로 만들어보기 ↓</button>
+    <button class="wn-cta" id="wnCta" type="button">내 딜 첫 숫자 뽑기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
   </div>
 </div>
@@ -1442,10 +1451,10 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
         <svg class="mc-li" viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
       </a>
     </div>
-    <span class="eyebrow">모델터 · 기관의 재무모델링을, 모두에게</span>
-    <h1>기관급 부동산 재무모델을, <em>누구나 직접</em>.</h1>
-    <p>지금까지 부동산 재무모델은 소수의 숙련된 사람만 만들 수 있었습니다. 딜을 고르고 숫자만 넣으면, 나머지는 모델터가 합니다. <b>재무모델이 이 화면 안에서 바로 만들어지고</b>, 수식이 살아있는 <b>Excel 파일로 그 자리에서 내려받을 수 있습니다.</b></p>
-    <a class="intro-cta" href="#builder-start">바로 만들어보기 ↓</a>
+    <span class="eyebrow">한국 CRE 딜 검토의 첫 계산</span>
+    <h1>딜 받았으면, <em>모델터부터.</em></h1>
+    <p>IM·티저를 열고 <b>매입가·임대료/NOI·대출·Exit Cap</b>을 넣으세요. 첫 IRR·DSCR·하방이 바로 나오고, 팀 검토용 <b>수식 Excel과 PPT</b>까지 이어집니다.</p>
+    <a class="intro-cta" href="#builder-start">내 딜 첫 숫자 뽑기 ↓</a>
     <button type="button" class="intro-back" id="introBack">모델터 소개 · 활용 사례 펼치기 ↓</button>
   </div>
 </section>
@@ -1453,23 +1462,19 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 <section class="why">
   <div class="wrap">
     <div class="why-who full">
-      <div class="why-label">누가 쓰면 좋은가</div>
+      <div class="why-label">딜 검토의 시작점</div>
       <div class="who-grid">
         <div class="who-card">
-          <div class="who-top"><span class="who-role">본부장 · 팀장</span><span class="who-gain">즉시 초안</span></div>
-          <p>보고 전에 IRR·멀티플과 Excel 초안을 그 자리에서.</p>
+          <div class="who-top"><span class="who-role">① IM·티저를 받으면</span><span class="who-gain">첫 가정</span></div>
+          <p>매입가·임대료/NOI·Exit Cap부터 넣어 1차 수익성을 봅니다.</p>
         </div>
         <div class="who-card">
-          <div class="who-top"><span class="who-role">시니어</span><span class="who-gain">검토 가속</span></div>
-          <p>가정만 바꾸면 결과가 바로 나와 시나리오 검토가 빨라집니다.</p>
+          <div class="who-top"><span class="who-role">② 미팅·입찰 전에</span><span class="who-gain">하방 확인</span></div>
+          <p>금리·공실·Exit을 눌러 IRR·DSCR과 버틸 수 있는 범위를 봅니다.</p>
         </div>
         <div class="who-card">
-          <div class="who-top"><span class="who-role">주니어</span><span class="who-gain">속도 · 정확</span></div>
-          <p>검증된 구조 위에서 완성하고, 가정 검토에 집중합니다.</p>
-        </div>
-        <div class="who-card">
-          <div class="who-top"><span class="who-role">취준생 · 학생</span><span class="who-gain">실전 감각</span></div>
-          <p>실무 모델 구조를 직접 만들며 현장 감각을 익힙니다.</p>
+          <div class="who-top"><span class="who-role">③ 팀에 올리기 전에</span><span class="who-gain">검토 공유</span></div>
+          <p>같은 계산식의 한 줄 보고·Excel·PPT로 첫 숫자를 공유합니다.</p>
         </div>
       </div>
     </div>
@@ -1478,8 +1483,8 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 
 <section class="compare">
   <div class="wrap">
-    <div class="cmp-label">모델터로 할 수 있는 일</div>
-    <h2 class="cmp-title">이런 순간에 씁니다</h2>
+    <div class="cmp-label">특정 순간에 떠오르는 도구</div>
+    <h2 class="cmp-title">“이거 모델터로 돌려봤어?”</h2>
     <div class="usecase-grid">
       <div class="uc-card">
         <div class="uc-head"><div class="uc-tag">딜 검토</div><div class="uc-t">매입 입찰 전 빠른 수익성 판단</div></div>
@@ -1520,7 +1525,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
   <div class="wrap grid2">
     <div class="panel">
       <div class="panel-head">
-        <div class="t">가정값 입력 <span class="dt" id="dtLabel">오피스 매입</span></div>
+        <div class="t">첫 숫자 입력 <span class="dt" id="dtLabel">오피스 매입</span></div>
         <!-- 상단에는 '숫자를 넣기 전에 누를 만한 것'만 둔다. 나머지 도구는 입력 아래 '도구 · 저장'으로 내림(2026-08-11) -->
         <div class="ph-actions">
           <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
@@ -1562,13 +1567,17 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 
     <div id="resultCol">
       <div class="metrics" id="simCard" hidden>
-        <div class="mx-head"><span class="mx-t">모델 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관, 보유 3~10년 모든 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
+        <div class="mx-head"><span class="mx-t">1차 검토 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관, 보유 3~10년 모든 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
         <div class="coach" id="coachMark" hidden><b>결과, 이 순서로 보면 됩니다</b><ol><li><b>① 큰 숫자 세 개부터</b> — IRR(연 수익률)·EM(원금의 몇 배)·배당률</li><li><b>② 바로 아래 판정 한 줄</b> — 이 숫자가 좋은 건지 나쁜 건지</li><li><b>③ 민감도·시나리오</b> — 가정이 빗나가면 어디까지 버티는지</li></ol><button type="button" class="sl-btn" id="coachOk">확인했어요, 그만 보기</button></div>
         <div class="sim-kpis" id="simKpis"></div>
         <div class="sim-verdict" id="simVerdict" role="status" aria-live="polite" hidden></div>
         <details class="adj-d" id="adjBar" hidden><summary>🎛 즉석 조정 <span class="adj-sub">미팅 중 핵심 드라이버만 ± — 입력 폼과 즉시 동기화</span></summary><div id="adjBody"></div></details>
         <div id="simBody"></div>
         <div class="sim-cav" id="simCaveat"></div>
+        <div class="handoff-bar" id="handoffBar">
+          <div class="handoff-copy"><b>팀에 올릴 첫 숫자가 나왔습니다.</b><span>한 줄 보고·읽기 전용 링크로 보내고, 필요하면 Excel·PPT까지 이어가세요.</span></div>
+          <button class="handoff-btn" id="handoffBtn" type="button">팀에 1차 검토 공유</button>
+        </div>
         <div class="dl-row" id="dlRow" hidden>
           <button class="xl-dl" id="xlDownload" type="button" title="숨김 계산·복원 시트 포함 기준. 렌트롤 반영 시 집계·임차인별 시트가 추가됩니다">⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span></button>
           <button class="xl-dl tz-dl" id="tzDownload" type="button" title="현재 입력값으로 1장짜리 간이 검토 보고서(PPT 양식)를 만듭니다">📄 원페이지 티저 <span class="xl-ext">.pptx</span></button>
@@ -1677,7 +1686,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 
 <footer>
   <div class="wrap">
-    <div class="foot-mission">"기관의 재무모델링을, 모두에게" — 모델터</div>
+    <div class="foot-mission">"딜 검토, 첫 숫자는 모델터에서." — 모델터</div>
     <div class="foot-in">
       <div class="foot-by">
         <div class="av">김</div>
@@ -1967,7 +1976,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-11·088846c936';
+window.MT_BUILD='2026-08-14·95aa15ae42';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -5270,7 +5279,7 @@ function oneLineReport(){
   var vTxt=''; if(vd){ var seg=String(vd.lead||vd.html).replace(/<[^>]+>/g,''); vTxt=' — '+(vd.tone==='warn'?'⚠ ':'✓ ')+seg; }
   var url=shareLink(true,'share')||'';
   var exTag=(typeof exMixed==='function'&&exMixed())?' · (일부 가정은 예시값)':'';
-  return '[모델터] '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+exTag+'\n'+url;
+  return '[모델터] 1차 검토 · '+name+' · '+DEALS[cur].label+' — '+parts.join(' · ')+vTxt+exTag+'\n'+url;
 }
 /* 검토 메모 초안 — 카톡 한 줄과 IC 패키지 사이의 '메일 본문 10줄' */
 function reviewMemo(){
@@ -5405,12 +5414,12 @@ function summaryCardPNG(){
   },'image/png');
   return true;
 }
-function shareInputs(){
+function shareInputs(anchor){
   // 공유 방식 선택 팝오버
   var old=document.getElementById('sharePop'); if(old){ old.remove(); return; }
-  var btn=document.getElementById('shareBtn'); if(!btn) return;
+  var btn=anchor||document.getElementById('shareBtn'); if(!btn) return;
   var pop=document.createElement('div'); pop.id='sharePop'; pop.className='share-pop';
-  pop.innerHTML='<div class="sp-h">공유 링크</div>'+
+  pop.innerHTML='<div class="sp-h">팀에 1차 검토 보내기</div>'+
     '<button type="button" class="sp-opt" data-ro="1"><b>📊 결과 링크 (읽기 전용)</b><span>받는 사람은 결과·민감도를 보고, 값은 수정 못 합니다</span></button>'+
     '<button type="button" class="sp-opt" data-ro="0"><b>✏️ 편집용 링크</b><span>받는 사람이 값을 이어서 수정할 수 있습니다</span></button>'+
     '<button type="button" class="sp-opt" data-ol="1"><b>💬 한 줄 보고 복사</b><span>딜명 · 핵심 KPI · 판정 · 결과 링크 — 카톡·메일에 그대로 붙여넣기</span></button>'+
@@ -5588,7 +5597,8 @@ function initTheme(){
   });
 }
 
-const shareBtn=$("shareBtn"); if(shareBtn) shareBtn.addEventListener("click",shareInputs);
+const shareBtn=$("shareBtn"); if(shareBtn) shareBtn.addEventListener("click",function(){ shareInputs(this); });
+const handoffBtn=$("handoffBtn"); if(handoffBtn) handoffBtn.addEventListener("click",function(){ shareInputs(this); });
 var _roOpen=$("roOpen"); if(_roOpen) _roOpen.addEventListener("click",function(){ try{ if(window.mtTrack) mtTrack('recover_cta',{from:'banner'}); }catch(e){} if(window.__mtExitReadonly) window.__mtExitReadonly(); });
 var _roCta=$("roCtaBtn"); if(_roCta) _roCta.addEventListener("click",function(){
   try{ if(window.mtTrack) mtTrack('recover_cta',{from:'cta'}); }catch(e){}
@@ -11498,7 +11508,11 @@ var qrcode = function() {
     if(t.closest('#rrApply')){ track('rentroll_upload'); if(e.isTrusted&&window.__mtActivate) window.__mtActivate(); return; }   // 자기 렌트롤 적용 = 활성화 신호
     if(t.closest('#rrSample')){ track('sample_download'); return; }
     if(t.closest('#copyBtn')){ track('prompt_copy'); return; }
-    if(t.closest('#shareBtn')){ track('share_link'); return; }
+    if((el=t.closest('#shareBtn,#handoffBtn'))){
+      var _hoDone=false; try{ _hoDone=sessionStorage.getItem('mt_handoff_open')==='1'; if(!_hoDone) sessionStorage.setItem('mt_handoff_open','1'); }catch(_e){}
+      if(!_hoDone) track('handoff_open');
+      return;
+    }
     if(t.closest('#pdfBtn')){ track('pdf_export'); return; }
     if(t.closest('#slotSave')){ track('slot_save'); return; }
     if(t.closest('#slotDel')){ track('slot_delete'); return; }
