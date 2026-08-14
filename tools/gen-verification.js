@@ -40,7 +40,9 @@ function build() {
   const results = DEALS.map(d => Object.assign({}, d, runParity(d.k)));
   const allOK = results.every(r => r.ok === true);
   const anyRun = results.some(r => r.ok !== null);
-  const fmtErr = e => e === 0 ? '0' : (e < 1e-6 ? e.toExponential(1) : e.toPrecision(2));
+  // formulas/NumPy의 마지막 비트는 OS·BLAS에 따라 1e-15 수준에서 달라질 수 있다.
+  // 공개 산출물은 안정적인 상한 구간으로 적고, 실제 PASS/FAIL은 check.py의 원래 허용오차로 판정한다.
+  const fmtErr = e => e === 0 ? '0' : (e < 1e-9 ? '&lt; 1e-9' : (e < 1e-6 ? '&lt; 1e-6' : e.toPrecision(2)));
 
   const rowsHtml = results.map(r => {
     const badge = r.ok === true ? '<span class="pass">PASS</span>' : (r.ok === false ? '<span class="fail">FAIL</span>' : '<span class="na">미실행</span>');

@@ -131,5 +131,6 @@ done
 ## 커밋·배포
 
 - 커밋 메시지는 **한국어**, 변경 의도가 드러나게
-- master 푸시 = 즉시 배포. 위 게이트를 전부 통과한 뒤에만
+- master는 PR로만 변경하고, `Modelter CI`의 검증·11조합 파리티·브라우저 스모크를 모두 통과한 뒤 머지
+- master 머지 = Cloudflare 즉시 배포. 계기판 스냅샷 자동 커밋만 저장소 규칙의 명시적 예외
 - 배포 후 라이브 스탬프 확인: `curl -s https://modelter.com/ | grep -o "MT_BUILD='[^']*'"`
