@@ -565,6 +565,13 @@ ok(html.includes('딜 받았으면, <em>모델터부터.</em>') && html.includes
 ok(html.includes('id="handoffBtn"') && html.includes('팀에 올릴 첫 숫자가 나왔습니다.'), '북극성: 결과 직후 팀 1차 검토 전달 동선 존재');
 ok(html.includes("if(!_hoDone) track('handoff_open');") && html.includes("sessionStorage.getItem('mt_handoff_open')"), '북극성: 공유 메뉴 열기 세션 dedupe 계측');
 ok(!html.includes("if(t.closest('#shareBtn')){ track('share_link')"), '북극성: share_link는 메뉴 열기가 아닌 실제 산출물만 집계');
+ok(html.includes('어떤 순간에 열었나요?') && html.includes('왜 열지 않았는지도 같은 가치'), '북극성 질적 검증: 비유도형 사용 순간 질문');
+ok(html.includes('실제 딜명·자산명·수치·임차인명·회사명은 적지 마세요.'), '북극성 질적 검증: 피드백 민감정보 입력 금지');
+{
+  const evPath = path.join(__dirname, '..', 'docs', 'NORTH_STAR_EVIDENCE.md');
+  const evMd = fs.existsSync(evPath) ? fs.readFileSync(evPath, 'utf8') : '';
+  ok(fs.existsSync(evPath) && evMd.includes('질문 방식') && evMd.includes('유도 질문') && evMd.includes('실제 딜명·자산명·수치'), '북극성 질적 검증: 비유도·익명 증거 기록 규칙');
+}
 ok(html.includes('cmp-hi'), '딜 비교 최적값 하이라이트 존재');
 ok(html.includes('function wonConv') && html.includes('class="f-conv"'), '원화 환산 라이브 힌트(억/조) 존재');
 ok(html.includes('탭하면 결과로 이동'), '미니 KPI 탭 → 결과 스크롤 존재');
