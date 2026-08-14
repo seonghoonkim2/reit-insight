@@ -151,6 +151,19 @@ function build(snaps) {
   // 산출물 종류
   const outObj = {}; for (const e of OUTPUT_EVENTS) if (last.events[e]) outObj[EV_LABEL[e] || e] = last.events[e];
 
+  // 북극성 팀 전달 — 2026-08-15 오계측 분리 이후, 자기 숫자 세션(act=1)만 판정한다.
+  const th = last.teamHandoffByAct || null;
+  const ho = (th && th.handoff_open) || { act: 0, nonact: 0, unknown: 0 };
+  const sl = (th && th.share_link) || { act: 0, nonact: 0, unknown: 0 };
+  const teamRows = [
+    ['공유 메뉴 열기', Number(ho.act) || 0, 10],
+    ['실제 공유 링크', Number(sl.act) || 0, 5],
+  ].map(([lb, v, target]) => `<div class="frow"><span class="fk">${lb}</span><span class="ftrack"><span class="ffill" style="width:${Math.min(100, v / target * 100)}%"></span></span><span class="fn">${num(v)} / ${target}</span></div>`).join('');
+  const teamCard = th
+    ? `<div class="card"><h2>북극성 · 팀 전달 <span>실사용(act=1) · ${esc(th.since || '')} 이후</span></h2><div class="funnel">${teamRows}</div>
+      <p class="note">14일 사전 기준: 공유 메뉴 10건, 실제 링크 5건. 예시·비활성 세션은 메뉴 ${num(ho.nonact)}건 / 링크 ${num(sl.nonact)}건으로 분리해 성과에 넣지 않습니다.</p></div>`
+    : `<div class="card"><h2>북극성 · 팀 전달</h2><p class="empty">새 스냅샷부터 실사용 공유 메뉴·실제 링크가 분리 집계됩니다.</p></div>`;
+
   const body = `
   <div class="grid5">${kpis}</div>
 
@@ -161,6 +174,8 @@ function build(snaps) {
       <p class="note">방문·직접입력·결과도달은 <b>세션당 1회</b> 신호. 산출물은 <b>매 산출 행동의 합계</b>라 결과보다 클 수 있습니다(한 세션이 엑셀·티저 등 여러 개 생성).</p></div>
     <div class="card"><h2>산출물 종류</h2>${barList(outObj, {})}</div>
   </div>
+
+  ${teamCard}
 
   <div class="row2">
     <div class="card"><h2>딜 유형</h2>${barList(dealLabelMap(last.deals || {}), {})}</div>
@@ -226,14 +241,18 @@ ${body}
 </div></body></html>`;
 }
 
-const snaps = loadSnapshots();
-try {
-  fs.mkdirSync(path.dirname(OUT), { recursive: true });
-  fs.writeFileSync(OUT, build(snaps));
-} catch (e) {
-  console.error('대시보드 파일을 쓰지 못했습니다: ' + OUT + '\n  → ' + e.message +
-    '\n  쓰기 권한이 있는 경로로 --out 을 지정하세요. 예: node tools/modelter-report.js --out ./dashboard.html');
-  process.exit(1);
+if (require.main === module) {
+  const snaps = loadSnapshots();
+  try {
+    fs.mkdirSync(path.dirname(OUT), { recursive: true });
+    fs.writeFileSync(OUT, build(snaps));
+  } catch (e) {
+    console.error('대시보드 파일을 쓰지 못했습니다: ' + OUT + '\n  → ' + e.message +
+      '\n  쓰기 권한이 있는 경로로 --out 을 지정하세요. 예: node tools/modelter-report.js --out ./dashboard.html');
+    process.exit(1);
+  }
+  console.log('✅ 대시보드 생성: ' + path.relative(ROOT, OUT) + '  (스냅샷 ' + snaps.length + '개)');
+  console.log('   브라우저로 열기: file://' + OUT);
 }
-console.log('✅ 대시보드 생성: ' + path.relative(ROOT, OUT) + '  (스냅샷 ' + snaps.length + '개)');
-console.log('   브라우저로 열기: file://' + OUT);
+
+module.exports = { build, loadSnapshots };
