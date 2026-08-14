@@ -1654,9 +1654,9 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
   <div class="wrap">
     <div class="feedback" id="feedback">
       <div class="fb-head">
-        <div class="fb-label">현장의 의견을 반영합니다</div>
-        <h3>실무에서 쓰며 함께 발전시킵니다.</h3>
-        <p>쓰고 싶은 딜 유형이나 가정 항목, 실무와 다른 부분이 있으면 알려주세요. 사용법 문의나 팀 시연 요청도 좋습니다. 현장에서 나온 의견이 다음 버전에 반영됩니다.</p>
+        <div class="fb-label">어떤 순간에 열었나요?</div>
+        <h3>딜 검토의 시작점을 알려주세요.</h3>
+        <p>최근 어떤 문서를 받은 뒤, 무엇을 확인하려고 모델터를 열었는지 자유롭게 적어 주세요. 팀에서 그 다음 검토가 어떻게 이어졌는지, 또는 왜 열지 않았는지도 같은 가치가 있습니다.</p>
         <a class="fb-contact" href="https://www.linkedin.com/in/seonghoonk/" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
           사용법 문의 · 시연 요청은 LinkedIn으로
@@ -1664,14 +1664,14 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       </div>
       <div class="fb-form">
         <input id="fbEmail" type="email" class="fb-email" placeholder="회신받을 이메일 (선택)" autocomplete="email" />
-        <textarea id="fbText" placeholder="예: 메자닌에 만기·Hurdle 입력이 있으면 좋겠어요 / 호텔 자산도 추가해주세요 / 우리 팀 대상 시연이 가능할까요 / 이 부분이 실무와 달라요"></textarea>
+        <textarea id="fbText" placeholder="딜명·수치 없이 적어 주세요: 어떤 상황에서 열었고, 무엇을 확인했으며, 그다음 팀 검토는 어떻게 이어졌나요?"></textarea>
         <div class="fb-actions">
           <button class="fb-send" id="fbSend">
             <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
             의견 보내기
           </button>
         </div>
-        <p class="fb-note">버튼을 누르면 작성하신 의견이 바로 전송됩니다. 이메일을 남겨주시면 회신드릴 수 있습니다. 별도 연락은 위 LinkedIn을 이용해 주세요.</p>
+        <p class="fb-note">버튼을 누르면 작성하신 의견과 선택 입력한 이메일이 전송됩니다. <b>실제 딜명·자산명·수치·임차인명·회사명은 적지 마세요.</b> 별도 연락은 위 LinkedIn을 이용해 주세요.</p>
       </div>
     </div>
   </div>
@@ -1976,7 +1976,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-14·95aa15ae42';
+window.MT_BUILD='2026-08-14·3a2812f274';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -4836,7 +4836,7 @@ async function sendFeedback(){
       headers:{"Content-Type":"application/json","Accept":"application/json"},
       body:JSON.stringify({
         access_key:WEB3FORMS_KEY,
-        subject:"[모델터] 새 의견",
+        subject:"[모델터] 딜 검토 시작점 피드백",
         from_name:"모델터 피드백",
         email: email||"no-reply@modelter.com",
         message: txt + "\n\n— modelter.com 의견 보내기"
