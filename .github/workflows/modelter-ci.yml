@@ -1,41 +1,65 @@
-# 모델터 CI — 푸시/PR마다 모델터 자동 검증 (라이브 배포 전 안전망)
-# 깨진 코드/빠진 파일(og.png 등)이 modelter.com으로 나가는 걸 빨간불로 알림.
-# ※ 하드 게이트로 만들려면: GitHub 저장소 Settings → Branches →
-#    master 보호 규칙에 "Modelter CI" 상태체크 필수 + PR 머지로만 운영.
+# 모델터 CI — 모든 PR에서 운영 게이트를 만들고, master 앱 변경을 재검증한다.
+# 이 워크플로의 세 job은 master 보호 규칙의 필수 상태 체크로 사용한다.
 
 name: Modelter CI
 
 on:
-  push:
-    paths:
-      - "dart-search/web/modelter/**"
-      - "tools/modelter-ci-check.js"
-      - "tools/parity/**"
-      - ".github/workflows/modelter-ci.yml"
+  # paths 필터를 걸면 문서 전용 PR에서 필수 체크가 영원히 Pending이 된다.
+  # PR에는 항상 체크를 만들고, master push만 앱 관련 경로로 제한한다.
   pull_request:
+  push:
+    branches:
+      - master
     paths:
       - "dart-search/web/modelter/**"
-      - "tools/modelter-ci-check.js"
+      - "worker.js"
+      - "wrangler.toml"
+      - "data/build.json"
+      - "docs/METRICS.md"
+      - "docs/NORTH_STAR_EVIDENCE.md"
+      - "docs/STRATEGY.md"
+      - "tools/gen-*.js"
+      - "tools/modelter-*.js"
+      - "tools/qa/**"
       - "tools/parity/**"
       - ".github/workflows/modelter-ci.yml"
   workflow_dispatch:
 
 jobs:
   validate:
-    name: 검증 (앱 로드·5개 딜·렌트롤·헤더·og.png)
+    name: 검증 (앱 로드·4개 딜·렌트롤·헤더·og.png)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: formulas 설치 (공표 페이지 독립 재계산)
+        run: pip install --quiet formulas openpyxl
+      - name: 빌드 스탬프 확인
+        run: node tools/stamp-build.js --check
+      - name: 파리티 공표 페이지 재현·최신 여부 확인
+        run: |
+          node tools/gen-verification.js
+          git diff --exit-code -- dart-search/web/modelter/verification.html
+      - name: 검색 착지면 38개 재현·최신 여부 확인
+        run: |
+          node tools/gen-pages.js
+          node tools/gen-pages.js --check
+          git diff --exit-code -- dart-search/web/modelter data/build.json
       - name: 모델터 검증
         run: node tools/modelter-ci-check.js
       - name: 엔진 불변식 (경제적 단조성 17건)
         run: node tools/qa/invariants.js
+      - name: 테스트 훅 유출 확인
+        run: test "$(grep -c '__mtCalc' dart-search/web/modelter/index.html)" -eq 0
 
   parity:
-    name: 파리티 4딜 (화면 = 엑셀 재계산)
+    name: 파리티 11조합 (화면 = 엑셀 재계산)
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -47,14 +71,29 @@ jobs:
           python-version: "3.11"
       - name: formulas 설치 (엑셀 수식 독립 재계산)
         run: pip install --quiet formulas openpyxl
-      - name: 파리티 전수 (4딜 + 경계 변형)
+      - name: 파리티 전수 11조합
         run: |
           # 경계 변형은 상시 게이트다.
           #  office_nodebt : 무차입 — 커버리지 분모 0(파일 손상·#DIV/0! 회귀 차단)
           #  office_vac100 : 공실 100% — 수입 0(IRR 미정의 시 #NUM! 이 표지로 새는 것 차단)
           #  office_mezz(pik) : 중순위 4단 구조 — 현금이자형·이자누적(PIK)형 각각
           # 전 딜 공통으로 "비유한값 0 · 오류 토큰 0 · 검증 시트 종합 판정 PASS" 도 함께 검사한다.
-          for d in office logistics dev refi office_nodebt office_vac100 office_mezz office_mezzpik; do
+          for d in office logistics dev refi office_nopref office_nonpass office_hold7 office_nodebt office_vac100 office_mezz office_mezzpik; do
             node tools/parity/gen-xlsx.js "$d"
             python3 tools/parity/check.py "$d"
           done
+
+  smoke:
+    name: 브라우저 스모크 49건
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      # GitHub 호스팅 러너의 Chrome을 사용해 브라우저 바이너리 중복 다운로드를 피한다.
+      - name: Playwright 드라이버 설치
+        run: npm install --no-save --no-package-lock playwright@1.62.1
+      - name: 실제 브라우저 사용자 경로 49건
+        run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/smoke.js
