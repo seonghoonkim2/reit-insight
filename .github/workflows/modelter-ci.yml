@@ -25,8 +25,8 @@ jobs:
     name: 검증 (앱 로드·5개 딜·렌트롤·헤더·og.png)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "20"
       - name: 모델터 검증
@@ -38,8 +38,8 @@ jobs:
     name: 파리티 4딜 (화면 = 엑셀 재계산)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "20"
       - uses: actions/setup-python@v5
