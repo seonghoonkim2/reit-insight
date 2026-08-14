@@ -17,13 +17,15 @@ const ROOT = path.join(__dirname, '..');
 const DIR = path.join(ROOT, 'dart-search', 'web', 'modelter');
 const OUT = path.join(DIR, 'verification.html');
 const BASE = 'https://modelter.com';
+const PYTHON = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'python' : 'python3');
+const CHILD_ENV = Object.assign({}, process.env, { PYTHONUTF8: '1' });
 const DEALS = [{ k: 'office', n: '오피스 매입 (13시트)' }, { k: 'logistics', n: '물류센터 매입 (13시트)' }, { k: 'dev', n: '공동주택 분양 사업수지 (6시트)' }, { k: 'refi', n: '리파이낸싱 비교 (4시트)' }];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function runParity(deal) {
   try {
-    cp.execSync('node ' + JSON.stringify(path.join(__dirname, 'parity', 'gen-xlsx.js')) + ' ' + deal, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-    const out = cp.execSync('python3 ' + JSON.stringify(path.join(__dirname, 'parity', 'check.py')) + ' ' + deal, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    cp.execSync(JSON.stringify(process.execPath) + ' ' + JSON.stringify(path.join(__dirname, 'parity', 'gen-xlsx.js')) + ' ' + deal, { cwd: ROOT, env: CHILD_ENV, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    const out = cp.execSync(JSON.stringify(PYTHON) + ' ' + JSON.stringify(path.join(__dirname, 'parity', 'check.py')) + ' ' + deal, { cwd: ROOT, env: CHILD_ENV, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     const pass = /PARITY OK/.test(out);
     let maxErr = 0, rows = 0;
     for (const m of out.matchAll(/\(D([0-9.eE+-]+)\)/g)) { const v = Math.abs(parseFloat(m[1])); if (isFinite(v)) { maxErr = Math.max(maxErr, v); rows++; } }
@@ -161,4 +163,9 @@ if (failed.length) {
   process.exit(1);
 }
 const ran = results.filter(r => r.ok === true).length;
-console.log(ran ? ('   파리티 ' + ran + '딜 전수 통과 — 배포 안전') : '   (Python·formulas 미설치 — 파리티 미실행, 배포 환경에서 재생성 필요)');
+const unrun = results.filter(r => r.ok === null);
+if (unrun.length) {
+  console.error('❌ 파리티 미실행 — 배포 차단: ' + unrun.map(r => r.k).join(', ') + ' (Python·formulas·브라우저 환경을 확인하세요)');
+  process.exit(1);
+}
+console.log('   파리티 ' + ran + '딜 전수 통과 — 배포 안전');

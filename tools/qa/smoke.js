@@ -91,10 +91,17 @@ async function closeOverlays(page) {
       cur = 'office'; fillExample();
       const url = shareLink(true); const back = JSON.parse(mtLZ.decompress(url.split('#v=')[1]));
       const ol = oneLineReport();
-      return { same: back.c === 'office' && back.s.price === state.price, ol: typeof ol === 'string' && ol.startsWith('[모델터]') && /#v=/.test(ol) };
+      return { same: back.c === 'office' && back.s.price === state.price, ol: typeof ol === 'string' && ol.startsWith('[모델터]') && /#v=/.test(ol), branded: /^\[모델터\] 1차 검토/.test(ol) };
     });
     ok(rt.same, '공유 링크 인코딩 왕복');
     ok(rt.ol, '한 줄 보고 생성');
+    ok(rt.branded, '한 줄 보고에 1차 검토 용어 고정');
+    const hb = page.locator('#handoffBtn');
+    const hbShown = await hb.isVisible();
+    await hb.click();
+    const hpText = await page.locator('#sharePop').innerText();
+    ok(hbShown && /팀에 1차 검토 보내기/.test(hpText), '결과 직후 팀 전달 버튼 → 공유 메뉴');
+    await hb.click();
     // 용어 도움말 링크
     const links = await page.evaluate(() => Array.from(document.querySelectorAll('#simCard .k-help')).map(a => a.getAttribute('href')));
     ok(links.length >= 3 && links.every(h => /^\/guide#[a-z]+$/.test(h)), 'KPI 용어 ? 링크·무확장 URL (' + links.length + '개)');
