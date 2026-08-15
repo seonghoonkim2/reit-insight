@@ -31,7 +31,7 @@
 |---|---|---|
 | blob1 (index) | ev | 아래 이벤트 사전 65개 + 운영 점검 `ci_probe_live`만 허용. 그 외 값은 이벤트 전체 폐기 |
 | blob2 | deal | 8개 유한 목록(office·logistics·dev·refi·hotel·retail·rental·datacenter). 뒤 4개는 deal_want 투표값. ⚠ `reit`는 2026-07-06 제거된 옛 탭의 과거 데이터에만 남으며 이후 Worker가 받지 않음 |
-| blob3 | depth | 3개 유한 목록(quick·standard·full) |
+| blob3 | depth | 3개 유한 목록(quick·standard·deep) |
 | blob4 | dev | 기기(desktop·mobile) |
 | blob5 | ref | 유입 호스트 — 클라이언트 `dr`(진입 document.referrer 호스트) 우선, 없으면 비콘 referer |
 | blob6 | cc | 국가 코드 |
@@ -75,7 +75,7 @@
 | `sample_download` | 샘플 엑셀 다운로드 | ○ |
 | `deal_select` | 딜 유형 탭 선택 | |
 | `deal_want` | 준비 중 딜 타일 클릭(수요 신호 — 유형명만) | |
-| `depth_change` | 입력 깊이 변경(quick·standard·full) | |
+| `depth_change` | 입력 깊이 변경(quick·standard·deep) | |
 | `example_fill` | 예시 딜 채우기 | |
 | `fill_std` | 표준값 채우기 | |
 | `sample_deal` | 예시 딜 카드 선택(key=딜 키) | |

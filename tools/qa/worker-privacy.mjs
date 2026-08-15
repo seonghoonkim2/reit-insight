@@ -30,11 +30,11 @@ async function send(payload) {
 }
 
 const valid = await send({
-  t: 'sens_axis', deal: 'refi', depth: 'standard', rr: true,
+  t: 'sens_axis', deal: 'refi', depth: 'deep', rr: true,
   feats: 'scen,rr,dep,rr,evil120000,bido', axis: 'dev_cost', src: 'dscr', act: true,
 });
 assert(valid.logs.length === 1 && valid.points.length === 1, '정상 이벤트 1건 기록');
-assert(valid.rec.ev === 'sens_axis' && valid.rec.deal === 'refi' && valid.rec.depth === 'standard', '정상 enum 보존');
+assert(valid.rec.ev === 'sens_axis' && valid.rec.deal === 'refi' && valid.rec.depth === 'deep', '정상 enum 보존');
 assert(valid.rec.feats === 'rr,dep,bido,scen' && valid.rec.featN === 4, '기능 플래그 정화·중복 제거·정해진 순서');
 assert(valid.rec.axis === 'dev_cost' && valid.rec.src === 'dscr' && valid.rec.act === 1, '축·채널·실사용 정상 보존');
 
@@ -46,6 +46,9 @@ const dirtyDims = await send({
 });
 assert(dirtyDims.logs.length === 1 && dirtyDims.points.length === 1, '등록 이벤트는 기록');
 assert(dirtyDims.rec.deal === '' && dirtyDims.rec.depth === '' && dirtyDims.rec.feats === '' && dirtyDims.rec.featN === 0 && dirtyDims.rec.axis === '' && dirtyDims.rec.src === '', '임의 차원값 전부 폐기');
+
+const wrongDepth = await send({ t: 'depth_change', depth: 'full' });
+assert(wrongDepth.rec && wrongDepth.rec.depth === '', '화면에 없는 깊이 별칭 폐기');
 
 const probe = await send({ t: 'ci_probe_live' });
 assert(probe.rec && probe.rec.ev === 'ci_probe_live', '명시적 운영 점검 이벤트 허용');
