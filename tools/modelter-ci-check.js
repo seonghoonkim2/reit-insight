@@ -157,7 +157,7 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   ok(reportSrc3.includes('북극성 · 팀 전달') && reportSrc3.includes('실제 공유 링크') && reportSrc3.includes('판정 보류') && reportSrc3.includes('정량 통과 · 정성 증거 확인 필요'), '북극성 계기판: 조기 판정 금지·정성 증거 분리');
   ok(html.includes("track('first_number_5m')") && html.includes("track('first_number_15m')") && html.includes("track('first_number_30m')") && html.includes("track('first_number_slow')") && reportSrc3.includes('첫 숫자 속도'), '북극성 계측: 첫 자기 딜 결과 시간 4구간·계기판');
   try {
-    const { validateSnap, Q_TEAM_HANDOFF, Q_FIRST_NUMBER_WINDOW } = require(path.join(__dirname, 'modelter-ae'));
+    const { validateSnap, Q_TEAM_HANDOFF, Q_FIRST_NUMBER_WINDOW, Q_SAMPLE_START_WINDOW } = require(path.join(__dirname, 'modelter-ae'));
     const { build } = require(path.join(__dirname, 'modelter-report'));
     const snapDir = path.join(__dirname, '..', 'data', 'ae-snapshots');
     const latest = fs.readdirSync(snapDir).filter(f => f.endsWith('.json')).sort().pop();
@@ -165,11 +165,15 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
     fixture.endDate = '2026-08-29';
     fixture.events = { ...fixture.events, first_number_5m: 99, first_number_15m: 99, first_number_30m: 99, first_number_slow: 99 };
     fixture.teamHandoffByAct.firstNumber = { since: '2026-08-15T10:18:30+09:00', until: '2026-08-29T10:18:30+09:00', first_number_5m: 2, first_number_15m: 4, first_number_30m: 8, first_number_slow: 16 };
+    fixture.sampleStartWindow = { since: '2026-08-15T11:23:17+09:00', until: '2026-08-29T11:23:17+09:00', session: 40, sample_start: 10, activate: 8, computed: 7 };
     const reportHtml = build([fixture]);
-    ok(validateSnap(fixture).length === 0 && reportHtml.includes('15분 이내 20.0%') && reportHtml.includes('고정 14일 창'), '북극성 계기판: 롤링 events보다 고정 첫 숫자 창 우선');
-    ok(!Q_TEAM_HANDOFF.includes("now() - INTERVAL") && !Q_FIRST_NUMBER_WINDOW.includes("now() - INTERVAL"), '북극성 쿼리: 최근 --days 조건이 고정 14일 앞부분을 자르지 않음');
+    ok(validateSnap(fixture).length === 0 && reportHtml.includes('15분 이내 20.0%') && reportHtml.includes('예시 → 내 딜 첫 입력') && reportHtml.includes('CTA 10 · 첫 결과 7'), '북극성 계기판: 첫 숫자·첫 입력 전환 고정 창 우선');
+    ok(!Q_TEAM_HANDOFF.includes("now() - INTERVAL") && !Q_FIRST_NUMBER_WINDOW.includes("now() - INTERVAL") && !Q_SAMPLE_START_WINDOW.includes("now() - INTERVAL"), '북극성 쿼리: 최근 --days 조건이 고정 14일 앞부분을 자르지 않음');
     fixture.teamHandoffByAct.firstNumber.first_number_5m = '깨짐';
     ok(validateSnap(fixture).some(e => e.includes('firstNumber.first_number_5m')), '북극성 스냅샷: 첫 숫자 고정 창 숫자 검증');
+    fixture.teamHandoffByAct.firstNumber.first_number_5m = 2;
+    fixture.sampleStartWindow.activate = '깨짐';
+    ok(validateSnap(fixture).some(e => e.includes('sampleStartWindow.activate')), '북극성 스냅샷: 첫 입력 전환 고정 창 숫자 검증');
   } catch (e) { ok(false, '북극성 첫 숫자 고정 창 실행 검증 (' + e.message + ')'); }
   const snapWorkflowPath = path.join(__dirname, '..', '.github', 'workflows', 'modelter-snapshot.yml');
   const snapWorkflow = fs.existsSync(snapWorkflowPath) ? fs.readFileSync(snapWorkflowPath, 'utf8') : '';
