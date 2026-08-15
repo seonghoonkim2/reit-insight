@@ -130,7 +130,7 @@ if (fs.existsSync(path.join(DIR, 'trust.html'))) {
 }
 
 /* ── 1c) 채널 어트리뷰션(E5) — src 태그·수요 가짜 문 ── */
-ok(html.includes("sessionStorage.setItem('mt_src'") && html.includes("/[?#&]src="), '채널 어트리뷰션: 착지 src= 태그 파싱·세션 유지');
+ok(html.includes("_freshSrc=srcTag(_sm[1])") && html.includes("sessionStorage.setItem('mt_src'") && html.includes("/[?#&]src="), '채널 어트리뷰션: 착지 src= 유한 허용 목록 통과 후 세션 유지');
 ok(html.includes("if(_s) b.src=_s;"), '채널 어트리뷰션: 이벤트에 src 채널 부착(퍼널 분해용)');
 ok(html.includes("track('landing')"), '채널 어트리뷰션: landing 이벤트(src 유입 1건)');
 ok(html.includes("sessionStorage.getItem('mt_ref0')") && html.includes('document.referrer'), '진짜 유입원: 진입 referrer 호스트 캡처(mt_ref0 — 경로·쿼리 없음)');
@@ -138,6 +138,13 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
 {
   const workerSrc2 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
   ok(/const dr = s\(d\.dr, 40\)\.replace\(\/\[\^A-Za-z0-9.\\-\]\/g, ""\);/.test(workerSrc2) && workerSrc2.includes('if (dr) refHost = dr;'), 'worker.js: dr(진짜 유입원) 정화 후 ref로 기록');
+  const expectedSrc = ['xlsx', 'ppt', 'png', 'qr', 'share', 'notes', 'team', 'hero', 'pdf', 'sns', 'seo', 'dscr', 'imcheck', 'howto', 'pwa'].sort();
+  const clientBlock = (html.match(/var SRC_CHANNELS=\{([^}]+)\};/) || [])[1] || '';
+  const workerBlock = (workerSrc2.match(/const SRC_CHANNELS = new Set\(\[([^\]]+)\]\);/) || [])[1] || '';
+  const clientSrc = [...clientBlock.matchAll(/([a-z0-9_]+):1/g)].map(m => m[1]).sort();
+  const workerSrc = [...workerBlock.matchAll(/"([a-z0-9_]+)"/g)].map(m => m[1]).sort();
+  ok(JSON.stringify(clientSrc) === JSON.stringify(expectedSrc) && JSON.stringify(workerSrc) === JSON.stringify(expectedSrc), 'src 채널: 클라이언트·worker 15개 유한 허용 목록 정확 일치');
+  ok(workerSrc2.includes('SRC_CHANNELS.has(srcRaw) ? srcRaw : ""'), 'worker.js: 임의 숫자·자유 문자열 src 폐기');
 }
 
 /* ── 1k) 판독 분모 위생(P2) — 봇 태깅 + 운영자 QA 제외 ──
@@ -232,7 +239,7 @@ ok(html.includes("track('deal_want'"), '수요 가짜 문: deal_want 수집(딜 
 {
   // 무전송 불변 재확인 — src·deal_want 는 채널명/딜유형명만, 수치·PII 금지
   const workerSrc = fs.existsSync(path.join(__dirname, '..', 'worker.js')) ? fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8') : '';
-  ok(/const\s+src\s*=\s*s\(d\.src,\s*8\)\.replace\(\/\[\^A-Za-z0-9_\]/.test(workerSrc), 'worker.js: src 화이트리스트(영문·숫자·_ 8자) 정화');
+  ok(/const\s+srcRaw\s*=\s*s\(d\.src,\s*8\)\.toLowerCase\(\)\.replace\(\/\[\^a-z0-9_\]/.test(workerSrc), 'worker.js: src 문자 정화 후 유한 허용 목록 판정');
 }
 
 /* ── 1d) 산출물 회수 루프(E2) — 회수 링크·QR·착지 CTA ── */

@@ -355,7 +355,7 @@ node tools/modelter-report.js   # data/dashboard.html 갱신(로컬 확인용, �
 | `deal_want` 딜 유형 분포 | 준비 중 타일에서 어떤 유형 수요가 실재하나 | 특정 유형 수요 누적 시에만 그 딜 커버리지 착수(데이터 전 선착수 금지) |
 | 모바일 비중·이탈 | 기기별 세션·전환 | 모바일 이탈 확인 시에만 성능 투자(아키텍처 정책 재검토 트리거) |
 
-**src 태그 규약:** 산출물 회수 링크·검색 착지·노트 CTA가 `#…&src=<채널>` 를 붙인다(영문·숫자 8자, 화이트리스트). `xlsx`·`ppt`·`png`·`qr`·`notes`·`hero`·`team` 등. **채널명뿐 — 수치·PII 절대 금지**(worker.js 정화 + trust.html 표기 + CI 게이트로 3중 강제).
+**src 태그 규약:** 산출물 회수 링크·검색 착지·노트 CTA가 `#…&src=<채널>` 를 붙인다. 앱과 Worker가 동일한 15개 유한 허용 목록(`xlsx`·`ppt`·`png`·`qr`·`share`·`notes`·`team`·`hero`·`pdf`·`sns`·`seo`·`dscr`·`imcheck`·`howto`·`pwa`)만 받는다. 임의 숫자·자유 문자열은 폐기하며, **채널명뿐 — 수치·PII 절대 금지**를 trust.html 표기와 CI 게이트까지 3중 강제한다.
 
 **운영자 QA 모드:** 배포 확인·시연 전 본인 기기에서 `modelter.com/#qa=on` 한 번 열면 그 기기의 사용이 통계에서 제외된다(localStorage, `#qa=off`로 해제 — 켜고 끌 때 토스트로 확인). 리뷰 수치를 보기 전 "내 사용이 섞였나?"를 의심할 필요가 없어진다.
 

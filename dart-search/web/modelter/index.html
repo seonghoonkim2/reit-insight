@@ -1983,7 +1983,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-16·3296fe4f67';
+window.MT_BUILD='2026-08-16·96322e5871';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -4978,7 +4978,7 @@ function sharePayload(){
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
 window.__mtSnapForXlsx=function(){ try{ return encodeState()||null; }catch(e){ return null; } };
 // 채널 태그 정화 — 산출물 회수 링크가 붙이는 src 값은 화이트리스트 채널명만(수치·PII 불가)
-var SRC_CHANNELS={xlsx:1,ppt:1,png:1,qr:1,share:1,notes:1,team:1,hero:1,pdf:1,sns:1};
+var SRC_CHANNELS={xlsx:1,ppt:1,png:1,qr:1,share:1,notes:1,team:1,hero:1,pdf:1,sns:1,seo:1,dscr:1,imcheck:1,howto:1,pwa:1};
 function srcTag(src){ src=String(src||'').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,8); return SRC_CHANNELS[src]?src:''; }
 function shareLink(readonly, src){
   var enc=encodeState();
@@ -11500,7 +11500,7 @@ var qrcode = function() {
   var _freshSrc='';
   try{
     var _sm=(location.search+location.hash).match(/[?#&]src=([A-Za-z0-9_]{1,8})/);
-    if(_sm){ _freshSrc=_sm[1]; sessionStorage.setItem('mt_src', _freshSrc); }
+    if(_sm){ _freshSrc=srcTag(_sm[1]); if(_freshSrc) sessionStorage.setItem('mt_src', _freshSrc); }
   }catch(_e){}
   // 운영자 QA 모드 — modelter.com/#qa=on 1회로 이 기기를 통계에서 제외(off로 해제). 배포 확인·시연이 지표를 오염시키지 않게.
   //  주소창에서 해시만 바꾸면 페이지가 다시 로드되지 않으므로(same-document) hashchange에도 걸어 둠.
