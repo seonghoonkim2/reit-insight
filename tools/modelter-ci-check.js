@@ -47,7 +47,7 @@ if (fs.existsSync(path.join(DIR, 'howto.html'))) {
   ok(hw.includes('/#t=office') && hw.includes('/#t=dev&view=lender'), 'howto.html → 계산기 딥링크');
   ok(hw.includes('href="/guide"'), 'howto ↔ 용어사전 상호 링크(무확장 정식 URL)');
   ok(hw.includes('투자 권유가 아닌'), 'howto 고지 문구');
-  ok(hw.includes('IM 받았으면, 첫 숫자 15분') && hw.includes('팀에 1차 검토 공유'), '북극성 검색: IM 직후 첫 숫자→팀 전달 워크플로');
+  ok(hw.includes('IM 받은 뒤 30분 안에 1차 검토하는 순서') && hw.includes('팀에 1차 검토 공유'), '북극성 검색: IM 직후 계산→팀 전달 워크플로');
   ok((hw.match(/src=howto/g) || []).length >= 5 && !hw.includes('처음 열면 역할('), '북극성 검색: howto 유입 태그·삭제된 온보딩 설명 없음');
 }
 ok(fs.existsSync(path.join(DIR, 'im-checklist.html')), 'IM 첫 검토 체크리스트 존재 (고의도 검색 착지)');
@@ -58,7 +58,7 @@ if (fs.existsSync(path.join(DIR, 'im-checklist.html'))) {
   ok((imc.match(/src=imcheck/g) || []).length >= 9, 'im-checklist 전용 유입 태그(효과 분리 판독)');
   ok(imc.includes('href="/howto"') && imc.includes('href="/guide"') && imc.includes('href="/trust"') && imc.includes('href="/verification"'), 'im-checklist → 활용·용어·보안·검증 문서 연결');
   ok(imc.includes('투자 권유가 아닌') && imc.includes('실제 시세가 아닙니다'), 'im-checklist 투자 권유 아님·샘플 고지');
-  ok(imc.includes('IM 받았으면, 이 숫자부터 찾으세요') && imc.includes('팀에 올릴 1차 검토 한 줄'), '북극성 검색: IM 첫 검토 순간→팀 전달 문맥');
+  ok(imc.includes('IM을 받으면 이 숫자부터 확인하세요') && imc.includes('팀에 올릴 1차 검토 한 줄'), '북극성 검색: IM 첫 검토 순간→팀 전달 문맥');
 }
 if (fs.existsSync(path.join(DIR, 'guide.html'))) {
   const g = fs.readFileSync(path.join(DIR, 'guide.html'), 'utf8');
@@ -279,9 +279,9 @@ ok(html.includes('if(c.link){ links.push') && html.includes('officeDocument/2006
 ok(html.includes("recoverUrl('xlsx')") && html.includes('modelter.com에서 이 모델 열기'), '회수: 엑셀 표지 「이 모델 열기」 하이퍼링크 셀(&src=xlsx)');
 ok(html.includes("recoverUrl('png')") && html.includes('스캔 → 이 모델 열기'), '회수: PNG 요약 카드 QR(&src=png)');
 ok(html.includes("shareLink(false,'qr')"), '회수: QR 이어가기 링크 &src=qr');
-ok(html.includes('id="roCta"') && html.includes('id="roCtaBtn"') && html.includes('이 가정으로 내 딜 시작하기'), '회수: 읽기전용 착지 하단 CTA 바');
+ok(html.includes('id="roCta"') && html.includes('id="roCtaBtn"') && html.includes('이 가정으로 새 모델 만들기'), '회수: 읽기전용 착지 하단 CTA 바');
 ok(html.includes("mtTrack('recover_cta'"), '회수: recover_cta 이벤트(착지→편집 전환)');
-ok(html.includes('이 모델을 바로 열어 보기:') && html.includes('요약 카드(PNG)의 QR'), '회수: IC PPT 마지막 장 회수 안내(라이브·QR 경로)');
+ok(html.includes('같은 가정으로 모델터 열기:') && html.includes('요약 카드(PNG)의 QR'), '회수: IC PPT 마지막 장 회수 안내(라이브·QR 경로)');
 
 /* ── 1e) 팀 기준 배포 링크(E4) — #h= 내보내기·미리보기·적용·표기 ── */
 ok(html.includes('function houseShareLink()') && html.includes("location.pathname+'#h='+enc"), '팀 기준: #h= 배포 링크 생성(회사 표준 파라미터만)');
@@ -345,7 +345,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const dscr = fs.existsSync(dscrPath) ? fs.readFileSync(dscrPath, 'utf8') : '';
   ok(dscr.includes('<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>') && dscr.includes('1.0x 미만') && dscr.includes('1.5x'), 'DSCR 검색 의도: 제목·배수별 판독표');
   ok(dscr.includes('FAQPage') && dscr.includes('NCF나 CFADS') && dscr.includes('/#t=refi&src=dscr'), 'DSCR 검색 의도: FAQ 구조화 데이터·약정 정의 주의·전용 채널 CTA');
-  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('첫 입력부터 내 딜 숫자로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
+  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('첫 항목부터 실제 값으로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
   const naverDocPath = path.join(__dirname, '..', 'docs', 'NAVER_BLOG_IM_FIRST_LOOK.md');
   const naverDoc = fs.existsSync(naverDocPath) ? fs.readFileSync(naverDocPath, 'utf8') : '';
   const capturePath = path.join(__dirname, 'capture-naver-assets.js');
@@ -546,13 +546,13 @@ ok(html.includes('IC 패키지 7장'), 'IC 패키지 7장 구성(표지·요약�
 ok(html.includes('window.MTIM=') && html.includes('class="im-btn"'), 'IM 가정 추출(BYOK) 존재');
 ok(html.includes('anthropic-dangerous-direct-browser-access'), 'BYOK: 브라우저 직접 호출(서버 무경유)');
 ok(html.includes("tool_choice:{type:'tool', name:'extract'}"), 'BYOK: tool_choice로 구조화 추출 강제');
-ok(html.includes('서버로는 어떤 내용도 전송·저장되지 않습니다'), 'BYOK: 개인정보·보안 고지 문구');
+ok(html.includes('모델터 서버에는 보내거나 저장하지 않습니다'), 'BYOK: 개인정보·보안 고지 문구');
 ok(!html.includes("localStorage.setItem('mt_byok"), 'BYOK: 키를 localStorage에 저장하지 않음(세션만)');
 ok(html.includes('문서에 없으면 null (추측 금지)'), 'BYOK: 추측 금지 추출 규칙');
 ok(html.includes('MTIM.checklist()') && html.includes('IM에서 찾을 숫자'), 'IM 체크리스트(키 없이 시작) 존재');
 ok(html.includes('function localExtract') && html.includes('MTIM.quick()'), 'IM 무키 로컬 자동 인식 존재');
-ok(html.includes('이 기능은 네트워크를 사용하지 않습니다'), 'IM 무키 무전송 고지 존재');
-ok(html.includes('보수적으로 눌러 보면'), '판정 다운사이드 한 줄 존재');
+ok(html.includes('브라우저 안에서만 처리') && html.includes('외부로 전송하지 않습니다'), 'IM 무키 무전송 고지 존재');
+ok(html.includes('보수 시나리오(Exit ') && html.includes('참고선 5%보다 낮습니다'), '판정 다운사이드 한 줄 존재');
 ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfirmOutput'), '예시값 잔존 추적 + 산출물 확인 존재');
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
 ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
@@ -673,14 +673,14 @@ ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재'
 ok(html.includes('href="/im-checklist"') && html.includes('modelter.com/im-checklist'), '홈·앱 IM 체크리스트 → 검색 착지 연결');
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
-ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'추천'"), '미니 KPI 전 탭(분양·리파이) 확장');
+ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'DSCR 우위'"), '미니 KPI 전 탭(분양·리파이) 확장');
 ok(html.includes('mt_nudge') && html.includes('nudge_save') &&
-  /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 1차 검토 공유/.test(html) &&
-  /exRemaining\(\)\.length>0[\s\S]{0,350}예시로 남은 가정/.test(html),
+  /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 공유하세요/.test(html) &&
+  /exRemaining\(\)\.length>0[\s\S]{0,350}남은 예시값/.test(html),
   '저장·팀 전달 넛지: 세션 1회·기존 공유 중복 억제·예시 상태별 문구');
-ok(html.includes('스스로 검증하는 엑셀'), "What's new v3 내용 현행화");
-ok(html.includes('내 숫자가 대입된 산식') && html.includes('가정 출처, 전 딜 엑셀에'), "What's new v3 내용 4차 현행화(산식 대입·출처 엑셀)");
-ok(html.includes('더 깐깐해진 점검'), "What's new v3 내용 4차 현행화(점검·경고)");
+ok(html.includes('Excel에서 검증 결과 확인'), "What's new v3 내용 현행화");
+ok(html.includes('내 값이 계산에 들어가는 방식') && html.includes('출처와 기준일을 Excel에 기록'), "What's new v3 내용 4차 현행화(산식 대입·출처 Excel)");
+ok(html.includes('입력값을 더 꼼꼼히 확인합니다'), "What's new v3 내용 4차 현행화(점검·경고)");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('const FIELD_REF_DEAL=') && html.includes('function fieldRef'), '시장 참고치 v2(딜 유형별) 존재');
 ok(html.includes('수도권 물류 5~7%') && html.includes('도심·강남 9~13만원'), '참고치 자산 유형별 분화(오피스≠물류)');
@@ -695,14 +695,14 @@ ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
 ok(html.includes('function termHelp') && html.includes('class="k-help"'), '결과 용어 → 가이드 앵커 링크 존재');
 ok(html.includes('function mtNextTip') && html.includes('mt_tip_next'), '산출물 다음 단계 팁(1회) 존재');
 ok(html.includes('function oneLineReport') && html.includes('한 줄 보고 복사'), '한 줄 보고(카톡용 요약+링크) 존재');
-ok(html.includes('전부 예시값 · 실제 시세 아님') && html.includes('현재 입력은 전부 예시 숫자입니다. 실제 시세가 아닙니다'), '팀 전달: 전부 샘플도 확인·한 줄 보고에 실제 시세 아님 고지');
-ok(html.includes('딜 받았으면, <em>모델터부터.</em>') && html.includes('내 딜 첫 숫자 뽑기'), '북극성: 딜 검토 첫 숫자 메시지 존재');
-ok(html.includes('id="handoffBtn"') && html.includes('팀에 올릴 첫 숫자가 나왔습니다.'), '북극성: 결과 직후 팀 1차 검토 전달 동선 존재');
+ok(html.includes('전부 예시값 · 실제 시세 아님') && html.includes('현재 입력은 모두 예시값이며 실제 시세가 아닙니다'), '팀 전달: 전부 샘플도 확인·한 줄 보고에 실제 시세 아님 고지');
+ok(html.includes('딜 받았으면, <em>모델터부터.</em>') && html.includes('내 값으로 계산하기'), '북극성: 딜 검토 첫 계산 메시지 존재');
+ok(html.includes('id="handoffBtn"') && html.includes('1차 검토에 쓸 숫자가 나왔습니다.'), '북극성: 결과 직후 팀 1차 검토 전달 동선 존재');
 ok(html.includes("if(!_hoDone) track('handoff_open');") && html.includes("sessionStorage.getItem('mt_handoff_open')"), '북극성: 공유 메뉴 열기 세션 dedupe 계측');
 ok(!html.includes("if(t.closest('#shareBtn')){ track('share_link')"), '북극성: share_link는 메뉴 열기가 아닌 실제 산출물만 집계');
-ok(html.includes('어떤 순간에 열었나요?') && html.includes('왜 열지 않았는지도 같은 가치'), '북극성 질적 검증: 비유도형 사용 순간 질문');
+ok(html.includes('어떤 순간에 열었나요?') && html.includes('쓰지 않았다면 이유'), '북극성 질적 검증: 비유도형 사용 순간 질문');
 ok(html.includes('실제 딜명·자산명·수치·임차인명·회사명은 적지 마세요.'), '북극성 질적 검증: 피드백 민감정보 입력 금지');
-ok(html.includes('function feedbackLooksSensitive') && html.includes('그래도 전송할까요?') && html.includes('Web3Forms(api.web3forms.com)'), '북극성 질적 검증: 선택 전송 목적지 공개·민감정보 사전 경고');
+ok(html.includes('function feedbackLooksSensitive') && html.includes('지우지 않고 전송할까요?') && html.includes('Web3Forms(api.web3forms.com)'), '북극성 질적 검증: 선택 전송 목적지 공개·민감정보 사전 경고');
 {
   const trustPath2 = path.join(DIR, 'trust.html');
   const trust2 = fs.existsSync(trustPath2) ? fs.readFileSync(trustPath2, 'utf8') : '';

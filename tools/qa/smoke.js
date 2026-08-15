@@ -105,7 +105,7 @@ async function closeOverlays(page) {
       cur = 'office'; fillExample();
       let promptText = ''; const oldConfirm = window.confirm;
       window.confirm = (msg) => { promptText = msg; return false; };
-      const allPrompt = exConfirmOutput('한 줄 보고') === false && /전부 예시 숫자/.test(promptText) && /실제 시세가 아닙니다/.test(promptText);
+      const allPrompt = exConfirmOutput('한 줄 보고') === false && /모두 예시값/.test(promptText) && /실제 시세가 아닙니다/.test(promptText);
       window.confirm = oldConfirm;
       exTouch(Array.from(exampleKeys)[0]);
       return { rows, allPrompt, mixed: /일부 가정은 예시값/.test(oneLineReport()) };
@@ -117,7 +117,7 @@ async function closeOverlays(page) {
     const hbShown = await hb.isVisible();
     await hb.click();
     const hpText = await page.locator('#sharePop').innerText();
-    ok(hbShown && /팀에 1차 검토 보내기/.test(hpText), '결과 직후 팀 전달 버튼 → 공유 메뉴');
+    ok(hbShown && /1차 검토 공유/.test(hpText), '결과 직후 팀 전달 버튼 → 공유 메뉴');
     await hb.click();
     // 용어 도움말 링크
     const links = await page.evaluate(() => Array.from(document.querySelectorAll('#simCard .k-help')).map(a => a.getAttribute('href')));
@@ -154,7 +154,7 @@ async function closeOverlays(page) {
     ok(e2, '임대료·NOI 직접입력 누락 → 결과·민감도 동시 빈 상태');
     const e3 = await page.evaluate(() => {
       fillExample(); renderSim(); renderInpProg();
-      return { result: !document.querySelector('.sim-empty'), sample: !document.getElementById('sampleStart').hidden, progress: /예시 입력/.test(document.getElementById('ipTxt').textContent) };
+      return { result: !document.querySelector('.sim-empty'), sample: !document.getElementById('sampleStart').hidden, progress: /예시값/.test(document.getElementById('ipTxt').textContent) };
     });
     await page.locator('#sampleStartBtn').click();
     const ownFocus = await page.evaluate(() => document.activeElement && document.activeElement.id === 'f_price' && sessionStorage.getItem('mt_sample_start') === '1');
@@ -191,7 +191,7 @@ async function closeOverlays(page) {
         wn: (() => { const o = document.getElementById('wnOverlay'); return o ? !o.hidden : false; })(),
         res: (() => { const c = document.getElementById('simCard'); return c && !c.hidden && !c.classList.contains('noresult'); })(),
         hi: !!document.querySelector('#formBody .core-g.core-hi'),
-        toast: /첫 입력부터 내 딜 숫자로/.test(document.getElementById('toast').textContent),
+        toast: /첫 항목부터 실제 값으로/.test(document.getElementById('toast').textContent),
         src: sessionStorage.getItem('mt_src'),
       })));
     }

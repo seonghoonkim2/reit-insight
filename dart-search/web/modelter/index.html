@@ -6,15 +6,15 @@
 <script>(function(){try{var t=localStorage.getItem('mt_theme');if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}
 /* 재방문 착지 — 써 본 적 있으면 소개를 접고 도구부터. 첫 렌더 전에 걸어야 깜빡임이 없다(테마와 같은 이유) */
 try{if(localStorage.getItem('mt_used')==='1')document.documentElement.setAttribute('data-back','1');}catch(e){}})();</script>
-<title>모델터 · CRE 딜 검토 첫 숫자 — 부동산 재무모델</title>
+<title>모델터 · CRE 딜 검토 첫 계산 | 부동산 재무모델</title>
 
-<meta name="description" content="한국 상업용 부동산 딜 검토의 첫 계산. 매입가·임대료/NOI·대출·Exit Cap을 넣으면 IRR·DSCR·하방과 수식 살아있는 Excel이 바로 나옵니다." />
+<meta name="description" content="한국 상업용 부동산 딜의 첫 IRR·DSCR을 계산합니다. 매입가, 임대료 또는 NOI, 대출 조건, Exit Cap을 넣고 결과와 같은 수식의 Excel을 내려받으세요." />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta name="naver-site-verification" content="cd616751139fa63aa46c35c65255eabc0a321ca7" />
 <link rel="canonical" href="https://modelter.com/" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="모델터 · CRE 딜 검토, 첫 숫자는 여기서" />
-<meta property="og:description" content="매입가·임대료/NOI·대출·Exit Cap을 넣고 IRR·DSCR·하방을 바로 확인하세요. 수식 살아있는 Excel까지." />
+<meta property="og:title" content="모델터 · CRE 딜 첫 IRR·DSCR 계산" />
+<meta property="og:description" content="매입가, 임대료 또는 NOI, 대출 조건, Exit Cap으로 첫 결과를 확인하고 같은 수식의 Excel을 내려받으세요." />
 <meta property="og:url" content="https://modelter.com/" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <meta property="og:image:width" content="1200" />
@@ -22,7 +22,7 @@ try{if(localStorage.getItem('mt_used')==='1')document.documentElement.setAttribu
 <meta name="twitter:card" content="summary_large_image" />
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"한국 상업용 부동산 딜 검토를 시작할 때 첫 숫자를 뽑는 무료 재무모델 도구. IRR·DSCR·하방과 수식 살아있는 Excel을 바로 만듭니다.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"},"featureList":["오피스·물류 매입 레버드 DCF","공동주택 분양 사업수지","리파이낸싱 대안 비교","수식 살아있는 Excel 다운로드","렌트롤 반영"],"subjectOf":{"@type":"Article","name":"부동산 금융 용어사전 · 재무모델 가이드","url":"https://modelter.com/guide"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"한국 상업용 부동산 딜의 첫 IRR·DSCR과 하방을 계산하고, 같은 수식의 Excel을 만드는 무료 재무모델 도구입니다.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"},"featureList":["오피스·물류 매입 레버드 DCF","공동주택 분양 사업수지","리파이낸싱 대안 비교","수식이 들어 있는 Excel 다운로드","렌트롤 반영"],"subjectOf":{"@type":"Article","name":"부동산 금융 용어사전 · 재무모델 가이드","url":"https://modelter.com/guide"}}
 </script>
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -1305,8 +1305,8 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><defs><linearGradient id="mtmark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b9842f"/><stop offset="1" stop-color="#8a5f20"/></linearGradient></defs><rect width="32" height="32" rx="8.5" fill="url(#mtmark)"/><g fill="#fbf6ec"><rect x="8.5" y="17.5" width="3.4" height="6" rx="1.1"/><rect x="14.3" y="14" width="3.4" height="9.5" rx="1.1"/><rect x="20.1" y="10.5" width="3.4" height="13" rx="1.1"/><rect x="7.5" y="24.2" width="17" height="1.7" rx="0.85"/></g></svg></span>
       <div class="wordmark">
         <b>모델터</b>
-        <span class="tag-full">CRE 딜 검토 · 첫 숫자부터 Excel까지</span>
-        <span class="tag-short">CRE 첫 숫자</span>
+        <span class="tag-full">CRE 딜 첫 계산과 Excel</span>
+        <span class="tag-short">CRE 첫 계산</span>
       </div>
     </a>
     <div class="head-right">
@@ -1321,7 +1321,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 <div class="announce" id="announce" hidden>
   <div class="wrap announce-in">
     <span class="ann-badge">NEW</span>
-    <span class="ann-msg"><b>딜 받았으면, 모델터부터</b> — 첫 숫자에서 팀 검토용 Excel·PPT까지 한 흐름으로 이어집니다.</span>
+    <span class="ann-msg"><b>딜 받았으면, 모델터부터.</b> 첫 계산을 마치면 같은 숫자로 Excel과 PPT를 만들 수 있습니다.</span>
     <button class="ann-more" id="annMore" type="button">무엇이 바뀌었나 →</button>
     <button class="ann-x" id="annClose" type="button" aria-label="공지 닫기">×</button>
   </div>
@@ -1334,16 +1334,16 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
     <button class="wn-x" id="wnClose" type="button" aria-label="닫기">×</button>
     <div class="wn-eyebrow">What's new · v3</div>
-    <h3 id="wnTitle">모델터, 이렇게 바뀌었습니다</h3>
-    <p class="wn-lead">딜 검토의 첫 숫자가 더 빨리 보이고, 팀 전달까지 바로 이어집니다.</p>
+    <h3 id="wnTitle">최근 바뀐 점</h3>
+    <p class="wn-lead">IM 검토와 팀 공유에 필요한 화면을 손봤습니다.</p>
     <ul class="wn-list">
-      <li><span class="wn-ic">⚡</span><div><b>딜 받았으면, 모델터부터 <span class="wn-tag">NEW</span></b><span>IM·티저에서 첫 IRR·DSCR·하방을 뽑는 순서로 첫 화면과 결과 동선을 정리했습니다.</span></div></li>
-      <li><span class="wn-ic">🧮</span><div><b>내 숫자가 대입된 산식 <span class="wn-tag">NEW</span></b><span>방법론 창이 지금 딜의 값으로 IRR·DSCR 계산 과정을 보여줍니다.</span></div></li>
-      <li><span class="wn-ic">📎</span><div><b>가정 출처, 전 딜 엑셀에 <span class="wn-tag">NEW</span></b><span>출처·기준일 기록이 분양·리파이 엑셀에도 함께 실립니다.</span></div></li>
-      <li><span class="wn-ic">⬇️</span><div><b>스스로 검증하는 엑셀</b><span>생성 시점 값이 파일에 찍혀, 받은 사람도 PASS/FAIL로 확인 — 4딜 전부 공개 파리티.</span></div></li>
-      <li><span class="wn-ic">✓</span><div><b>더 깐깐해진 점검 <span class="wn-tag">NEW</span></b><span>렌트롤 단위·보증금·만기 검사와 IRR 다중해 경고가 추가됐습니다.</span></div></li>
+      <li><span class="wn-ic">⚡</span><div><b>IM 검토 순서를 다듬었습니다 <span class="wn-tag">NEW</span></b><span>핵심 가정을 넣고 IRR·DSCR과 하방을 확인하기 쉬워졌습니다.</span></div></li>
+      <li><span class="wn-ic">🧮</span><div><b>내 값이 계산에 들어가는 방식 <span class="wn-tag">NEW</span></b><span>방법론 창에서 현재 입력값이 IRR과 DSCR에 어떻게 반영되는지 확인할 수 있습니다.</span></div></li>
+      <li><span class="wn-ic">📎</span><div><b>출처와 기준일을 Excel에 기록 <span class="wn-tag">NEW</span></b><span>분양·리파이 Excel에도 가정의 출처와 기준일을 기록합니다.</span></div></li>
+      <li><span class="wn-ic">⬇️</span><div><b>Excel에서 검증 결과 확인</b><span>생성 당시 화면 값과 검증 결과가 Excel에 남습니다. 화면 값과 Excel 수식의 대조 결과도 공개합니다.</span></div></li>
+      <li><span class="wn-ic">✓</span><div><b>입력값을 더 꼼꼼히 확인합니다 <span class="wn-tag">NEW</span></b><span>렌트롤 단위와 보증금, 만기를 점검하고 IRR 값이 하나로 정해지지 않는 경우도 알려 줍니다.</span></div></li>
     </ul>
-    <button class="wn-cta" id="wnCta" type="button">내 딜 첫 숫자 뽑기 ↓</button>
+    <button class="wn-cta" id="wnCta" type="button">내 값으로 계산하기 ↓</button>
     <button class="wn-snooze" id="wnSnooze" type="button">오늘 그만보기</button>
   </div>
 </div>
@@ -1353,12 +1353,12 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <button class="wn-x" id="mdClose" type="button" aria-label="닫기">×</button>
     <div class="wn-eyebrow">방법론 · Methodology</div>
     <h3 id="mdTitle">화면 수치는 이렇게 계산됩니다</h3>
-    <p class="md-sub">스크리닝 도구는 가정이 투명해야 믿고 쓸 수 있습니다. 화면 계산에 쓰인 식과 가정을 그대로 공개합니다.</p>
+    <p class="md-sub">화면 계산에 쓰인 식과 가정을 확인할 수 있습니다.</p>
 
     <div class="md-sec" id="mdMineSec" hidden>
       <h4>지금 내 딜로 보면 — <span id="mdMineDeal"></span></h4>
       <div id="mdMineBody"></div>
-      <p class="md-sub">위 수치는 화면 결과 카드와 <b>같은 엔진 계산값을 그대로</b> 가져온 것입니다(이 창에서 재계산하지 않음). 내려받는 엑셀·PPT도 같은 값입니다.</p>
+      <p class="md-sub">위 값은 결과 카드에서 가져왔습니다. 이 창에서는 다시 계산하지 않으며 Excel·PPT에도 같은 값이 들어갑니다.</p>
     </div>
 
     <div class="md-sec">
@@ -1414,11 +1414,11 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 
     <div class="md-sec">
       <h4>화면 = 다운로드 엑셀</h4>
-      <p>화면의 <b>IRR·세후 IRR·EM·CoC·DSCR·우선주/보통주 수익</b>은 내려받는 13시트 엑셀과 <b>같은 드라이버·계산식</b>으로 산출됩니다. 엑셀 파일을 실제 수식 엔진으로 다시 계산해 화면 값과 <b>0.1%p 이내로 일치</b>하는지를 도관·비도관, 운용보수 유무, 보유 3~10년, 드라이버·렌트롤 경로 전반에서 검증합니다. 그래서 화면에서 스크리닝한 숫자를 그대로 IC 자료의 근거로 쓸 수 있습니다.</p>
+      <p>화면의 <b>IRR·세후 IRR·EM·CoC·DSCR·우선주/보통주 수익</b>은 13시트 Excel과 <b>같은 드라이버·계산식</b>을 사용합니다. Excel을 별도 수식 엔진으로 다시 계산해 도관·비도관, 운용보수 유무, 보유 3~10년, 드라이버·렌트롤 경로에서 화면 값과 <b>0.1%p 이내로 일치</b>하는지 확인합니다. 검증 범위와 재현 방법은 <a href="/verification" target="_blank" rel="noopener">검증 결과</a>에서 볼 수 있습니다.</p>
     </div>
 
     <div class="md-note">
-      <b>한계 — 반드시 확인하세요.</b> 화면 수치는 <b>간이 추정</b>입니다. 공실·CAPEX·약정 트리거 전개 등은 단순화되어 있고, 개발 분양수지도 균등 기성·일괄 토지비 등 단순화 가정을 씁니다. 수식이 살아있는 모델은 <b>Excel 다운로드</b>(오피스·물류 13시트, 개발·공동주택 분양수지 6시트)에서 확인하세요. 본 도구는 <b>투자 권유가 아닌 정보 제공</b> 목적입니다.
+      <b>확인할 점</b> 화면은 1차 검토용 간이 계산입니다. 공실, CAPEX와 약정 트리거 전개 등 일부 항목은 단순화했습니다. 개발 분양수지는 토지비를 계약금과 잔금으로 나누고 공사비에는 선택한 기성 곡선을 적용합니다. 세부 수식은 <b>Excel 다운로드</b>(오피스·물류 13시트, 개발·공동주택 분양수지 6시트)에서 확인할 수 있습니다. 본 도구는 <b>투자 권유가 아닌 정보 제공</b> 목적입니다.
     </div>
 
     <button class="wn-cta" id="mdCta" type="button">닫기</button>
@@ -1459,30 +1459,30 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
         <svg class="mc-li" viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
       </a>
     </div>
-    <span class="eyebrow">한국 CRE 딜 검토의 첫 계산</span>
+    <span class="eyebrow">한국 CRE 딜 첫 계산</span>
     <h1>딜 받았으면, <em>모델터부터.</em></h1>
-    <p>IM·티저를 열고 <b>매입가·임대료/NOI·대출·Exit Cap</b>을 넣으세요. 첫 IRR·DSCR·하방이 바로 나오고, 팀 검토용 <b>수식 Excel과 PPT</b>까지 이어집니다.</p>
-    <a class="intro-cta" href="#builder-start">내 딜 첫 숫자 뽑기 ↓</a>
-    <button type="button" class="intro-back" id="introBack">모델터 소개 · 활용 사례 펼치기 ↓</button>
+    <p>IM이나 티저를 받으면 <b>매입가, 임대료 또는 NOI, 대출 조건, Exit Cap</b>부터 넣어 보세요. IRR·DSCR과 하방을 확인한 뒤 같은 숫자로 <b>Excel과 PPT</b>를 만들 수 있습니다.</p>
+    <a class="intro-cta" href="#builder-start">내 값으로 계산하기 ↓</a>
+    <button type="button" class="intro-back" id="introBack">소개와 활용 예 보기 ↓</button>
   </div>
 </section>
 
 <section class="why">
   <div class="wrap">
     <div class="why-who full">
-      <div class="why-label">딜 검토의 시작점</div>
+      <div class="why-label">IM을 받은 뒤 하는 일</div>
       <div class="who-grid">
         <div class="who-card">
           <div class="who-top"><span class="who-role">① IM·티저를 받으면</span><span class="who-gain">첫 가정</span></div>
-          <p>매입가·임대료/NOI·Exit Cap부터 넣어 1차 수익성을 봅니다.</p>
+          <p>매입가, 임대료 또는 NOI, Exit Cap을 넣어 수익성을 먼저 봅니다.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">② 미팅·입찰 전에</span><span class="who-gain">하방 확인</span></div>
-          <p>금리·공실·Exit을 눌러 IRR·DSCR과 버틸 수 있는 범위를 봅니다.</p>
+          <p>금리, 공실, Exit 가정을 바꿔 IRR·DSCR이 어디까지 내려가는지 봅니다.</p>
         </div>
         <div class="who-card">
           <div class="who-top"><span class="who-role">③ 팀에 올리기 전에</span><span class="who-gain">검토 공유</span></div>
-          <p>같은 계산식의 한 줄 보고·Excel·PPT로 첫 숫자를 공유합니다.</p>
+          <p>한 줄 요약이나 읽기 전용 링크를 보내고, 필요하면 Excel과 PPT를 붙입니다.</p>
         </div>
       </div>
     </div>
@@ -1491,20 +1491,20 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 
 <section class="compare">
   <div class="wrap">
-    <div class="cmp-label">특정 순간에 떠오르는 도구</div>
+    <div class="cmp-label">팀에서 이렇게 묻는 도구</div>
     <h2 class="cmp-title">“이거 모델터로 돌려봤어?”</h2>
     <div class="usecase-grid">
       <div class="uc-card">
-        <div class="uc-head"><div class="uc-tag">딜 검토</div><div class="uc-t">매입 입찰 전 빠른 수익성 판단</div></div>
-        <p>매입가·임대료·Exit Cap만 넣어 입찰 전 IRR·멀티플을 가늠합니다.</p>
+        <div class="uc-head"><div class="uc-tag">딜 검토</div><div class="uc-t">입찰 전 수익성 확인</div></div>
+        <p>매입가, 임대료, Exit Cap으로 IRR과 멀티플을 먼저 계산합니다.</p>
       </div>
       <div class="uc-card">
-        <div class="uc-head"><div class="uc-tag">투자심의</div><div class="uc-t">투자심의위원회 부의 자료</div></div>
-        <p>자본구조·도관과세·민감도까지 갖춘 기초 수치를 만듭니다.</p>
+          <div class="uc-head"><div class="uc-tag">투자심의</div><div class="uc-t">심의에 올리기 전 기초 수치 확인</div></div>
+          <p>자본구조, 도관과세와 민감도를 반영해 심의 전에 숫자를 점검합니다.</p>
       </div>
       <div class="uc-card">
         <div class="uc-head"><div class="uc-tag">자산관리</div><div class="uc-t">보유자산 리파이낸싱·재평가</div></div>
-        <p>차환 대안별 LTV·금리·DSCR을 비교해 보유 자산을 재점검합니다.</p>
+        <p>차환안별 LTV, 금리, DSCR을 같은 기준으로 비교합니다.</p>
       </div>
     </div>
   </div>
@@ -1518,14 +1518,14 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 
 <div class="ro-banner" id="roBanner" hidden>
   <div class="wrap">
-    <span class="ro-txt">📎 공유받은 모델입니다 · <b>읽기 전용</b> — 입력값은 보기만 가능하고, 결과·민감도는 자유롭게 확인할 수 있습니다.</span>
+    <span class="ro-txt">📎 공유받은 모델을 <b>읽기 전용</b>으로 열었습니다. 입력값은 바꿀 수 없지만 결과와 민감도는 볼 수 있습니다.</span>
     <button class="ro-open" id="roOpen" type="button">내 모델로 열기 →</button>
   </div>
 </div>
 <div class="ro-cta" id="roCta" hidden>
   <div class="wrap">
-    <span class="ro-cta-t">이 모델이 마음에 드시나요? <b>내 딜로 새로 만들 수 있습니다.</b></span>
-    <button class="ro-cta-b" id="roCtaBtn" type="button">이 가정으로 내 딜 시작하기 →</button>
+    <span class="ro-cta-t">이 가정을 바탕으로 <b>새 모델을 만들 수 있습니다.</b></span>
+    <button class="ro-cta-b" id="roCtaBtn" type="button">이 가정으로 새 모델 만들기 →</button>
   </div>
 </div>
 
@@ -1533,7 +1533,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
   <div class="wrap grid2">
     <div class="panel">
       <div class="panel-head">
-        <div class="t">첫 숫자 입력 <span class="dt" id="dtLabel">오피스 매입</span></div>
+        <div class="t">핵심값 입력 <span class="dt" id="dtLabel">오피스 매입</span></div>
         <!-- 상단에는 '숫자를 넣기 전에 누를 만한 것'만 둔다. 나머지 도구는 입력 아래 '도구 · 저장'으로 내림(2026-08-11) -->
         <div class="ph-actions">
           <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
@@ -1542,8 +1542,8 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
         </div>
       </div>
       <!-- 온보딩 모달이 하던 보안 안내를, 닫아버리는 창이 아니라 '숫자를 넣는 자리'에 상시로 둔다 -->
-      <p class="panel-priv">입력한 숫자는 이 브라우저 안에서만 계산됩니다 — 서버로 전송되지 않습니다. <a href="/trust" target="_blank" rel="noopener">보안·개인정보 →</a></p>
-      <div class="sample-start" id="sampleStart" hidden><span><b>예시 숫자입니다.</b> 첫 값을 덮어쓰면 결과가 바로 바뀝니다.</span><button type="button" class="ss-btn" id="sampleStartBtn">내 딜 숫자 넣기 →</button></div>
+      <p class="panel-priv">입력한 숫자는 브라우저 안에서 계산되며 서버로 전송되지 않습니다. <a href="/trust" target="_blank" rel="noopener">보안·개인정보 →</a></p>
+      <div class="sample-start" id="sampleStart" hidden><span><b>현재는 예시값입니다.</b> 내 숫자를 입력하면 결과가 다시 계산됩니다.</span><button type="button" class="ss-btn" id="sampleStartBtn">내 숫자 입력하기 →</button></div>
       <div class="inp-prog" id="inpProg" hidden><span class="ip-bar"><span class="ip-fill" id="ipFill"></span></span><span class="ip-txt" id="ipTxt"></span></div>
       <button type="button" class="ex-chip" id="exChip" hidden onclick="exChipClick()"></button>
       <div class="panel-body" id="formBody"></div>
@@ -1566,7 +1566,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
           <div class="tf-acts">
             <button class="ex ghost" id="srcBtn" title="가정별 출처(IM 기재·감정평가·실사·추정·회사 표준)와 기준일 기록 — 엑셀 가정 시트·검토 메모에 반영">출처 기록</button>
             <button class="ex ghost" id="chkBtn" title="핵심 가정이 통상 참고 범위 안인지 전수 점검 + 매도자·자문사용 검토 질의서 초안">가정 점검</button>
-            <button class="ex ghost" id="myDefBtn" title="회사 표준 부대비·보수·대출 조건을 저장해 두고 새 딜에 한 번에 적용">내 기본값</button>
+            <button class="ex ghost" id="myDefBtn" title="자주 쓰는 부대비·보수·대출 조건을 저장하고 새 딜에 적용">내 기본값</button>
             <button class="ex ghost" id="shareBtn" title="현재 입력값을 링크로 복사">링크로 공유</button>
             <button class="ex ghost tf-danger" id="clearBtn" title="입력값 전체 지우기">전체 비우기</button>
           </div>
@@ -1577,22 +1577,22 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <div id="resultCol">
       <div class="metrics" id="simCard" hidden>
         <div class="mx-head"><span class="mx-t">1차 검토 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관, 보유 3~10년 모든 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
-        <div class="coach" id="coachMark" hidden><b>결과, 이 순서로 보면 됩니다</b><ol><li><b>① 큰 숫자 세 개부터</b> — IRR(연 수익률)·EM(원금의 몇 배)·배당률</li><li><b>② 바로 아래 판정 한 줄</b> — 이 숫자가 좋은 건지 나쁜 건지</li><li><b>③ 민감도·시나리오</b> — 가정이 빗나가면 어디까지 버티는지</li></ol><button type="button" class="sl-btn" id="coachOk">확인했어요, 그만 보기</button></div>
+        <div class="coach" id="coachMark" hidden><b>결과는 이 순서로 보세요</b><ol><li><b>① 주요 지표</b>: IRR(연 수익률), EM(원금 대비 회수액), 배당률</li><li><b>② 판정</b>: 각 지표가 기준을 넘는지 확인</li><li><b>③ 민감도·시나리오</b>: 가정이 나빠졌을 때 결과 확인</li></ol><button type="button" class="sl-btn" id="coachOk">다시 보지 않기</button></div>
         <div class="sim-kpis" id="simKpis"></div>
         <div class="sim-verdict" id="simVerdict" role="status" aria-live="polite" hidden></div>
         <details class="adj-d" id="adjBar" hidden><summary>🎛 즉석 조정 <span class="adj-sub">미팅 중 핵심 드라이버만 ± — 입력 폼과 즉시 동기화</span></summary><div id="adjBody"></div></details>
         <div id="simBody"></div>
         <div class="sim-cav" id="simCaveat"></div>
         <div class="handoff-bar" id="handoffBar">
-          <div class="handoff-copy"><b>팀에 올릴 첫 숫자가 나왔습니다.</b><span>한 줄 보고·읽기 전용 링크로 보내고, 필요하면 Excel·PPT까지 이어가세요.</span></div>
+          <div class="handoff-copy"><b>1차 검토에 쓸 숫자가 나왔습니다.</b><span>한 줄 요약이나 읽기 전용 링크로 먼저 공유하세요. Excel과 PPT가 필요하면 아래에서 받을 수 있습니다.</span></div>
           <button class="handoff-btn" id="handoffBtn" type="button">팀에 1차 검토 공유</button>
         </div>
         <div class="dl-row" id="dlRow" hidden>
           <button class="xl-dl" id="xlDownload" type="button" title="숨김 계산·복원 시트 포함 기준. 렌트롤 반영 시 집계·임차인별 시트가 추가됩니다">⬇ 이 입력값으로 13시트 엑셀 모델 받기 <span class="xl-ext">.xlsx</span></button>
           <button class="xl-dl tz-dl" id="tzDownload" type="button" title="현재 입력값으로 1장짜리 간이 검토 보고서(PPT 양식)를 만듭니다">📄 원페이지 티저 <span class="xl-ext">.pptx</span></button>
-          <button class="xl-dl tz-dl" id="icDownload" type="button" title="표지·투자요약·자본구조·핵심가정·현금흐름·민감도·리스크점검 7장 — 화면 결과 그대로(민감도 표만 동일 엔진으로 재산출)">📑 IC 패키지 7장 <span class="xl-ext">.pptx</span></button>
+          <button class="xl-dl tz-dl" id="icDownload" type="button" title="표지, 투자요약, 자본구조, 핵심가정, 현금흐름, 민감도, 리스크점검 7장. 화면 결과를 사용하고 민감도 표는 같은 엔진으로 다시 계산합니다">📑 IC 패키지 7장 <span class="xl-ext">.pptx</span></button>
         </div>
-        <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> — 받는 사람이 클릭·스캔 한 번으로 라이브 모델에 이어집니다. 링크에는 화면의 가정 수치가 담기며(임차인 실명은 자동 마스킹) 파일 자체와 같은 정보입니다.</span></label>
+        <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> 받는 사람이 같은 결과를 브라우저에서 열 수 있습니다. 링크에는 화면의 가정 수치가 들어가며, 임차인 실명은 자동으로 가립니다. 파일 자체와 같은 수준의 정보이므로 전달 범위를 확인하세요.</span></label>
       </div>
       <div class="metrics" id="metricsCard" hidden>
         <details id="mxFold">
@@ -1642,7 +1642,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
             <button class="obtn solid" id="copyBtn"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z"/></svg><span id="copyLabel">전체 복사</span></button>
           </div>
         </div>
-        <p class="out-hint" id="outHint"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><span><b>예시가 채워져 있습니다.</b> 왼쪽 값을 바꾸면 결과·Excel 모델·이 지시문이 실시간으로 갱신됩니다. Excel을 그대로 받거나, 이 지시문을 복사해 Claude in Excel에서 더 깊게 이어가도 됩니다.</span></p>
+        <p class="out-hint" id="outHint"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><span><b>현재는 예시값입니다.</b> 왼쪽 값을 바꾸면 결과, Excel 모델, 지시문이 함께 바뀝니다. Excel을 내려받거나 지시문을 복사해 Claude in Excel에서 수정할 수 있습니다.</span></p>
         <pre class="out" id="outText"></pre>
       </div>
     </div>
@@ -1652,10 +1652,10 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <div class="howto">
       <div class="ht-t">사용 방법</div>
       <ol>
-        <li><b>딜 유형</b>을 고르고 숫자를 채우면, 우측에 <b>IRR·멀티플 결과</b>가 바로 나옵니다.</li>
-        <li><b>오피스 매입</b>은 13시트 Excel 모델을 그 자리에서 내려받습니다 — 수식이 살아있어 가정을 바꾸면 따라 움직입니다.</li>
-        <li>실제 <b>렌트롤</b>을 올리면 임차인별로(현 계약·공실·만기) 모델에 반영됩니다.</li>
-        <li>더 깊게·맞춤으로 가려면 <b>완성된 지시문</b>을 복사해 <b>Claude in Excel</b>에서 이어갑니다.</li>
+        <li><b>딜 유형</b>을 고르고 숫자를 입력하면 오른쪽에 <b>IRR과 멀티플</b>이 표시됩니다.</li>
+        <li><b>오피스 매입</b>은 결과와 같은 수식이 들어 있는 13시트 Excel로 내려받을 수 있습니다.</li>
+        <li><b>렌트롤</b>을 올리면 현재 계약, 공실, 만기를 임차인별로 반영합니다.</li>
+        <li>추가 작업이 필요하면 <b>지시문</b>을 복사해 <b>Claude in Excel</b>에서 수정할 수 있습니다.</li>
       </ol>
     </div>
   </div>
@@ -1664,8 +1664,8 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <div class="feedback" id="feedback">
       <div class="fb-head">
         <div class="fb-label">어떤 순간에 열었나요?</div>
-        <h3>딜 검토의 시작점을 알려주세요.</h3>
-        <p>최근 어떤 문서를 받은 뒤, 무엇을 확인하려고 모델터를 열었는지 자유롭게 적어 주세요. 팀에서 그 다음 검토가 어떻게 이어졌는지, 또는 왜 열지 않았는지도 같은 가치가 있습니다.</p>
+        <h3>언제, 무엇을 보려고 열었나요?</h3>
+        <p>어떤 자료를 받은 뒤 무엇을 확인하려고 모델터를 열었는지 적어 주세요. 그 결과를 팀에서 어떻게 검토했는지, 쓰지 않았다면 이유가 무엇인지도 궁금합니다.</p>
         <a class="fb-contact" href="https://www.linkedin.com/in/seonghoonk/" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
           사용법 문의 · 시연 요청은 LinkedIn으로
@@ -1673,7 +1673,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       </div>
       <div class="fb-form">
         <input id="fbEmail" type="email" class="fb-email" placeholder="회신받을 이메일 (선택)" autocomplete="email" maxlength="254" />
-        <textarea id="fbText" maxlength="2000" placeholder="딜명·수치 없이 적어 주세요: 어떤 상황에서 열었고, 무엇을 확인했으며, 그다음 팀 검토는 어떻게 이어졌나요?"></textarea>
+        <textarea id="fbText" maxlength="2000" placeholder="딜명·수치 없이 적어 주세요: 어떤 상황에서 열었고, 무엇을 확인했으며, 팀에서는 그 결과를 어떻게 검토했나요?"></textarea>
         <div class="fb-actions">
           <button class="fb-send" id="fbSend">
             <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
@@ -1689,13 +1689,13 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 <section class="why-end">
   <div class="wrap">
     <div class="why-end-label">왜 만들었나</div>
-    <p>상업용 부동산 금융 실무를 하며, 딜이 바뀔 때마다 같은 일을 처음부터 다시 했습니다. 가정을 잡고, 시트를 연결하고, 숫자가 맞는지 검증하고. 모델의 구조는 매번 비슷한데, 그 구조를 세우는 손은 늘 같은 수고를 반복했습니다. 그러다 생각했습니다 — <b>이 반복을 AI에게 제대로 시킬 수 있다면?</b> 핵심은 "계산해줘"가 아니라 "이 구조로 세워줘"였습니다. 그 지시를 누구나 만들 수 있게 정리한 것이 모델터입니다. 거창한 제품이 아닙니다. 같은 고민을 하는 분들에게 작은 출발점이 되면 좋겠다는 개인 프로젝트입니다.</p>
+    <p>딜이 바뀔 때마다 비슷한 Excel을 다시 만들었습니다. 가정을 정리하고 시트를 연결한 뒤 화면과 파일의 숫자를 맞추는 일도 반복됐습니다. 모델터는 그 시간을 줄이려고 만든 개인 프로젝트입니다. IM에서 핵심 가정을 먼저 계산하고, 계속 검토할 딜이면 수식이 들어 있는 Excel로 정리할 수 있게 만들었습니다.</p>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <div class="foot-mission">"딜 검토, 첫 숫자는 모델터에서." — 모델터</div>
+    <div class="foot-mission">딜 검토, 첫 숫자는 모델터에서.</div>
     <div class="foot-in">
       <div class="foot-by">
         <div class="av">김</div>
@@ -1704,9 +1704,9 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
           <span>상업용 부동산 금융 9년차 · 상장리츠 · PF · 구조화금융 · <a href="https://www.linkedin.com/in/seonghoonk/" target="_blank" rel="noopener">LinkedIn</a></span>
         </div>
       </div>
-      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 실무에서 느낀 어려움을 AI로 풀어보려 만든 <b>개인 프로젝트</b>입니다. 이윤을 추구하지 않으며, 소속 회사(코람코자산신탁)의 공식 입장·서비스와 무관하고, 어떤 실제 거래 정보도 포함하지 않습니다. © 2026 · 마지막 업데이트 <span id="footUpd"></span></p>
+      <p class="foot-note">모델터는 코람코자산신탁 상장리츠팀 김성훈 과장이 개인적으로 만든 프로젝트입니다. 소속 회사(코람코자산신탁)의 공식 입장이나 서비스가 아니며, 실제 거래 정보는 포함하지 않습니다. © 2026 · 마지막 업데이트 <span id="footUpd"></span></p>
       <button class="md-open" id="mdOpen" type="button">방법론 · 가정과 계산식 보기</button>
-      <p class="foot-guide"><a href="/guide">부동산 금융 용어사전</a> · <a href="/im-checklist">IM 검토 체크리스트 — 첫 계산에 필요한 숫자</a> · <a href="/howto">실무 활용 가이드 — IM에서 IC 보고까지 30분 워크플로</a> · <a href="/trust">보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다</a> · <a href="/verification">파리티 검증 — 화면=엑셀 재현 증거</a></p>
+      <p class="foot-guide"><a href="/guide">부동산 금융 용어사전</a> · <a href="/im-checklist">IM 검토 체크리스트</a> · <a href="/howto">30분 1차 검토 가이드</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">화면과 Excel 검증 결과</a></p>
       <p class="foot-guide">계산기: <a href="/calc/office">오피스 매입</a> · <a href="/calc/logistics">물류센터 매입</a> · <a href="/calc/dev">분양 사업수지</a> · <a href="/calc/refi">리파이낸싱 비교</a> · <a href="/calc/hotel">호텔(준비중) — ADR·RevPAR 구조</a></p>
       <p class="foot-guide">자주 찾는 용어: <a href="/t/caprate">Cap rate</a> · <a href="/t/noi">NOI</a> · <a href="/t/irr">IRR</a> · <a href="/t/dscr">DSCR</a> · <a href="/t/em">Equity Multiple</a> · <a href="/t/ltv">LTV·LTC</a> · <a href="/t/rentfree">렌트프리</a> · <a href="/t/noc">NOC</a> · <a href="/t/deposit">보증금 승계</a> · <a href="/t/bep">손익분기 분양률</a> · <a href="/t/adr">ADR</a> · <a href="/t/revpar">RevPAR</a> · <a href="/guide">전체 32개 →</a></p>
     </div>
@@ -1818,7 +1818,7 @@ const DEALS={
       {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"62,000",min:0,hint:"전용 또는 임대면적 1평당 월 임대료(부가세 제외). 임대차계약서·Rent Roll 기준. 임대가능면적(연면적의 88%/97%)×임대율과 곱해 월 임대료 총액을 산출합니다."},
       {k:"campp",l:"평당 월 관리비",u:"원/평·월",t:"num",ph:"21,000",min:0,hint:"1평당 월 관리비 수입. 임대인 귀속분 기준. 임대가능면적×임대율과 곱해 월 관리비 총액을 산출합니다."},
       {k:"depmult",adv:true,l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 국내 상업용은 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
-      {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
+      {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)에 넣고 매각 시 반환액을 정산합니다. 렌트롤을 올리면 실제 보증금 합계를 사용합니다."},
       {k:"opfee",adv:true,l:"운용보수율",u:"%",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"자산운용사(AM) 운용보수를 취득가 대비 연 %로. 배당재원에서 차감됩니다. 보통 0.3~0.5%."},
       {k:"fixcost",adv:true,l:"기타 고정비",u:"백만원/년",t:"num",ph:"0",min:0,hint:"신탁보수·사무수탁·감사 등 연 고정비(백만원). 없으면 0."},
       {k:"noi1",l:"1차연도 NOI",u:"백만원",t:"num",ph:"6,000",min:0,hint:"[NOI 직접 입력 방식] 순영업이익을 연 단위로 직접 입력. 임대료 기반 산출을 쓰면 비워둡니다."},
@@ -1852,7 +1852,7 @@ const DEALS={
       {k:"rentpp",l:"평당 월 임대료",u:"원/평·월",t:"num",ph:"28,000",min:0,hint:"창고 1평당 월 임대료. 저온·상온 혼합이면 가중평균. 임대가능면적(연면적의 88%/97%)×임대율과 곱해 월 임대료 총액을 산출합니다."},
       {k:"campp",l:"평당 월 관리비",u:"원/평·월",t:"num",ph:"1,700",min:0,hint:"1평당 월 관리비 수입(임대인 귀속분). 책임임대차로 임차인이 직접 부담하면 0에 가깝습니다."},
       {k:"depmult",adv:true,l:"임대보증금 배수",u:"개월",t:"num",ph:"12",min:0,max:60,hint:"보증금이 월 임대료의 몇 배인지(개월). 보통 10~12개월. 보증금 운용수익이 수입에 더해집니다."},
-      {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)으로 잡아 자기자본을 줄이고 매각 시 정산합니다. 국내 실무 표준. 렌트롤 업로드 시 실제 보증금 합계를 사용합니다."},
+      {k:"depassume",adv:true,l:"보증금 승계",t:"select",opts:["반영","미반영"],hint:"임차인 보증금(무이자)을 취득자금(Sources)에 넣고 매각 시 반환액을 정산합니다. 렌트롤을 올리면 실제 보증금 합계를 사용합니다."},
       {k:"opfee",adv:true,l:"운용보수율",u:"%",t:"num",ph:"0.4",min:0,max:10,pct:1,hint:"자산운용사(AM) 운용보수를 취득가 대비 연 %로. 배당재원에서 차감됩니다. 보통 0.3~0.5%."},
       {k:"fixcost",adv:true,l:"기타 고정비",u:"백만원/년",t:"num",ph:"0",min:0,hint:"신탁보수·사무수탁·감사 등 연 고정비(백만원). 없으면 0."},
       {k:"noi1",l:"1차연도 NOI",u:"백만원",t:"num",ph:"11,000",min:0,hint:"[NOI 직접 입력 방식] 순영업이익을 연 단위로 직접 입력. 임대료 기반 산출을 쓰면 비워둡니다."},
@@ -1948,9 +1948,9 @@ const DEFAULT_ON=["원본 보존","시트 간 연결","셀 참조·출처 명시
 
 /* 모델 깊이 정의 */
 const DEPTHS={
-  quick:{label:"빠른 검토", range:"1~3시트", desc:"가정·계산·결과만. 빠른 의사결정용 약식 모델."},
-  standard:{label:"표준", range:"5~8시트", desc:"입력·엔진·결과·검증을 갖춘 실무 표준 모델."},
-  deep:{label:"심층", range:"10시트+", desc:"세부 분해·민감도·검증까지. 위원회·실사(DD)용 정밀 모델."}
+  quick:{label:"빠른 검토", range:"1~3시트", desc:"핵심 가정, 계산, 결과 시트만 포함합니다."},
+  standard:{label:"표준", range:"5~8시트", desc:"입력, 계산, 결과, 검증 시트를 포함합니다."},
+  deep:{label:"심층", range:"10시트+", desc:"민감도와 세부 검증 시트를 추가합니다."}
 };
 // 딜별 '빠른 검토'에서 남길 핵심 계산 시트(1~2개)
 const QUICK_CORE={
@@ -1997,7 +1997,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-16·b44112cb43';
+window.MT_BUILD='2026-08-16·d2996a0634';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2035,7 +2035,7 @@ function renderExChip(){
     var rem=exMixed()?exRemaining():[];
     if(!rem.length){ el.hidden=true; return; }
     el.hidden=false;
-    el.textContent='⚠ 예시값 그대로 '+rem.length+'개';
+    el.textContent='⚠ 예시값 '+rem.length+'개 남음';
     el.title='아직 예시 숫자인 항목: '+exLabels().join(', ')+' — 누르면 해당 칸을 표시합니다';
   }catch(e){}
 }
@@ -2067,8 +2067,8 @@ function exConfirmOutput(kind){
     if(!labs.length) return true;
     if(sessionStorage.getItem('mt_ex_ack')==='1') return true;
     var head=labs.slice(0,6), allExample=!exUserEdited;
-    var okc=confirm((allExample?'현재 입력은 전부 예시 숫자입니다. 실제 시세가 아닙니다:':'아직 예시 숫자 그대로인 항목이 있습니다:')+'\n· '+head.join('\n· ')+(labs.length>6?('\n· … 외 '+(labs.length-6)+'개'):'')
-      +'\n\n이 값들이 '+kind+'에 그대로 들어갑니다. 계속할까요?\n(계속하면 이 세션에서는 다시 묻지 않고 표시만 합니다)');
+    var okc=confirm((allExample?'현재 입력은 모두 예시값이며 실제 시세가 아닙니다:':'아직 예시값인 항목이 있습니다:')+'\n· '+head.join('\n· ')+(labs.length>6?('\n· … 외 '+(labs.length-6)+'개'):'')
+      +'\n\n이 값으로 '+kind+'을(를) 만들까요?\n계속하면 이 세션에서는 다시 묻지 않고 표시만 합니다.');
     if(okc){ try{ sessionStorage.setItem('mt_ex_ack','1'); }catch(e2){} if(window.mtTrack) try{ mtTrack('ex_ack'); }catch(e3){} }
     return okc;
   }catch(e){ return true; }
@@ -2083,7 +2083,7 @@ let depth="standard";
 const DEAL_SOON=[{k:'hotel',label:'호텔'},{k:'retail',label:'리테일'},{k:'rental',label:'임대주택'},{k:'datacenter',label:'데이터센터'}];
 function renderTabs(){
   const real=Object.entries(DEALS).map(([k,d])=>
-    `<button class="deal-tab ${k===cur?'on':''}" data-k="${k}">${d.label}${d.base?'<span class="badge-base">기본</span>':''}${d.lite?'<span class="badge-lite" title="간이 체크 — 빠른 감 잡기용">간이</span>':''}</button>`
+    `<button class="deal-tab ${k===cur?'on':''}" data-k="${k}">${d.label}${d.base?'<span class="badge-base">기본</span>':''}${d.lite?'<span class="badge-lite" title="빠르게 보는 간이 계산">간이</span>':''}</button>`
   ).join("");
   const soon=DEAL_SOON.map(x=>
     `<button class="deal-tab deal-soon" data-want="${x.k}" title="준비 중 — 클릭하면 이 딜 유형에 관심 있다고 익명으로 알려집니다">${x.label}<span class="badge-soon">준비중</span></button>`
@@ -2238,7 +2238,7 @@ function refiHtml(gl){
 
 function depthHtml(){
   const depthBtns=Object.entries(DEPTHS).map(([k,v])=>`<button type="button" class="depth-opt ${k===depth?'on':''}" data-depth="${k}"><b>${v.label}</b><span>${v.range}</span></button>`).join("");
-  return `<div class="depth-pick"><div class="dp-head">모델 깊이 <span class="help" tabindex="0">?<span class="tip">시트 수가 많다고 더 좋은 모델은 아닙니다. 빠른 검토는 핵심만, 표준은 실무용, 심층은 위원회·실사용. 엑셀·AI 지시문 구성에 반영됩니다.</span></span></div>
+  return `<div class="depth-pick"><div class="dp-head">모델 깊이 <span class="help" tabindex="0">?<span class="tip">시트 수가 많다고 더 좋은 모델은 아닙니다. 빠른 검토에는 핵심 구성을, 위원회 보고나 상세 검토에는 심층 구성을 선택하세요. Excel과 AI 지시문의 구성도 함께 바뀝니다.</span></span></div>
    <div class="depth-seg" id="depthSeg">${depthBtns}</div>
    <div class="depth-desc" id="depthDesc">${DEPTHS[depth].desc}${(function(){ try{ var n=(typeof sheetListFor==='function')?sheetListFor().length:0; return n?` <b>지금 ${n}시트</b> — 깊이는 <b>내려받는 엑셀·AI 지시문의 시트 구성</b>을 정합니다(화면 입력 항목은 동일).`:''; }catch(e){ return ''; } })()}</div>
   </div>`;
@@ -2252,7 +2252,7 @@ function renderTools(rrEligible){
     let h=depthHtml();
     // IM 가정 추출(BYOK) — 매입 딜 전용, 읽기 전용에서는 숨김
     if(rrEligible && !(document.body&&document.body.classList.contains('mt-ro')))
-      h+='<details class="fsub imfold"><summary>📥 IM에서 숫자 가져오기 — 붙여넣기 자동 인식 · AI 정밀(β)<span class="chev">▾</span></summary>'+'<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키·문서 전송 없이 이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 어떤 숫자를 찾아야 하는지 목록으로">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 — 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">IM 텍스트를 붙여넣으면 <b>키·전송 없이</b> 매입가·임대료·Exit Cap 등을 자동 인식해 채웁니다. 복잡한 문서는 AI 정밀 추출(본인 키)로 보완할 수 있습니다.</span></div>'+'</details>';
+      h+='<details class="fsub imfold"><summary>📥 IM에서 숫자 가져오기<span class="chev">▾</span></summary>'+'<div class="im-entry"><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.quick()" title="API 키 없이 브라우저 안에서 숫자를 찾습니다">📥 IM 붙여넣기 → 자동 인식</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.checklist()" title="IM에서 확인할 숫자를 목록으로 봅니다">📋 IM에서 찾을 숫자</button><button type="button" class="im-btn" onclick="if(window.MTIM)MTIM.open()" title="복잡한 문서용 · 본인 Anthropic API 키 필요(선택)">🤖 AI 정밀 추출 <i>β</i></button><span class="im-note">텍스트를 붙여넣으면 브라우저가 매입가, 임대료와 Exit Cap 등을 찾아 표시합니다. 복잡한 문서는 본인 API 키로 다시 볼 수 있습니다.</span></div>'+'</details>';
     dyn.innerHTML=h;
   }
   toolsSummary();
@@ -2445,7 +2445,7 @@ function renderForm(){
     if(coreFields.length){
       const ccols=coreFields.some(x=>x.full)?'one':'';
       html+=`<div class="fgroup core-g"><div class="fgroup-h"><span class="gl">${GL[gn++]}</span> 핵심 입력<span class="gh-cnt"></span>${coreModeHtml}</div>`
-        +`<div class="core-note">이 ${coreFields.length}개만 넣어도 결과가 나옵니다 — 나머지는 통상값이 적용되고, 아래에서 언제든 조정할 수 있습니다.</div>`
+        +`<div class="core-note">아래 ${coreFields.length}개를 넣으면 결과를 계산합니다. 나머지는 기본값을 적용하며 세부 항목에서 바꿀 수 있습니다.</div>`
         +`<div class="fields ${ccols}">${coreFields.map(fieldHtml).join("")}</div></div>`;
     }
     d.groups.forEach((g,gi)=>{
@@ -2457,9 +2457,9 @@ function renderForm(){
       // 값은 예시·통상값이 그대로 적용되고, 펼치면 언제든 수정 가능(기능 제거 아님).
       const main=ff.filter(x=>!x.adv), advF=ff.filter(x=>x.adv);
       const cols = main.length>=3 && main.every(x=>!x.full) ? (main.length%3===0?'three':(main.length%2===0?'':'')) : (main.some(x=>x.full)?'one':'');
-      const sub = advF.length?`<details class="fsub"><summary>세부 항목 ${advF.length}개 — 통상값 적용 중 · 펼쳐서 수정<span class="chev">▾</span></summary><div class="fields">${advF.map(fieldHtml).join("")}</div></details>`:"";
+      const sub = advF.length?`<details class="fsub"><summary>세부 항목 ${advF.length}개 · 기본값 적용 중<span class="chev">▾</span></summary><div class="fields">${advF.map(fieldHtml).join("")}</div></details>`:"";
       if(g.adv){
-        html+=`<div class="fgroup adv collapsed" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">통상값 적용 중 · 펼쳐서 수정</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
+        html+=`<div class="fgroup adv collapsed" data-grp="${gi}"><div class="fgroup-h"><span class="gh-left"><span class="gl">${gl}</span> ${g.h}<span class="gh-cnt"></span></span><span class="opt-badge">기본값 적용 중</span><span class="chev">▾</span></div><div class="fields ${cols}">${ff.map(fieldHtml).join("")}${extra}</div></div>`;
       }else{
         html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${gl}</span> ${g.h}<span class="gh-cnt"></span></div><div class="fields ${cols}">${main.map(fieldHtml).join("")}${extra}${sub}</div></div>`;
       }
@@ -2830,7 +2830,7 @@ function _paintProg(box,fill,txt,filled,total){
   var done=(filled>=total);
   var sampleOnly=(exampleKeys.size>0&&!exUserEdited);
   box.classList.toggle('done',done&&!sampleOnly);
-  txt.textContent=sampleOnly?('예시 입력 '+filled+'/'+total+' · 내 딜 숫자를 바꿔 주세요'):(done?('핵심 입력 완료 · 결과가 준비됐습니다'):('핵심 입력 '+filled+'/'+total));
+  txt.textContent=sampleOnly?('예시값 '+filled+'/'+total+' · 실제 값으로 바꿔 주세요'):(done?('필수 입력 완료 · 결과 계산됨'):('필수 입력 '+filled+'/'+total));
 }
 /* 그룹별 입력 진행 표시 (n/m) — 어디까지 채웠는지 부담을 줄여줌 */
 function updateGroupCounts(){
@@ -3632,7 +3632,7 @@ function buildPrintSummary(){
         var _cv=document.createElement('canvas'); _cv.width=_sz; _cv.height=_sz; var _g=_cv.getContext('2d');
         _g.fillStyle='#ffffff'; _g.fillRect(0,0,_sz,_sz); _g.fillStyle='#000000';
         for(var _qr=0;_qr<_n;_qr++) for(var _qc=0;_qc<_n;_qc++) if(_q.isDark(_qr,_qc)) _g.fillRect(_qm+_qc*_sc,_qm+_qr*_sc,_sc,_sc);
-        recHtml='<div class="ps-recover" style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin:8px 0 2px"><span style="font-size:9.5px;color:#666;max-width:200px;line-height:1.5;text-align:right">휴대폰으로 스캔하면 이 가정 그대로 라이브 모델이 열립니다 (읽기 전용 · 임차인명 마스킹)</span><img src="'+_cv.toDataURL('image/png')+'" alt="이 모델 열기 QR" style="width:34mm;height:34mm;image-rendering:pixelated"/></div>';
+        recHtml='<div class="ps-recover" style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin:8px 0 2px"><span style="font-size:9.5px;color:#666;max-width:200px;line-height:1.5;text-align:right">휴대폰으로 스캔하면 현재 가정의 읽기 전용 모델이 열립니다. 임차인 실명은 자동으로 가립니다.</span><img src="'+_cv.toDataURL('image/png')+'" alt="이 모델 열기 QR" style="width:34mm;height:34mm;image-rendering:pixelated"/></div>';
       }
     }
   }catch(eQR){}
@@ -4095,7 +4095,7 @@ function simDcf(){
   var mult=equity>0?totalDist/equity:null;
   var avgCoC=null; if(equity>0){ var su=0,cn=0; for(var t2=1;t2<hold;t2++){ su+=cf[t2]/equity; cn++; } avgCoC=cn?su/cn:(cf[1]/equity); }
   var ucf=[-uses]; for(var t3=1;t3<=hold;t3++){ var v=noi(t3); if(t3===hold) v+=saleNet; ucf.push(v); } var unlev=irr(ucf);
-  var cav=['간이 추정 — 연간 현금흐름·'+(passthru?'도관과세(세금≈0)':('법인세 '+mfmt(taxrate*100,0)+'%·건물분70%/내용연수40년 가정'))+'·공실/CAPEX 미반영. 정밀 모델은 Excel 다운로드로.'];
+  var cav=['간이 계산입니다. 연간 현금흐름과 '+(passthru?'도관과세(세금≈0)':('법인세 '+mfmt(taxrate*100,0)+'%·건물분 70%·내용연수 40년'))+'를 반영하며 공실과 CAPEX는 포함하지 않습니다. 세부 수식은 Excel에서 확인하세요.'];
   if(equity<=0) cav.unshift('자기자본이 0 이하 — 대출+우선주가 총취득원가를 초과합니다.');
   if(prefAmt>0) cav.push('우선주 워터폴: 우선배당(누적) 후 보통주 잔여, 청산 시 우선주 원금 우선 반영.');
   var kpis=[
@@ -4162,7 +4162,7 @@ function simRefi(){
   });
   if(!rows.length) return null;
   return {type:'refi', rows:rows, best:(best?best.n:null), maxY:maxY, dmin:I.dmin,
-    mini:{irrL:'추천', irr:(best?(best.n+'안'):'—'), cocL:'minDSCR', coc:(best&&best.minDSCR!=null?mfmt(best.minDSCR,2)+'x':'—')},
+    mini:{irrL:'DSCR 우위', irr:(best?(best.n+'안'):'—'), cocL:'minDSCR', coc:(best&&best.minDSCR!=null?mfmt(best.minDSCR,2)+'x':'—')},
     raw:{minDSCR:(best?best.minDSCR:null), loan:(best?best.loan:null)},
     caveats:['대안별 텀시트 비교 — 연도별 NOI(성장률 반영)와 상환구조별 원리금으로 전 기간 DSCR을 전개합니다. 만기 상환(벌룬)은 차환 가정으로 DSCR에서 제외. 화면 수치는 아래에서 받는 엑셀과 같은 계산식으로 구한 값입니다. 약정 트리거(LTV 재평가)·변동금리는 미반영.']};
 }
@@ -4398,7 +4398,7 @@ function simDevResi(){
     {l:'손익분기 분양률', v:bep!=null?mfmt(bep,1)+'%':'100%+ (전량 분양해도 적자)', tone:bep==null?'warn':''},
     {l:'PF 상환한계 분양률', v:pfc!=null?mfmt(pfc,1)+'%':'100%+', tone:pfc==null?'warn':''}
   ];
-  var caveats=warns.concat(['월 단위 분양수지 — 반영: 브릿지(선행기간, m<착공)→본PF 금리 전환, 토지 제세·설계감리·예비비·판매비(계약 연동)·분양보증·중도금 무이자 대납이자. 단순화: 토지비 착수 일괄, 공사비 균등 기성, 상업시설 균등 판매, 브릿지→본PF 차환은 잔액 승계(별도 상환 수수료 없음), PF 수수료는 본PF 최대 인출액 기준.']);
+  var caveats=warns.concat(['월 단위 분양수지입니다. 브릿지(착공 전)와 본PF 금리, 토지 제세, 설계감리, 예비비, 판매비, 분양보증, 중도금 무이자 대납이자를 반영합니다. 토지비는 계약금·잔금 일정, 공사비는 선택한 기성 곡선으로 계산합니다. 상업시설은 균등 판매, 브릿지→본PF 차환은 별도 수수료 없이 잔액 승계, PF 수수료는 본PF 최대 인출액 기준입니다.']);
   if(typeof devView!=='undefined'&&devView==='lender'){
     var ltc=R.costAll>0?R.peakPF/R.costAll:null;
     var eqr=R.costAll>0?I.E/R.costAll:null;
@@ -4465,7 +4465,7 @@ function simDevBulk(){
     {l:'사업이익', v:meok(profit)},
     {l:'자기자본', v:meok(equity)}
   ];
-  return {type:'kpi', kpis:kpis, table:null, caveats:['간이 추정 — 분양/매각 단순화·건설기간 자금흐름/건설이자/단계 투입 미반영. 간이 IRR은 (회수÷투입)^(1/사업기간) 단순 환산. 정밀 모델은 Claude in Excel.']};
+  return {type:'kpi', kpis:kpis, table:null, caveats:['간이 계산입니다. 분양·매각과 자금 투입 시점을 단순화했으며 건설기간 자금흐름과 건설이자는 반영하지 않습니다. IRR은 (회수÷투입)^(1/사업기간)으로 환산합니다.']};
 }
 
 function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='dev') return simDev(); if(cur==='refi') return simRefi(); return null; }
@@ -4571,28 +4571,28 @@ function dealVerdict(r){
     var hIrr=houseGet('irr',8)/100, hDscr=houseGet('dscr',1.2);
     var hOn=houseOn();
     var hNm=hOn?(houseName()+' 기준 '):'', lead, dsAt=-1;
-    if(irr>=hIrr){ lead='IRR은 '+fp(irr)+'로 '+hNm+mfmt(hIrr*100,1)+'%는 넘습니다'; parts.push(lead+'.'); }
-    else if(irr<hIrr-0.03){ lead='IRR이 '+fp(irr)+'에 그칩니다'; parts.push(lead+'. '+hNm+mfmt(hIrr*100,1)+'%까지 가려면 가격이나 조건을 다시 봐야 합니다.'); tone='warn'; }
-    else { lead='IRR이 '+fp(irr)+'라 '+hNm+mfmt(hIrr*100,1)+'%에는 조금 못 미칩니다'; parts.push(lead+'.'); if(tone==='good') tone='mid'; }
+    if(irr>=hIrr){ lead='IRR '+fp(irr)+' · '+hNm+mfmt(hIrr*100,1)+'% 이상'; parts.push(lead+'.'); }
+    else if(irr<hIrr-0.03){ lead='IRR '+fp(irr)+' · '+hNm+mfmt(hIrr*100,1)+'%보다 '+mfmt((hIrr-irr)*100,1)+'%p 낮음'; parts.push(lead+'. 가격과 주요 가정을 다시 확인하세요.'); tone='warn'; }
+    else { lead='IRR '+fp(irr)+' · '+hNm+mfmt(hIrr*100,1)+'%보다 '+mfmt((hIrr-irr)*100,1)+'%p 낮음'; parts.push(lead+'.'); if(tone==='good') tone='mid'; }
     if(raw.minDSCR!=null&&isFinite(raw.minDSCR)){
-      if(raw.minDSCR>=hDscr) parts.push('최소 DSCR는 '+fx(raw.minDSCR)+'라 상환 쪽은 무리가 없어 보입니다.');
-      else { parts.push('다만 최소 DSCR가 '+fx(raw.minDSCR)+'까지 내려갑니다. '+(hOn?(houseName()+' 기준 '+mfmt(hDscr,2)+'x에 못 미치는'):('대주들이 보통 보는 '+mfmt(hDscr,2)+'x에 걸릴 수 있는'))+' <b>수준입니다</b>.'); tone='warn'; }
+      if(raw.minDSCR>=hDscr) parts.push('최소 DSCR '+fx(raw.minDSCR)+' · '+hNm+mfmt(hDscr,2)+'x 이상.');
+      else { parts.push('최소 DSCR '+fx(raw.minDSCR)+' · '+hNm+mfmt(hDscr,2)+'x보다 낮습니다.'); tone='warn'; }
     }
     var price=parseNum(state.price), noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null, ec=raw.exitCap;
     if(isFinite(price)&&price>0&&noi0!=null&&isFinite(ec)){
       var entry=noi0/price, sp=(ec-entry)*100;
-      if(sp>=0.1) parts.push('Exit Cap은 진입보다 '+mfmt(sp,1)+'%p 높게, 보수적으로 잡혀 있습니다.');
-      else if(sp>=-0.5) parts.push('Exit Cap은 진입과 비슷한 수준입니다.');   // 앱 검증 허용치(±0.5%p) 이내
-      else { parts.push('Exit Cap을 진입보다 '+mfmt(-sp,1)+'%p 낮게 잡았습니다. 팔 때 값을 더 쳐준다는 가정이라 <b>그 근거가 있어야 합니다</b>.'); tone='warn'; }
+      if(sp>=0.1) parts.push('Exit Cap은 진입 Cap보다 '+mfmt(sp,1)+'%p 높습니다.');
+      else if(sp>=-0.5) parts.push('Exit Cap은 진입 Cap과 ±0.5%p 이내입니다.');   // 앱 검증 허용치(±0.5%p) 이내
+      else { parts.push('Exit Cap은 진입 Cap보다 '+mfmt(-sp,1)+'%p 낮습니다. 매각가가 높아지는 가정이므로 근거를 확인하세요.'); tone='warn'; }
     }
     // 매도자 제시 IRR 대조(#28) — IM 제시치 vs 내 계산
     try{
       var _si=parseNum(state.sellerirr);
       if(isFinite(_si)&&_si>0){
         var _d=(irr-_si/100)*100;
-        if(_d<=-1) { parts.push('매도자는 '+mfmt(_si,1)+'%를 제시했는데 이 가정으로는 '+fp(irr)+'가 나옵니다. <b>'+mfmt(-_d,1)+'%p 차이</b>가 어디서 나는지, 임대료와 Exit Cap부터 맞춰볼 필요가 있습니다.'); tone='warn'; }
-        else if(_d<0) parts.push('매도자 제시('+mfmt(_si,1)+'%)와 '+mfmt(-_d,1)+'%p 차이로 얼추 비슷하게 나옵니다.');
-        else parts.push('매도자 제시('+mfmt(_si,1)+'%)보다 '+mfmt(_d,1)+'%p 높게 나옵니다.');
+        if(_d<=-1) { parts.push('매도자 제시 IRR '+mfmt(_si,1)+'%, 모델터 계산 '+fp(irr)+' · '+mfmt(-_d,1)+'%p 낮습니다. 임대료와 Exit Cap 가정을 대조하세요.'); tone='warn'; }
+        else if(_d<0) parts.push('매도자 제시 IRR보다 '+mfmt(-_d,1)+'%p 낮습니다.');
+        else parts.push('매도자 제시 IRR보다 '+mfmt(_d,1)+'%p 높습니다.');
       }
     }catch(eSi){}
     // 다운사이드 한 줄 — 민감도 히트맵의 보수 코너(Exit +1.0%p × 성장 −1.0%p)를 문장으로
@@ -4603,8 +4603,8 @@ function dealVerdict(r){
           var _dEc=_b.ec+1.0, _dG=_b.g-1.0;
           var _dIRR=window.__mtSens2(_dEc,_dG,'growth');
           if(_dIRR!=null&&isFinite(_dIRR)){
-            if(_dIRR<0.05){ parts.push('Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%로 보수적으로 눌러 보면 IRR이 '+fp(_dIRR)+'까지 빠집니다. <b>하방이 약한 편</b>입니다.'); dsAt=parts.length-1; }
-            else { parts.push('Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%로 눌러 봐도 IRR '+fp(_dIRR)+'는 지켜집니다.'); dsAt=parts.length-1; }
+            if(_dIRR<0.05){ parts.push('보수 시나리오(Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%)의 IRR은 '+fp(_dIRR)+'로 참고선 5%보다 낮습니다.'); dsAt=parts.length-1; }
+            else { parts.push('보수 시나리오(Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%)의 IRR은 '+fp(_dIRR)+'입니다.'); dsAt=parts.length-1; }
           }
         }
       }
@@ -4616,29 +4616,29 @@ function dealVerdict(r){
   if(cur==='dev'&&typeof devResi==='function'&&devResi()){
     if(raw.margin==null||!isFinite(raw.margin)) return null;
     var p2=[], t2='good', m=raw.margin, lead2;
-    if(m>=10){ lead2='이익률 '+mfmt(m,1)+'%면 개발에서 보통 잡는 10%는 넘습니다'; p2.push(lead2+'.'); }
-    else if(m<5){ lead2='이익률이 '+mfmt(m,1)+'%에 그칩니다'; p2.push(lead2+'. 분양가나 사업비를 다시 봐야 하는 수준입니다.'); t2='warn'; }
-    else { lead2='이익률이 '+mfmt(m,1)+'%라 목표로 잡는 10%에는 조금 못 미칩니다'; p2.push(lead2+'.'); t2='mid'; }
+    if(m>=10){ lead2='사업이익률 '+mfmt(m,1)+'% · 참고 기준 10% 이상'; p2.push(lead2+'.'); }
+    else if(m<5){ lead2='사업이익률 '+mfmt(m,1)+'% · 참고 기준 10%보다 '+mfmt(10-m,1)+'%p 낮음'; p2.push(lead2+'. 분양가와 사업비를 다시 확인하세요.'); t2='warn'; }
+    else { lead2='사업이익률 '+mfmt(m,1)+'% · 참고 기준 10%보다 '+mfmt(10-m,1)+'%p 낮음'; p2.push(lead2+'.'); t2='mid'; }
     if(raw.bep!=null&&isFinite(raw.bep)){
       var sold=parseNum(state.aptsold); if(!isFinite(sold)) sold=100;
-      if(sold<raw.bep){ p2.push('손익분기 분양률이 '+mfmt(raw.bep,1)+'%인데 가정이 '+mfmt(sold,0)+'%라 <b>이대로면 적자</b>입니다.'); t2='warn'; }
-      else p2.push('손익분기 분양률은 '+mfmt(raw.bep,1)+'%. 지금 가정('+mfmt(sold,0)+'%)이면 여유가 있습니다.');
-    } else { p2.push('전량 분양을 해도 손익분기에 못 미칩니다. <b>구조를 다시 짜야 합니다</b>.'); t2='warn'; }
-    if(raw.pfEnd!=null) p2.push(raw.pfEnd<0.5?'가정 분양률이면 PF는 전액 상환됩니다.':('가정 분양률로는 PF가 '+meok(raw.pfEnd)+' 남습니다. <b>상환 재원 확인이 필요합니다</b>.'));
+      if(sold<raw.bep){ p2.push('가정 분양률 '+mfmt(sold,0)+'%는 손익분기 분양률 '+mfmt(raw.bep,1)+'%보다 낮습니다.'); t2='warn'; }
+      else p2.push('가정 분양률 '+mfmt(sold,0)+'%, 손익분기 분양률 '+mfmt(raw.bep,1)+'% · '+mfmt(sold-raw.bep,1)+'%p 여유.');
+    } else { p2.push('분양률 100%에서도 손익분기에 도달하지 않습니다.'); t2='warn'; }
+    if(raw.pfEnd!=null) p2.push(raw.pfEnd<0.5?'가정 분양률에서 PF를 전액 상환합니다.':('가정 분양률에서 PF 잔액이 '+meok(raw.pfEnd)+' 남습니다. 상환 재원을 확인하세요.'));
     if(raw.pfEnd>=0.5) t2='warn';
     return {tone:t2, html:p2.join(' '), lead:lead2, noDs:p2.join(' ')};
   }
-  // ── 리파이낸싱: 추천안·DSCR 충족 ──
+  // ── 리파이낸싱: 최소 DSCR 비교·기준 충족 ──
   if(cur==='refi'&&r.rows){
     if(r.best){
       var bestRow=null; for(var i=0;i<r.rows.length;i++) if(r.rows[i].n===r.best) bestRow=r.rows[i];
-      var seg='<b>'+r.best+'안</b>이 낫습니다. 기준을 채우는 안 중에 전 기간 최소 DSCR가'+(bestRow&&bestRow.minDSCR!=null?(' '+fx(bestRow.minDSCR)+'로'):'')+' 가장 높습니다.';
+      var seg='<b>'+r.best+'안</b>은 기준을 충족한 안 중 전 기간 최소 DSCR가'+(bestRow&&bestRow.minDSCR!=null?(' '+fx(bestRow.minDSCR)+'로'):'')+' 가장 높습니다.';
       var netMsg='';
-      if(bestRow&&isFinite(bestRow.net)) netMsg=(bestRow.net>=0?('수수료를 빼고도 '+meok(bestRow.net)+'이 더 들어옵니다.'):('다만 수수료까지 치면 '+meok(-bestRow.net)+'이 더 나갑니다.'));
-      var lead3=r.best+'안이 낫습니다'+(bestRow&&bestRow.minDSCR!=null?(' (최소 DSCR '+fx(bestRow.minDSCR)+')'):'');
+      if(bestRow&&isFinite(bestRow.net)) netMsg='수수료 반영 후 순조달액은 '+(bestRow.net>=0?'+':'−')+meok(Math.abs(bestRow.net))+'입니다.';
+      var lead3=r.best+'안 · 최소 DSCR 우위'+(bestRow&&bestRow.minDSCR!=null?(' ('+fx(bestRow.minDSCR)+')'):'');
       return {tone:'good', html:seg+(netMsg?(' '+netMsg):''), lead:lead3, noDs:seg+(netMsg?(' '+netMsg):'')};
     }
-    return {tone:'warn', html:'세 안 모두 <b>DSCR 기준에 걸립니다</b>. LTV를 낮추거나 금리·상환 구조를 다시 받아봐야 합니다.', lead:'세 안 모두 DSCR 기준 미달', noDs:'세 안 모두 DSCR 기준에 걸립니다. LTV를 낮추거나 금리·상환 구조를 다시 받아봐야 합니다.'};
+    return {tone:'warn', html:'세 안 모두 입력한 <b>DSCR 기준에 못 미칩니다</b>. LTV, 금리와 상환구조를 다시 비교하세요.', lead:'세 안 모두 DSCR 기준 미달', noDs:'세 안 모두 입력한 DSCR 기준에 못 미칩니다. LTV, 금리와 상환구조를 다시 비교하세요.'};
   }
   return null;
 }
@@ -4695,8 +4695,8 @@ function renderSim(){
     var labs=[]; try{ labs=missingKeyFields(); }catch(e){}
     if(kp0) kp0.innerHTML='';
     if(vd0){ vd0.hidden=true; vd0.innerHTML=''; }
-    if(bd0) bd0.innerHTML='<div class="sim-empty"><div class="se-ic">📊</div><div class="se-t">숫자를 넣으면 여기서 바로 계산됩니다</div>'+
-      (labs.length?('<div class="se-need">필요한 입력: <b>'+labs.map(esc).join(', ')+'</b></div>'):'<div class="se-need">핵심 입력을 채우면 IRR·DSCR가 실시간으로 나옵니다</div>')+
+    if(bd0) bd0.innerHTML='<div class="sim-empty"><div class="se-ic">📊</div><div class="se-t">필수 입력을 채우면 결과가 표시됩니다</div>'+
+      (labs.length?('<div class="se-need">필요한 입력: <b>'+labs.map(esc).join(', ')+'</b></div>'):'<div class="se-need">핵심 입력으로 IRR·DSCR을 계산합니다</div>')+
       '<button type="button" class="se-btn" onclick="fillExample()">예시로 시작하기 ↻</button>'+
       '<button type="button" class="se-btn se-wiz" onclick="if(window.__wizOpen)__wizOpen()">⚡ 핵심만 입력</button></div>';
     if(cv0) cv0.innerHTML='';
@@ -4743,7 +4743,7 @@ function renderSim(){
         return '<td'+(bad?' style="color:var(--red);font-weight:700"':'')+'>'+(yr.dscr!=null?mfmt(yr.dscr,2)+'x':'—')+'</td>';
       }).join('')+'</tr>';
     }
-    bd.innerHTML=(r.best?('<div class="sim-rec">추천: '+r.best+'안 — 기준 충족 대안 중 전 기간 최소 DSCR 최고</div>'):'')+
+    bd.innerHTML=(r.best?('<div class="sim-rec">최소 DSCR 우위: '+r.best+'안 · 기준을 충족한 안 중 가장 높음</div>'):'')+
       '<table class="sens-tbl sim-tbl">'+th+body+'</table>'+
       '<details class="sim-cf"><summary>연도별 DSCR 전개 ▾</summary><table class="sens-tbl sim-tbl">'+yh+yb+'</table><div class="scen-note">빨간 값 = DSCR 기준('+(isFinite(r.dmin)?mfmt(r.dmin,2)+'x':'—')+') 미달 연차</div></details>';
   } else {
@@ -4855,13 +4855,13 @@ function clearAll(){
   toast("입력을 모두 지웠습니다");
 }
 
-async function copyOut(){ try{ await navigator.clipboard.writeText($("outText").textContent); }catch(e){ const ta=document.createElement("textarea"); ta.value=$("outText").textContent; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); } toast("복사됨 — Claude in Excel 패널에 붙여넣으세요"); const lbl=$("copyLabel"), btn=$("copyBtn"); if(lbl){ const o=lbl.textContent; lbl.textContent="복사됨 ✓"; btn.style.background="#2e7d5b"; btn.style.borderColor="#2e7d5b"; setTimeout(()=>{ lbl.textContent=o; btn.style.background=""; btn.style.borderColor=""; },1500); } }
+async function copyOut(){ try{ await navigator.clipboard.writeText($("outText").textContent); }catch(e){ const ta=document.createElement("textarea"); ta.value=$("outText").textContent; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); } toast("복사했습니다. Claude in Excel 패널에 붙여넣으세요"); const lbl=$("copyLabel"), btn=$("copyBtn"); if(lbl){ const o=lbl.textContent; lbl.textContent="복사됨 ✓"; btn.style.background="#2e7d5b"; btn.style.borderColor="#2e7d5b"; setTimeout(()=>{ lbl.textContent=o; btn.style.background=""; btn.style.borderColor=""; },1500); } }
 function downloadOut(){ const blob=new Blob([$("outText").textContent],{type:"text/markdown"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="model-prompt-"+cur+".md"; a.click(); URL.revokeObjectURL(a.href); toast("다운로드를 시작합니다"); }
 function mailPrompt(){
   const body=encodeURIComponent($("outText").textContent+"\n\n— 모델터(modelter.com)에서 생성");
   const subject=encodeURIComponent("[모델터] "+DEALS[cur].label+" 모델 지시문");
   window.location.href=`mailto:?subject=${subject}&body=${body}`;
-  toast("메일 앱을 엽니다 — PC에서 받아 Claude in Excel에 붙여넣으세요");
+  toast("메일 앱을 엽니다. PC에서 받아 Claude in Excel에 붙여넣으세요");
 }
 let toastT; function toast(m,ms){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),ms||1800); }
 function mtNextTip(){ // 첫 산출물(엑셀) 이후 1회 — 다른 전달 수단(공유 링크·한 장 요약) 알림
@@ -4869,7 +4869,7 @@ function mtNextTip(){ // 첫 산출물(엑셀) 이후 1회 — 다른 전달 수
     if(localStorage.getItem('mt_tip_next')) return;
     localStorage.setItem('mt_tip_next','1');
     setTimeout(function(){
-      toast('팁: 결과는 공유 링크(입력 패널의 공유 버튼·읽기 전용)와 📄 요약(IC 한 장 인쇄)으로도 보낼 수 있습니다', 5200);
+      toast('결과 아래 공유 메뉴에서 읽기 전용 링크나 한 장 요약을 만들 수 있습니다', 5200);
       if(window.mtTrack) try{ mtTrack('tip_next'); }catch(e){}
     },2200);
   }catch(e){}
@@ -4885,9 +4885,9 @@ function feedbackLooksSensitive(txt){
 }
 async function sendFeedback(){
   const txt=($("fbText").value||"").trim();
-  if(!txt){ $("fbText").focus(); toast("의견을 입력해주세요"); return; }
+  if(!txt){ $("fbText").focus(); toast("의견을 입력해 주세요"); return; }
   const email=($("fbEmail").value||"").trim();
-  if(feedbackLooksSensitive(txt)&&!confirm("의견에 금액·면적·비율·연락처로 보이는 내용이 있습니다. 실제 딜 수치와 개인정보를 지우고 보내는 것을 권합니다. 그래도 전송할까요?")) return;
+  if(feedbackLooksSensitive(txt)&&!confirm("금액·면적·비율·연락처로 보이는 내용이 있습니다. 실제 딜 수치와 개인정보를 지운 뒤 보내 주세요. 지우지 않고 전송할까요?")) return;
   if(WEB3FORMS_KEY==="YOUR_ACCESS_KEY_HERE"){
     toast("아직 전송 설정이 완료되지 않았습니다");
     return;
@@ -5066,7 +5066,7 @@ function myDefApply(){
   Object.keys(p.s||{}).forEach(function(k){ state[k]=p.s[k]; if(typeof exTouch==='function') exTouch(k); srcTags[k]={s:'회사 표준'}; n++; });
   if(p.k&&DEALS[cur].stack) stackState=Object.assign({},p.k);
   renderForm(); restoreInputs(); update();
-  toast('내 기본값 적용됨 — 조건 '+n+'개'+(p.k?' + 자본 스택':'')+' · 나머지 입력은 그대로');
+  toast('내 기본값 '+n+'개'+(p.k?'와 자본 스택':'')+'를 적용했습니다. 다른 입력은 바뀌지 않았습니다');
   if(window.mtTrack) try{ mtTrack('mydef_apply'); }catch(e){}
 }
 function myDefPop(){
@@ -5079,14 +5079,14 @@ function myDefPop(){
   if(p){
     var pk=Object.keys(p.s||{});
     var lbs=myDefLabels(pk).slice(0,4).join(' · ');
-    body='<button type="button" class="sp-opt" data-md="apply"><b>현재 딜에 적용</b><span>'+esc(lbs)+(pk.length>4?' 외 '+(pk.length-4)+'개':'')+(p.k?' + 자본 스택(대출 조건)':'')+' — 나머지 입력은 그대로 둡니다</span></button>'
+    body='<button type="button" class="sp-opt" data-md="apply"><b>현재 딜에 적용</b><span>'+esc(lbs)+(pk.length>4?' 외 '+(pk.length-4)+'개':'')+(p.k?' + 자본 스택(대출 조건)':'')+'만 바꿉니다</span></button>'
       +'<button type="button" class="sp-opt" data-md="save"><b>현재 조건으로 다시 저장</b><span>지금 화면의 부대비·보수·대출 조건으로 덮어씁니다</span></button>'
       +'<button type="button" class="sp-opt" data-md="del"><b>삭제</b><span>'+DEALS[cur].label+'의 내 기본값을 지웁니다</span></button>';
   } else {
     body='<button type="button" class="sp-opt" data-md="save"><b>현재 조건을 내 기본값으로 저장</b><span>취득 제세·보수·수수료'+(DEALS[cur].stack?'·자본 스택(대출 조건)':'')+'만 저장 — 매입가·임대료 같은 딜 고유값은 저장하지 않습니다</span></button>';
   }
-  pop.innerHTML='<div class="sp-h">내 기본값 — '+DEALS[cur].label+'</div>'+body
-    +'<div class="sp-note">이 브라우저에만 저장됩니다 — 서버로 전송되지 않습니다. 새 딜을 시작할 때 회사 표준 조건을 한 번에 채우는 용도입니다.</div>';
+  pop.innerHTML='<div class="sp-h">내 기본값 · '+DEALS[cur].label+'</div>'+body
+    +'<div class="sp-note">이 브라우저에만 저장되며 서버로 전송되지 않습니다. 새 딜에 자주 쓰는 조건을 적용할 때 사용하세요.</div>';
   document.body.appendChild(pop);
   var r=btn.getBoundingClientRect();
   pop.style.top=(r.bottom+window.scrollY+6)+'px';
@@ -5285,7 +5285,7 @@ function renderAdjBar(){
       +'<button type="button" class="adj-b" data-adj="'+i+'" data-dir="1" aria-label="'+d.l+' 올리기">＋</button>'
       +'<span class="adj-step">'+(d.mode==='pct'?('±'+d.step+'%'):('±'+d.step+(d.u||'')))+'</span></div>';
   }).join('')
-  +'<div class="adj-foot"><button type="button" class="sl-btn" id="adjReset">처음 값으로 되돌리기</button><span>조정값은 입력 폼·엑셀·공유에 그대로 반영됩니다</span></div>';
+  +'<div class="adj-foot"><button type="button" class="sl-btn" id="adjReset">처음 값으로 되돌리기</button><span>바꾼 값은 입력 폼, Excel, 공유 링크에도 적용됩니다</span></div>';
 }
 (function(){
   var bar=document.getElementById('adjBar'); if(!bar) return;
@@ -5331,7 +5331,7 @@ function oneLineReport(){
   var name=((state.asset||'').trim())||DEALS[cur].label;
   var parts=[];
   if(r.type==='refi'){
-    if(r.best) parts.push('추천 '+r.best+'안');
+    if(r.best) parts.push('최소 DSCR 우위 '+r.best+'안');
     try{ var bx=(r.rows||[]).filter(function(x){return x.n===r.best;})[0];
       if(bx&&bx.minDSCR!=null&&isFinite(bx.minDSCR)) parts.push('최소 DSCR '+mfmt(bx.minDSCR,2)+'x');
       if(bx&&bx.net!=null&&isFinite(bx.net)) parts.push('순 조달 '+(bx.net>=0?'+':'−')+meok(Math.abs(bx.net))); }catch(e){}
@@ -5378,13 +5378,13 @@ function reviewMemo(){
       if(window.__mtSensBase&&window.__mtSens2){
         var b=window.__mtSensBase();
         if(b){ var dsr=window.__mtSens2(b.ec+1.0, b.g-1.0, 'growth');
-          if(dsr!=null) L.push('6) 다운사이드 — Exit '+(b.ec+1).toFixed(1)+'%·'+(b.gLabel||'성장')+' '+(b.g-1).toFixed(1)+'%로 누르면 IRR '+fp(dsr)); }
+          if(dsr!=null) L.push('6) 다운사이드 — Exit '+(b.ec+1).toFixed(1)+'%·'+(b.gLabel||'성장')+' '+(b.g-1).toFixed(1)+'%로 바꾸면 IRR '+fp(dsr)); }
       }
     }catch(e2){}
   } else if(r.type==='refi'){
     var ri=1;
     if(r.best){
-      L.push((ri++)+') 추천 — '+r.best+'안');
+      L.push((ri++)+') 최소 DSCR 우위 — '+r.best+'안');
       try{ var bx=(r.rows||[]).filter(function(x){return x.n===r.best;})[0];
         if(bx){
           if(bx.minDSCR!=null&&isFinite(bx.minDSCR)) L.push((ri++)+') 전 기간 최소 DSCR — '+mfmt(bx.minDSCR,2)+'x');
@@ -5411,9 +5411,9 @@ function reviewMemo(){
     }
   }catch(eSrc){}
   var exs=(typeof exRemaining==='function')?exRemaining():[];
-  if(exs.length) L.push(exUserEdited?'※ 일부는 아직 예시 숫자입니다. 보내기 전에 실제 값인지 확인하세요.':'※ 아직 전부 예시 숫자입니다. 실제 값으로 바꾼 뒤에 돌리세요.');
+  if(exs.length) L.push(exUserEdited?'※ 일부 항목은 아직 예시값입니다. 보내기 전에 실제 값인지 확인하세요.':'※ 아직 모두 예시값입니다. 실제 값으로 바꾼 뒤 사용하세요.');
   L.push('※ 입력 가정에 따른 추정치이며, 투자 권유가 아닌 정보 제공 목적입니다.');
-  if(mtBuild()) L.push('※ 생성 빌드 '+mtBuild()+' · 화면=엑셀 파리티 검증(재현: modelter.com/verification)');
+  if(mtBuild()) L.push('※ 생성 빌드 '+mtBuild()+' · 화면과 Excel 계산 검증: modelter.com/verification');
   return L.join('\n');
 }
 /* 결과 요약 카드 PNG — 카톡에 이미지로 붙이는 1200×630 카드 (임차인 정보 미포함·고지 포함) */
@@ -5423,7 +5423,7 @@ function summaryCardPNG(){
   var name=((state.asset||'').trim())||DEALS[cur].label;
   var kp=(r.kpis||[]).filter(function(k){return k.big;}).slice(0,3);
   if(!kp.length) kp=(r.kpis||[]).slice(0,3);
-  if(r.type==='refi'&&r.best) kp=[{l:'추천안', v:r.best+'안'}].concat(kp).slice(0,3);
+  if(r.type==='refi'&&r.best) kp=[{l:'최소 DSCR 우위', v:r.best+'안'}].concat(kp).slice(0,3);
   if(!kp.length) return false;
   var vd=null; try{ vd=dealVerdict(r); }catch(e2){}
   var vTxt=vd?String(vd.lead||vd.html).replace(/<[^>]+>/g,''):'';
@@ -5485,14 +5485,14 @@ function shareInputs(anchor){
   var old=document.getElementById('sharePop'); if(old){ old.remove(); return; }
   var btn=anchor||document.getElementById('shareBtn'); if(!btn) return;
   var pop=document.createElement('div'); pop.id='sharePop'; pop.className='share-pop';
-  pop.innerHTML='<div class="sp-h">팀에 1차 검토 보내기</div>'+
-    '<button type="button" class="sp-opt" data-ro="1"><b>📊 결과 링크 (읽기 전용)</b><span>받는 사람은 결과·민감도를 보고, 값은 수정 못 합니다</span></button>'+
-    '<button type="button" class="sp-opt" data-ro="0"><b>✏️ 편집용 링크</b><span>받는 사람이 값을 이어서 수정할 수 있습니다</span></button>'+
-    '<button type="button" class="sp-opt" data-ol="1"><b>💬 한 줄 보고 복사</b><span>딜명 · 핵심 KPI · 판정 · 결과 링크 — 카톡·메일에 그대로 붙여넣기</span></button>'+
-    '<button type="button" class="sp-opt" data-memo="1"><b>📝 검토 메모 초안 복사</b><span>딜 개요·수익성·부채·차환·다운사이드 10줄 — 메일 본문에 그대로</span></button>'+
-    '<button type="button" class="sp-opt" data-png="1"><b>🖼️ 요약 카드 이미지 (PNG)</b><span>딜명·핵심 KPI·판정을 한 장 이미지로 — 카톡에 이미지로 바로 첨부</span></button>'+
-    (navigator.share?'<button type="button" class="sp-opt" data-sh="1"><b>📲 공유 시트로 바로 보내기</b><span>카톡·메시지 앱으로 한 줄 보고 + 결과 링크를 한 번에</span></button>':'')+
-    '<button type="button" class="sp-opt" data-qrx="1"><b>📱 QR로 다른 기기 이어가기</b><span>휴대폰 카메라로 스캔 — 지금 입력 그대로 폰에서 열립니다</span></button>'+
+  pop.innerHTML='<div class="sp-h">1차 검토 공유</div>'+
+    '<button type="button" class="sp-opt" data-ro="1"><b>📊 결과 링크 (읽기 전용)</b><span>받는 사람은 결과와 민감도를 볼 수 있고 값은 바꿀 수 없습니다.</span></button>'+
+    '<button type="button" class="sp-opt" data-ro="0"><b>✏️ 편집용 링크</b><span>받는 사람이 값을 수정할 수 있습니다.</span></button>'+
+    '<button type="button" class="sp-opt" data-ol="1"><b>💬 한 줄 보고 복사</b><span>딜명, 주요 지표, 판정과 결과 링크를 한 줄로 복사합니다.</span></button>'+
+    '<button type="button" class="sp-opt" data-memo="1"><b>📝 검토 메모 초안 복사</b><span>딜 개요부터 하방까지 메일에 붙일 메모를 복사합니다.</span></button>'+
+    '<button type="button" class="sp-opt" data-png="1"><b>🖼️ 요약 카드 이미지 (PNG)</b><span>딜명, 주요 지표와 판정을 한 장 이미지로 받습니다.</span></button>'+
+    (navigator.share?'<button type="button" class="sp-opt" data-sh="1"><b>📲 휴대폰 공유 메뉴 열기</b><span>한 줄 보고와 결과 링크를 다른 앱으로 보냅니다.</span></button>':'')+
+    '<button type="button" class="sp-opt" data-qrx="1"><b>📱 QR로 다른 기기에서 열기</b><span>휴대폰 카메라로 스캔하면 같은 입력값으로 열립니다.</span></button>'+
     (function(){
       // 프리플라이트 — 보내기 전에 무엇이 담기는지 현재 입력 기준으로 보여줌(지시서 15.3 축소 수용)
       var inc=[]; try{
@@ -5500,7 +5500,7 @@ function shareInputs(anchor){
         inc.push('입력 가정(가격·면적·임대료/NOI·대출 조건)','계산 결과');
         if(window.rrModel&&window.rrModel.on) inc.push('렌트롤 요약(면적·단가·만기 — 임차인명 제외)');
       }catch(e){ inc=['입력 가정','계산 결과']; }
-      return '<div class="sp-note"><b>이 링크에 담기는 것</b> — '+inc.join(' · ')+'. 서버에 저장하지 않고 링크 안에만 담깁니다.<br><b>자동 제외</b> — 임차인 실명(마스킹) · API 키·렌트롤 원본·메모는 어떤 링크에도 담기지 않습니다.<br><b>보안</b> — 압축은 암호화가 아닙니다. 링크를 가진 사람은 입력 가정을 볼 수 있으니 사내 정책에 맞는 권한 채널로만 보내세요.</div>';
+      return '<div class="sp-note"><b>링크 포함:</b> '+inc.join(' · ')+'. 서버에는 저장하지 않습니다.<br><b>링크 제외:</b> 임차인 실명, API 키, 렌트롤 원본, 메모는 넣지 않습니다.<br><b>주의:</b> 압축은 암호화가 아닙니다. 링크를 가진 사람은 입력 가정을 볼 수 있으니 회사가 허용한 채널로만 보내세요.</div>';
     })();
   document.body.appendChild(pop);
   var r=btn.getBoundingClientRect();
@@ -5510,7 +5510,7 @@ function shareInputs(anchor){
     if(o.dataset.png==='1'){
       if(typeof exConfirmOutput==='function'&&!exConfirmOutput('요약 카드')){ pop.remove(); return; }
       var okP=false; try{ okP=summaryCardPNG(); }catch(eP){}
-      toast(okP?'요약 카드 PNG를 내려받았습니다 — 카톡·메신저에 이미지로 첨부하세요':'결과가 없어 카드를 만들 수 없습니다 — 핵심 입력을 먼저 채워주세요');
+      toast(okP?'요약 카드 PNG를 내려받았습니다':'결과가 없습니다. 핵심 입력을 먼저 채워 주세요');
       if(okP&&window.mtTrack) try{ mtTrack('png_card'); }catch(e){}
       pop.remove(); return;
     }
@@ -5589,7 +5589,7 @@ function tryRestoreFromURL(){
         try{
           var cg=document.querySelector('#formBody .core-g');
           if(cg){ cg.classList.add('core-hi'); setTimeout(function(){ cg.classList.remove('core-hi'); },3200); }
-          if(typeof toast==='function') toast('방금 보신 예시가 그대로 채워져 있습니다 — 첫 입력부터 내 딜 숫자로 바꾸면 결과가 바로 갱신됩니다', 5200);
+          if(typeof toast==='function') toast('기본 예시가 입력되어 있습니다. 첫 항목부터 실제 값으로 바꾸면 결과가 다시 계산됩니다', 5200);
           // 모바일은 포커스 생략 — 키보드가 올라와 결과 카드를 가림(7/14 착지 개선 원칙)
           if(window.matchMedia && matchMedia('(max-width:920px)').matches) return;
           var fi=cg&&cg.querySelector('input[data-k]:not([type=range])');
@@ -7101,13 +7101,13 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
             var _lr=_mr+2;
             _cov.cells.push({r:'B'+_lr, role:'se', s:'이 모델을 브라우저에서 열기'});
             _cov.cells.push({r:'B'+(_lr+1), role:'lbb', s:'📱 modelter.com에서 이 모델 열기 →', link:_rl});
-            _cov.cells.push({r:'B'+(_lr+2), role:'da', s:'클릭하면 이 가정 그대로 라이브 모델이 열립니다(읽기 전용). 값을 바꾸려면 「내 모델로 열기」. 임차인 실명은 링크에서 자동 마스킹됩니다.'});
+            _cov.cells.push({r:'B'+(_lr+2), role:'da', s:'클릭하면 현재 가정으로 읽기 전용 모델이 열립니다. 값을 바꾸려면 「내 모델로 열기」를 누르세요. 임차인 실명은 링크에서 자동으로 가립니다.'});
           }
           // 가정 시트에도 같은 링크 — 파일 받은 사람이 실제로 여는 시트는 표지가 아니라 01_Assumptions (회수 착지 30일 2건의 가시성 대응)
           var _asx=null,_ai; for(_ai=0;_ai<_TPL.sheets.length;_ai++) if(_TPL.sheets[_ai].name==='01_Assumptions'){_asx=_TPL.sheets[_ai];break;}
           if(_asx){
             var _amr=0; _asx.cells.forEach(function(c){ var am=/^[A-Z]+(\d+)$/.exec(c.r); if(am){ var an=+am[1]; if(an>_amr)_amr=an; } });
-            _asx.cells.push({r:'B'+(_amr+2), role:'lbb', s:'📱 modelter.com에서 이 모델 열기 → 이 가정 그대로 라이브 재계산(읽기 전용 · 임차인명 마스킹)', link:_rl});
+            _asx.cells.push({r:'B'+(_amr+2), role:'lbb', s:'📱 modelter.com에서 현재 가정 열기(읽기 전용 · 임차인명 마스킹)', link:_rl});
           }
         }
       }catch(eRL){}
@@ -7568,13 +7568,13 @@ function icData(){
   }); });
   return {r:r, vd:vd, cm:cmx, checks:checks, name:name, deal:d.label, date:date, asRows:asRows};
 }
-/* KPI 목록 정규화: [{l,v,tone}] — refi는 추천안 기준으로 구성 */
+/* KPI 목록 정규화: [{l,v,tone}] — refi는 최소 DSCR 우위 대안 기준으로 구성 */
 function kpiList(r){
   var out=[];
   if(r.kpis&&r.kpis.length){ r.kpis.forEach(function(k){ out.push({l:String(k.l).replace(/<[^>]+>/g,''), v:String(k.v), tone:k.tone||''}); }); }
   else if(r.type==='refi'&&r.rows){
     var bx=(r.rows||[]).filter(function(x){return x.n===r.best;})[0];
-    out.push({l:'추천 대안', v:r.best?(r.best+'안'):'—', tone:'good'});
+    out.push({l:'최소 DSCR 우위', v:r.best?(r.best+'안'):'—', tone:'good'});
     if(bx){
       out.push({l:'한도', v:fm(bx.loan)});
       out.push({l:'순 조달(비용 차감)', v:isFinite(bx.net)?((bx.net>=0?'+':'−')+meok(Math.abs(bx.net))):'—'});
@@ -7836,9 +7836,9 @@ function buildIcPptx(){
         // 회수 링크(옵트인) — 클릭 시 이 가정 그대로 라이브 모델(읽기 전용·임차인명 마스킹), 채널 src=ppt
         var _rec=(typeof recoverUrl==='function')?recoverUrl('ppt'):null;
         if(_rec) slides.__hl={idx:slides.length, url:_rec};   // 이 슬라이드는 아직 push 전 → 현재 length가 곧 이 슬라이드의 인덱스
-        return {runs:[{t:'▶ 이 모델을 바로 열어 보기: ',sz:1000,b:1,color:C.acc},
-          {t:_rec?'modelter.com에서 열기 (클릭 — 이 가정 그대로)':'modelter.com',sz:1000,b:1,color:C.acc2,link:_rec?'rIdHL':null},
-          {t:'  —  휴대폰은 요약 카드(PNG)의 QR을 스캔하면 이 가정 그대로 열립니다. 엑셀 표지에도 「이 모델 열기」 링크가 있습니다.',sz:1000,color:C.mut}],spcB:300};
+        return {runs:[{t:'▶ 같은 가정으로 모델터 열기: ',sz:1000,b:1,color:C.acc},
+          {t:_rec?'modelter.com에서 열기':'modelter.com',sz:1000,b:1,color:C.acc2,link:_rec?'rIdHL':null},
+          {t:'  ·  휴대폰에서는 요약 카드(PNG)의 QR을 스캔하세요. 엑셀 표지에도 「이 모델 열기」 링크가 있습니다.',sz:1000,color:C.mut}],spcB:300};
       })()
     ],{fill:C.bg,line:C.line,rounded:true}));
     slides.push(slideXml(s));
@@ -10835,8 +10835,8 @@ var qrcode = function() {
     g.fillStyle='#000000';
     for(var r=0;r<n;r++) for(var c=0;c<n;c++) if(qr.isDark(r,c)) g.fillRect(m+c*scale, m+r*scale, scale, scale);
     var ov2=document.createElement('div'); ov2.className='imx-ov';
-    ov2.innerHTML='<div class="imx" style="text-align:center"><h3>📱 다른 기기에서 이어가기</h3>'
-      +'<div class="imx-sub">휴대폰 카메라로 스캔하면 <b>지금 이 입력 그대로</b> 폰에서 열립니다. 미팅 자리에서 폰으로 이어서 조정할 때 쓰세요.</div>'
+    ov2.innerHTML='<div class="imx" style="text-align:center"><h3>📱 휴대폰에서 열기</h3>'
+      +'<div class="imx-sub">휴대폰 카메라로 QR을 스캔하면 현재 가정으로 모델이 열립니다. 미팅 중 값을 바꿔 볼 때 사용하세요.</div>'
       +'<div id="mtQrBox" style="display:flex;justify-content:center;margin:6px 0 10px"></div>'
       +'<div class="imx-act" style="justify-content:center"><button type="button" data-qr2="close">닫기</button></div>'
       +'<div class="imx-priv">딜 데이터는 QR(링크) 안에만 담기고 서버로 가지 않습니다. 임차인 실명은 자동 마스킹됩니다. 화면을 다른 사람이 스캔하면 편집 가능한 사본이 열리니 회의실 화면 공유 시 주의하세요.</div></div>';
@@ -11007,7 +11007,7 @@ var qrcode = function() {
     close();
     if(n>0&&window.__mtActivate) try{ window.__mtActivate(); }catch(eA){}   // IM에서 온 값 = 사용자 제공 값 → 활성화 신호
     try{ renderForm(); restoreInputs(); update(); }catch(e){}
-    if(typeof toast==='function') toast('IM 추출값 '+n+'개를 적용했습니다 — 결과가 갱신되었습니다',2600);
+    if(typeof toast==='function') toast('IM에서 찾은 값 '+n+'개를 적용했습니다. 결과를 다시 계산했습니다',2600);
     if(window.mtTrack) try{ mtTrack('im_extract',{n:n}); }catch(e){}
     var c=document.getElementById('simCard'); if(c&&c.scrollIntoView) c.scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -11036,7 +11036,7 @@ var qrcode = function() {
     ov=document.createElement('div'); ov.className='imx-ov';
     ov.innerHTML='<div class="imx">'
       +'<h3>📋 IM에서 찾을 숫자 — '+esc(d.label)+' <span style="font-size:12px;color:var(--muted);font-weight:600">'+n+'개 항목</span></h3>'
-      +'<div class="imx-sub">IM을 펼쳐놓고 아래 값을 찾아 그대로 입력하면 됩니다. <b>못 찾은 항목은 비워두세요</b> — 자산 유형 표준가정으로 계산되고, 엑셀 가정 시트에 표준가정임이 표시됩니다.</div>'
+      +'<div class="imx-sub">IM에서 아래 값을 찾아 입력하세요. <b>필수값은 직접 확인해야 결과가 나옵니다.</b> 나머지는 비워 두면 기본 가정이 적용되고 Excel 가정 시트에 표시됩니다.</div>'
       +body
       +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" data-im="ckcopy">체크리스트 복사</button></div>'
       +'<div class="imx-priv">단위 주의: 금액은 백만원(1,200억 → 120,000), 면적은 평(㎡ ÷ 3.3058), 임대료·관리비는 평당 월 기준 원. 참고 범위는 통상 수준 샘플로 시점·자산별로 다릅니다.</div>'
@@ -11115,11 +11115,11 @@ var qrcode = function() {
     });
     var box=el('#imxBody');
     if(!n){
-      box.innerHTML='<div class="imx-err">인식된 가정이 없습니다 — 문장형 본문(매매 개요·임대차 현황)을 붙여넣어 보세요. 표가 복잡한 문서는 AI 정밀 추출이 더 잘 찾습니다.</div>'
-        +'<div class="imx-act"><button type="button" data-im="qback">← 다시</button><button type="button" data-im="ai">🤖 AI 정밀 추출로 (본인 키)</button></div>';
+      box.innerHTML='<div class="imx-err">찾은 값이 없습니다. 매매 개요나 임대차 현황처럼 숫자가 적힌 본문을 붙여넣어 보세요. 표가 복잡하면 AI 정밀 추출을 사용할 수 있습니다.</div>'
+        +'<div class="imx-act"><button type="button" data-im="qback">← 다시</button><button type="button" data-im="ai">🤖 AI 정밀 추출(본인 키)</button></div>';
       return;
     }
-    box.innerHTML='<div class="imx-sub" style="margin-top:4px">인식 '+n+'개 — <b>근거 원문을 확인하고</b> 체크한 항목만 폼에 채워집니다. 못 찾은 값은 직접 입력하세요.</div>'
+    box.innerHTML='<div class="imx-sub" style="margin-top:4px">값 '+n+'개를 찾았습니다. <b>근거 원문과 대조한 뒤</b> 적용할 항목을 고르세요. 찾지 못한 값은 직접 입력해야 합니다.</div>'
       +'<table class="imx-tbl"><tr><th></th><th>가정</th><th>인식값</th><th>근거 원문</th></tr>'+rows.join('')+'</table>'
       +'<div class="imx-act"><button type="button" data-im="qback">← 다시</button><button type="button" data-im="ai" title="본인 Anthropic API 키 필요 (선택)">🤖 AI 정밀 추출</button><button type="button" class="pri" data-im="qapply">체크한 항목 적용</button></div>';
   }
@@ -11136,7 +11136,7 @@ var qrcode = function() {
     });
     close();
     try{ renderForm(); restoreInputs(); update(); }catch(e){}
-    if(typeof toast==='function') toast('자동 인식값 '+n+'개를 적용했습니다 — 결과가 갱신되었습니다',2600);
+    if(typeof toast==='function') toast('찾은 값 '+n+'개를 적용했습니다. 결과를 다시 계산했습니다',2600);
     if(window.mtTrack) try{ mtTrack('im_quick',{n:n}); }catch(e){}
     var c=document.getElementById('simCard'); if(c&&c.scrollIntoView) c.scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -11146,13 +11146,13 @@ var qrcode = function() {
     ov=document.createElement('div'); ov.className='imx-ov';
     ov.innerHTML='<div class="imx">'
       +'<h3>📥 IM 붙여넣기 → 가정 자동 인식</h3>'
-      +'<div class="imx-sub"><b>API 키 없이, 문서 전송 없이</b> — 이 브라우저 안에서 규칙 기반으로 매입가·연면적·임대료·Exit Cap 등을 찾습니다. IM의 매매 개요·자산 개요·임대차 부분을 붙여넣으세요.</div>'
+      +'<div class="imx-sub">IM의 매매 개요, 자산 개요나 임대차 현황을 붙여넣으세요. 브라우저가 매입가, 연면적, 임대료와 Exit Cap 등을 찾아 표시합니다. API 키가 필요 없고 문서도 전송하지 않습니다.</div>'
       +'<div id="imxBody">'
       +'<textarea placeholder="예) 본 건 매매대금은 1,200억원이며, 연면적 8,400평, 평당 월 임대료 62,000원, 공실률 5%, Exit Cap 4.8% 수준…"></textarea>'
       +'<div class="imx-err"></div>'
       +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" data-im="qgo">자동 인식 (전송 없음)</button></div>'
       +'</div>'
-      +'<div class="imx-priv">이 기능은 네트워크를 사용하지 않습니다 — 붙여넣은 텍스트는 어디로도 전송되지 않고, 인식이 끝나면 버려집니다. 표가 복잡하거나 인식이 부족하면 🤖 AI 정밀 추출(본인 API 키, β)을 선택할 수 있습니다.</div>'
+      +'<div class="imx-priv">붙여넣은 텍스트는 브라우저 안에서만 처리하고 작업이 끝나면 버립니다. 외부로 전송하지 않습니다. 표가 복잡하면 본인 API 키로 AI 정밀 추출을 사용할 수 있습니다.</div>'
       +'</div>';
     document.body.appendChild(ov); document.body.style.overflow='hidden';
     ov.addEventListener('click',function(e){
@@ -11175,19 +11175,19 @@ var qrcode = function() {
     IMGS=[];
     ov.innerHTML='<div class="imx">'
       +'<h3>🤖 AI 정밀 추출 <span style="font-size:11px;background:var(--accent-solid);color:var(--on-accent);border-radius:4px;padding:2px 6px;vertical-align:3px">β</span></h3>'
-      +'<div class="imx-sub">IM의 <b>매매 개요·자산 개요·임대차 현황</b> 부분을 복사해 붙여넣으세요. 표는 그대로 붙여넣어도 됩니다. API 키가 없거나 문서 반출이 부담스러우면 <button type="button" data-im="q" style="border:0;background:none;color:var(--accent-deep);font-weight:700;cursor:pointer;padding:0;font-size:inherit">📥 무키 자동 인식</button>부터 써보세요 — 전송 없이 브라우저 안에서 찾습니다.</div>'
+      +'<div class="imx-sub">IM의 <b>매매 개요, 자산 개요나 임대차 현황</b>을 복사해 붙여넣으세요. 표도 붙여넣을 수 있습니다. 문서를 외부 API로 보내기 어렵다면 <button type="button" data-im="q" style="border:0;background:none;color:var(--accent-deep);font-weight:700;cursor:pointer;padding:0;font-size:inherit">📥 무키 자동 인식</button>을 사용하세요. 브라우저 안에서만 처리합니다.</div>'
       +'<div id="imxBody">'
       +'<textarea placeholder="예) 본 건은 서울 강남구 소재 오피스로, 매매대금은 1,200억원… 연면적 8,400평, 평당 임대료 95,000원…"></textarea>'
-      +'<div class="imx-row" style="margin-bottom:6px"><label class="sl-btn" style="cursor:pointer">📷 IM 사진 추가 (선택 · 최대 4장)<input type="file" id="imxImg" accept="image/*" multiple hidden></label><span id="imxImgN" style="font-size:11.5px;color:var(--muted)">사진 없이 텍스트만도 됩니다 — 표·스캔본은 사진이 더 정확</span></div>'
+      +'<div class="imx-row" style="margin-bottom:6px"><label class="sl-btn" style="cursor:pointer">📷 IM 사진 추가 (선택 · 최대 4장)<input type="file" id="imxImg" accept="image/*" multiple hidden></label><span id="imxImgN" style="font-size:11.5px;color:var(--muted)">텍스트만 넣어도 됩니다. 표나 스캔본은 사진을 함께 올리세요.</span></div>'
       +'<div class="imx-row">'
       +'<input type="password" id="imxKey" placeholder="Anthropic API 키 (sk-ant-…)" autocomplete="off" value="'+esc(saved)+'">'
       +'<select id="imxModel"><option value="claude-sonnet-5">Claude Sonnet 5 (권장)</option><option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (빠름·저렴)</option></select>'
       +'</div>'
-      +'<label class="imx-rem"><input type="checkbox" id="imxRem"'+(saved?' checked':'')+'> 이 탭을 닫을 때까지 키 기억 (세션 저장 — 탭을 닫으면 삭제)</label>'
+      +'<label class="imx-rem"><input type="checkbox" id="imxRem"'+(saved?' checked':'')+'> 이 탭을 닫을 때까지 키 기억(탭을 닫으면 삭제)</label>'
       +'<div class="imx-err"></div>'
       +'<div class="imx-act"><button type="button" data-im="close">닫기</button><button type="button" class="pri" id="imxGo" data-im="go">추출하기</button></div>'
       +'</div>'
-      +'<div class="imx-priv">개인정보·보안: IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로만 직접 전송</b>됩니다. 모델터 서버로는 어떤 내용도 전송·저장되지 않습니다. 키는 저장하지 않으며(체크 시 이 탭 세션에만), 공유 링크·저장본에 포함되지 않습니다. 문서 반출·외부 API 사용에 대한 사내 보안 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 과금되며 통상 IM 1건 추출에 수십 원 수준입니다. <a href="/trust" target="_blank" rel="noopener">데이터 흐름·보안 문서 →</a></div>'
+      +'<div class="imx-priv"><b>개인정보·보안</b> IM 텍스트와 API 키는 브라우저에서 <b>api.anthropic.com으로 직접 전송</b>됩니다. 모델터 서버에는 보내거나 저장하지 않습니다. 키는 기본적으로 저장하지 않으며, 위 항목을 선택한 경우에만 이 탭의 세션 저장소에 보관합니다. 공유 링크와 저장본에는 넣지 않습니다. 문서 반출과 외부 API 사용에 관한 회사 정책을 먼저 확인하세요. 비용은 본인 Anthropic 계정에 청구됩니다. <a href="/trust" target="_blank" rel="noopener">데이터 흐름과 보안 확인 →</a></div>'
       +'</div>';
     document.body.appendChild(ov); document.body.style.overflow='hidden';
     ov.addEventListener('click',function(e){
@@ -11253,14 +11253,14 @@ var qrcode = function() {
   }
   function finishHtml(){
     var r=null; try{ r=simModel(); }catch(e){}
-    var h='<div class="wiz-step">입력 완료</div><div class="wiz-lab">핵심 입력이 끝났습니다</div>';
+    var h='<div class="wiz-step">입력 완료</div><div class="wiz-lab">필수 입력을 모두 채웠습니다</div>';
     if(r&&r.kpis&&r.kpis.length){
       var big=r.kpis.filter(function(k){return k.big;}).slice(0,2);
       h+='<div class="wiz-kpis">'+big.map(function(k){ return '<div class="wiz-kpi"><span>'+esc(String(k.l))+'</span><b>'+esc(String(k.v))+'</b></div>'; }).join('')+'</div>';
       try{ var vd=dealVerdict(r); if(vd) h+='<div class="wiz-note">'+(vd.tone==='warn'?'⚠ ':'✓ ')+String(vd.html).replace(/<[^>]+>/g,'')+'</div>'; }catch(eV){}
-    } else if(r&&r.type==='refi'){ h+='<div class="wiz-note">'+(r.best?('추천 '+esc(String(r.best))+'안 — 자세한 비교는 결과 표에서 확인하세요.'):'대안별 비교는 결과 표에서 확인하세요.')+'</div>'; }
-    else h+='<div class="wiz-note">아직 결과가 안 나왔어요 — 남은 항목은 폼에서 채우면 바로 계산됩니다.</div>';
-    if(cur==='dev'&&typeof devResi==='function'&&devResi()) h+='<div class="wiz-note">평형별 세대수·분양가는 폼의 <b>분양 수입</b> 표에서 입력하세요 — 분양수지의 핵심입니다.</div>';
+    } else if(r&&r.type==='refi'){ h+='<div class="wiz-note">'+(r.best?('기준을 충족한 안 중 '+esc(String(r.best))+'안의 최소 DSCR가 가장 높습니다. 자세한 값은 결과 표에서 확인하세요.'):'세 안의 값을 결과 표에서 비교하세요.')+'</div>'; }
+    else h+='<div class="wiz-note">결과를 계산하려면 입력 화면에서 남은 필수 항목을 채워 주세요.</div>';
+    if(cur==='dev'&&typeof devResi==='function'&&devResi()) h+='<div class="wiz-note">평형별 세대수와 분양가는 입력 화면의 <b>분양 수입</b> 표에서 채워 주세요.</div>';
     return h+'<div class="wiz-nav"><button type="button" class="wiz-btn" data-w="prev">← 이전</button><button type="button" class="wiz-btn pri" data-w="done">결과 보기 ↓</button></div>';
   }
   function render(){
@@ -11530,8 +11530,8 @@ var qrcode = function() {
           sessionStorage.setItem('mt_nudge','1');
           var _exLeft=false; try{ _exLeft=(typeof exRemaining==='function'&&exRemaining().length>0); }catch(_e3){}
           if(typeof toast==='function') toast(_exLeft
-            ? '첫 숫자가 나왔습니다 — 예시로 남은 가정을 실제 값으로 확인한 뒤 "딜로 저장"하거나 팀에 공유하세요'
-            : '첫 숫자가 나왔습니다 — "딜로 저장"으로 버전을 남기거나, 결과 아래 "팀에 1차 검토 공유"에서 보내세요');
+            ? '결과가 나왔습니다. 남은 예시값을 확인한 뒤 저장하거나 팀에 공유하세요'
+            : '결과가 나왔습니다. 버전을 저장하거나 결과 아래에서 팀에 공유할 수 있습니다');
           track('nudge_save');
         }catch(e2){}
       }, 25000);

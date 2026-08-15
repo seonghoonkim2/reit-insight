@@ -4,12 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>호텔 재무모델 — ADR·RevPAR·GOP 계산 구조 | 모델터</title>
-<meta name="description" content="호텔 매입 재무모델·ADR·RevPAR·GOP 계산. 호텔은 임대료가 아니라 영업 실적이 수입을 만듭니다. ADR·객실 점유율에서 RevPAR·GOP를 거쳐 NOI에 이르는 구조를 정리하고, 지금 바로 검토할 수 있는 방법과 준비 중인 기능을 안내합니다." />
+<meta name="description" content="호텔 매입 재무모델·ADR·RevPAR·GOP 계산. 호텔 수입은 ADR과 객실 점유율에서 시작해 RevPAR, GOP, NOI 순서로 계산합니다. 전용 계산기는 준비 중이며, 현재 사용할 수 있는 방법을 아래에 적었습니다." />
 <link rel="canonical" href="https://modelter.com/calc/hotel" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="호텔 재무모델 — ADR·RevPAR·GOP 계산 구조 | 모델터" />
-<meta property="og:description" content="호텔 매입 재무모델·ADR·RevPAR·GOP 계산. 호텔은 임대료가 아니라 영업 실적이 수입을 만듭니다. ADR·객실 점유율에서 RevPAR·GOP를 거쳐 NOI에 이르는 구조를 정리하고, 지금 바로 검토할 수 있는 방법과 준비 중인 기능을 안내합니다." />
+<meta property="og:description" content="호텔 매입 재무모델·ADR·RevPAR·GOP 계산. 호텔 수입은 ADR과 객실 점유율에서 시작해 RevPAR, GOP, NOI 순서로 계산합니다. 전용 계산기는 준비 중이며, 현재 사용할 수 있는 방법을 아래에 적었습니다." />
 <meta property="og:url" content="https://modelter.com/calc/hotel" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"계산기","item":"https://modelter.com/"},{"@type":"ListItem","position":3,"name":"호텔 재무모델","item":"https://modelter.com/calc/hotel"}]},{"@type":"FAQPage","inLanguage":"ko","mainEntity":[{"@type":"Question","name":"호텔 재무모델은 오피스와 무엇이 다른가요?","acceptedAnswer":{"@type":"Answer","text":"오피스는 계약 임대료가 수입을 확정하지만, 호텔은 매일의 영업 실적(ADR×점유율)이 수입을 만들고 인건비·운영비도 함께 변동합니다. 그래서 NOI 변동성이 훨씬 크고, GOP·운영위탁수수료·FF&E 적립이라는 호텔 고유 단계를 거쳐 NOI에 도달합니다. 부채·자기자본·매각 구조는 매입 딜과 동일합니다."}},{"@type":"Question","name":"RevPAR와 ADR은 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"ADR은 실제로 팔린 객실의 평균 단가이고, RevPAR는 판매 가능한 전체 객실 기준 매출(= ADR × 점유율)입니다. 가격만 높고 점유율이 낮으면 ADR은 좋아 보여도 RevPAR가 깎이므로, 호텔 간 성과 비교는 RevPAR로 합니다."}},{"@type":"Question","name":"FF&E 적립을 왜 꼭 빼야 하나요?","acceptedAnswer":{"@type":"Answer","text":"객실 가구·비품·설비는 주기적으로 교체해야 하는 필수 지출입니다. 통상 총매출의 3~5%를 매년 적립하며, 이를 빼지 않으면 NOI와 자산가치가 체계적으로 과대평가됩니다. 대주와 투자자 모두 선택이 아닌 필수 차감으로 봅니다."}},{"@type":"Question","name":"호텔 딜은 언제 추가되나요?","acceptedAnswer":{"@type":"Answer","text":"준비 중 딜의 수요 투표를 집계해 가장 많이 요청된 유형부터 만듭니다. 현재 호텔이 1순위이며, 설계는 이미 완료해 두었습니다. 이 페이지 아래 버튼으로 수요를 알려주시면 반영됩니다."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"계산기","item":"https://modelter.com/"},{"@type":"ListItem","position":3,"name":"호텔 재무모델","item":"https://modelter.com/calc/hotel"}]},{"@type":"FAQPage","inLanguage":"ko","mainEntity":[{"@type":"Question","name":"호텔 재무모델은 오피스와 무엇이 다른가요?","acceptedAnswer":{"@type":"Answer","text":"오피스는 계약 임대료가 수입을 확정하지만, 호텔은 매일의 영업 실적(ADR×점유율)이 수입을 만들고 인건비·운영비도 함께 변동합니다. 그래서 NOI 변동성이 훨씬 크고, GOP·운영위탁수수료·FF&E 적립이라는 호텔 고유 단계를 거쳐 NOI에 도달합니다. 부채·자기자본·매각 구조는 매입 딜과 동일합니다."}},{"@type":"Question","name":"RevPAR와 ADR은 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"ADR은 실제로 팔린 객실의 평균 단가이고, RevPAR는 판매 가능한 전체 객실 기준 매출(= ADR × 점유율)입니다. 가격만 높고 점유율이 낮으면 ADR은 좋아 보여도 RevPAR가 깎이므로, 호텔 간 성과 비교는 RevPAR로 합니다."}},{"@type":"Question","name":"FF&E 적립을 왜 꼭 빼야 하나요?","acceptedAnswer":{"@type":"Answer","text":"객실 가구·비품·설비는 주기적으로 교체해야 하는 필수 지출입니다. 통상 총매출의 3~5%를 매년 적립하며, 이를 빼지 않으면 NOI와 자산가치가 체계적으로 과대평가됩니다. 대주와 투자자 모두 선택이 아닌 필수 차감으로 봅니다."}},{"@type":"Question","name":"호텔 딜은 언제 추가되나요?","acceptedAnswer":{"@type":"Answer","text":"준비 중 딜의 수요 투표가 기준을 넘으면 구현 여부를 검토합니다. 현재 호텔 전용 계산기는 제공하지 않습니다."}}]}]}
 </script>
 <style>:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--green:#2e7d4f;--red:#b4552d;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
 @media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f;--green:#57b07f;--red:#d98a5f}}
@@ -98,10 +98,10 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   <div class="hero">
     <div class="eyebrow">운영형 자산 · 딜 유형 준비 중</div>
     <h1>호텔 재무모델</h1>
-    <p class="lead">호텔은 임대료가 아니라 영업 실적이 수입을 만듭니다. ADR·객실 점유율에서 RevPAR·GOP를 거쳐 NOI에 이르는 구조를 정리하고, 지금 바로 검토할 수 있는 방법과 준비 중인 기능을 안내합니다.</p>
+    <p class="lead">호텔 수입은 ADR과 객실 점유율에서 시작해 RevPAR, GOP, NOI 순서로 계산합니다. 전용 계산기는 준비 중이며, 현재 사용할 수 있는 방법을 아래에 적었습니다.</p>
   </div>
   <section>
-    <h2>수입이 만들어지는 순서 — ADR에서 NOI까지</h2>
+    <h2>ADR에서 NOI까지 계산 순서</h2>
     <div class="wex"><table>
       <tr><th>단계</th><th>산출 방식</th></tr>
       <tr><td><b>객실 매출</b></td><td style="text-align:left;color:var(--ink-2);font-size:13.5px">ADR × 객실 수 × 점유율(OCC) × 365 — RevPAR(=ADR×OCC)로 비교</td></tr>
@@ -114,16 +114,16 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </section>
   <section>
     <h2>지금 검토하는 방법</h2>
-    <div class="ex"><h2>마스터리스(책임임대차) 구조라면 <b>지금 바로 가능합니다</b></h2><p>운영사에 통임차를 주고 고정 임대료만 받는 구조는 수입 구조가 오피스와 같습니다. 오피스 매입 계산기에 임대료·기간·대출 조건을 넣으면 IRR·DSCR·엑셀까지 그대로 나옵니다.</p><p class="try" style="margin-top:8px"><a href="/calc/office">오피스 매입 계산기로 열기 →</a></p></div>
-    <div class="ex"><h2>위탁운영(HMC) 구조는 <b>준비 중입니다</b></h2><p>ADR·OCC·GOP 마진·수수료·FF&E 적립을 직접 넣는 전용 엔진을 준비하고 있습니다. 아래에서 수요를 알려주시면 우선순위가 올라갑니다.</p></div>
-    <a class="cta" href="/#src=seo">모델터 열고 호텔 수요 알리기 →<span class="sub">딜 탭 오른쪽 &lsquo;호텔 · 준비중&rsquo;을 한 번 누르면 익명으로 집계됩니다 — 수요가 모이는 순서로 만듭니다</span></a>
+    <div class="ex"><h2>마스터리스(책임임대차) 구조는 <b>지금 검토할 수 있습니다</b></h2><p>운영사에 통임차를 주고 고정 임대료를 받는 구조는 오피스와 같은 임대형 모델로 볼 수 있습니다. 오피스 계산기에 임대료, 기간, 대출 조건을 넣어 IRR과 DSCR을 확인하세요.</p><p class="try" style="margin-top:8px"><a href="/calc/office">오피스 매입 계산기로 열기 →</a></p></div>
+    <div class="ex"><h2>위탁운영(HMC) 구조는 <b>준비 중입니다</b></h2><p>ADR, OCC, GOP 마진, 수수료와 FF&E 적립을 직접 넣는 전용 계산기는 아직 제공하지 않습니다. 아래 버튼으로 필요한 딜 유형을 알려 주세요.</p></div>
+    <a class="cta" href="/#src=seo">호텔 계산기 필요하다고 알리기 →<span class="sub">&lsquo;호텔 · 준비중&rsquo; 탭을 누르면 딜 유형만 익명으로 집계됩니다.</span></a>
   </section>
   <section>
     <h2>자주 묻는 질문</h2>
     <details class="faq"><summary>호텔 재무모델은 오피스와 무엇이 다른가요?</summary><p>오피스는 계약 임대료가 수입을 확정하지만, 호텔은 매일의 영업 실적(ADR×점유율)이 수입을 만들고 인건비·운영비도 함께 변동합니다. 그래서 NOI 변동성이 훨씬 크고, GOP·운영위탁수수료·FF&amp;E 적립이라는 호텔 고유 단계를 거쳐 NOI에 도달합니다. 부채·자기자본·매각 구조는 매입 딜과 동일합니다.</p></details>
     <details class="faq"><summary>RevPAR와 ADR은 어떻게 다른가요?</summary><p>ADR은 실제로 팔린 객실의 평균 단가이고, RevPAR는 판매 가능한 전체 객실 기준 매출(= ADR × 점유율)입니다. 가격만 높고 점유율이 낮으면 ADR은 좋아 보여도 RevPAR가 깎이므로, 호텔 간 성과 비교는 RevPAR로 합니다.</p></details>
     <details class="faq"><summary>FF&amp;E 적립을 왜 꼭 빼야 하나요?</summary><p>객실 가구·비품·설비는 주기적으로 교체해야 하는 필수 지출입니다. 통상 총매출의 3~5%를 매년 적립하며, 이를 빼지 않으면 NOI와 자산가치가 체계적으로 과대평가됩니다. 대주와 투자자 모두 선택이 아닌 필수 차감으로 봅니다.</p></details>
-    <details class="faq"><summary>호텔 딜은 언제 추가되나요?</summary><p>준비 중 딜의 수요 투표를 집계해 가장 많이 요청된 유형부터 만듭니다. 현재 호텔이 1순위이며, 설계는 이미 완료해 두었습니다. 이 페이지 아래 버튼으로 수요를 알려주시면 반영됩니다.</p></details>
+    <details class="faq"><summary>호텔 딜은 언제 추가되나요?</summary><p>준비 중 딜의 수요 투표가 기준을 넘으면 구현 여부를 검토합니다. 현재 호텔 전용 계산기는 제공하지 않습니다.</p></details>
   </section>
   <section>
     <h2>관련 용어</h2>
@@ -135,7 +135,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </section>
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/im-checklist">IM 체크리스트</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
+  모델터 · 한국 상업용 부동산 재무모델 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/im-checklist">IM 체크리스트</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">검증 결과</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.
 </div></footer>
 </body>
