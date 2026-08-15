@@ -317,6 +317,18 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   ok(dscr.includes('<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>') && dscr.includes('1.0x 미만') && dscr.includes('1.5x'), 'DSCR 검색 의도: 제목·배수별 판독표');
   ok(dscr.includes('FAQPage') && dscr.includes('NCF나 CFADS') && dscr.includes('/#t=refi&src=dscr'), 'DSCR 검색 의도: FAQ 구조화 데이터·약정 정의 주의·전용 채널 CTA');
   ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('첫 입력부터 내 딜 숫자로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
+  const naverDocPath = path.join(__dirname, '..', 'docs', 'NAVER_BLOG_IM_FIRST_LOOK.md');
+  const naverDoc = fs.existsSync(naverDocPath) ? fs.readFileSync(naverDocPath, 'utf8') : '';
+  const capturePath = path.join(__dirname, 'capture-naver-assets.js');
+  const captureSrc = fs.existsSync(capturePath) ? fs.readFileSync(capturePath, 'utf8') : '';
+  const assetDir = path.join(__dirname, '..', 'docs', 'assets', 'naver-im-first-look');
+  const assetNames = ['01-home-first-number.jpg', '02-im-checklist.jpg', '03-office-first-number.jpg', '04-team-handoff.jpg'];
+  const validAssets = assetNames.filter(n => {
+    const p = path.join(assetDir, n); if (!fs.existsSync(p)) return false;
+    const b = fs.readFileSync(p); return b.length >= 30000 && b[0] === 0xff && b[1] === 0xd8;
+  });
+  ok(fs.existsSync(capturePath) && captureSrc.includes("localStorage.setItem('mt_qa', '1')") && captureSrc.includes("if (p === '/e')"), '네이버 게시 자산: 로컬·QA 모드 재현 캡처(/e 전송 0)');
+  ok(validAssets.length === 4 && assetNames.every(n => naverDoc.includes(n)), '네이버 게시 자산: 샘플 JPEG 4장·본문 대체텍스트 연결');
 }
 
 /* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */
