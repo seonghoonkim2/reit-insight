@@ -97,3 +97,5 @@ jobs:
         run: npm install --no-save --no-package-lock playwright@1.62.1
       - name: 실제 브라우저 사용자 경로 49건
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/smoke.js
+      - name: 저가 모바일 첫 결과 5초 예산
+        run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/perf-load.js

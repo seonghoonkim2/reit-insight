@@ -1,7 +1,7 @@
 # 모델터 스모크 QA — 실제 브라우저 회귀 검사
 
 `smoke.js` 하나가 배포 파일(`dart-search/web/modelter/`)을 내장 http 서버로 띄우고
-Chromium(Playwright)으로 핵심 사용자 경로 22가지를 검사합니다.
+Chromium(Playwright)으로 핵심 사용자 경로 49가지를 검사합니다.
 
 ```bash
 node tools/qa/smoke.js
@@ -14,8 +14,14 @@ node tools/qa/smoke.js
 3. **딥링크** — `#t=refi` 탭 전환 + 온보딩·What's new 억제
 4. **모바일(390px)** — 가로 스크롤 0, ⚡핵심만 위저드 전체 플로우(억조 환산·완료·폼 동기화)
 5. **성능 가드** — 개발·PF 키 입력당 재계산 < 500ms (민감도 셀에서 simDevResi를 다시 부르는 회귀 방지)
-6. **What's new** — 재방문 자동 노출 + v3 라벨 고정
+6. **What's new** — 도착 시 자동 팝업 없음 + 배너 진입 + v3 라벨 고정
 7. **배포 안전** — `__mtCalc` 테스트 훅 부재, guide.html·og.png 존재
+
+로딩 성능은 현재 진입 경로 그대로 측정하며, 저가 모바일 근사에서 첫 결과 5초 예산을 초과하면 실패합니다.
+
+```bash
+node tools/qa/perf-load.js
+```
 
 ## 준비물
 

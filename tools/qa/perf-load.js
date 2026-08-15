@@ -22,11 +22,12 @@ const server = http.createServer((req, res) => {
   let exe=process.env.CHROME_BIN||null;
   if(!exe){ try{ for(const d of fs2.readdirSync('/opt/pw-browsers')){ if(/^chromium/.test(d)){ const c='/opt/pw-browsers/'+d+'/chrome-linux/chrome'; if(fs2.existsSync(c)){ exe=c; break; } } } }catch(e){} }
   const browser = await chromium.launch(exe?{ executablePath: exe }:{});
+  let budgetFail = false;
 
-  for (const [label, cpu, net] of [
-    ['데스크톱·무제한', 1, null],
-    ['중급 모바일 근사 (CPU 4x 감속 + 4G)', 4, { downloadThroughput: 4 * 1024 * 1024 / 8, uploadThroughput: 1 * 1024 * 1024 / 8, latency: 60 }],
-    ['저가 모바일 근사 (CPU 6x 감속 + Fast3G)', 6, { downloadThroughput: 1.6 * 1024 * 1024 / 8, uploadThroughput: 750 * 1024 / 8, latency: 150 }],
+  for (const [label, cpu, net, firstResultBudget] of [
+    ['데스크톱·무제한', 1, null, null],
+    ['중급 모바일 근사 (CPU 4x 감속 + 4G)', 4, { downloadThroughput: 4 * 1024 * 1024 / 8, uploadThroughput: 1 * 1024 * 1024 / 8, latency: 60 }, null],
+    ['저가 모바일 근사 (CPU 6x 감속 + Fast3G)', 6, { downloadThroughput: 1.6 * 1024 * 1024 / 8, uploadThroughput: 750 * 1024 / 8, latency: 150 }, 5000],
   ]) {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await ctx.newPage();
@@ -38,8 +39,7 @@ const server = http.createServer((req, res) => {
     const t0 = Date.now();
     await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'domcontentloaded' });
     const dcl = Date.now() - t0;
-    // 첫 결과(예시 KPI) 표시까지 — 온보딩 역할 클릭 후
-    await page.locator('[data-role="acq"]').click({ timeout: 8000 }).catch(() => {});
+    // 첫 결과(예시 KPI) 표시까지 — 제거된 역할 선택 온보딩을 기다리지 않고 현재 진입 경로 그대로 잰다.
     await page.waitForFunction(() => {
       const c = document.getElementById('simCard');
       return c && !c.hidden && !c.classList.contains('noresult') && document.querySelectorAll('#simKpis .sim-kpi').length > 0;
@@ -50,8 +50,14 @@ const server = http.createServer((req, res) => {
       return { dcl: Math.round(n.domContentLoadedEventEnd), load: Math.round(n.loadEventEnd), transfer: n.transferSize };
     });
     console.log(`[${label}]`);
-    console.log(`  DOMContentLoaded ${nav.dcl}ms · load ${nav.load}ms · 첫 결과 표시(온보딩 클릭 포함) ${firstResult}ms`);
+    console.log(`  DOMContentLoaded ${nav.dcl}ms · load ${nav.load}ms · 첫 결과 표시 ${firstResult}ms`);
+    if (firstResultBudget) {
+      const pass = firstResult <= firstResultBudget;
+      console.log(`  ${pass ? '✓' : '✗'} 첫 결과 예산 ${firstResultBudget}ms ${pass ? '통과' : '초과'}`);
+      if (!pass) budgetFail = true;
+    }
     await ctx.close();
   }
   await browser.close(); server.close();
+  if (budgetFail) process.exitCode = 1;
 })().catch(e => { console.error(e); server.close(); process.exit(1); });
