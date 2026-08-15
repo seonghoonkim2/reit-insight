@@ -142,6 +142,10 @@ async function closeOverlays(page) {
   console.log('\n[3] 딥링크');
   {
     const { ctx, page } = await fresh(browser);
+    // 검색 → 정적 안내면 → 앱 CTA에서도 원 외부 호스트가 자기참조로 사라지지 않아야 한다.
+    await page.goto(URL0 + 'im-checklist', { referer: 'https://www.google.com/search?q=cre+im' });
+    await page.locator('a[href="/#t=office&src=imcheck"]').first().click(); await page.waitForTimeout(700);
+    const refCarry = await page.evaluate(() => sessionStorage.getItem('mt_ref0'));
     const sources = ['seo', 'dscr', 'imcheck', 'howto', 'sns'];
     const states = [];
     for (const src of sources) {
@@ -158,7 +162,7 @@ async function closeOverlays(page) {
       })));
     }
     const st = states[states.length - 1];
-    ok(states.every((s, i) => s.cur === 'refi' && s.res && s.hi && s.toast && s.src === sources[i]), '#t=refi + 고의도 콘텐츠 5채널 → 탭·예시·첫 입력 인계');
+    ok(refCarry === 'www.google.com' && states.every((s, i) => s.cur === 'refi' && s.res && s.hi && s.toast && s.src === sources[i]), '정적 착지 외부 유입원 보존 + 고의도 콘텐츠 5채널 → 탭·예시·첫 입력 인계');
     ok(!st.ob && !st.wn, '딥링크 진입 시 자동 팝업 없음');
     await ctx.close();
   }

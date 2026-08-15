@@ -84,6 +84,10 @@ footer a{color:var(--ink-3)}
   a{color:#000;text-decoration:none}
 }
 </style>
+<script>
+/* 외부 검색·콘텐츠 → 정적 착지 → 계산기 이동 사이에 유입 호스트만 같은 탭에 보존한다. */
+try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(document.referrer).hostname;if(_rh&&_rh!==location.hostname)sessionStorage.setItem('mt_ref0',_rh.slice(0,40));}}catch(_e){}
+</script>
 </head>
 <body>
 <header><div class="wrap">
@@ -122,7 +126,7 @@ footer a{color:var(--ink-3)}
       <tr data-field="featN"><td>featN</td><td>켠 기능 개수</td><td><code>3</code></td></tr>
       <tr data-field="axis"><td>axis</td><td>민감도 축 선택</td><td><code>growth</code> / <code>rate</code></td></tr>
       <tr data-field="dev"><td>dev</td><td>기기 종류(User-Agent 기반)</td><td><code>desktop</code> / <code>mobile</code></td></tr>
-      <tr data-field="ref"><td>ref</td><td>유입 도메인(호스트만, 전체 URL 아님)</td><td><code>naver.com</code></td></tr>
+      <tr data-field="ref"><td>ref</td><td>유입 도메인(호스트만, 전체 URL 아님 — 정적 안내면을 거쳐도 같은 탭에서만 보존)</td><td><code>naver.com</code></td></tr>
       <tr data-field="src"><td>src</td><td>유입 채널 태그(링크에 붙은 채널명 — 영문·숫자만)</td><td><code>xlsx</code>, <code>notes</code></td></tr>
       <tr data-field="cc"><td>cc</td><td>접속 국가(Cloudflare 제공)</td><td><code>KR</code></td></tr>
       <tr data-field="bot"><td>bot</td><td>자동화 트래픽 판별(0/1) — 통계에서 크롤러를 제외하기 위한 플래그</td><td><code>0</code> / <code>1</code></td></tr>

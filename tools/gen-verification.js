@@ -108,6 +108,10 @@ pre{display:block;padding:12px 15px;margin:8px 0;overflow-x:auto;color:var(--ink
 footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:12.5px}
 footer a{color:var(--ink-3)}
 </style>
+<script>
+/* 외부 검색·콘텐츠 → 정적 착지 → 계산기 이동 사이에 유입 호스트만 같은 탭에 보존한다. */
+try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(document.referrer).hostname;if(_rh&&_rh!==location.hostname)sessionStorage.setItem('mt_ref0',_rh.slice(0,40));}}catch(_e){}
+</script>
 </head>
 <body>
 <header><div class="wrap">

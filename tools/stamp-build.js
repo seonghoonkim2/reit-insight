@@ -32,6 +32,13 @@ function hashOf(html) {
 }
 function stampOf(html) { const m = html.match(RE); return m ? m[2] : null; }
 
+function seoulDate(now) {
+  // 모델터의 운영·판독 기준은 KST. UTC 자정 기준이면 한국 00:00~08:59에 전날로 찍힌다.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(now || new Date());
+}
+
 function gitShort() {
   try { return cp.execSync('git rev-parse --short HEAD', { cwd: path.join(__dirname, '..'), encoding: 'utf8' }).trim(); }
   catch (e) { return ''; }
@@ -50,7 +57,7 @@ if (CHECK) {
   process.exit(0);
 }
 
-const date = new Date().toISOString().slice(0, 10);
+const date = seoulDate();
 const targets = [DEPLOY, CANON].filter(fs.existsSync);
 let shipStamp = '';
 for (const fp of targets) {
