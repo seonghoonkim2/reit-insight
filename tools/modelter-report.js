@@ -199,6 +199,21 @@ function build(snaps) {
       <p class="note">14일 사전 기준: 공유 메뉴 10건, 실제 링크 5건, 활성화율 10% 이상. 종료 전 수치는 진행 신호일 뿐 채택·철회로 판정하지 않습니다. 예시·비활성 세션은 메뉴 ${num(ho.nonact)}건 / 링크 ${num(sl.nonact)}건으로 분리해 성과에 넣지 않습니다.</p></div>`
     : `<div class="card"><h2>북극성 · 팀 전달</h2><p class="empty">새 스냅샷부터 실사용 공유 메뉴·실제 링크가 분리 집계됩니다.</p></div>`;
 
+  // 예시를 보는 방문이 자기 딜 첫 입력으로 넘어가는지 — CTA 실제 배포 시각부터 고정 14일 창.
+  const sw = last.sampleStartWindow || null;
+  const sampleSessions = sw ? Number(sw.session) || 0 : 0;
+  const sampleStages = sw ? [
+    ['방문', Number(sw.session) || 0],
+    ['내 딜 입력 CTA', Number(sw.sample_start) || 0],
+    ['직접 입력', Number(sw.activate) || 0],
+    ['첫 결과', Number(sw.computed) || 0],
+  ] : [];
+  const sampleRows = sampleStages.map(([lb, v]) => `<div class="frow"><span class="fk">${lb}</span><span class="ftrack"><span class="ffill" style="width:${sampleSessions ? Math.min(100, v / sampleSessions * 100) : 0}%"></span></span><span class="fn">${num(v)} <i>${pct(v, sampleSessions)}</i></span></div>`).join('');
+  const sampleWindowLabel = sw ? `${String(sw.since || '').slice(0, 16).replace('T', ' ')}~${String(sw.until || '').slice(0, 16).replace('T', ' ')} KST` : '';
+  const sampleStartCard = sw
+    ? `<div class="card"><h2>예시 → 내 딜 첫 입력 <span>${esc(sampleWindowLabel)} · 고정 14일 창</span></h2><div class="decision"><b>직접 입력 ${pct(sw.activate, sampleSessions)}</b><span>방문 ${num(sampleSessions)} · CTA ${num(sw.sample_start)} · 첫 결과 ${num(sw.computed)}</span></div><div class="funnel">${sampleRows}</div><p class="note">CTA를 누르지 않고 예시 숫자를 바로 덮어쓸 수도 있어 단계별 수치는 엄격한 포함 퍼널이 아닙니다. 성공 판정 기준을 사후에 만들지 않고, CTA 발견 문제와 실제 입력 문제를 분리 진단하는 용도로만 씁니다.</p></div>`
+    : `<div class="card"><h2>예시 → 내 딜 첫 입력</h2><p class="empty">새 스냅샷부터 첫 입력 전환의 고정 14일 창이 표시됩니다.</p></div>`;
+
   const body = `
   <div class="grid5">${kpis}</div>
 
@@ -211,6 +226,8 @@ function build(snaps) {
   </div>
 
   ${teamCard}
+
+  ${sampleStartCard}
 
   ${firstNumberCard}
 

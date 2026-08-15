@@ -130,6 +130,7 @@
 - **additive 필드 (2026-08-10~, schema는 2 유지 — 기존 소비자 무영향)**:
   - `outputsByAct: {act, nonact, unknown, since:'2026-07-26'}` — 북극성 K3. 산출물이 **자기 숫자 세션**(blob11=1)에서 나왔는지. `unknown`은 act 계측 개시(07-26) 이전 구간이므로 **act/nonact와 합산 금지**.
   - `teamHandoffByAct: {since:'2026-08-15', decisionDate:'2026-08-29', window:{session,activate}, handoff_open:{act,nonact,unknown}, share_link:{act,nonact,unknown}, firstNumber:{since,until,first_number_5m,first_number_15m,first_number_30m,first_number_slow}}` — 첫 숫자의 팀 전달·속도 선행지표. 팀 전달은 08-15 08:03 KST~08-29 08:03 KST, 첫 숫자 속도는 실제 계측 배포 완료 시각인 08-15 10:18:30 KST~08-29 10:18:30 KST 직전의 **각각 고정된 14일 창**만 집계한다. 두 쿼리는 `--days`의 최근 N일 조건을 적용하지 않는다. 사전 기준은 실사용 `handoff_open` 10건·`share_link` 5건·동일 창 활성화율 10% 이상, 속도 표본 n≥20일 때 15분 이내 70% 이상이다. 종료 전에는 채택·철회 판정을 내리지 않는다. 이전 `share_link`는 메뉴 열기만 한 건이 섞여 있어 합산 금지.
+  - `sampleStartWindow: {since,until,session,sample_start,activate,computed}` — 예시→내 딜 첫 입력 CTA의 실제 프로덕션 배포 완료 시각(08-15 11:23:17 KST)부터 08-29 11:23:17 KST 직전까지의 고정 14일 진단 창. `--days` 조건을 적용하지 않는다. CTA를 건너뛰고 직접 입력할 수 있어 엄격한 포함 퍼널이나 성공 판정으로 쓰지 않고, CTA 발견과 실제 입력 사이 병목만 분리한다.
   - `dealWantGate: {<딜>:표수, since:'2026-07-14', target:50}` — 커버리지 착수 게이트. 조회 창(`--days`)과 무관한 **절대 기간 누적**(dedupe 배포일 이후). ⚠ AE 보존기간(약 90일) 초과 시 과소집계 — 2026-10 이후 커밋된 스냅샷 누적 합산으로 전환 필요.
   - 참고: `daily[]`에는 `depth_change`·`fsub_open`을 포함한 **전 이벤트**가 이미 들어 있다(별도 추가 불필요).
 

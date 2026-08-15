@@ -77,6 +77,12 @@ const Q_TEAM_HANDOFF = `SELECT blob1 AS e, blob11 AS a, sum(_sample_interval) AS
 const FIRST_NUMBER_SINCE_UTC = '2026-08-15 01:18:30';
 const FIRST_NUMBER_UNTIL_UTC = '2026-08-29 01:18:30';
 const Q_FIRST_NUMBER_WINDOW = `SELECT blob1 AS e, sum(_sample_interval) AS n FROM ${DATASET} WHERE timestamp >= toDateTime('${FIRST_NUMBER_SINCE_UTC}') AND timestamp < toDateTime('${FIRST_NUMBER_UNTIL_UTC}')${BOT_FILTER} AND blob1 IN (${FIRST_NUMBER_BUCKETS.map(b => `'${b.event}'`).join(',')}) GROUP BY e`;
+/* 예시→내 딜 첫 입력 전환 — CTA가 실제 프로덕션에 배포된 시각부터 같은 14일 창의 네 신호를 센다.
+   sample_start를 거치지 않고 직접 입력할 수도 있으므로 단계별 수치는 엄격한 포함 관계가 아닌 진단 신호다. */
+const SAMPLE_START_SINCE_UTC = '2026-08-15 02:23:17';
+const SAMPLE_START_UNTIL_UTC = '2026-08-29 02:23:17';
+const SAMPLE_START_EVENTS = ['session', 'sample_start', 'activate', 'computed'];
+const Q_SAMPLE_START_WINDOW = `SELECT blob1 AS e, sum(_sample_interval) AS n FROM ${DATASET} WHERE timestamp >= toDateTime('${SAMPLE_START_SINCE_UTC}') AND timestamp < toDateTime('${SAMPLE_START_UNTIL_UTC}')${BOT_FILTER} AND blob1 IN (${SAMPLE_START_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY e`;
 /* 딜 커버리지 게이트 — deal_want 는 2026-07-14 부터 브라우저당 유형별 1표(dedupe). 그 이전은 클릭 수라 섞으면 안 된다.
    ⚠ AE 보존기간(약 90일)을 넘기면 이 절대 기간 쿼리는 과소집계된다 — 2026-10 이후엔 커밋된 스냅샷 누적 합산으로 전환할 것. */
 const GATE_SINCE = '2026-07-14 00:00:00';
@@ -218,6 +224,11 @@ function validateSnap(snap) {
       }
     }
   }
+  if (snap.sampleStartWindow) {
+    const sw = snap.sampleStartWindow;
+    for (const k of ['since', 'until']) if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/.test(String(sw[k] || ''))) errs.push('sampleStartWindow.' + k + ' 시각 형식 위반');
+    for (const k of SAMPLE_START_EVENTS) if (typeof sw[k] !== 'number' || !isFinite(sw[k])) errs.push('sampleStartWindow.' + k + ' 숫자 아님');
+  }
   return errs;
 }
 async function writeSnapshot(data, daily, attribution, extra) {
@@ -237,6 +248,7 @@ async function writeSnapshot(data, daily, attribution, extra) {
     // 북극성(K3) 기준선 · 딜 커버리지 게이트 — 둘 다 additive(구 스냅샷 소비자 무영향)
     outputsByAct: (extra && extra.outputsByAct) || null,
     teamHandoffByAct: (extra && extra.teamHandoffByAct) || null,
+    sampleStartWindow: (extra && extra.sampleStartWindow) || null,
     dealWantGate: (extra && extra.dealWantGate) || null,
   };
   const errs = validateSnap(snap);
@@ -254,6 +266,7 @@ async function main() {
     console.log('-- attribution_ref\n' + Q_ATTR_REF + '\n');
     console.log('-- team_handoff_fixed_14d\n' + Q_TEAM_HANDOFF + '\n');
     console.log('-- first_number_fixed_14d\n' + Q_FIRST_NUMBER_WINDOW + '\n');
+    console.log('-- sample_start_fixed_14d\n' + Q_SAMPLE_START_WINDOW + '\n');
     console.log('# curl 예:\n#   curl "https://api.cloudflare.com/client/v4/accounts/<계정ID>/analytics_engine/sql" \\\n#     -H "Authorization: Bearer <토큰>" --data "' + Q.events + '"');
     return;
   }
@@ -331,6 +344,19 @@ async function main() {
         }
         extra.teamHandoffByAct = h;
       } catch (e) { console.error('팀 전달 act 분해 조회 건너뜀: ' + e.message); }
+      try {                                            // 기본 예시 → 내 딜 첫 입력 전환 (실제 CTA 배포 이후만)
+        const rows = await runSQL(Q_SAMPLE_START_WINDOW);
+        const sw = {
+          since: '2026-08-15T11:23:17+09:00',
+          until: '2026-08-29T11:23:17+09:00',
+          session: 0, sample_start: 0, activate: 0, computed: 0,
+        };
+        for (const r of rows) {
+          const e = String(r.e || '');
+          if (Object.prototype.hasOwnProperty.call(sw, e)) sw[e] += Number(r.n || 0);
+        }
+        extra.sampleStartWindow = sw;
+      } catch (e) { console.error('첫 입력 전환 조회 건너뜀: ' + e.message); }
       try {                                            // 딜 커버리지 게이트 (dedupe 이후 절대 기간)
         const rows = await runSQL(Q_WANT_GATE);
         const g = { since: GATE_SINCE.slice(0, 10), target: 50 };
@@ -351,4 +377,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { Q, Q_TEAM_HANDOFF, Q_FIRST_NUMBER_WINDOW, TEAM_HANDOFF_SINCE_UTC, TEAM_HANDOFF_UNTIL_UTC, FIRST_NUMBER_SINCE_UTC, FIRST_NUMBER_UNTIL_UTC, render, toMap, attrByGroup, renderAttr, funnelOf, isoWeek, validateSnap };
+module.exports = { Q, Q_TEAM_HANDOFF, Q_FIRST_NUMBER_WINDOW, Q_SAMPLE_START_WINDOW, TEAM_HANDOFF_SINCE_UTC, TEAM_HANDOFF_UNTIL_UTC, FIRST_NUMBER_SINCE_UTC, FIRST_NUMBER_UNTIL_UTC, SAMPLE_START_SINCE_UTC, SAMPLE_START_UNTIL_UTC, render, toMap, attrByGroup, renderAttr, funnelOf, isoWeek, validateSnap };
