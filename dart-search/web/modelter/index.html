@@ -1983,7 +1983,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-15·99336c3e03';
+window.MT_BUILD='2026-08-15·03b9a2ec65';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -5544,14 +5544,14 @@ function tryRestoreFromURL(){
       cur=mT[1]; fillExample();
       if(/[#&]view=lender/.test(h)&&cur==='dev'&&typeof window.__setDevView==='function') window.__setDevView('lender');
       setTimeout(function(){ var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({block:'start'}); },80);
-      /* 검색 착지(calc/*·DSCR)에서 온 방문자 — 판독 2026-08-10: src=seo 누적 21세션 활성화 0.
+      /* 검색·IM 실무 콘텐츠에서 온 방문자 — 판독 2026-08-10: src=seo 누적 21세션 활성화 0.
          착지 페이지에서 이미 같은 예시를 보고 오므로 "내 숫자로 바꾸는 순간"을 만들어 준다.
-         표시 전용(하이라이트·안내·데스크톱 포커스) — 계측 발화 없음, seo·dscr 유입일 때만. */
-      if(/[#&]src=(?:seo|dscr)\b/.test(h)) setTimeout(function(){
+         표시 전용(하이라이트·안내·데스크톱 포커스) — 계측 발화 없음. */
+      if(/[#&]src=(?:seo|dscr|imcheck|howto)\b/.test(h)) setTimeout(function(){
         try{
           var cg=document.querySelector('#formBody .core-g');
           if(cg){ cg.classList.add('core-hi'); setTimeout(function(){ cg.classList.remove('core-hi'); },3200); }
-          if(typeof toast==='function') toast('방금 보신 예시가 그대로 채워져 있습니다 — 매입가부터 내 딜 숫자로 바꾸면 결과가 바로 갱신됩니다', 5200);
+          if(typeof toast==='function') toast('방금 보신 예시가 그대로 채워져 있습니다 — 첫 입력부터 내 딜 숫자로 바꾸면 결과가 바로 갱신됩니다', 5200);
           // 모바일은 포커스 생략 — 키보드가 올라와 결과 카드를 가림(7/14 착지 개선 원칙)
           if(window.matchMedia && matchMedia('(max-width:920px)').matches) return;
           var fi=cg&&cg.querySelector('input[data-k]:not([type=range])');
