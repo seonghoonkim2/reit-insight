@@ -690,6 +690,7 @@ ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
 ok(html.includes('function termHelp') && html.includes('class="k-help"'), '결과 용어 → 가이드 앵커 링크 존재');
 ok(html.includes('function mtNextTip') && html.includes('mt_tip_next'), '산출물 다음 단계 팁(1회) 존재');
 ok(html.includes('function oneLineReport') && html.includes('한 줄 보고 복사'), '한 줄 보고(카톡용 요약+링크) 존재');
+ok(html.includes('전부 예시값 · 실제 시세 아님') && html.includes('현재 입력은 전부 예시 숫자입니다. 실제 시세가 아닙니다'), '팀 전달: 전부 샘플도 확인·한 줄 보고에 실제 시세 아님 고지');
 ok(html.includes('딜 받았으면, <em>모델터부터.</em>') && html.includes('내 딜 첫 숫자 뽑기'), '북극성: 딜 검토 첫 숫자 메시지 존재');
 ok(html.includes('id="handoffBtn"') && html.includes('팀에 올릴 첫 숫자가 나왔습니다.'), '북극성: 결과 직후 팀 1차 검토 전달 동선 존재');
 ok(html.includes("if(!_hoDone) track('handoff_open');") && html.includes("sessionStorage.getItem('mt_handoff_open')"), '북극성: 공유 메뉴 열기 세션 dedupe 계측');

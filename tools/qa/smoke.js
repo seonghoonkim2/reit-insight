@@ -86,16 +86,33 @@ async function closeOverlays(page) {
       }, d);
       ok(r.shown && r.verdict > 5, d + ' 예시 → 결과 + 판정');
     }
-    // 공유 링크 왕복 + 한 줄 보고
+    // 공유 링크 왕복 + 한 줄 보고 — 팀에 실제로 퍼지는 형식을 4개 딜 전부 검사
     const rt = await page.evaluate(() => {
+      const rows = ['office', 'logistics', 'dev', 'refi'].map((d) => {
+        cur = d; fillExample();
+        const url = shareLink(true, 'share');
+        const enc = (url.match(/#v=([^&]+)/) || [])[1] || '';
+        const back = JSON.parse(mtLZ.decompress(enc));
+        const ol = oneLineReport();
+        const reportUrl = ol.split('\n').pop();
+        return {
+          same: back.c === d && JSON.stringify(back.s) === JSON.stringify(state),
+          branded: /^\[모델터\] 1차 검토/.test(ol) && ol.includes(DEALS[d].label),
+          readonly: /#v=/.test(reportUrl) && /&src=share(?:&|$)/.test(reportUrl) && !/#e=/.test(reportUrl),
+          sample: /전부 예시값 · 실제 시세 아님/.test(ol),
+        };
+      });
       cur = 'office'; fillExample();
-      const url = shareLink(true); const back = JSON.parse(mtLZ.decompress(url.split('#v=')[1]));
-      const ol = oneLineReport();
-      return { same: back.c === 'office' && back.s.price === state.price, ol: typeof ol === 'string' && ol.startsWith('[모델터]') && /#v=/.test(ol), branded: /^\[모델터\] 1차 검토/.test(ol) };
+      let promptText = ''; const oldConfirm = window.confirm;
+      window.confirm = (msg) => { promptText = msg; return false; };
+      const allPrompt = exConfirmOutput('한 줄 보고') === false && /전부 예시 숫자/.test(promptText) && /실제 시세가 아닙니다/.test(promptText);
+      window.confirm = oldConfirm;
+      exTouch(Array.from(exampleKeys)[0]);
+      return { rows, allPrompt, mixed: /일부 가정은 예시값/.test(oneLineReport()) };
     });
-    ok(rt.same, '공유 링크 인코딩 왕복');
-    ok(rt.ol, '한 줄 보고 생성');
-    ok(rt.branded, '한 줄 보고에 1차 검토 용어 고정');
+    ok(rt.rows.every(r => r.same), '공유 링크 4딜 인코딩 왕복');
+    ok(rt.rows.every(r => r.branded && r.readonly), '한 줄 보고 4딜 브랜드·읽기전용 복원 링크');
+    ok(rt.rows.every(r => r.sample) && rt.allPrompt && rt.mixed, '한 줄 보고 전부·일부 예시 상태 확인·고지');
     const hb = page.locator('#handoffBtn');
     const hbShown = await hb.isVisible();
     await hb.click();
