@@ -722,7 +722,7 @@ ok(html.includes('탭하면 결과로 이동'), '미니 KPI 탭 → 결과 스�
 ok(!/openWN\(\);?\s*\/\/\s*첫 방문/.test(html) && !html.includes('__mtOnboarding'), '온보딩 잔재 없음(딥링크 억제 분기 포함)');
 ok(html.includes('window.__wizOpen') && html.includes('id="wizBtn"') && html.includes('wiz-sheet'), '모바일 빠른 입력 위저드 존재');
 ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.includes("['asset','noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 핵심 필드 세트');
-ok(html.includes("_gf=mnum('gfa')"), '임대료 기준 연면적 필수 가드(침묵 기본값 차단)');
+ok(html.includes("_gf=mnum('gfa')"), '매입 계산 연면적 필수 가드(임대료·NOI 직접입력 침묵 기본값 차단)');
 ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
 ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');

@@ -1981,13 +1981,14 @@ const QUICK_FIELDS={
   refi:["asset","noi","oldbal","oldrate","dscrmin"]
 };
 // 매입 딜은 IM에 있는 수입 형식에 맞춰 핵심 입력을 바꾼다.
-// 평당 임대료 방식은 계산에 연면적이 필수이고, NOI 직접 방식은 연면적·평당 임대료 대신 NOI 하나면 된다.
+// Excel 엔진이 매입가를 평당가×연면적으로 연결하므로 두 방식 모두 연면적이 필수다.
+// NOI 직접 방식은 평당 임대료만 1차연도 NOI로 바꾼다.
 function quickFieldKeys(deal){
   var keys=(QUICK_FIELDS[deal]||[]).slice();
   if(deal==="office"||deal==="logistics"){
     var md=(state&&state["noimode"]||"").trim(), direct=md.indexOf("직접")>=0;
+    if(keys.indexOf("gfa")<0) keys.splice(Math.max(0,keys.indexOf("price"))+1,0,"gfa");
     if(direct) keys=keys.map(function(k){ return k==="rentpp"?"noi1":k; });
-    else if(keys.indexOf("gfa")<0) keys.splice(Math.max(0,keys.indexOf("price"))+1,0,"gfa");
   }
   return keys;
 }
@@ -1996,7 +1997,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-16·afb09d7d2d';
+window.MT_BUILD='2026-08-16·3515e32ee9';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -6438,9 +6439,9 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   function _newSimDcf(){
     var rr=rrLeaseResult(); if(rr) return rr;
     // 핵심 입력(매입가 + 임대수입원)이 비면 내장 기본값으로 몰래 계산하지 않고 빈 상태 안내로 보냄
-    var _p=mnum('price'); if(!isFinite(_p)||_p<=0) return null;
+    var _p=mnum('price'), _gf=mnum('gfa'); if(!isFinite(_p)||_p<=0||!isFinite(_gf)||_gf<=0) return null;
     var _md=(state['noimode']||'').trim(); var _rb=(_md===''||_md.indexOf('임대료')===0);
-    if(_rb){ var _rp=mnum('rentpp'), _gf=mnum('gfa'); if(!isFinite(_rp)||_rp<=0||!isFinite(_gf)||_gf<=0) return null; }
+    if(_rb){ var _rp=mnum('rentpp'); if(!isFinite(_rp)||_rp<=0) return null; }
     else { var _n1=mnum('noi1'); if(!isFinite(_n1)||_n1<=0) return null; }
     var r=calcModel(assumFull());
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
