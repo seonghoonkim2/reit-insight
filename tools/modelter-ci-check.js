@@ -26,6 +26,10 @@ ok(gzKB < 300, '성능 예산: gzip 전송량 ' + gzKB + 'KB < 300KB (초과 시
 ok(fs.existsSync(path.join(DIR, 'og.png')), 'og.png 존재 (소셜 미리보기 404 방지)');
 ok(fs.existsSync(path.join(DIR, 'robots.txt')), 'robots.txt 존재 (크롤 안내)');
 ok(fs.existsSync(path.join(DIR, 'sitemap.xml')), 'sitemap.xml 존재');
+if (fs.existsSync(path.join(DIR, 'robots.txt'))) {
+  const robots = fs.readFileSync(path.join(DIR, 'robots.txt'), 'utf8');
+  ok(/^Sitemap: https:\/\/modelter\.com\/sitemap\.xml\s*$/m.test(robots), 'robots.txt: 정식 sitemap.xml 절대 URL');
+}
 ok(fs.existsSync(path.join(DIR, 'guide.html')), '가이드·용어사전 페이지 존재 (SEO)');
 ok(fs.existsSync(path.join(DIR, 'howto.html')), '실무 활용 가이드(howto) 존재 (SEO)');
 if (fs.existsSync(path.join(DIR, 'howto.html'))) {
@@ -59,6 +63,10 @@ if (fs.existsSync(path.join(DIR, 'guide.html'))) {
 if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
   ok(sm.includes('modelter.com/') && sm.includes('/guide<') && sm.includes('/howto<') && sm.includes('/trust<'), 'sitemap: 홈·가이드·활용 가이드·신뢰센터 URL(무확장)');
+  const locs = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+  ok(locs.length > 0 && new Set(locs).size === locs.length, 'sitemap: URL 중복 0 (' + locs.length + '개)');
+  ok(locs.every(u => /^https:\/\/modelter\.com\//.test(u)), 'sitemap: modelter.com HTTPS 절대 URL만');
+  ok(locs.every(u => !/\.html(?:$|[?#])/.test(u)), 'sitemap: canonical 무확장 URL만(.html 0)');
 }
 
 /* ── 1b) 신뢰 센터(trust.html) ↔ worker.js /e 수집 필드 1:1 강제 ──
