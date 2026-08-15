@@ -25,7 +25,7 @@
 ```bash
 node tools/parity/gen-xlsx.js office|logistics|dev|refi   # 생성
 python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pip install formulas) — 4딜 전수
-# 자본구조·경계 변형: office_nopref|office_nonpass|office_hold7|office_nodebt(무차입)|office_vac100(공실 100%)
+# 자본구조·경계 변형: office_nopref|office_nonpass(비도관+NOI 직접)|office_hold7|office_nodebt(무차입)|office_vac100(공실 100%)
 #                     office_mezz(중순위 현금이자)|office_mezzpik(중순위 이자누적 PIK)
 # 전 딜 공통 구조 검사도 함께 돈다 — 비유한값 0 · 엑셀 오류 토큰 0 · 검증 시트 종합 판정 PASS
 ```

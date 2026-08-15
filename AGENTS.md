@@ -62,6 +62,7 @@ done
 ```
 
 전부 `PARITY OK` 여야 합니다. 준비물: `pip install formulas openpyxl`, Playwright + Chromium.
+`office_nonpass`는 비도관 세후 계산과 함께 **NOI 직접 입력 경로**를 검증하므로 이 모드 패치를 제거하지 않습니다.
 
 ## 파리티가 실제로 검사하는 것
 

@@ -233,5 +233,5 @@ for name, okc, detail in extra:
     if not okc:
         fails += 1
 
-print('PARITY ' + ('FAIL %d' % fails if fails else 'OK') + ' — ' + deal)
+print('PARITY ' + ('FAIL %d' % fails if fails else 'OK') + ' - ' + deal)
 sys.exit(1 if fails else 0)

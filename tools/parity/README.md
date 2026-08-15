@@ -23,7 +23,7 @@ node tools/parity/gen-xlsx.js refi        # 리파이낸싱 4시트
 
 # 1-b) 자본구조·경계 매트릭스 — 예시 딜 1케이스 편향을 깨는 오피스 변형 7종
 node tools/parity/gen-xlsx.js office_nopref    # 우선주 끔
-node tools/parity/gen-xlsx.js office_nonpass   # 비도관(법인세 적용)
+node tools/parity/gen-xlsx.js office_nonpass   # 비도관 + NOI 직접 입력
 node tools/parity/gen-xlsx.js office_hold7     # 보유기간 7년
 node tools/parity/gen-xlsx.js office_nodebt    # 무차입(LTV 0) — 커버리지 분모 0 경계
 node tools/parity/gen-xlsx.js office_vac100    # 공실 100% — 수입 0, IRR 미정의 경계
@@ -59,7 +59,7 @@ python3 tools/parity/check.py office_mezzpik
 | dev | 04_PROFITABILITY | C5 분양수입 · C14 이자 · C16 본PF 한도 · C21 이익 · C22 이익률 · C26 미상환 · C28 EM · C29 IRR |
 | refi | 02_Term_Sheets C/D/E열 | 대안 1~3 × (대출금·1차년 DSCR·최소 DSCR·총이자·만기잔액) 15지표 재계산 대조 |
 | office_nopref (변형) | 09_Return_Summary | office와 동일 6지표 + 우선주 D열(D5·D6·D7)에 숫자가 남지 않음(0·빈 값·#NUM!/#DIV/0! 허용 — CF 전부 0) |
-| office_nonpass (변형) | 09_Return_Summary | office와 동일 6지표 + 세후 IRR(E6)이 세전(E5)과 달라야 함 — 엑셀·엔진 양쪽 확인 |
+| office_nonpass (변형) | 09_Return_Summary | 비도관 + NOI 직접 입력 상태의 6지표 대조 + 세후 IRR(E6)이 세전(E5)과 달라야 함 — 엑셀·엔진 양쪽 확인 |
 | office_hold7 (변형) | 09_Return_Summary | office와 동일 6지표를 보유 7년 상태로 대조 (IRR 범위 재지정 검증) |
 | office_nodebt (변형) | 09_Return_Summary + 전 시트 | 무차입 경계 — 최소 DSCR 공란(0 오독 금지) |
 | office_mezz / office_mezzpik (변형) | 09_Return_Summary + 05_Debt_Schedule | 중순위 4단 구조 — 6지표 대조 + 구조 검사: 금액>0, 스케줄 기초잔액=가정 금액, 현금이자형(이자>0·잔액 불변·총 DS>선순위)과 PIK형(현금이자 0·잔액 증가·총 DS=선순위), 총 DSCR ≤ 선순위 단독 DSCR |
