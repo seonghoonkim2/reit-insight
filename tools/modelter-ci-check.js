@@ -292,7 +292,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const dscr = fs.existsSync(dscrPath) ? fs.readFileSync(dscrPath, 'utf8') : '';
   ok(dscr.includes('<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>') && dscr.includes('1.0x 미만') && dscr.includes('1.5x'), 'DSCR 검색 의도: 제목·배수별 판독표');
   ok(dscr.includes('FAQPage') && dscr.includes('NCF나 CFADS') && dscr.includes('/#t=refi&src=dscr'), 'DSCR 검색 의도: FAQ 구조화 데이터·약정 정의 주의·전용 채널 CTA');
-  ok(html.includes('src=(?:seo|dscr|imcheck|howto)') && html.includes('첫 입력부터 내 딜 숫자로 바꾸면'), '고의도 콘텐츠 4채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
+  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns)') && html.includes('첫 입력부터 내 딜 숫자로 바꾸면'), '고의도 콘텐츠 5채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
 }
 
 /* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */

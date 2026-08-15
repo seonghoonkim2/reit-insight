@@ -142,7 +142,7 @@ async function closeOverlays(page) {
   console.log('\n[3] 딥링크');
   {
     const { ctx, page } = await fresh(browser);
-    const sources = ['seo', 'dscr', 'imcheck', 'howto'];
+    const sources = ['seo', 'dscr', 'imcheck', 'howto', 'sns'];
     const states = [];
     for (const src of sources) {
       // 쿼리를 달리해 hashchange가 아닌 실제 새 방문으로 초기화 코드를 매번 검증한다.
@@ -158,7 +158,7 @@ async function closeOverlays(page) {
       })));
     }
     const st = states[states.length - 1];
-    ok(states.every((s, i) => s.cur === 'refi' && s.res && s.hi && s.toast && s.src === sources[i]), '#t=refi + 고의도 콘텐츠 4채널 → 탭·예시·첫 입력 인계');
+    ok(states.every((s, i) => s.cur === 'refi' && s.res && s.hi && s.toast && s.src === sources[i]), '#t=refi + 고의도 콘텐츠 5채널 → 탭·예시·첫 입력 인계');
     ok(!st.ob && !st.wn, '딥링크 진입 시 자동 팝업 없음');
     await ctx.close();
   }
