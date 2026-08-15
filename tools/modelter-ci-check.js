@@ -316,7 +316,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const dscr = fs.existsSync(dscrPath) ? fs.readFileSync(dscrPath, 'utf8') : '';
   ok(dscr.includes('<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>') && dscr.includes('1.0x 미만') && dscr.includes('1.5x'), 'DSCR 검색 의도: 제목·배수별 판독표');
   ok(dscr.includes('FAQPage') && dscr.includes('NCF나 CFADS') && dscr.includes('/#t=refi&src=dscr'), 'DSCR 검색 의도: FAQ 구조화 데이터·약정 정의 주의·전용 채널 CTA');
-  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns)') && html.includes('첫 입력부터 내 딜 숫자로 바꾸면'), '고의도 콘텐츠 5채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
+  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('첫 입력부터 내 딜 숫자로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
 }
 
 /* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */
@@ -659,6 +659,13 @@ ok(html.includes('function feedbackLooksSensitive') && html.includes('그래도 
   const evPath = path.join(__dirname, '..', 'docs', 'NORTH_STAR_EVIDENCE.md');
   const evMd = fs.existsSync(evPath) ? fs.readFileSync(evPath, 'utf8') : '';
   ok(fs.existsSync(evPath) && evMd.includes('질문 방식') && evMd.includes('유도 질문') && evMd.includes('실제 딜명·자산명·수치'), '북극성 질적 검증: 비유도·익명 증거 기록 규칙');
+  const pilotPath = path.join(__dirname, '..', 'docs', 'TEAM_FIRST_LOOK_PILOT.md');
+  const pilotMd = fs.existsSync(pilotPath) ? fs.readFileSync(pilotPath, 'utf8') : '';
+  const baseline = (pilotMd.match(/<!-- BASELINE:BEGIN -->([\s\S]*?)<!-- BASELINE:END -->/) || [])[1] || '';
+  const followup = (pilotMd.match(/<!-- FOLLOWUP:BEGIN -->([\s\S]*?)<!-- FOLLOWUP:END -->/) || [])[1] || '';
+  ok(fs.existsSync(pilotPath) && (pilotMd.match(/src=team/g) || []).length === 4, '팀 파일럿: 실딜 4종 무상태 src=team 링크');
+  ok(baseline.length > 0 && followup.length > 0 && !baseline.includes('모델터') && !followup.includes('모델터') && !baseline.includes('돌려봤어') && !followup.includes('돌려봤어'), '팀 파일럿: 기준선·후속 질문에 제품명·목표 문장 선주입 없음');
+  ok(pilotMd.includes('현재 상태') && pilotMd.includes('딜 수치') && pilotMd.includes('압축은 암호화가 아닙니다'), '팀 파일럿: 실행 상태·민감정보·공유 링크 위험 명시');
 }
 ok(html.includes('cmp-hi'), '딜 비교 최적값 하이라이트 존재');
 ok(html.includes('function wonConv') && html.includes('class="f-conv"'), '원화 환산 라이브 힌트(억/조) 존재');
