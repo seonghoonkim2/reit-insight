@@ -150,7 +150,10 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
     return m ? [...m[1].matchAll(/"([a-z0-9_]+)"/g)].map(x => x[1]).sort() : [];
   };
   ok(JSON.stringify(enumValues('DEAL_NAMES')) === JSON.stringify(['datacenter', 'dev', 'hotel', 'logistics', 'office', 'refi', 'rental', 'retail']), 'worker.js: 딜 유형 8개 유한 목록');
-  ok(JSON.stringify(enumValues('DEPTH_NAMES')) === JSON.stringify(['full', 'quick', 'standard']), 'worker.js: 모델 깊이 3개 유한 목록');
+  const depthBlock = (html.match(/const DEPTHS=\{([\s\S]*?)\n\};/) || [])[1] || '';
+  const clientDepths = [...depthBlock.matchAll(/^\s{2}([a-z0-9_]+):\{/gm)].map(m => m[1]).sort();
+  const workerDepths = enumValues('DEPTH_NAMES');
+  ok(JSON.stringify(clientDepths) === JSON.stringify(['deep', 'quick', 'standard']) && JSON.stringify(workerDepths) === JSON.stringify(clientDepths), '모델 깊이: 화면·worker 3개 유한 목록 정확 일치');
   ok(JSON.stringify(enumValues('FEAT_NAMES')) === JSON.stringify(['bido', 'dep', 'fee', 'hold', 'pref', 'resi', 'rr', 'scen', 'vac']), 'worker.js: 기능 플래그 9개 유한 목록');
   ok(JSON.stringify(enumValues('AXIS_NAMES')) === JSON.stringify(['dev_cost', 'dev_price', 'growth', 'rate']), 'worker.js: 민감도 축 4개 유한 목록');
   try {

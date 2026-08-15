@@ -5,7 +5,7 @@
 const SRC_CHANNELS = new Set(["xlsx", "ppt", "png", "qr", "share", "notes", "team", "hero", "pdf", "sns", "seo", "dscr", "imcheck", "howto", "pwa"]);
 const EVENT_NAMES = new Set(["activate", "adj_open", "check_open", "ci_probe_live", "cmp_copy", "coach_ok", "compare", "computed", "deal_select", "deal_want", "depth_change", "dev_view", "ex_ack", "example_fill", "fill_std", "first_number_15m", "first_number_30m", "first_number_5m", "first_number_slow", "fsub_open", "handoff_open", "house_apply", "house_set", "house_share", "ic_ppt", "im_checklist", "im_checklist_open", "im_extract", "im_open", "im_quick", "im_quick_open", "inquiry_copy", "landing", "memo_copy", "method", "mydef_apply", "mydef_save", "nudge_save", "pdf_export", "pipeline_copy", "png_card", "prompt_copy", "qr_open", "recover_cta", "rentroll_upload", "rr_mask", "sample_deal", "sample_download", "sample_start", "sens_axis", "session", "share_link", "slot_delete", "slot_save", "solver", "src_tag", "teaser", "term_help", "tip_next", "wizard", "ws_diff", "ws_open", "ws_save", "ws_status", "xlsx_download", "xlsx_restore"]);
 const DEAL_NAMES = new Set(["office", "logistics", "dev", "refi", "hotel", "retail", "rental", "datacenter"]);
-const DEPTH_NAMES = new Set(["quick", "standard", "full"]);
+const DEPTH_NAMES = new Set(["quick", "standard", "deep"]);
 const FEAT_NAMES = ["rr", "dep", "fee", "bido", "vac", "resi", "hold", "pref", "scen"];
 const AXIS_NAMES = new Set(["growth", "rate", "dev_price", "dev_cost"]);
 
