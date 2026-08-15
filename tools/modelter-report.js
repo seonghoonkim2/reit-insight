@@ -153,20 +153,24 @@ function build(snaps) {
   // 산출물 종류
   const outObj = {}; for (const e of OUTPUT_EVENTS) if (last.events[e]) outObj[EV_LABEL[e] || e] = last.events[e];
 
-  // 첫 숫자 속도 — 정확한 경과시간 대신 4개 구간 이벤트만 수집한다(2026-08-15 계측 개시).
-  const firstValues = FIRST_NUMBER_BUCKETS.map(b => Number((last.events || {})[b.event]) || 0);
+  // 첫 숫자 속도 — 사전 등록 14일 고정 창을 우선 사용한다. 구 스냅샷은 30일 events로 하위 호환.
+  const th = last.teamHandoffByAct || null;
+  const fixedFirst = th && th.firstNumber;
+  const hasFixedFirst = !!fixedFirst && FIRST_NUMBER_BUCKETS.every(b => Number.isFinite(Number(fixedFirst[b.event])));
+  const firstSource = hasFixedFirst ? fixedFirst : (last.events || {});
+  const firstValues = FIRST_NUMBER_BUCKETS.map(b => Number(firstSource[b.event]) || 0);
   const firstTotal = firstValues.reduce((a, b) => a + b, 0);
   const firstFast = firstValues[0] + firstValues[1];
   const firstRows = FIRST_NUMBER_BUCKETS.map((b, i) => {
     const v = firstValues[i];
     return `<div class="frow"><span class="fk">${esc(b.label)}</span><span class="ftrack"><span class="ffill" style="width:${firstTotal ? v / firstTotal * 100 : 0}%"></span></span><span class="fn">${num(v)} <i>${pct(v, firstTotal)}</i></span></div>`;
   }).join('');
-  const firstNumberCard = `<div class="card"><h2>첫 숫자 속도 <span>페이지 진입 → 첫 자기 딜 결과 · 2026-08-15 이후</span></h2>
+  const firstWindowLabel = hasFixedFirst ? `${String(fixedFirst.since || '').slice(0, 10)}~${String(fixedFirst.until || '').slice(0, 10)} 고정 14일 창` : '2026-08-15 이후 · 최근 집계';
+  const firstNumberCard = `<div class="card"><h2>첫 숫자 속도 <span>페이지 진입 → 첫 자기 딜 결과 · ${esc(firstWindowLabel)}</span></h2>
     <div class="decision"><b>${firstTotal >= 20 ? `15분 이내 ${pct(firstFast, firstTotal)}` : `표본 대기 · ${num(firstTotal)} / 20`}</b><span>사전 기준: n≥20일 때 15분 이내 70% 이상</span></div>
-    <div class="funnel">${firstRows}</div><p class="note">세션당 한 번만 집계합니다. 정확한 시간·딜 수치·사용자 식별자는 보내지 않고 네 개 시간 구간 중 하나만 기록합니다.</p></div>`;
+    <div class="funnel">${firstRows}</div><p class="note">${hasFixedFirst ? '판정 기간의 고정 집계라 이후 스냅샷에서도 값이 변하지 않습니다. ' : '고정 창 필드가 없는 이전 스냅샷은 최근 이벤트 집계를 표시합니다. '}세션당 한 번만 집계하며, 정확한 시간·딜 수치·사용자 식별자는 보내지 않고 네 개 시간 구간 중 하나만 기록합니다.</p></div>`;
 
   // 북극성 팀 전달 — 2026-08-15 오계측 분리 이후, 자기 숫자 세션(act=1)만 판정한다.
-  const th = last.teamHandoffByAct || null;
   const ho = (th && th.handoff_open) || { act: 0, nonact: 0, unknown: 0 };
   const sl = (th && th.share_link) || { act: 0, nonact: 0, unknown: 0 };
   const teamWin = th && th.window;
