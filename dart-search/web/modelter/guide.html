@@ -4,12 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>부동산 금융 용어사전 · 재무모델 가이드 | 모델터</title>
-<meta name="description" content="Cap rate·NOI·IRR·DSCR·LTC·렌트프리·NOC·전용률·책임임대차·보증금 승계·도관과세·브릿지론과 본PF·분양수지, 호텔 ADR·OCC·RevPAR·GOP·FF&amp;E, 데이터센터 IT부하·PUE까지 — 한국 상업용 부동산(CRE) 재무모델·임대차 실무 용어를 실무 기준으로 정의합니다. 모델터에서 바로 계산해 볼 수 있습니다." />
+<meta name="description" content="Cap rate, NOI, IRR, DSCR, LTC부터 보증금 승계, 도관과세, 브릿지론과 본PF, 호텔·데이터센터 지표까지 한국 상업용 부동산 재무모델에서 쓰는 용어와 계산식을 정리했습니다." />
 <link rel="canonical" href="https://modelter.com/guide" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="부동산 금융 용어사전 · 재무모델 가이드 | 모델터" />
-<meta property="og:description" content="Cap rate·NOI·IRR·DSCR·LTC·보증금 승계·도관과세·브릿지론과 본PF까지, 한국 CRE 재무모델 핵심 용어를 실무 기준으로 정리했습니다." />
+<meta property="og:description" content="Cap rate, NOI, IRR, DSCR부터 보증금 승계와 본PF까지 한국 CRE 재무모델의 주요 용어와 계산식을 정리했습니다." />
 <meta property="og:url" content="https://modelter.com/guide" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -24,13 +24,13 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","inLanguage":"ko","mainEntity":[
 {"@type":"Question","name":"모델터는 무료인가요?","acceptedAnswer":{"@type":"Answer","text":"네. 모델터는 가입·설치 없이 무료로 쓸 수 있는 웹 도구입니다. 개인 프로젝트로 운영되며 광고나 유료 기능이 없습니다."}},
-{"@type":"Question","name":"입력한 딜 정보가 서버에 저장되나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 모든 계산은 브라우저 안에서 이뤄지고, 매입가·임대료·렌트롤 같은 딜 정보는 서버로 전송되지 않습니다. 저장은 사용자 브라우저(localStorage)에만 하며, 공유 링크도 서버 저장 없이 링크 안에 담기고 임차인 실명은 자동 마스킹됩니다."}},
-{"@type":"Question","name":"화면 숫자와 다운로드 엑셀이 정말 같나요?","acceptedAnswer":{"@type":"Answer","text":"네. 화면의 IRR·Equity Multiple·DSCR 등은 내려받는 엑셀과 같은 계산식에서 나옵니다. 엑셀 파일을 실제 수식 엔진으로 다시 계산해 화면 값과 소수점 수준까지 일치하는지 검증하며, '화면 = 다운로드 엑셀' 배지가 붙은 딜 유형이 그 대상입니다."}},
-{"@type":"Question","name":"어떤 딜 유형을 지원하나요?","acceptedAnswer":{"@type":"Answer","text":"오피스·물류센터 매입(레버드 DCF 13시트), 공동주택 분양 사업수지(브릿지→본PF·중도금 6시트), 리파이낸싱 대안 비교(텀시트·연도별 DSCR 4시트)를 지원하며, 모두 수식이 살아있는 엑셀로 내려받을 수 있습니다."}},
-{"@type":"Question","name":"호텔·데이터센터 딜도 계산할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"아직입니다. 호텔·리테일·임대주택·데이터센터는 준비 중이며, 앱의 '준비중' 탭에서 유형별 수요 투표를 받아 수요가 모이는 순서대로 추가할 예정입니다. 마스터리스(책임임대차) 구조라면 수입 구조가 오피스와 같아 지금도 매입 딜 엔진으로 검토할 수 있습니다. ADR·RevPAR·GOP·PUE 같은 용어는 용어사전의 '운영형 자산' 절에 정리돼 있습니다."}},
+{"@type":"Question","name":"입력한 딜 정보가 서버에 저장되나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 계산과 저장은 브라우저 안에서 처리되며, 매입가·임대료·렌트롤 같은 딜 정보는 모델터 서버로 전송되지 않습니다. 공유 링크에는 입력값이 들어가지만 서버에 저장되지는 않습니다. 임차인 실명은 자동으로 가리며 링크는 권한 있는 채널로만 보내야 합니다."}},
+{"@type":"Question","name":"화면 숫자와 다운로드 엑셀이 정말 같나요?","acceptedAnswer":{"@type":"Answer","text":"네. 화면과 엑셀은 같은 계산식을 사용합니다. 내려받은 파일을 별도 수식 엔진으로 다시 계산해 화면 값과 맞는지도 매 배포마다 확인합니다."}},
+{"@type":"Question","name":"어떤 딜 유형을 지원하나요?","acceptedAnswer":{"@type":"Answer","text":"오피스·물류센터 매입, 공동주택 분양 사업수지, 리파이낸싱 대안 비교를 지원합니다. 각 결과는 수식이 들어 있는 엑셀로 내려받을 수 있습니다."}},
+{"@type":"Question","name":"호텔·데이터센터 딜도 계산할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"아직 전용 계산기는 없습니다. 마스터리스처럼 임대료를 받는 구조는 오피스 매입 모델로 검토할 수 있습니다. ADR, RevPAR, GOP와 PUE 같은 용어는 운영형 자산 절에서 확인할 수 있습니다."}},
 {"@type":"Question","name":"DSCR은 어떻게 계산하나요?","acceptedAnswer":{"@type":"Answer","text":"DSCR(부채상환계수)은 순영업이익(NOI)을 연간 원리금 상환액(DS)으로 나눈 값입니다. DSCR = NOI ÷ 원리금. 1.2x라면 원리금보다 NOI가 20% 많다는 뜻입니다. 실제 요구선과 분자 정의는 대주·자산·약정마다 다릅니다."}},
 {"@type":"Question","name":"브릿지론과 본PF는 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"브릿지론은 토지 계약부터 착공(인허가·사업 준비 기간)까지 쓰는 단기 고금리 차입이고, 본PF는 착공 이후 공사비를 조달하는 프로젝트 파이낸싱입니다. 착공 시점에 브릿지 잔액이 본PF로 차환(승계)되는 것이 일반적입니다."}},
-{"@type":"Question","name":"NOC와 명목 임대료는 뭐가 다른가요?","acceptedAnswer":{"@type":"Answer","text":"명목 임대료는 계약서상 임대면적당 금액이고, NOC(Net Occupancy Cost)는 렌트프리·관리비·전용률까지 반영해 임차인이 전용면적 1평당 실제 부담하는 비용입니다. 빌딩 간 임차 조건 비교는 NOC 기준으로 하는 것이 국내 오피스 실무 표준입니다."}}]}
+{"@type":"Question","name":"NOC와 명목 임대료는 뭐가 다른가요?","acceptedAnswer":{"@type":"Answer","text":"명목 임대료는 계약서상 임대면적당 금액입니다. NOC(Net Occupancy Cost)는 렌트프리·관리비·전용률까지 반영해 임차인이 전용면적 1평당 실제 부담하는 비용입니다. 조건이 다른 빌딩을 비교할 때 NOC를 함께 봅니다."}}]}
 </script>
 <style>
 :root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--serif:Georgia,'Times New Roman',serif}
@@ -95,7 +95,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   <div class="hero">
     <div class="eyebrow">가이드 · 용어사전</div>
     <h1>한국 상업용 부동산 재무모델, 용어부터 계산까지</h1>
-    <p class="lead">IM을 받아 든 실무자든 처음 배우는 학생이든, 부동산 금융 모델에 나오는 숫자가 무엇을 뜻하는지 알아야 판단할 수 있습니다. Cap rate부터 브릿지론·본PF, 분양수지까지 — 실무에서 쓰는 그대로 정의하고, 각 지표를 <a href="/">모델터</a>에서 바로 계산해 볼 수 있게 정리했습니다.</p>
+    <p class="lead">부동산 금융 모델에 자주 나오는 용어와 계산식을 한곳에 정리했습니다. Cap rate, IRR, DSCR부터 보증금 승계와 본PF까지 필요한 항목을 찾아보고, 관련 계산은 <a href="/">모델터</a>에서 확인할 수 있습니다.</p>
     <nav class="toc">
       <a href="#returns">수익 지표</a>
       <a href="#value">가치·수입</a>
@@ -116,7 +116,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="returns">
     <h2>수익 지표 <span class="en">Returns</span></h2>
-    <p class="sec-intro">투자자가 “이 딜에서 얼마 버느냐”를 보는 지표들입니다. 모델터의 결과 카드 맨 위에 나오는 값이기도 합니다.</p>
+    <p class="sec-intro">투자 수익을 확인할 때 쓰는 지표입니다. 모델터 결과 카드에도 같은 항목이 표시됩니다.</p>
 
     <div class="term" id="irr"><h3>IRR <span class="en">내부수익률 · Internal Rate of Return</span></h3>
       <p>투자 기간의 모든 현금흐름(초기 투입 −, 매년 배당 +, 매각 회수 +)을 현재가치로 환산했을 때 순현재가치가 0이 되게 하는 할인율입니다. 돈이 언제 들어오고 나가는지(타이밍)까지 반영하는 대표 수익률로, <b>레버드 IRR</b>은 대출을 쓴 자기자본 기준, <b>언레버드 IRR</b>은 무차입 자산 자체의 수익률입니다.</p>
@@ -134,7 +134,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="value">
     <h2>가치 · 수입 <span class="en">Value &amp; Income</span></h2>
-    <p class="sec-intro">자산이 얼마의 수입을 내고, 그 수입으로 값을 얼마로 매기느냐. 매입가와 매각가를 잇는 고리입니다.</p>
+    <p class="sec-intro">자산의 수입과 가치를 계산할 때 쓰는 항목입니다.</p>
 
     <div class="term" id="noi"><h3>NOI <span class="en">순영업이익 · Net Operating Income</span></h3>
       <span class="formula">NOI = 유효총수입(EGI) − 운영비(OPEX)</span>
@@ -159,7 +159,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="debt">
     <h2>부채 · 커버리지 <span class="en">Debt &amp; Coverage</span></h2>
-    <p class="sec-intro">대주(대출 기관)가 “이 대출이 안전한가”를 판단할 때 가장 먼저 확인하는 지표들입니다.</p>
+    <p class="sec-intro">대출 규모와 상환 여력을 확인할 때 쓰는 지표입니다.</p>
 
     <div class="term" id="dscr"><h3>DSCR <span class="en">부채상환계수 · Debt Service Coverage Ratio</span></h3>
       <span class="formula">DSCR = NOI ÷ 연간 원리금(DS)</span>
@@ -185,10 +185,10 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="korea">
     <h2>국내 실무 <span class="en">Korea-specific</span></h2>
-    <p class="sec-intro">해외 교과서에는 없지만 한국 상업용 부동산에서는 반드시 반영해야 하는 항목들입니다.</p>
+    <p class="sec-intro">한국 CRE 모델에서 자주 다루는 항목입니다.</p>
 
     <div class="term" id="deposit"><h3>보증금 승계 <span class="en">임대보증금</span></h3>
-      <p>국내 상업용 임대차는 월 임대료의 10~12개월치 수준의 무이자 보증금을 받습니다. 매입 시 이 보증금(부채)을 승계하면 취득자금(Sources)으로 잡혀 자기자본을 줄이고, 매각 때 정산합니다. 국내 실무의 표준 처리이며, 무이자 보증금의 운용수익도 수입에 더해집니다.</p></div>
+      <p>임대차계약의 보증금 조건은 자산과 임차인마다 다릅니다. 매입 시 승계하는 보증금은 취득자금의 원천으로 반영하고 매각 때 반환액을 정산합니다. 실제 금액과 운용수익 가정은 임대차계약과 렌트롤을 확인해 입력하세요.</p></div>
 
     <div class="term" id="passthru"><h3>도관과세 <span class="en">Pass-through · 위탁관리리츠·부동산펀드</span></h3>
       <p>배당가능이익의 90% 이상을 배당하면 그 배당액을 소득공제받아 법인세가 0에 수렴하는 구조입니다(도관체 과세). 이 경우 세전≈세후가 됩니다. 반대로 <b>비도관</b>(일반 법인)은 감가상각·법인세·양도세를 반영해 세후 IRR이 세전과 달라집니다.</p></div>
@@ -213,7 +213,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="dev">
     <h2>개발금융 <span class="en">Development &amp; PF</span></h2>
-    <p class="sec-intro">토지를 사서 짓고 분양하는 개발사업의 자금 흐름과, 분양수지에서 쓰는 용어입니다.</p>
+    <p class="sec-intro">개발사업의 자금 흐름과 분양수지에서 쓰는 용어입니다.</p>
 
     <div class="term" id="bridge"><h3>브릿지론 → 본PF <span class="en">Bridge &amp; Project Financing</span></h3>
       <p><b>브릿지론</b>은 토지 계약부터 착공(인허가·사업 준비 기간)까지 쓰는 단기 고금리 차입입니다. 착공 시점에 잔액이 <b>본PF</b>(공사비를 조달하는 프로젝트 파이낸싱)로 차환됩니다. 필요한 브릿지·본PF 한도는 각 구간의 최대 인출 잔액으로 산정합니다.</p></div>
@@ -232,7 +232,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="operating">
     <h2>운영형 자산 <span class="en">호텔 · 데이터센터</span></h2>
-    <p class="sec-intro">임대료가 아니라 영업 실적이 수입을 만드는 자산들입니다. 오피스와 같은 매입 딜이지만 NOI로 가는 길이 다릅니다. (호텔·데이터센터 딜 유형은 모델터에서 준비 중이며, 앱의 ‘준비중’ 탭에서 수요 투표를 받고 있습니다.)</p>
+    <p class="sec-intro">호텔과 데이터센터는 임대형 자산과 수입 구조가 다릅니다. 아래에는 NOI를 계산할 때 필요한 주요 지표를 정리했습니다. 전용 딜 유형은 아직 준비 중입니다.</p>
 
     <div class="term" id="adr"><h3>ADR <span class="en">평균객실단가 · Average Daily Rate</span></h3>
       <span class="formula">ADR = 객실매출 ÷ 판매된 객실 수(박)</span>
@@ -268,11 +268,11 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   <section id="faq">
     <h2>자주 묻는 질문 <span class="en">FAQ</span></h2>
     <details class="faq"><summary>모델터는 무료인가요?</summary><p>네. 가입·설치 없이 무료로 쓸 수 있는 웹 도구입니다. 개인 프로젝트로 운영되며 광고나 유료 기능이 없습니다.</p></details>
-    <details class="faq"><summary>입력한 딜 정보가 서버에 저장되나요?</summary><p>아니요. 모든 계산은 브라우저 안에서 이뤄지고, 매입가·임대료·렌트롤 같은 딜 정보는 서버로 전송되지 않습니다. 저장은 사용자 브라우저에만 하며, 공유 링크도 서버 저장 없이 링크 안에 담기고 임차인 실명은 자동으로 마스킹됩니다.</p></details>
-    <details class="faq"><summary>화면 숫자와 다운로드 엑셀이 정말 같나요?</summary><p>네. 화면의 IRR·Equity Multiple·DSCR 등은 내려받는 엑셀과 같은 계산식에서 나옵니다. 엑셀을 실제 수식 엔진으로 다시 계산해 화면 값과 소수점 수준까지 일치하는지 검증하며, ‘화면 = 다운로드 엑셀’ 배지가 그 대상입니다.</p></details>
-    <details class="faq"><summary>어떤 딜 유형을 지원하나요?</summary><p>오피스·물류센터 매입(레버드 DCF), 공동주택 분양 사업수지(브릿지→본PF·중도금), 리파이낸싱 대안 비교(텀시트·연도별 DSCR)를 지원하며, 모두 수식이 살아있는 엑셀로 내려받을 수 있습니다.</p></details>
-    <details class="faq"><summary>호텔·데이터센터 딜도 계산할 수 있나요?</summary><p>아직입니다. 호텔·리테일·임대주택·데이터센터는 준비 중이며, 앱의 ‘준비중’ 탭에서 유형별 수요 투표를 받아 수요가 모이는 순서대로 추가할 예정입니다. 다만 마스터리스(책임임대차)로 임대료만 받는 구조라면 수입 구조가 오피스와 같아 지금도 매입 딜 엔진으로 검토할 수 있고, ADR·RevPAR·GOP·PUE 같은 용어는 이 사전의 ‘운영형 자산’ 절에 정리돼 있습니다.</p></details>
-    <details class="faq"><summary>만든 모델을 팀에 어떻게 공유하나요?</summary><p>공유 아이콘에서 ‘읽기 전용 결과 링크’ 또는 ‘편집용 링크’를 복사해 보내면 됩니다. 서버 없이 링크 하나로 전달되고, 받는 사람은 설치·가입 없이 결과를 봅니다. 엑셀·PPT로 내려받아 전달할 수도 있습니다.</p></details>
+    <details class="faq"><summary>입력한 딜 정보가 서버에 저장되나요?</summary><p>아니요. 계산과 저장은 브라우저 안에서 처리되며, 매입가·임대료·렌트롤 같은 딜 정보는 모델터 서버로 전송되지 않습니다. 공유 링크에는 입력값이 들어가지만 서버에 저장되지는 않습니다. 임차인 실명은 자동으로 가리며, 링크는 권한 있는 채널로만 보내야 합니다.</p></details>
+    <details class="faq"><summary>화면 숫자와 다운로드 엑셀이 정말 같나요?</summary><p>네. 화면과 엑셀은 같은 계산식을 사용합니다. 내려받은 파일을 별도 수식 엔진으로 다시 계산해 화면 값과 맞는지도 매 배포마다 확인합니다.</p></details>
+    <details class="faq"><summary>어떤 딜 유형을 지원하나요?</summary><p>오피스·물류센터 매입, 공동주택 분양 사업수지, 리파이낸싱 대안 비교를 지원합니다. 각 결과는 수식이 들어 있는 엑셀로 내려받을 수 있습니다.</p></details>
+    <details class="faq"><summary>호텔·데이터센터 딜도 계산할 수 있나요?</summary><p>아직 전용 계산기는 없습니다. 마스터리스처럼 임대료를 받는 구조는 오피스 매입 모델로 검토할 수 있습니다. ADR, RevPAR, GOP, PUE 같은 용어는 ‘운영형 자산’ 절에서 확인하세요.</p></details>
+    <details class="faq"><summary>만든 모델을 팀에 어떻게 공유하나요?</summary><p>공유 메뉴에서 읽기 전용 링크나 편집용 링크를 복사할 수 있습니다. 받는 사람은 설치나 가입 없이 결과를 볼 수 있고, 엑셀이나 PPT로 전달해도 됩니다.</p></details>
     <details class="faq"><summary>NOC와 명목 임대료는 뭐가 다른가요?</summary><p>명목 임대료는 계약서상 임대면적당 금액이고, NOC(Net Occupancy Cost)는 렌트프리·관리비·전용률까지 반영해 임차인이 전용면적 1평당 실제 부담하는 비용입니다. 렌트프리가 많거나 전용률이 낮으면 명목 임대료가 같아도 NOC는 크게 달라져, 빌딩 간 임차 조건 비교는 NOC 기준으로 합니다.</p></details>
   </section>
 
@@ -316,9 +316,9 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </section>
 
   <div class="cta">
-    <h2>이제 직접 만들어 보세요</h2>
-    <p>용어를 눈으로 확인했다면, 실제 숫자를 넣어 IRR·DSCR이 어떻게 움직이는지 보는 게 가장 빠릅니다. 예시 딜이 준비돼 있어 30초면 첫 결과가 나옵니다.</p>
-    <a href="/">모델터에서 계산해 보기 →</a>
+    <h2>계산기로 확인하기</h2>
+    <p>예시 딜을 열고 값을 바꾸면 IRR과 DSCR이 어떻게 달라지는지 확인할 수 있습니다.</p>
+    <a href="/">예시 딜 열기 →</a>
   </div>
 </main>
 

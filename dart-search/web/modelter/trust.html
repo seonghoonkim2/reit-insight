@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>보안·개인정보 — 딜 데이터는 브라우저를 떠나지 않습니다 | 모델터</title>
-<meta name="description" content="모델터는 매입가·임대료·렌트롤 같은 딜 데이터를 서버로 전송하지 않습니다. 무엇을 수집하고 무엇을 절대 수집하지 않는지, 브라우저 네트워크 탭에서 직접 확인하는 방법과 BYOK(AI 추출) 데이터 흐름·보안 헤더를 정리했습니다. 정보보호 검토용 문서." />
+<title>모델터 보안·개인정보 | 딜 데이터 처리 안내</title>
+<meta name="description" content="모델터가 수집하는 익명 사용 정보, 수집하지 않는 딜 데이터, 브라우저 네트워크 탭 확인 방법, AI 정밀 추출과 공유 링크의 데이터 흐름을 설명합니다." />
 <link rel="canonical" href="https://modelter.com/trust" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="보안·개인정보 | 모델터" />
-<meta property="og:description" content="딜 데이터 무전송 원칙과 수집 필드, 직접 확인 절차, BYOK 데이터 흐름을 정리한 정보보호 검토용 문서." />
+<meta property="og:description" content="수집하는 정보와 수집하지 않는 딜 데이터, AI 정밀 추출과 공유 링크의 데이터 흐름을 정리했습니다." />
 <meta property="og:url" content="https://modelter.com/trust" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -29,7 +29,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1
 .wrap{max-width:820px;margin:0 auto;padding:0 22px}
 header{border-bottom:1px solid var(--line-soft);background:var(--panel)}
 header .wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 22px}
-.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;color:var(--ink);text-decoration:none}
+header .wrap>span{display:flex;align-items:center;gap:6px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none}
 .logo .m{width:26px;height:26px;border-radius:7px;background:var(--accent);display:inline-block}
 .back{font-size:13.5px;color:var(--accent-deep);text-decoration:none;font-weight:600;border:1px solid var(--line);padding:7px 14px;border-radius:9px}
 .back:hover{border-color:var(--accent)}
@@ -74,6 +75,11 @@ table.fields td:first-child{white-space:nowrap;font-family:var(--mono);font-size
 footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:12.5px}
 footer a{color:var(--ink-3)}
 .printbtn{background:none;border:1px solid var(--line);border-radius:9px;padding:7px 13px;font:inherit;font-size:13px;color:var(--accent-deep);font-weight:600;cursor:pointer}
+@media(max-width:520px){
+  header .wrap{padding:10px 14px;gap:8px}
+  .logo{font-size:16px;gap:7px}.logo .m{width:23px;height:23px}
+  .printbtn,.back{font-size:12px;padding:6px 8px;white-space:nowrap}
+}
 @media print{
   header .back,nav.toc,.cta,.printbtn,footer a{display:none}
   body{background:#fff;color:#000;font-size:11pt;line-height:1.5}
@@ -92,15 +98,15 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 <body>
 <header><div class="wrap">
   <a class="logo" href="/"><span class="m"></span>모델터</a>
-  <span><button class="printbtn" onclick="window.print()">🖨 인쇄 / PDF 저장</button> <a class="back" href="/">← 모델 만들러 가기</a></span>
+  <span><button class="printbtn" onclick="window.print()">🖨 인쇄·PDF</button><a class="back" href="/">← 계산기로</a></span>
 </div></header>
 
 <main class="wrap">
   <div class="hero">
     <div class="eyebrow">보안 · 개인정보 · 정보보호 검토용</div>
     <h1>딜 데이터는 이 브라우저를<br>떠나지 않습니다.</h1>
-    <p class="lead">모델터의 기본 계산·저장·Excel 생성은 매입가·임대료·렌트롤 같은 딜 정보를 서버로 보내지 않고 사용자 브라우저 안에서 일어납니다. 사용자가 직접 선택하는 AI 정밀 추출과 의견 전송의 외부 통신은 아래에 별도로 공개합니다. 이 문서는 팀장·정보보호팀 검토에 그대로 제출할 수 있도록, <b>무엇을 수집하고 무엇을 절대 수집하지 않는지</b>와 <b>직접 확인하는 방법</b>을 정리한 것입니다.</p>
-    <div class="principle">한 줄 원칙 — <b>기본 계산에서 입력한 숫자는 전송되지 않는다.</b> 자동으로 보내는 것은 익명 사용 통계(어떤 버튼을 눌렀는지)뿐입니다. AI 정밀 추출·의견 보내기는 사용자가 눌렀을 때만 각각 명시된 외부 서비스로 전송됩니다.</div>
+    <p class="lead">기본 계산, 저장, Excel 생성은 브라우저 안에서 처리됩니다. 매입가, 임대료, 렌트롤 같은 딜 정보는 모델터 서버로 보내지 않습니다. AI 정밀 추출과 의견 보내기는 사용자가 직접 선택한 경우에만 아래에 적힌 외부 서비스와 통신합니다. 팀장이나 정보보호 담당자가 확인할 수 있도록 수집 항목과 확인 방법을 정리했습니다.</p>
+    <div class="principle"><b>기본 계산에서 입력한 숫자는 전송되지 않습니다.</b> 자동으로 보내는 정보는 어떤 기능이 쓰였는지 확인하기 위한 익명 사용 통계뿐입니다.</div>
   </div>
 
   <nav class="toc">
@@ -114,8 +120,8 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </nav>
 
   <section id="collect">
-    <h2>무엇을 수집하고, 무엇은 절대 수집하지 않나</h2>
-    <p class="sec-intro">기본 계산 흐름에서 모델터 서버로 보내는 데이터는 익명 사용 이벤트(<code>/e</code>)뿐입니다. 목적은 "어떤 기능이 실제로 쓰이는지"를 보는 것이며, 아래가 <b>/e로 전송되는 필드의 전부</b>입니다. 이 표는 코드(<code>worker.js</code>)의 실제 수집 필드와 자동 검증으로 1:1 일치가 강제됩니다. 사용자가 선택하는 AI·의견 전송은 별도 절에서 다룹니다.</p>
+    <h2>수집하는 정보와 수집하지 않는 정보</h2>
+    <p class="sec-intro">기본 계산 중 모델터 서버로 보내는 데이터는 익명 사용 이벤트(<code>/e</code>)뿐입니다. 어떤 기능이 실제로 쓰이는지 확인하기 위한 정보이며, 아래 표가 <b>/e로 전송되는 필드의 전부</b>입니다. 표와 코드(<code>worker.js</code>)가 일치하는지도 자동으로 검사합니다. AI 정밀 추출과 의견 보내기는 별도 절에서 설명합니다.</p>
     <table class="fields">
       <tr><th>필드</th><th>내용</th><th>예시</th></tr>
       <tr data-field="ev"><td>ev</td><td>사전에 정의한 이벤트 이름만(임의 문자열은 폐기)</td><td><code>session</code>, <code>xlsx_download</code></td></tr>
@@ -133,7 +139,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
       <tr data-field="act"><td>act</td><td>실사용 여부(0/1) — 이 방문에서 <b>직접 값을 입력했는지</b>만 표시합니다. 예시만 둘러본 방문과 구분하려는 용도이며, <b>입력한 값 자체는 전송되지 않습니다.</b></td><td><code>0</code> / <code>1</code></td></tr>
     </table>
     <div class="never">
-      <h3>익명 사용 통계(/e)가 절대 수집·전송하지 않는 것</h3>
+      <h3>익명 사용 통계(/e)에 포함하지 않는 정보</h3>
       <ul>
         <li>매입가·임대료·NOI·대출 조건 등 <b>모든 딜 수치</b></li>
         <li>임차인 실명·렌트롤 원본·업로드한 파일 내용</li>
@@ -141,27 +147,27 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
         <li>IP 주소 원본(국가 코드만 받고 IP는 저장하지 않음)</li>
       </ul>
     </div>
-    <p>저장 위치: 익명 이벤트는 Cloudflare(Workers Logs·Analytics Engine)에 집계용으로만 기록됩니다. 딜 데이터는 애초에 전송되지 않으므로 그 어디에도 없습니다.</p>
+    <p>익명 이벤트는 Cloudflare Workers Logs와 Analytics Engine에 집계용으로 기록됩니다. 딜 데이터는 모델터 서버에 전송되거나 저장되지 않습니다.</p>
   </section>
 
   <section id="verify">
-    <h2>믿지 말고 — 직접 확인하세요</h2>
-    <p class="sec-intro">주장만으로는 부족하죠. 브라우저 개발자 도구로 <b>실제 오가는 통신</b>을 5분 안에 직접 볼 수 있습니다. (크롬·엣지·웨일 기준)</p>
+    <h2>브라우저에서 직접 확인하는 방법</h2>
+    <p class="sec-intro">Chrome, Edge, Whale의 개발자 도구에서 <b>실제 통신 내용</b>을 확인할 수 있습니다.</p>
     <ol class="steps">
       <li>모델터를 연 상태에서 키보드 <code>F12</code>를 눌러 개발자 도구를 엽니다.</li>
       <li>상단 탭에서 <b>Network(네트워크)</b>를 선택합니다.</li>
-      <li>매입가·임대료 등 딜 숫자를 입력하고 엑셀을 받아 봅니다. 네트워크 목록에서 <b>딜 숫자가 담긴 요청이 없다는 것</b>을 확인하세요 — 기본 계산 중 모델터 서버로 가는 것은 <code>/e</code>(익명 이벤트)뿐이고, 그 <b>Payload</b>에는 위 표의 필드만 들어 있습니다. AI 정밀 추출·의견 보내기를 직접 누르면 아래에 공개한 외부 요청이 추가됩니다.</li>
-      <li>비행기 모드(오프라인)로 바꿔도 계산·엑셀 생성이 그대로 동작합니다 — 서버가 없어도 되기 때문입니다.</li>
+      <li>매입가·임대료 등 딜 숫자를 입력하고 Excel을 내려받습니다. 네트워크 목록에 <b>딜 숫자가 들어 있는 요청이 없는지</b> 확인하세요. 기본 계산 중 모델터 서버로 보내는 요청은 <code>/e</code>뿐이며, <b>Payload</b>에는 위 표의 필드만 들어 있습니다. AI 정밀 추출이나 의견 보내기를 직접 선택하면 아래에 적힌 외부 요청이 추가됩니다.</li>
+      <li>네트워크를 끊은 뒤에도 계산과 Excel 생성이 동작하는지 확인합니다.</li>
     </ol>
-    <p>회사 정책상 외부 통신 자체를 막아야 한다면, 로드 후에는 네트워크 없이도 전 기능이 동작하므로 문제되지 않습니다(익명 이벤트 <code>/e</code>가 차단돼도 계산에는 영향 없음).</p>
+    <p>페이지를 불러온 뒤 네트워크를 끊어도 계산과 Excel 생성은 사용할 수 있습니다. 익명 이벤트 <code>/e</code>가 차단돼도 계산에는 영향이 없습니다.</p>
   </section>
 
   <section id="byok">
     <h2>AI 가정 추출(선택 기능)의 데이터 흐름</h2>
-    <p class="sec-intro">IM 문서에서 가정을 자동으로 뽑는 기능은 두 가지입니다. 기본은 <b>키·전송 없이 브라우저 안에서만</b> 처리되고, 정밀 추출을 원할 때만 <b>본인 API 키</b>로 AI를 씁니다.</p>
+    <p class="sec-intro">IM 문서에서 가정을 찾는 방법은 두 가지입니다. 기본 자동 인식은 <b>브라우저 안에서만</b> 처리합니다. AI 정밀 추출을 선택한 경우에만 <b>본인 API 키</b>를 사용합니다.</p>
     <div class="card">
       <h3>① 무키 자동 인식 (기본)</h3>
-      <p style="margin:0">붙여넣은 텍스트를 브라우저 안에서 규칙 기반으로 해석합니다. <b>네트워크를 전혀 쓰지 않습니다</b> — 텍스트가 어디로도 전송되지 않고, 인식 후 버려집니다.</p>
+      <p style="margin:0">붙여넣은 텍스트를 브라우저 안에서 규칙 기반으로 해석합니다. <b>네트워크를 사용하지 않으며</b> 텍스트는 인식 후 버립니다.</p>
     </div>
     <div class="card">
       <h3>② AI 정밀 추출 (선택 · 본인 키)</h3>
@@ -169,7 +175,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
         <span class="node">브라우저</span><span class="ar">→</span><span class="node hi">api.anthropic.com</span>
         <span class="x">✕ 모델터 서버 미경유</span>
       </div>
-      <p style="margin:6px 0 0">IM 텍스트·이미지와 API 키가 <b>사용자 브라우저에서 Anthropic으로 직접</b> 전송됩니다. 모델터 서버는 이 통신 경로에 없습니다. API 키는 메모리에만 두거나(선택 시 이 탭 세션에만) 저장하며, <code>localStorage</code>·공유 링크·저장본에 <b>절대 담기지 않습니다</b>. 사용료는 본인 Anthropic 계정에 청구됩니다. 문서 반출·외부 API 사용은 사내 정책을 먼저 확인하세요.</p>
+      <p style="margin:6px 0 0">IM 텍스트·이미지와 API 키는 <b>사용자 브라우저에서 Anthropic으로 직접</b> 전송됩니다. 모델터 서버를 거치지 않습니다. API 키는 메모리에 두거나 사용자가 선택한 경우 이 탭의 <code>sessionStorage</code>에만 보관하며, <code>localStorage</code>·공유 링크·저장본에는 <b>담기지 않습니다</b>. 사용료는 본인 Anthropic 계정에 청구됩니다. 문서 반출과 외부 API 사용에 관한 사내 정책을 먼저 확인하세요.</p>
     </div>
   </section>
 
@@ -186,18 +192,18 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="offline">
     <h2>오프라인 동작</h2>
-    <p>페이지 로드 이후 <b>계산·엑셀 생성·공유 링크 생성은 네트워크 없이 동작</b>합니다 — 저장소의 <code>tools/qa/offline.js</code>를 실행하면 누구나 브라우저 자동화로 재현할 수 있습니다. 네트워크가 끊기면 익명 사용 통계(<code>/e</code>)는 조용히 실패하고, AI 정밀 추출·의견 보내기 같은 선택 통신만 사용할 수 없습니다. 핵심 계산에는 아무 영향이 없습니다.</p>
+    <p>페이지를 불러온 뒤에는 <b>계산, Excel 생성, 공유 링크 생성이 네트워크 없이 동작</b>합니다. 저장소의 <code>tools/qa/offline.js</code>로 같은 조건을 재현할 수 있습니다. 오프라인에서는 익명 사용 통계(<code>/e</code>), AI 정밀 추출, 의견 보내기만 동작하지 않습니다.</p>
   </section>
 
   <section id="storage">
     <h2>브라우저 저장과 공유 링크</h2>
-    <p>딜을 저장하면 <b>사용자 브라우저(localStorage)</b> 에만 보관됩니다 — 서버 계정이 없습니다. 공유 링크는 입력값을 <b>링크 문자열 안에 압축해</b> 담고(서버 저장 없음), 링크를 받은 사람은 그 링크 안의 데이터로만 화면을 봅니다. 공유·산출물에는 <b>임차인 실명이 자동으로 마스킹</b>(임차인 A·B…)되어 담깁니다.</p>
+    <p>저장한 딜은 <b>사용자 브라우저(localStorage)</b>에만 남습니다. 공유 링크에는 입력값을 <b>링크 문자열 안에 압축해</b> 넣으며 서버에는 저장하지 않습니다. 공유 링크와 산출물에서는 <b>임차인 실명을 자동으로 마스킹</b>(임차인 A·B…)합니다.</p>
     <div class="never"><b>공유 링크의 압축은 암호화가 아닙니다.</b> 링크를 가진 사람은 딜명·입력 가정·계산 결과를 볼 수 있고, 전체 링크가 브라우저 방문 기록이나 메일·메신저 로그에 남을 수 있습니다. 사내 정보 반출 정책을 확인하고 권한 있는 채널로만 보내세요. 매우 민감한 딜은 공유 링크·QR을 사용하지 말고, 산출물의 「이 모델 열기」 옵션도 끄세요.</div>
   </section>
 
   <section id="headers">
     <h2>보안 헤더 · 통신 제한</h2>
-    <p class="sec-intro">사이트는 엄격한 콘텐츠 보안 정책(CSP)으로 <b>허용된 목적지 외에는 통신하지 못하게</b> 막혀 있습니다.</p>
+    <p class="sec-intro">콘텐츠 보안 정책(CSP)은 아래에 적힌 목적지로만 통신을 허용합니다.</p>
     <div class="meta">
       <dt>연결 허용(connect)</dt><dd><code>api.anthropic.com</code>(선택한 AI 추출)·<code>api.web3forms.com</code>(선택한 의견 전송)·Cloudflare 분석만. 그 외 외부 전송 차단.</dd>
       <dt>프레임 삽입</dt><dd><code>X-Frame-Options: DENY</code> — 다른 사이트에 끼워넣기 불가(클릭재킹 방지)</dd>

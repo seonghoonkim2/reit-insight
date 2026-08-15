@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>물류센터 매입 재무모델 — CRE 딜 첫 숫자·엑셀 | 모델터</title>
-<meta name="description" content="물류센터 매입 재무모델, 책임임대차·Cap 계산. 수도권 물류센터 매입을 오피스와 같은 13시트 엔진으로 검토합니다. 저운영비·책임임대차(마스터리스) 관행을 기본값으로 반영하고 화면=엑셀 파리티를 지킵니다." />
+<title>물류센터 매입 재무모델 | CRE 계산기·엑셀 | 모델터</title>
+<meta name="description" content="물류센터 매입 재무모델, 책임임대차·Cap 계산. 오피스 매입 모델과 같은 구조에 물류센터의 운영비와 책임임대차 가정을 반영했습니다. 화면 결과와 같은 수식의 13시트 엑셀을 만듭니다." />
 <link rel="canonical" href="https://modelter.com/calc/logistics" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="물류센터 매입 재무모델 — CRE 딜 첫 숫자·엑셀 | 모델터" />
-<meta property="og:description" content="물류센터 매입 재무모델, 책임임대차·Cap 계산. 수도권 물류센터 매입을 오피스와 같은 13시트 엔진으로 검토합니다. 저운영비·책임임대차(마스터리스) 관행을 기본값으로 반영하고 화면=엑셀 파리티를 지킵니다." />
+<meta property="og:title" content="물류센터 매입 재무모델 | CRE 계산기·엑셀 | 모델터" />
+<meta property="og:description" content="물류센터 매입 재무모델, 책임임대차·Cap 계산. 오피스 매입 모델과 같은 구조에 물류센터의 운영비와 책임임대차 가정을 반영했습니다. 화면 결과와 같은 수식의 13시트 엑셀을 만듭니다." />
 <meta property="og:url" content="https://modelter.com/calc/logistics" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"물류센터 매입 재무모델 — 모델터","applicationCategory":"FinanceApplication","operatingSystem":"Web","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"수도권 물류센터 매입을 오피스와 같은 13시트 엔진으로 검토합니다. 저운영비·책임임대차(마스터리스) 관행을 기본값으로 반영하고 화면=엑셀 파리티를 지킵니다.","url":"https://modelter.com/calc/logistics"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"계산기","item":"https://modelter.com/"},{"@type":"ListItem","position":3,"name":"물류센터 매입 재무모델","item":"https://modelter.com/calc/logistics"}]},{"@type":"HowTo","name":"물류센터 매입 재무모델 만드는 법","description":"수도권 물류센터 매입을 오피스와 같은 13시트 엔진으로 검토합니다. 저운영비·책임임대차(마스터리스) 관행을 기본값으로 반영하고 화면=엑셀 파리티를 지킵니다.","totalTime":"PT5M","step":[{"@type":"HowToStep","position":1,"name":"딜 유형에서 물류센터 매입을 고릅니다","text":"딜 유형에서 물류센터 매입을 고릅니다 — 물류 관행(저운영비·고효율)이 기본값으로 들어갑니다","url":"https://modelter.com/calc/logistics#step1"},{"@type":"HowToStep","position":2,"name":"연면적·평당 임대료를 실제 조건으로 바꿉니다","text":"연면적·평당 임대료를 실제 조건으로 바꿉니다 — 저층·고층 임대료가 다르면 가중평균으로 넣습니다","url":"https://modelter.com/calc/logistics#step2"},{"@type":"HowToStep","position":3,"name":"책임임대차(마스터리스) 여부를 반영합니다","text":"책임임대차(마스터리스) 여부를 반영합니다 — 통임차면 공실률을 낮춰 NOI 안정성을 반영합니다","url":"https://modelter.com/calc/logistics#step3"},{"@type":"HowToStep","position":4,"name":"LTV·Exit Cap으로 금융·매각 가정을 맞춥니다","text":"LTV·Exit Cap으로 금융·매각 가정을 맞춥니다 — 물류는 오피스보다 Exit Cap을 높게 보는 것이 일반적입니다","url":"https://modelter.com/calc/logistics#step4"},{"@type":"HowToStep","position":5,"name":"엑셀 13시트를 내려받습니다","text":"엑셀 13시트를 내려받습니다 — 화면 수치와 같은 계산식이 그대로 담깁니다","url":"https://modelter.com/calc/logistics#step5"}]},{"@type":"FAQPage","inLanguage":"ko","mainEntity":[{"@type":"Question","name":"물류센터는 오피스와 무엇이 다른가요?","acceptedAnswer":{"@type":"Answer","text":"수익 구조는 같은 임대형이라 동일한 레버드 DCF 엔진을 쓰지만, 운영비 비중이 낮고 관리비 단가가 작으며 책임임대차(마스터리스) 비중이 높습니다. 모델터는 이 관행을 물류 딜의 기본값으로 반영합니다."}},{"@type":"Question","name":"책임임대차(마스터리스)는 어떻게 반영하나요?","acceptedAnswer":{"@type":"Answer","text":"한 임차인이 건물 전체를 통임차하고 공실 위험을 떠안는 구조이므로 공실률을 낮춰 NOI 안정성을 반영합니다. 대신 임대료 상승 여력이 제한된다는 점을 성장률 가정에 반영하는 것이 실무입니다."}},{"@type":"Question","name":"평당 임대료가 층별로 다르면?","acceptedAnswer":{"@type":"Answer","text":"저층·고층 단가가 다르면 면적 가중평균으로 넣거나, 렌트롤을 붙여 임차인별 조건(만기·렌트프리·상승률)을 그대로 반영할 수 있습니다."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"물류센터 매입 재무모델 — 모델터","applicationCategory":"FinanceApplication","operatingSystem":"Web","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"오피스 매입 모델과 같은 구조에 물류센터의 운영비와 책임임대차 가정을 반영했습니다. 화면 결과와 같은 수식의 13시트 엑셀을 만듭니다.","url":"https://modelter.com/calc/logistics"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"계산기","item":"https://modelter.com/"},{"@type":"ListItem","position":3,"name":"물류센터 매입 재무모델","item":"https://modelter.com/calc/logistics"}]},{"@type":"HowTo","name":"물류센터 매입 재무모델 계산 순서","description":"오피스 매입 모델과 같은 구조에 물류센터의 운영비와 책임임대차 가정을 반영했습니다. 화면 결과와 같은 수식의 13시트 엑셀을 만듭니다.","totalTime":"PT5M","step":[{"@type":"HowToStep","position":1,"name":"딜 유형에서 물류센터 매입을 고릅니다","text":"딜 유형에서 물류센터 매입을 고릅니다 — 물류센터에 맞는 기본 가정이 들어 있습니다","url":"https://modelter.com/calc/logistics#step1"},{"@type":"HowToStep","position":2,"name":"연면적·평당 임대료를 실제 조건으로 바꿉니다","text":"연면적·평당 임대료를 실제 조건으로 바꿉니다 — 저층·고층 임대료가 다르면 가중평균으로 넣습니다","url":"https://modelter.com/calc/logistics#step2"},{"@type":"HowToStep","position":3,"name":"책임임대차(마스터리스) 여부를 반영합니다","text":"책임임대차(마스터리스) 여부를 반영합니다 — 통임차면 공실률을 낮춰 NOI 안정성을 반영합니다","url":"https://modelter.com/calc/logistics#step3"},{"@type":"HowToStep","position":4,"name":"LTV·Exit Cap으로 금융·매각 가정을 맞춥니다","text":"LTV·Exit Cap으로 금융·매각 가정을 맞춥니다 — 물류는 오피스보다 Exit Cap을 높게 보는 것이 일반적입니다","url":"https://modelter.com/calc/logistics#step4"},{"@type":"HowToStep","position":5,"name":"엑셀 13시트를 내려받습니다","text":"엑셀 13시트를 내려받습니다 — 화면 수치와 같은 계산식이 들어 있습니다","url":"https://modelter.com/calc/logistics#step5"}]},{"@type":"FAQPage","inLanguage":"ko","mainEntity":[{"@type":"Question","name":"물류센터는 오피스와 무엇이 다른가요?","acceptedAnswer":{"@type":"Answer","text":"수익 구조는 같은 임대형이라 동일한 레버드 DCF 엔진을 쓰지만, 운영비 비중이 낮고 관리비 단가가 작으며 책임임대차(마스터리스) 비중이 높습니다. 모델터는 이 관행을 물류 딜의 기본값으로 반영합니다."}},{"@type":"Question","name":"책임임대차(마스터리스)는 어떻게 반영하나요?","acceptedAnswer":{"@type":"Answer","text":"한 임차인이 건물 전체를 통임차하고 공실 위험을 떠안는 구조이므로 공실률을 낮춰 NOI 안정성을 반영합니다. 대신 임대료 상승 여력이 제한된다는 점을 성장률 가정에 반영하는 것이 실무입니다."}},{"@type":"Question","name":"평당 임대료가 층별로 다르면?","acceptedAnswer":{"@type":"Answer","text":"저층·고층 단가가 다르면 면적 가중평균으로 넣거나, 렌트롤을 붙여 임차인별 조건(만기·렌트프리·상승률)을 그대로 반영할 수 있습니다."}}]}]}
 </script>
 <style>:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--green:#2e7d4f;--red:#b4552d;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
 @media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f;--green:#57b07f;--red:#d98a5f}}
@@ -96,12 +96,12 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 <main class="wrap">
   <nav class="crumb"><a href="/">모델터</a> › 계산기 › 물류센터 매입 재무모델</nav>
   <div class="hero">
-    <div class="eyebrow">CRE 딜 검토의 첫 계산</div>
+    <div class="eyebrow">상업용 부동산 계산기</div>
     <h1>물류센터 매입 재무모델</h1>
-    <p class="lead">수도권 물류센터 매입을 오피스와 같은 13시트 엔진으로 검토합니다. 저운영비·책임임대차(마스터리스) 관행을 기본값으로 반영하고 화면=엑셀 파리티를 지킵니다.</p>
+    <p class="lead">오피스 매입 모델과 같은 구조에 물류센터의 운영비와 책임임대차 가정을 반영했습니다. 화면 결과와 같은 수식의 13시트 엑셀을 만듭니다.</p>
   </div>
   <section>
-    <a class="cta" href="/#t=logistics&src=seo">내 딜 첫 숫자 뽑기 →<span class="sub">예시가 채워진 채로 열립니다 — 매입가부터 바꾸면 IRR·DSCR이 즉시 갱신됩니다</span></a>
+    <a class="cta" href="/#t=logistics&src=seo">내 값으로 계산하기 →<span class="sub">기본 예시가 들어 있습니다. 첫 입력부터 바꾸면 결과가 다시 계산됩니다.</span></a>
   </section>
   <section>
     <div class="io">
@@ -110,7 +110,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
     </div>
   </section>
   <section>
-    <h2>계산 예시 — 숫자를 넣으면 이렇게 나옵니다</h2>
+    <h2>계산 예시</h2>
     <p class="lead" style="font-size:14.5px">예시 — 이천 물류센터 (앱에 미리 채워져 있는 딜)</p>
     <div class="wex"><table>
       <tr><th>넣은 값</th><th></th></tr>
@@ -127,22 +127,22 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
       <tr class="out"><td>최소 DSCR</td><td class="r">2.25x</td></tr>
       <tr class="out"><td>필요 자기자본</td><td class="r">924억</td></tr>
     </table></div>
-    <p class="tip">오피스와 같은 13시트 엔진이지만 저운영비·낮은 관리비 등 물류 관행이 기본값으로 반영됩니다.</p>
-    <a class="cta" href="/#t=logistics&src=seo">이 예시로 내 딜 첫 숫자 뽑기 →<span class="sub">위 표의 값이 그대로 채워진 채 열립니다 — 한 칸만 바꿔도 결과가 다시 계산됩니다</span></a>
+    <p class="tip">오피스와 같은 13시트 구조에 물류센터용 운영비와 관리비 기본값을 넣었습니다. 값은 가정 시트에서 바꿀 수 있습니다.</p>
+    <a class="cta" href="/#t=logistics&src=seo">이 예시 열기 →<span class="sub">위 표의 값이 입력되어 있습니다. 내 값으로 바꾸면 결과가 다시 계산됩니다.</span></a>
   </section>
   <section>
-    <h2>사용법 — 물류 모델 만드는 순서</h2>
+    <h2>물류 계산 순서</h2>
     <ol class="steps">
-      <li id="step1">딜 유형에서 <b>물류센터 매입</b>을 고릅니다<br><span style="font-size:13px;color:var(--muted)">물류 관행(저운영비·고효율)이 기본값으로 들어갑니다</span></li>
+      <li id="step1">딜 유형에서 <b>물류센터 매입</b>을 고릅니다<br><span style="font-size:13px;color:var(--muted)">물류센터에 맞는 기본 가정이 들어 있습니다</span></li>
       <li id="step2"><b>연면적·평당 임대료</b>를 실제 조건으로 바꿉니다<br><span style="font-size:13px;color:var(--muted)">저층·고층 임대료가 다르면 가중평균으로 넣습니다</span></li>
       <li id="step3"><b>책임임대차(마스터리스)</b> 여부를 반영합니다<br><span style="font-size:13px;color:var(--muted)">통임차면 공실률을 낮춰 NOI 안정성을 반영합니다</span></li>
       <li id="step4"><b>LTV·Exit Cap</b>으로 금융·매각 가정을 맞춥니다<br><span style="font-size:13px;color:var(--muted)">물류는 오피스보다 Exit Cap을 높게 보는 것이 일반적입니다</span></li>
-      <li id="step5"><b>엑셀 13시트</b>를 내려받습니다<br><span style="font-size:13px;color:var(--muted)">화면 수치와 같은 계산식이 그대로 담깁니다</span></li>
+      <li id="step5"><b>엑셀 13시트</b>를 내려받습니다<br><span style="font-size:13px;color:var(--muted)">화면 수치와 같은 계산식이 들어 있습니다</span></li>
     </ol>
   </section>
   <section>
     <h2>화면 = 다운로드 엑셀</h2>
-    <p>화면에 보이는 수치와 내려받는 엑셀의 수식은 같은 계산식입니다(파리티 검증). 받은 사람이 파일 안에서 값을 바꿔도 그대로 재계산됩니다. 딜 데이터는 서버로 전송되지 않고 브라우저 안에서만 계산됩니다. <a href="/verification">검증 결과 보기 →</a></p>
+    <p>화면과 엑셀은 같은 계산식을 사용합니다. 파일 안에서 값을 바꾸면 수식도 다시 계산됩니다. 딜 데이터는 서버로 전송되지 않고 브라우저 안에서 처리됩니다. <a href="/verification">검증 결과 보기 →</a></p>
   </section>
   <section>
     <h2>자주 묻는 질문</h2>
@@ -160,7 +160,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </section>
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/im-checklist">IM 체크리스트</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
+  모델터 · 한국 상업용 부동산 재무모델 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/im-checklist">IM 체크리스트</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">검증 결과</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.
 </div></footer>
 </body>

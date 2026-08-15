@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>상업용 부동산 IM 검토 체크리스트 — 첫 IRR·DSCR 15분 | 모델터</title>
-<meta name="description" content="상업용 부동산 IM·티저를 받았을 때 매입가·NOI·대출·Exit Cap 등 첫 계산에 필요한 숫자를 빠짐없이 찾는 실무 체크리스트. 오피스·물류·분양·리파이 계산기로 바로 이어집니다." />
+<title>상업용 부동산 IM 검토 체크리스트 | IRR·DSCR | 모델터</title>
+<meta name="description" content="상업용 부동산 IM이나 티저에서 매입가, NOI, 대출 조건, Exit Cap 등 IRR·DSCR 1차 검토에 필요한 숫자를 찾는 체크리스트입니다." />
 <link rel="canonical" href="https://modelter.com/im-checklist" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="상업용 부동산 IM 검토 체크리스트 | 모델터" />
-<meta property="og:description" content="IM에서 첫 IRR·DSCR을 뽑는 데 필요한 숫자와 팀 1차 검토 순서를 한 장에 정리했습니다." />
+<meta property="og:description" content="IM에서 IRR·DSCR 1차 검토에 필요한 숫자와 팀에 공유할 내용을 정리했습니다." />
 <meta property="og:url" content="https://modelter.com/im-checklist" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"HowTo","name":"상업용 부동산 IM에서 첫 IRR·DSCR 검토하는 법","description":"IM·티저에서 첫 계산에 필요한 가정을 찾고 모델터로 1차 검토 결과를 만드는 순서","totalTime":"PT15M","step":[
+{"@context":"https://schema.org","@type":"HowTo","name":"상업용 부동산 IM에서 IRR·DSCR을 먼저 검토하는 법","description":"IM이나 티저에서 필요한 가정을 찾고 1차 검토 결과를 만드는 순서","totalTime":"PT15M","step":[
 {"@type":"HowToStep","position":1,"name":"자료의 기준과 단위 확인","text":"기준일, 금액 단위, 면적 기준, 자료 출처를 먼저 적는다."},
 {"@type":"HowToStep","position":2,"name":"딜 유형별 최소 가정 찾기","text":"매입가, 임대료 또는 NOI, 금융 조건, 보유기간과 Exit Cap 등 첫 계산에 필요한 값을 찾는다."},
-{"@type":"HowToStep","position":3,"name":"모델터에서 첫 숫자 계산","text":"해당 딜 유형 계산기에 값을 넣어 IRR, DSCR, 하방 결과를 확인한다."},
+{"@type":"HowToStep","position":3,"name":"모델터에서 1차 계산","text":"해당 딜 유형 계산기에 값을 넣어 IRR, DSCR과 하방을 확인한다."},
 {"@type":"HowToStep","position":4,"name":"팀 1차 검토로 전달","text":"핵심 가정, 첫 결과, 빠진 자료와 하방 질문을 함께 전달한다."}]}
 </script>
 <script type="application/ld+json">
@@ -52,23 +52,23 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 <body>
 <header><div class="wrap">
   <a class="logo" href="/"><span class="m"></span>모델터</a>
-  <a class="back" href="/">← 첫 숫자 계산기로</a>
+  <a class="back" href="/">← 계산기로 돌아가기</a>
 </div></header>
 
 <main class="wrap">
   <div class="hero">
-    <div class="eyebrow">CRE 딜 검토 · IM FIRST LOOK</div>
-    <h1>IM 받았으면, 이 숫자부터 찾으세요</h1>
-    <p class="lead">처음부터 완성형 모델을 만들 필요는 없습니다. 자료의 기준을 확인하고, <b>수익·금융·Exit의 최소 가정</b>으로 첫 IRR·DSCR·하방을 뽑은 뒤 “계속 볼 딜인지, 무엇을 더 물어볼지” 정하는 15분 체크리스트입니다.</p>
+    <div class="eyebrow">CRE IM 1차 검토 체크리스트</div>
+    <h1>IM을 받으면 이 숫자부터 확인하세요</h1>
+    <p class="lead">처음부터 모든 가정을 채울 필요는 없습니다. 기준일과 단위를 확인한 뒤 <b>수익, 대출, 매각 가정</b> 몇 개로 IRR·DSCR과 하방을 먼저 계산합니다. 그 결과로 계속 검토할지, 어떤 자료를 더 받을지 정합니다.</p>
     <div class="promise">
       <div><b>목적</b><span>투자 판단이 아닌 1차 스크리닝</span></div>
-      <div><b>산출물</b><span>첫 결과 + 빠진 자료 + 다음 질문</span></div>
+      <div><b>확인할 것</b><span>1차 결과 + 빠진 자료 + 다음 질문</span></div>
       <div><b>원칙</b><span>없는 숫자는 추정하지 않고 표시</span></div>
     </div>
   </div>
 
   <div class="start">
-    <div><h2>자료를 펼쳐 두셨나요?</h2><p>딜 유형을 고르면 예시가 채워진 계산기에서 실제 값만 덮어쓰면 됩니다.</p></div>
+    <div><h2>딜 유형을 먼저 고르세요</h2><p>기본 예시를 열고 실제 값으로 바꾸면 됩니다.</p></div>
     <div class="actions">
       <a href="/#t=office&src=imcheck">오피스</a>
       <a href="/#t=logistics&src=imcheck">물류</a>
@@ -83,7 +83,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="zero">
     <h2>0. 숫자보다 먼저: 기준과 단위</h2>
-    <p class="intro">기준일과 단위를 틀리면 정교한 모델도 첫 줄부터 어긋납니다. 자료 표지나 주석에 아래 네 가지부터 적으세요.</p>
+    <p class="intro">기준일이나 단위를 잘못 읽으면 뒤 계산도 모두 달라집니다. 자료 표지나 주석에서 아래 네 가지를 먼저 확인하세요.</p>
     <div class="grid">
       <div class="card"><ul class="checks">
         <li><b>자료 기준일</b><small>임대차·감정평가·차입 조건이 어느 날짜 기준인지</small></li>
@@ -99,7 +99,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="common">
     <h2>1. 매입 딜 공통: IM에서 찾을 숫자</h2>
-    <p class="intro">오피스·물류 매입 첫 계산의 뼈대입니다. <span class="needed">최소</span> 표시만 있어도 모델터의 표준가정과 함께 1차 결과를 볼 수 있습니다.</p>
+    <p class="intro">오피스·물류 매입을 검토할 때 공통으로 필요한 항목입니다. <span class="needed">최소</span> 표시가 붙은 값부터 찾으세요.</p>
     <div class="grid">
       <div class="card">
         <h3>자산 · 거래</h3><p class="sub">표지, Investment Highlights, Transaction Overview</p>
@@ -142,31 +142,31 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="deals">
     <h2>2. 딜 유형별 최소 입력과 첫 결과</h2>
-    <p class="intro">모든 항목을 채우는 게 목표가 아닙니다. 첫 결과를 움직이는 가정을 먼저 넣고, 빠진 자료를 다음 질문으로 바꾸세요.</p>
+    <p class="intro">결과에 크게 영향을 주는 가정부터 넣습니다. 없는 값은 표시해 두고 자료 요청 목록에 넣으세요.</p>
     <div class="grid">
       <div class="card deal">
         <h3>오피스 매입</h3><p class="sub">매입가 · 면적 · 임대료/NOI · 공실 · LTV/금리 · Exit Cap</p>
         <ul class="checks"><li><b>임대차 롤오버</b><small>WALE와 가까운 대형 만기 확인</small></li><li><b>보증금 승계</b><small>취득 재원과 매각 시 반환을 함께 반영</small></li></ul>
         <div class="outputs"><b>먼저 볼 결과</b> 레버드/언레버드 IRR · EM · 최소 DSCR · Cap×성장률 하방</div>
-        <a class="go" href="/#t=office&src=imcheck">오피스 첫 숫자 뽑기 →</a>
+        <a class="go" href="/#t=office&src=imcheck">오피스 계산하기 →</a>
       </div>
       <div class="card deal">
         <h3>물류센터 매입</h3><p class="sub">매입가 · 면적 · 층별 임대료 · 공실 · LTV/금리 · Exit Cap</p>
         <ul class="checks"><li><b>마스터리스</b><small>책임임대차 범위와 해지 조건 확인</small></li><li><b>임차 수요·공급 리스크</b><small>안정화 공실과 현 공실을 분리</small></li></ul>
         <div class="outputs"><b>먼저 볼 결과</b> 레버드 IRR · EM · Debt Yield · 최소 DSCR · Exit 하방</div>
-        <a class="go" href="/#t=logistics&src=imcheck">물류 첫 숫자 뽑기 →</a>
+        <a class="go" href="/#t=logistics&src=imcheck">물류 계산하기 →</a>
       </div>
       <div class="card deal">
         <h3>분양 개발 · PF</h3><p class="sub">토지비 · 분양면적/분양가 · 공사비 · 일정 · 브릿지/PF 조건</p>
         <ul class="checks"><li><b>분양 수입 일정</b><small>계약금·중도금·잔금 비율과 횟수</small></li><li><b>기성·토지대 지급</b><small>자금 부족 시점과 PF 필요 한도를 결정</small></li></ul>
         <div class="outputs"><b>먼저 볼 결과</b> 사업이익률 · BEP 분양률 · PF 상환한계 · 최대 자금 부족</div>
-        <a class="go secondary" href="/#t=dev&src=imcheck">사업수지 첫 숫자 →</a> <a class="go" href="/#t=dev&view=lender&src=imcheck">대주 관점 →</a>
+        <a class="go secondary" href="/#t=dev&src=imcheck">사업수지 계산하기 →</a> <a class="go" href="/#t=dev&view=lender&src=imcheck">대주 관점 →</a>
       </div>
       <div class="card deal">
         <h3>리파이낸싱</h3><p class="sub">감정가 · NOI · 기존 잔액/금리/만기 · 신규 LTV/금리/상환</p>
         <ul class="checks"><li><b>현재 대출의 남은 비용</b><small>중도상환수수료와 만기 일정을 포함</small></li><li><b>신규 조건 비교</b><small>금리만 보지 말고 DSCR·현금흐름 함께 확인</small></li></ul>
         <div class="outputs"><b>먼저 볼 결과</b> 기존 vs 신규 이자비용 · DSCR · 현금 유출입 · 손익분기</div>
-        <a class="go" href="/#t=refi&src=imcheck">리파이 첫 숫자 뽑기 →</a>
+        <a class="go" href="/#t=refi&src=imcheck">리파이 비교하기 →</a>
       </div>
     </div>
   </section>
@@ -174,17 +174,17 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   <section id="result">
     <h2>3. 결과가 나오면 이 순서로 읽기</h2>
     <div class="flow">
-      <div class="card"><h3>수익성</h3><p>IRR·EM 또는 사업이익률이 내부 목표와 얼마나 떨어져 있는지</p></div>
-      <div class="card"><h3>상환 여력</h3><p>최소 DSCR·Debt Yield 또는 PF 상환한계가 어디서 무너지는지</p></div>
-      <div class="card"><h3>하방</h3><p>Exit Cap·공실·금리·분양률이 나빠질 때 결과 범위가 어떻게 되는지</p></div>
-      <div class="card"><h3>빈칸</h3><p>표준가정으로 남은 항목 중 결과를 가장 크게 움직이는 3가지를 질문으로 전환</p></div>
+      <div class="card"><h3>수익성</h3><p>IRR·EM 또는 사업이익률이 내부 목표와 얼마나 차이 나는지 봅니다.</p></div>
+      <div class="card"><h3>상환 여력</h3><p>최소 DSCR·Debt Yield 또는 PF 상환한계가 기준을 넘는지 봅니다.</p></div>
+      <div class="card"><h3>하방</h3><p>Exit Cap, 공실, 금리, 분양률이 나빠졌을 때 결과를 확인합니다.</p></div>
+      <div class="card"><h3>빈칸</h3><p>기본 가정으로 남은 항목 중 결과에 큰 영향을 주는 값을 확인 요청으로 바꿉니다.</p></div>
     </div>
-    <div class="unit"><b>멈춤 기준:</b> 결과가 좋아 보여도 자료의 기준일·단위가 불명확하거나 핵심 수익이 매도자 추정에만 기대면 “좋은 딜”로 결론 내리지 않습니다. 첫 계산의 역할은 결론보다 다음 질문을 정확히 만드는 것입니다.</div>
+    <div class="unit"><b>결론을 미뤄야 할 때:</b> 기준일·단위가 불분명하거나 수익 가정의 근거가 매도자 추정뿐이라면 추가 자료부터 확인합니다. 1차 계산은 투자 판단이 아니라 더 확인할 항목을 정하기 위한 것입니다.</div>
   </section>
 
   <section id="handoff">
     <h2>4. 팀에 올릴 1차 검토 한 줄</h2>
-    <p class="intro">숫자만 보내지 말고 <b>기준 가정 → 첫 결과 → 하방 → 빠진 자료</b> 순서로 붙이세요. 모델터 결과 아래 “팀에 1차 검토 공유”에서 같은 구조를 바로 만들 수 있습니다.</p>
+    <p class="intro">숫자만 보내지 말고 <b>기준 가정 → 1차 결과 → 하방 → 빠진 자료</b> 순서로 적으세요. 모델터의 “팀에 1차 검토 공유” 메뉴에서도 같은 형식을 만들 수 있습니다.</p>
     <div class="handoff">
       <div class="handoff-head">복사해 쓸 수 있는 형식</div>
       <pre>[모델터] 1차 검토
@@ -199,7 +199,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="faq" class="faq">
     <h2>자주 묻는 질문</h2>
-    <details><summary>IM에 없는 숫자는 어떻게 하나요?</summary><p>억지로 추정하지 말고 비워 두세요. 모델터의 자산 유형별 표준가정으로 첫 계산을 한 뒤, 팀에 전달할 때 어떤 값이 표준가정인지 밝히고 자료 요청 목록으로 바꾸면 됩니다.</p></details>
+    <details><summary>IM에 없는 숫자는 어떻게 하나요?</summary><p>비워 두거나 임시 가정으로 표시하세요. 결과를 공유할 때 어떤 값이 기본 가정인지 밝히고, 필요한 값은 자료 요청 목록에 넣습니다.</p></details>
     <details><summary>첫 계산은 투자심의 모델을 대신하나요?</summary><p>아닙니다. 첫 계산은 검토를 계속할지와 무엇을 더 물어볼지 정하는 1차 스크리닝입니다. 실사 자료, 법률·세무 검토, 회사별 투자심의 기준으로 다시 검증해야 합니다.</p></details>
     <details><summary>화면 수치와 Excel이 같은가요?</summary><p>모델터는 실제 수식 엔진으로 다운로드 Excel을 재계산해 화면과 일치하는지 검사합니다. 최근 검증 결과와 재현 방법은 <a href="/verification">파리티 검증</a>에서 공개합니다.</p></details>
     <details><summary>입력한 딜 숫자가 서버로 전송되나요?</summary><p>계산을 위해 입력한 딜 수치는 브라우저 안에서 처리되며 모델터 서버로 전송되지 않습니다. 단, 사용자가 직접 만든 공유 링크에는 입력값이 포함되므로 권한 있는 채널로만 전달해야 합니다.</p></details>
@@ -207,8 +207,8 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <div class="final">
     <h2>딜 받았으면, 모델터부터.</h2>
-    <p>체크리스트에서 찾은 값만 넣어도 첫 IRR·DSCR·하방과 다음 질문이 나옵니다.</p>
-    <a href="/#t=office&src=imcheck">내 딜 첫 숫자 뽑기 →</a>
+    <p>체크리스트에서 찾은 값을 넣어 IRR·DSCR과 하방을 확인하세요.</p>
+    <a href="/#t=office&src=imcheck">오피스 예시 열기 →</a>
   </div>
 </main>
 
