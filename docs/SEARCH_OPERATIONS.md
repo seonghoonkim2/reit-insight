@@ -22,8 +22,8 @@
 
 ## 검색에 영향을 주는 배포 뒤
 
-1. 라이브 `sitemap.xml`이 HTTP 200·`application/xml`인지 확인한다.
-2. `<loc>` 개수가 생성기·CI의 예상 개수와 같고, 새 URL이 무확장 canonical로 들어갔는지 확인한다.
+1. `node tools/qa/live-search.mjs`를 실행한다. 라이브 `sitemap.xml`·`robots.txt`와 등록 URL 전부를 GET으로 읽어 HTTP 200·Content-Type·무리다이렉트·canonical 일치·`noindex` 0을 검사하며, 브라우저 JS를 실행하지 않아 `/e` 이벤트를 만들지 않는다.
+2. 스크립트가 비교하는 로컬 `<loc>` 개수가 생성기·CI의 예상 개수와 같고, 새 URL이 무확장 canonical로 들어갔는지 확인한다.
 3. Search Console → **Sitemaps**에서 정확한 사이트맵 행의 상태가 `성공`인지 확인한다.
 4. Search Console 도메인 속성에는 `korea.modelter.com`도 함께 잡히므로, 모델터 본체 실적은 페이지 필터 **다음이 포함된 URL = `https://modelter.com/`** 로 분리한다.
 5. 새 고의도 착지면 한두 개만 URL 검사한다. `실제 URL 테스트`가 색인 가능·canonical 정상인지 먼저 본다.

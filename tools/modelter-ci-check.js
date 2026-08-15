@@ -26,6 +26,15 @@ ok(gzKB < 300, '성능 예산: gzip 전송량 ' + gzKB + 'KB < 300KB (초과 시
 ok(fs.existsSync(path.join(DIR, 'og.png')), 'og.png 존재 (소셜 미리보기 404 방지)');
 ok(fs.existsSync(path.join(DIR, 'robots.txt')), 'robots.txt 존재 (크롤 안내)');
 ok(fs.existsSync(path.join(DIR, 'sitemap.xml')), 'sitemap.xml 존재');
+{
+  const liveSearch = path.join(__dirname, 'qa', 'live-search.mjs');
+  const liveSearchSrc = fs.existsSync(liveSearch) ? fs.readFileSync(liveSearch, 'utf8') : '';
+  const searchOpsPath = path.join(__dirname, '..', 'docs', 'SEARCH_OPERATIONS.md');
+  const searchOps = fs.existsSync(searchOpsPath) ? fs.readFileSync(searchOpsPath, 'utf8') : '';
+  ok(!!liveSearchSrc, '배포 뒤 검색 표면 실검사 존재');
+  ok(liveSearchSrc.includes("redirect: 'manual'") && liveSearchSrc.includes('canonical(text)') && liveSearchSrc.includes('hasNoindex(text)'), '검색 실검사: redirect·canonical·noindex 확인');
+  ok(searchOps.includes('node tools/qa/live-search.mjs'), '검색 운영 문서: 라이브 실검사 절차');
+}
 if (fs.existsSync(path.join(DIR, 'robots.txt'))) {
   const robots = fs.readFileSync(path.join(DIR, 'robots.txt'), 'utf8');
   ok(/^Sitemap: https:\/\/modelter\.com\/sitemap\.xml\s*$/m.test(robots), 'robots.txt: 정식 sitemap.xml 절대 URL');
