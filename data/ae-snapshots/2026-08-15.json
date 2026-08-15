@@ -4,7 +4,7 @@
  "endDate": "2026-08-15",
  "week": "2026-W33",
  "days": 30,
- "generatedAt": "2026-08-15T00:49:43.988Z",
+ "generatedAt": "2026-08-15T01:03:27.374Z",
  "funnel": {
   "session": 881,
   "activate": 102,
@@ -43,10 +43,10 @@
   "share_link": 10,
   "sample_download": 10,
   "im_checklist_open": 9,
-  "pdf_export": 8,
   "im_open": 8,
-  "im_checklist": 4,
+  "pdf_export": 8,
   "mydef_save": 4,
+  "im_checklist": 4,
   "wizard": 3,
   "sample_deal": 3,
   "coach_ok": 3,
@@ -878,6 +878,11 @@
  },
  "teamHandoffByAct": {
   "since": "2026-08-15",
+  "decisionDate": "2026-08-29",
+  "window": {
+   "session": 7,
+   "activate": 0
+  },
   "handoff_open": {
    "act": 0,
    "nonact": 0,
