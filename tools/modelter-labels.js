@@ -7,6 +7,12 @@
 
 // 산출물(output) 이벤트 — 활성화 퍼널의 마지막 단계 집계 대상
 const OUTPUT_EVENTS = ['xlsx_download', 'teaser', 'ic_ppt', 'share_link', 'memo_copy', 'png_card', 'pipeline_copy', 'inquiry_copy', 'slot_save', 'prompt_copy', 'pdf_export', 'sample_download'];
+const FIRST_NUMBER_BUCKETS = [
+  { event: 'first_number_5m', label: '5분 이내' },
+  { event: 'first_number_15m', label: '5~15분' },
+  { event: 'first_number_30m', label: '15~30분' },
+  { event: 'first_number_slow', label: '30분 초과' },
+];
 
 // 딜 유형(blob2) — office|logistics|dev|refi 4종 + 데이터에 남아있는 reit
 const DEAL_LABEL = { office: '오피스', logistics: '물류', dev: '개발·PF', refi: '리파이낸싱', reit: '리츠', hotel: '호텔', rental: '임대주택', retail: '리테일', datacenter: '데이터센터' };
@@ -17,6 +23,7 @@ const FEAT_LABEL = { rr: '렌트롤', dep: '보증금승계', fee: '운용보수
 // 이벤트명 한글 라벨 — 산출물 종류 카드에서 OUTPUT_EVENTS 전부를 덮어야 함
 const EV_LABEL = {
   session: '방문', activate: '직접입력', computed: '결과도달',
+  first_number_5m: '첫 숫자 5분 이내', first_number_15m: '첫 숫자 5~15분', first_number_30m: '첫 숫자 15~30분', first_number_slow: '첫 숫자 30분 초과',
   xlsx_download: '엑셀', ic_ppt: 'IC PPT', teaser: '티저', share_link: '공유링크',
   memo_copy: '검토메모', png_card: '요약카드', pipeline_copy: '파이프라인', inquiry_copy: '질의서',
   slot_save: '보관함저장', prompt_copy: 'AI프롬프트', pdf_export: 'PDF', sample_download: '샘플다운로드',
@@ -36,4 +43,4 @@ const EV_LABEL = {
 // 기기(blob4)
 const DEVICE_LABEL = { desktop: '데스크톱', mobile: '모바일', tablet: '태블릿' };
 
-module.exports = { OUTPUT_EVENTS, DEAL_LABEL, FEAT_LABEL, EV_LABEL, DEVICE_LABEL };
+module.exports = { OUTPUT_EVENTS, FIRST_NUMBER_BUCKETS, DEAL_LABEL, FEAT_LABEL, EV_LABEL, DEVICE_LABEL };
