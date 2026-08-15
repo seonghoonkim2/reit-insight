@@ -560,6 +560,7 @@ ok(html.includes('id="toolsFold"') && html.includes('id="toolsDyn"') && html.inc
 ok(!/let html=depthHtml\(\)/.test(html) && /dyn\.innerHTML=h/.test(html),
   '모델 깊이·IM 가져오기가 입력 위가 아니라 도구 블록에 있음');
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
+ok(html.includes('id="sampleStart"') && html.includes('function startOwnDeal') && html.includes("mtTrack('sample_start')") && html.includes("office:'price',logistics:'price',dev:'landcost',refi:'noi'"), '첫 입력 전환: 예시 상태 공개·딜별 첫 핵심 숫자 포커스·의도 계측');
 ok(html.includes('href="/guide"'), '홈→가이드 내부 링크(SEO·무확장 정식 URL) 존재');
 ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재');
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');

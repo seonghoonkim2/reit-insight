@@ -1185,6 +1185,12 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 .inp-prog.done .ip-fill{background:var(--green)}
 .inp-prog .ip-txt{white-space:nowrap;font-variant-numeric:tabular-nums}
 .inp-prog.done .ip-txt{color:var(--green);font-weight:700}
+.sample-start{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:6px 20px 8px;padding:8px 9px;border:1px solid rgba(169,121,43,.35);border-radius:10px;background:rgba(169,121,43,.07);color:var(--ink-2);font-size:12px;line-height:1.4}
+.sample-start[hidden],body.mt-ro .sample-start{display:none}
+.sample-start b{color:var(--ink);font-size:12.5px}
+.sample-start .ss-btn{flex:none;border:1px solid var(--accent-solid);border-radius:8px;background:var(--accent-solid);color:var(--on-accent);font:700 12px var(--font);padding:7px 10px;cursor:pointer;white-space:nowrap}
+.sample-start .ss-btn:hover{filter:brightness(.96)}
+@media(max-width:600px){.sample-start{margin:6px 14px 8px;align-items:flex-start;flex-direction:column}.sample-start .ss-btn{width:100%;padding:9px 10px}}
 
 /* 결과 자동 판정 코멘트 */
 .sim-verdict{display:flex;align-items:flex-start;gap:9px;margin:2px 0 12px;padding:11px 14px;border-radius:11px;font-size:13.5px;line-height:1.5;border:1px solid var(--line)}
@@ -1535,6 +1541,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       </div>
       <!-- 온보딩 모달이 하던 보안 안내를, 닫아버리는 창이 아니라 '숫자를 넣는 자리'에 상시로 둔다 -->
       <p class="panel-priv">입력한 숫자는 이 브라우저 안에서만 계산됩니다 — 서버로 전송되지 않습니다. <a href="/trust" target="_blank" rel="noopener">보안·개인정보 →</a></p>
+      <div class="sample-start" id="sampleStart" hidden><span><b>예시 숫자입니다.</b> 첫 값을 덮어쓰면 결과가 바로 바뀝니다.</span><button type="button" class="ss-btn" id="sampleStartBtn">내 딜 숫자 넣기 →</button></div>
       <div class="inp-prog" id="inpProg" hidden><span class="ip-bar"><span class="ip-fill" id="ipFill"></span></span><span class="ip-txt" id="ipTxt"></span></div>
       <button type="button" class="ex-chip" id="exChip" hidden onclick="exChipClick()"></button>
       <div class="panel-body" id="formBody"></div>
@@ -1976,7 +1983,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-15·a7ac0d1e95';
+window.MT_BUILD='2026-08-15·b07bea14a4';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2004,11 +2011,26 @@ function exLabels(){ return exRemaining().map(function(k){ var f=exFieldDef(k); 
 function renderExChip(){
   var el=(typeof document!=='undefined')?document.getElementById('exChip'):null; if(!el) return;
   try{
+    var start=document.getElementById('sampleStart');
+    if(start) start.hidden=!(exampleKeys.size>0&&!exUserEdited);
     var rem=exMixed()?exRemaining():[];
     if(!rem.length){ el.hidden=true; return; }
     el.hidden=false;
     el.textContent='⚠ 예시값 그대로 '+rem.length+'개';
     el.title='아직 예시 숫자인 항목: '+exLabels().join(', ')+' — 누르면 해당 칸을 표시합니다';
+  }catch(e){}
+}
+function startOwnDeal(){
+  try{
+    var done=false; try{ done=sessionStorage.getItem('mt_sample_start')==='1'; if(!done) sessionStorage.setItem('mt_sample_start','1'); }catch(e0){}
+    if(!done&&window.mtTrack) try{ mtTrack('sample_start'); }catch(e1){}
+    var first={office:'price',logistics:'price',dev:'landcost',refi:'noi'}[cur]||'price';
+    var el=document.getElementById('f_'+first)||document.querySelector('#formBody input[data-k]:not([type=range])');
+    if(!el) return;
+    if(el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'});
+    if(el.focus) el.focus({preventScroll:true});
+    if(el.select) el.select();
+    toast('선택된 예시 숫자를 실제 값으로 덮어써 주세요');
   }catch(e){}
 }
 function exChipClick(){
@@ -2772,8 +2794,9 @@ function _paintProg(box,fill,txt,filled,total){
   var pct=total>0?Math.round(filled/total*100):0;
   fill.style.width=pct+'%';
   var done=(filled>=total);
-  box.classList.toggle('done',done);
-  txt.textContent=done?('핵심 입력 완료 · 결과가 준비됐습니다'):('핵심 입력 '+filled+'/'+total);
+  var sampleOnly=(exampleKeys.size>0&&!exUserEdited);
+  box.classList.toggle('done',done&&!sampleOnly);
+  txt.textContent=sampleOnly?('예시 입력 '+filled+'/'+total+' · 내 딜 숫자를 바꿔 주세요'):(done?('핵심 입력 완료 · 결과가 준비됐습니다'):('핵심 입력 '+filled+'/'+total));
 }
 /* 그룹별 입력 진행 표시 (n/m) — 어디까지 채웠는지 부담을 줄여줌 */
 function updateGroupCounts(){
@@ -4863,6 +4886,7 @@ async function sendFeedback(){
 $("copyBtn").addEventListener("click",copyOut);
 $("dlBtn").addEventListener("click",downloadOut);
 $("fillExample").addEventListener("click",fillExample);
+var _ssb=$("sampleStartBtn"); if(_ssb) _ssb.addEventListener("click",startOwnDeal);
 var _fs=$("fillStd"); if(_fs) _fs.addEventListener("click",fillStandard);
 const clearB=$("clearBtn"); if(clearB) clearB.addEventListener("click",clearAll);
 const fbBtn=$("fbSend"); if(fbBtn) fbBtn.addEventListener("click",sendFeedback);

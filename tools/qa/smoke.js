@@ -128,8 +128,13 @@ async function closeOverlays(page) {
       return el && /연면적/.test(el.textContent);
     });
     ok(e2, '연면적 삭제 → 빈 상태 (침묵 기본값 차단)');
-    const e3 = await page.evaluate(() => { fillExample(); renderSim(); return !document.querySelector('.sim-empty'); });
-    ok(e3, '예시 복원 → 결과 복귀');
+    const e3 = await page.evaluate(() => {
+      fillExample(); renderSim(); renderInpProg();
+      return { result: !document.querySelector('.sim-empty'), sample: !document.getElementById('sampleStart').hidden, progress: /예시 입력/.test(document.getElementById('ipTxt').textContent) };
+    });
+    await page.locator('#sampleStartBtn').click();
+    const ownFocus = await page.evaluate(() => document.activeElement && document.activeElement.id === 'f_price' && sessionStorage.getItem('mt_sample_start') === '1');
+    ok(e3.result && e3.sample && e3.progress && ownFocus, '예시 복원 → 예시 상태 공개 → 내 딜 첫 숫자 포커스');
     await ctx.close();
   }
 
