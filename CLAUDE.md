@@ -13,7 +13,7 @@
 숫자만 넣으면 IRR·DSCR 결과를 화면에서 바로 보여주고, **수식이 살아있는 엑셀**을 그 자리에서 생성하는 단일 파일 웹앱. 빌드 과정 없음.
 
 - 딜 4종: 오피스·물류 매입(13시트), 공동주택 분양 사업수지(6시트, 브릿지→본PF·중도금 월별 엔진), 리파이낸싱 비교(4시트)
-- 파일: `dart-search/web/modelter/index.html`(앱 전체), `guide.html`(용어사전·SEO), `og.png`, `robots.txt`, `sitemap.xml`, `_headers`
+- 파일: `dart-search/web/modelter/index.html`(앱 전체), `guide.html`(용어사전·SEO), `howto.html`(실무 워크플로), `im-checklist.html`(IM 첫 검토), `trust.html`(데이터 흐름), `verification.html`(화면=Excel 검증), `og.png`, `robots.txt`, `sitemap.xml`, `_headers`
 - 자본구조 4단: 선순위 → **중순위(메자닌)** → 보증금 승계 → 우선주 → 보통주. 중순위는 이자 지급 방식이 핵심 분기 — `이자만 지급`(현금, DSCR 하락)과 `만기일시상환(이자 누적·PIK)`(잔액 증가, 매각 시 일괄)
 - 부가: 공유 링크(#v=/#e=, LZW 압축, 임차인명 마스킹), 한 줄 보고 복사, 모바일 위저드(⚡핵심만), 딥링크 `#t=office|logistics|dev|refi(&view=lender)`, IC 원페이저 인쇄, 자동 판정, 억·조 환산 힌트. 공유 링크 압축은 암호화가 아니므로 권한 있는 채널로만 전달
 - **도착 시 자동 팝업 없음**(2026-08-11) — What's new 는 공지 배너 버튼으로만. 재방문(`mt_used`)은 소개를 접고 도구부터

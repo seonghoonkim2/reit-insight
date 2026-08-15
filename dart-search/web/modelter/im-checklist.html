@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>상업용 부동산 IM 검토 체크리스트 — 첫 IRR·DSCR 15분 | 모델터</title>
+<meta name="description" content="상업용 부동산 IM·티저를 받았을 때 매입가·NOI·대출·Exit Cap 등 첫 계산에 필요한 숫자를 빠짐없이 찾는 실무 체크리스트. 오피스·물류·분양·리파이 계산기로 바로 이어집니다." />
+<link rel="canonical" href="https://modelter.com/im-checklist" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="상업용 부동산 IM 검토 체크리스트 | 모델터" />
+<meta property="og:description" content="IM에서 첫 IRR·DSCR을 뽑는 데 필요한 숫자와 팀 1차 검토 순서를 한 장에 정리했습니다." />
+<meta property="og:url" content="https://modelter.com/im-checklist" />
+<meta property="og:image" content="https://modelter.com/og.png" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HowTo","name":"상업용 부동산 IM에서 첫 IRR·DSCR 검토하는 법","description":"IM·티저에서 첫 계산에 필요한 가정을 찾고 모델터로 1차 검토 결과를 만드는 순서","totalTime":"PT15M","step":[
+{"@type":"HowToStep","position":1,"name":"자료의 기준과 단위 확인","text":"기준일, 금액 단위, 면적 기준, 자료 출처를 먼저 적는다."},
+{"@type":"HowToStep","position":2,"name":"딜 유형별 최소 가정 찾기","text":"매입가, 임대료 또는 NOI, 금융 조건, 보유기간과 Exit Cap 등 첫 계산에 필요한 값을 찾는다."},
+{"@type":"HowToStep","position":3,"name":"모델터에서 첫 숫자 계산","text":"해당 딜 유형 계산기에 값을 넣어 IRR, DSCR, 하방 결과를 확인한다."},
+{"@type":"HowToStep","position":4,"name":"팀 1차 검토로 전달","text":"핵심 가정, 첫 결과, 빠진 자료와 하방 질문을 함께 전달한다."}]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},
+{"@type":"ListItem","position":2,"name":"IM 검토 체크리스트","item":"https://modelter.com/im-checklist"}]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"IM에 없는 숫자는 어떻게 하나요?","acceptedAnswer":{"@type":"Answer","text":"없는 값을 억지로 추정하지 말고 비워 둡니다. 모델터의 표준가정으로 먼저 계산한 뒤, 결과를 전달할 때 어떤 값이 표준가정인지 함께 밝힙니다."}},
+{"@type":"Question","name":"첫 계산은 투자심의 모델을 대신하나요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 첫 계산은 검토를 계속할지와 무엇을 더 물어볼지 정하는 1차 스크리닝입니다. 실사 자료와 회사별 심의 기준으로 다시 검증해야 합니다."}},
+{"@type":"Question","name":"입력한 딜 숫자가 모델터 서버로 전송되나요?","acceptedAnswer":{"@type":"Answer","text":"계산을 위해 입력한 딜 수치는 브라우저 안에서 처리되며 모델터 서버로 전송되지 않습니다. 공유 링크에는 입력값이 포함되므로 권한 있는 채널로만 전달해야 합니다."}}]}
+</script>
+<style>
+:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--good:#2f7057;--warn:#8c5d24;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7;-webkit-font-smoothing:antialiased}.wrap{width:min(940px,calc(100% - 36px));margin:0 auto}a{color:var(--accent-deep);text-underline-offset:3px}header{height:64px;border-bottom:1px solid var(--line);background:rgba(243,241,236,.94);display:flex;align-items:center;position:sticky;top:0;z-index:5;backdrop-filter:blur(10px)}header .wrap{display:flex;align-items:center;justify-content:space-between}.logo{display:flex;align-items:center;gap:9px;color:var(--ink);font-weight:800;text-decoration:none;font-size:17px}.logo .m{width:19px;height:19px;border-radius:6px;background:var(--accent);position:relative}.logo .m:after{content:"";position:absolute;left:5px;right:5px;bottom:4px;height:7px;border-left:2px solid #fff;border-right:2px solid #fff}.back{font-size:13px;text-decoration:none;color:var(--ink-3)}
+.hero{padding:54px 0 30px}.eyebrow{display:inline-block;color:var(--accent-deep);background:rgba(169,121,43,.1);font-weight:800;font-size:12px;letter-spacing:.02em;padding:5px 12px;border-radius:999px;margin-bottom:13px}h1{font-size:38px;line-height:1.25;letter-spacing:-.045em;margin:0 0 15px}.lead{font-size:17px;color:var(--ink-2);max-width:800px;margin:0}.promise{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:25px 0 0}.promise div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.promise b{display:block;font-size:14px;margin-bottom:3px}.promise span{font-size:13px;color:var(--ink-3)}
+.start{background:#202733;color:#f8f5ed;border-radius:20px;padding:25px 27px;margin:10px 0 34px;display:flex;align-items:center;justify-content:space-between;gap:20px}.start h2{color:#fff;margin:0 0 4px;border:0;padding:0}.start p{color:#c7ccd3;margin:0;font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.actions a{display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:13px;padding:10px 15px;border-radius:10px;text-decoration:none;white-space:nowrap}.actions a.alt{background:#3a4351}.toc{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 34px}.toc a{font-size:13px;text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 12px;color:var(--ink-2)}
+section{margin:0 0 38px;scroll-margin-top:82px}section>h2{font-size:23px;letter-spacing:-.025em;margin:0 0 8px;padding-bottom:11px;border-bottom:1px solid var(--line)}section>p.intro{color:var(--ink-2);margin:0 0 14px}.unit{background:#fff7e8;border:1px solid #ead5ad;color:#6f4a18;border-radius:12px;padding:13px 16px;font-size:14px;margin:14px 0}.unit b{color:#523713}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 19px}.card h3{font-size:16px;margin:0 0 5px}.card .sub{font-size:12.5px;color:var(--muted);margin:0 0 10px}.checks{list-style:none;margin:0;padding:0}.checks li{position:relative;padding:7px 0 7px 28px;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink-2)}.checks li:first-child{border-top:0}.checks li:before{content:"□";position:absolute;left:1px;top:5px;color:var(--accent-deep);font-size:18px}.checks b{color:var(--ink)}.checks small{display:block;color:var(--muted);line-height:1.45;margin-top:1px}.needed{display:inline-block;background:rgba(47,112,87,.1);color:var(--good);font-size:10px;font-weight:800;border-radius:5px;padding:1px 6px;margin-left:5px;vertical-align:1px}
+.flow{counter-reset:step;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.flow .card{padding:17px}.flow .card:before{counter-increment:step;content:counter(step);display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:rgba(169,121,43,.12);color:var(--accent-deep);font-weight:900;font-size:12px;margin-bottom:9px}.flow h3{font-size:14px}.flow p{font-size:12.5px;color:var(--ink-3);margin:0}
+.deal{position:relative}.deal .go{display:inline-block;margin-top:12px;padding:9px 13px;border-radius:9px;background:var(--accent);color:#fff;text-decoration:none;font-weight:800;font-size:13px}.deal .go.secondary{background:var(--ink-2)}.outputs{margin:10px 0 0;padding:9px 11px;background:#f5f2eb;border-radius:9px;color:var(--ink-3);font-size:12px}.outputs b{color:var(--ink-2)}
+.handoff{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}.handoff-head{padding:14px 18px;background:#ede8dc;font-weight:800}.handoff pre{white-space:pre-wrap;margin:0;padding:18px;font-family:var(--font);font-size:13px;line-height:1.75;color:var(--ink-2)}.caution{margin-top:10px;font-size:12.5px;color:var(--warn)}
+.faq{border-top:1px solid var(--line)}.faq details{border-bottom:1px solid var(--line);padding:13px 2px}.faq summary{cursor:pointer;font-weight:700}.faq p{color:var(--ink-2);font-size:14px;margin:8px 0 2px}.final{background:linear-gradient(135deg,#fbf7ed,#eee4d2);border:1px solid #dfd2bb;border-radius:18px;padding:25px;text-align:center;margin:44px 0}.final h2{margin:0 0 5px;font-size:23px}.final p{margin:0 0 15px;color:var(--ink-2)}.final a{display:inline-block;background:var(--accent);color:#fff;font-weight:800;padding:11px 22px;border-radius:10px;text-decoration:none}footer{border-top:1px solid var(--line);padding:26px 0 42px;color:var(--muted);font-size:12px}footer a{color:var(--ink-3)}
+@media(max-width:720px){h1{font-size:29px}.hero{padding-top:34px}.promise,.grid,.flow{grid-template-columns:1fr}.start{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}.actions a{flex:1;text-align:center}.wrap{width:min(100% - 28px,940px)}}
+@media print{header,.start,.toc,.go,.final{display:none!important}body{background:#fff}.hero{padding:10px 0}.promise{grid-template-columns:repeat(3,1fr)}section{break-inside:avoid;margin-bottom:20px}.card,.handoff{break-inside:avoid;background:#fff}.wrap{width:100%}footer{padding-bottom:0}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="/"><span class="m"></span>모델터</a>
+  <a class="back" href="/">← 첫 숫자 계산기로</a>
+</div></header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow">CRE 딜 검토 · IM FIRST LOOK</div>
+    <h1>IM 받았으면, 이 숫자부터 찾으세요</h1>
+    <p class="lead">처음부터 완성형 모델을 만들 필요는 없습니다. 자료의 기준을 확인하고, <b>수익·금융·Exit의 최소 가정</b>으로 첫 IRR·DSCR·하방을 뽑은 뒤 “계속 볼 딜인지, 무엇을 더 물어볼지” 정하는 15분 체크리스트입니다.</p>
+    <div class="promise">
+      <div><b>목적</b><span>투자 판단이 아닌 1차 스크리닝</span></div>
+      <div><b>산출물</b><span>첫 결과 + 빠진 자료 + 다음 질문</span></div>
+      <div><b>원칙</b><span>없는 숫자는 추정하지 않고 표시</span></div>
+    </div>
+  </div>
+
+  <div class="start">
+    <div><h2>자료를 펼쳐 두셨나요?</h2><p>딜 유형을 고르면 예시가 채워진 계산기에서 실제 값만 덮어쓰면 됩니다.</p></div>
+    <div class="actions">
+      <a href="/#t=office&src=imcheck">오피스</a>
+      <a href="/#t=logistics&src=imcheck">물류</a>
+      <a class="alt" href="/#t=dev&src=imcheck">분양·PF</a>
+      <a class="alt" href="/#t=refi&src=imcheck">리파이</a>
+    </div>
+  </div>
+
+  <nav class="toc" aria-label="페이지 목차">
+    <a href="#zero">0. 기준·단위</a><a href="#common">1. 공통 확인</a><a href="#deals">2. 딜별 최소 입력</a><a href="#result">3. 첫 결과</a><a href="#handoff">4. 팀 전달</a><a href="#faq">FAQ</a>
+  </nav>
+
+  <section id="zero">
+    <h2>0. 숫자보다 먼저: 기준과 단위</h2>
+    <p class="intro">기준일과 단위를 틀리면 정교한 모델도 첫 줄부터 어긋납니다. 자료 표지나 주석에 아래 네 가지부터 적으세요.</p>
+    <div class="grid">
+      <div class="card"><ul class="checks">
+        <li><b>자료 기준일</b><small>임대차·감정평가·차입 조건이 어느 날짜 기준인지</small></li>
+        <li><b>금액 단위</b><small>원·천원·백만원·억원 중 무엇인지</small></li>
+      </ul></div>
+      <div class="card"><ul class="checks">
+        <li><b>면적 기준</b><small>㎡/평, 연면적(GFA)/임대면적(NLA) 구분</small></li>
+        <li><b>수치 성격</b><small>실적·예산·매도자 추정·운용사 가정 구분</small></li>
+      </ul></div>
+    </div>
+    <div class="unit"><b>모델터 입력 단위:</b> 금액은 백만원(1,200억원 → 120,000), 면적은 평(㎡ ÷ 3.3058), 임대료·관리비는 임대면적 기준 평당 월 원입니다. 페이지의 숫자 예시는 설명용 샘플이며 실제 시세가 아닙니다.</div>
+  </section>
+
+  <section id="common">
+    <h2>1. 매입 딜 공통: IM에서 찾을 숫자</h2>
+    <p class="intro">오피스·물류 매입 첫 계산의 뼈대입니다. <span class="needed">최소</span> 표시만 있어도 모델터의 표준가정과 함께 1차 결과를 볼 수 있습니다.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>자산 · 거래</h3><p class="sub">표지, Investment Highlights, Transaction Overview</p>
+        <ul class="checks">
+          <li><b>매입가 또는 희망가</b><span class="needed">최소</span><small>부가세·취득부대비 포함 여부 별도 표시</small></li>
+          <li><b>연면적·임대면적</b><span class="needed">최소</span><small>연면적과 NLA를 섞지 않기</small></li>
+          <li><b>감정가·준공연도</b><small>LTV 기준과 CapEx 가능성 점검</small></li>
+          <li><b>거래 구조·예상 일정</b><small>자산/지분 거래, 계약·잔금 예정일</small></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>수익 · 임대차</h3><p class="sub">Rent Roll, Operating Statement, Leasing Assumptions</p>
+        <ul class="checks">
+          <li><b>현재 임대료 또는 연 NOI</b><span class="needed">최소</span><small>관리비 포함 여부와 기준 기간 확인</small></li>
+          <li><b>공실률·렌트프리·운영비율</b><small>현황과 안정화 가정을 분리</small></li>
+          <li><b>임대료·NOI 성장률</b><small>계약상 인상률과 시장 가정을 구분</small></li>
+          <li><b>WALE·상위 임차인·만기 집중</b><small>실명 대신 집중도와 만기만으로도 첫 위험 점검 가능</small></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>금융 · 자본구조</h3><p class="sub">Financing Assumptions, Sources & Uses</p>
+        <ul class="checks">
+          <li><b>LTV·대출금</b><span class="needed">최소</span><small>매입가 기준인지 감정가 기준인지</small></li>
+          <li><b>금리·상환 방식</b><span class="needed">최소</span><small>고정/변동, 이자만/분할상환, 수수료</small></li>
+          <li><b>만기·리파이 가정</b><small>보유기간보다 먼저 도래하는지</small></li>
+          <li><b>보증금·우선주·메자닌</b><small>승계 금액, 우선배당, 현금이자/PIK 구분</small></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Exit · 하방</h3><p class="sub">Exit Assumptions, Sensitivity</p>
+        <ul class="checks">
+          <li><b>보유기간</b><span class="needed">최소</span><small>대출 만기·임대차 만기와 함께 보기</small></li>
+          <li><b>Exit Cap</b><span class="needed">최소</span><small>진입 Cap보다 낮으면 공격적 가정인지 확인</small></li>
+          <li><b>매각 비용·CapEx·TI/LC</b><small>첫 계산에서 빠지기 쉬운 현금 유출</small></li>
+          <li><b>하방 시나리오</b><small>Exit Cap 상승, 공실 확대, 금리 상승 중 최소 하나</small></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="deals">
+    <h2>2. 딜 유형별 최소 입력과 첫 결과</h2>
+    <p class="intro">모든 항목을 채우는 게 목표가 아닙니다. 첫 결과를 움직이는 가정을 먼저 넣고, 빠진 자료를 다음 질문으로 바꾸세요.</p>
+    <div class="grid">
+      <div class="card deal">
+        <h3>오피스 매입</h3><p class="sub">매입가 · 면적 · 임대료/NOI · 공실 · LTV/금리 · Exit Cap</p>
+        <ul class="checks"><li><b>임대차 롤오버</b><small>WALE와 가까운 대형 만기 확인</small></li><li><b>보증금 승계</b><small>취득 재원과 매각 시 반환을 함께 반영</small></li></ul>
+        <div class="outputs"><b>먼저 볼 결과</b> 레버드/언레버드 IRR · EM · 최소 DSCR · Cap×성장률 하방</div>
+        <a class="go" href="/#t=office&src=imcheck">오피스 첫 숫자 뽑기 →</a>
+      </div>
+      <div class="card deal">
+        <h3>물류센터 매입</h3><p class="sub">매입가 · 면적 · 층별 임대료 · 공실 · LTV/금리 · Exit Cap</p>
+        <ul class="checks"><li><b>마스터리스</b><small>책임임대차 범위와 해지 조건 확인</small></li><li><b>임차 수요·공급 리스크</b><small>안정화 공실과 현 공실을 분리</small></li></ul>
+        <div class="outputs"><b>먼저 볼 결과</b> 레버드 IRR · EM · Debt Yield · 최소 DSCR · Exit 하방</div>
+        <a class="go" href="/#t=logistics&src=imcheck">물류 첫 숫자 뽑기 →</a>
+      </div>
+      <div class="card deal">
+        <h3>분양 개발 · PF</h3><p class="sub">토지비 · 분양면적/분양가 · 공사비 · 일정 · 브릿지/PF 조건</p>
+        <ul class="checks"><li><b>분양 수입 일정</b><small>계약금·중도금·잔금 비율과 횟수</small></li><li><b>기성·토지대 지급</b><small>자금 부족 시점과 PF 필요 한도를 결정</small></li></ul>
+        <div class="outputs"><b>먼저 볼 결과</b> 사업이익률 · BEP 분양률 · PF 상환한계 · 최대 자금 부족</div>
+        <a class="go secondary" href="/#t=dev&src=imcheck">사업수지 첫 숫자 →</a> <a class="go" href="/#t=dev&view=lender&src=imcheck">대주 관점 →</a>
+      </div>
+      <div class="card deal">
+        <h3>리파이낸싱</h3><p class="sub">감정가 · NOI · 기존 잔액/금리/만기 · 신규 LTV/금리/상환</p>
+        <ul class="checks"><li><b>현재 대출의 남은 비용</b><small>중도상환수수료와 만기 일정을 포함</small></li><li><b>신규 조건 비교</b><small>금리만 보지 말고 DSCR·현금흐름 함께 확인</small></li></ul>
+        <div class="outputs"><b>먼저 볼 결과</b> 기존 vs 신규 이자비용 · DSCR · 현금 유출입 · 손익분기</div>
+        <a class="go" href="/#t=refi&src=imcheck">리파이 첫 숫자 뽑기 →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="result">
+    <h2>3. 결과가 나오면 이 순서로 읽기</h2>
+    <div class="flow">
+      <div class="card"><h3>수익성</h3><p>IRR·EM 또는 사업이익률이 내부 목표와 얼마나 떨어져 있는지</p></div>
+      <div class="card"><h3>상환 여력</h3><p>최소 DSCR·Debt Yield 또는 PF 상환한계가 어디서 무너지는지</p></div>
+      <div class="card"><h3>하방</h3><p>Exit Cap·공실·금리·분양률이 나빠질 때 결과 범위가 어떻게 되는지</p></div>
+      <div class="card"><h3>빈칸</h3><p>표준가정으로 남은 항목 중 결과를 가장 크게 움직이는 3가지를 질문으로 전환</p></div>
+    </div>
+    <div class="unit"><b>멈춤 기준:</b> 결과가 좋아 보여도 자료의 기준일·단위가 불명확하거나 핵심 수익이 매도자 추정에만 기대면 “좋은 딜”로 결론 내리지 않습니다. 첫 계산의 역할은 결론보다 다음 질문을 정확히 만드는 것입니다.</div>
+  </section>
+
+  <section id="handoff">
+    <h2>4. 팀에 올릴 1차 검토 한 줄</h2>
+    <p class="intro">숫자만 보내지 말고 <b>기준 가정 → 첫 결과 → 하방 → 빠진 자료</b> 순서로 붙이세요. 모델터 결과 아래 “팀에 1차 검토 공유”에서 같은 구조를 바로 만들 수 있습니다.</p>
+    <div class="handoff">
+      <div class="handoff-head">복사해 쓸 수 있는 형식</div>
+      <pre>[모델터] 1차 검토
+· 기준: 매입가 [ ] / NOI 또는 임대료 [ ] / LTV·금리 [ ] / Exit Cap [ ]
+· 첫 결과: IRR [ ] / EM [ ] / 최소 DSCR [ ]
+· 하방: Exit Cap 또는 공실·금리 스트레스 시 [ ]
+· 확인 필요: [자료에 없거나 결과를 크게 움직이는 가정 1~3개]
+· 첨부: 읽기 전용 링크 또는 수식 Excel</pre>
+    </div>
+    <p class="caution">공유 링크는 암호화된 보관함이 아니라 입력값이 들어 있는 전달 수단입니다. 임차인명은 자동 마스킹되지만, 링크는 권한 있는 팀 채널로만 보내세요. 자세한 데이터 흐름은 <a href="/trust">보안·개인정보</a>에서 확인할 수 있습니다.</p>
+  </section>
+
+  <section id="faq" class="faq">
+    <h2>자주 묻는 질문</h2>
+    <details><summary>IM에 없는 숫자는 어떻게 하나요?</summary><p>억지로 추정하지 말고 비워 두세요. 모델터의 자산 유형별 표준가정으로 첫 계산을 한 뒤, 팀에 전달할 때 어떤 값이 표준가정인지 밝히고 자료 요청 목록으로 바꾸면 됩니다.</p></details>
+    <details><summary>첫 계산은 투자심의 모델을 대신하나요?</summary><p>아닙니다. 첫 계산은 검토를 계속할지와 무엇을 더 물어볼지 정하는 1차 스크리닝입니다. 실사 자료, 법률·세무 검토, 회사별 투자심의 기준으로 다시 검증해야 합니다.</p></details>
+    <details><summary>화면 수치와 Excel이 같은가요?</summary><p>모델터는 실제 수식 엔진으로 다운로드 Excel을 재계산해 화면과 일치하는지 검사합니다. 최근 검증 결과와 재현 방법은 <a href="/verification">파리티 검증</a>에서 공개합니다.</p></details>
+    <details><summary>입력한 딜 숫자가 서버로 전송되나요?</summary><p>계산을 위해 입력한 딜 수치는 브라우저 안에서 처리되며 모델터 서버로 전송되지 않습니다. 단, 사용자가 직접 만든 공유 링크에는 입력값이 포함되므로 권한 있는 채널로만 전달해야 합니다.</p></details>
+  </section>
+
+  <div class="final">
+    <h2>딜 받았으면, 모델터부터.</h2>
+    <p>체크리스트에서 찾은 값만 넣어도 첫 IRR·DSCR·하방과 다음 질문이 나옵니다.</p>
+    <a href="/#t=office&src=imcheck">내 딜 첫 숫자 뽑기 →</a>
+  </div>
+</main>
+
+<footer><div class="wrap">
+  모델터는 상업용 부동산 금융 실무자가 만든 개인 프로젝트입니다. 입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.<br>
+  <a href="/">홈</a> · <a href="/howto">실무 활용 가이드</a> · <a href="/guide">용어사전</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">화면=Excel 검증</a> · © 2026 Modelter
+</div></footer>
+</body>
+</html>
