@@ -22,7 +22,7 @@ const FEAT_LABEL = { rr: '렌트롤', dep: '보증금승계', fee: '운용보수
 
 // 이벤트명 한글 라벨 — 산출물 종류 카드에서 OUTPUT_EVENTS 전부를 덮어야 함
 const EV_LABEL = {
-  session: '방문', activate: '직접입력', computed: '결과도달',
+  session: '방문', sample_start: '내 딜 입력 시작', activate: '직접입력', computed: '결과도달',
   first_number_5m: '첫 숫자 5분 이내', first_number_15m: '첫 숫자 5~15분', first_number_30m: '첫 숫자 15~30분', first_number_slow: '첫 숫자 30분 초과',
   xlsx_download: '엑셀', ic_ppt: 'IC PPT', teaser: '티저', share_link: '공유링크',
   memo_copy: '검토메모', png_card: '요약카드', pipeline_copy: '파이프라인', inquiry_copy: '질의서',
