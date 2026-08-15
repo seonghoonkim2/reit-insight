@@ -88,6 +88,7 @@ if (fs.existsSync(path.join(DIR, 'trust.html'))) {
   ok(trust.includes('F12') && trust.includes('네트워크'), 'trust.html: 직접 확인(F12·네트워크 탭) 절차');
   ok(/@media\s*print/.test(trust), 'trust.html: 인쇄(검토 제출)용 스타일');
   ok(trust.includes('api.anthropic.com') && trust.includes('서버'), 'trust.html: BYOK 데이터 흐름(서버 무경유) 명시');
+  ok(trust.includes('압축은 암호화가 아닙니다') && html.includes('압축은 암호화가 아닙니다') && trust.includes('메일·메신저 로그'), '공유 링크: 앱·신뢰센터에 비암호화·로그 잔존 위험 명시');
   ok(trust.includes('투자 권유가 아닌'), 'trust.html: 고지 문구');
   // 앱 본체에서 신뢰 센터로 가는 링크(푸터·온보딩·BYOK)
   ok((html.match(/href="\/trust"/g) || []).length >= 3, '앱→신뢰센터 링크 3곳(푸터·입력 패널·BYOK) 존재');
