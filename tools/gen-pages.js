@@ -449,6 +449,7 @@ function buildSitemap(slugs, deals) {
     { loc: BASE + '/', freq: 'weekly', pri: '1.0' },
     { loc: BASE + '/guide', freq: 'monthly', pri: '0.8' },
     { loc: BASE + '/howto', freq: 'monthly', pri: '0.8' },
+    { loc: BASE + '/im-checklist', freq: 'monthly', pri: '0.8' },
     { loc: BASE + '/trust', freq: 'monthly', pri: '0.6' },
     { loc: BASE + '/verification', freq: 'monthly', pri: '0.6' },
   ];

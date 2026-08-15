@@ -37,6 +37,16 @@ if (fs.existsSync(path.join(DIR, 'howto.html'))) {
   ok(hw.includes('IM 받았으면, 첫 숫자 15분') && hw.includes('팀에 1차 검토 공유'), '북극성 검색: IM 직후 첫 숫자→팀 전달 워크플로');
   ok((hw.match(/src=howto/g) || []).length >= 5 && !hw.includes('처음 열면 역할('), '북극성 검색: howto 유입 태그·삭제된 온보딩 설명 없음');
 }
+ok(fs.existsSync(path.join(DIR, 'im-checklist.html')), 'IM 첫 검토 체크리스트 존재 (고의도 검색 착지)');
+if (fs.existsSync(path.join(DIR, 'im-checklist.html'))) {
+  const imc = fs.readFileSync(path.join(DIR, 'im-checklist.html'), 'utf8');
+  ok(imc.includes('"@type":"HowTo"') && imc.includes('BreadcrumbList') && imc.includes('FAQPage'), 'im-checklist 구조화 데이터(HowTo·Breadcrumb·FAQ)');
+  ok(imc.includes('/#t=office&src=imcheck') && imc.includes('/#t=logistics&src=imcheck') && imc.includes('/#t=dev&src=imcheck') && imc.includes('/#t=refi&src=imcheck'), 'im-checklist → 실딜 4종 계산기 딥링크');
+  ok((imc.match(/src=imcheck/g) || []).length >= 9, 'im-checklist 전용 유입 태그(효과 분리 판독)');
+  ok(imc.includes('href="/howto"') && imc.includes('href="/guide"') && imc.includes('href="/trust"') && imc.includes('href="/verification"'), 'im-checklist → 활용·용어·보안·검증 문서 연결');
+  ok(imc.includes('투자 권유가 아닌') && imc.includes('실제 시세가 아닙니다'), 'im-checklist 투자 권유 아님·샘플 고지');
+  ok(imc.includes('IM 받았으면, 이 숫자부터 찾으세요') && imc.includes('팀에 올릴 1차 검토 한 줄'), '북극성 검색: IM 첫 검토 순간→팀 전달 문맥');
+}
 if (fs.existsSync(path.join(DIR, 'guide.html'))) {
   const g = fs.readFileSync(path.join(DIR, 'guide.html'), 'utf8');
   ok(g.includes('FAQPage') && g.includes('BreadcrumbList'), 'guide.html 구조화 데이터(FAQ·Breadcrumb)');
@@ -245,11 +255,11 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
     const sm = fs.readFileSync(path.join(DIR, 'sitemap.xml'), 'utf8');
     const locN = (sm.match(/<loc>/g) || []).length;
-    const baseN = 5;  // 홈·guide·howto·trust·verification
+    const baseN = 6;  // 홈·guide·howto·im-checklist·trust·verification
     const nDir = path.join(DIR, 'notes');
     const nN = fs.existsSync(nDir) ? fs.readdirSync(nDir).filter(f => f.endsWith('.html')).length : 0;
     ok(locN === baseN + tFiles.length + cFiles.length + nN, 'sitemap: 착지 페이지 전수 등록 (' + locN + '개 = ' + baseN + '기본+' + tFiles.length + '용어+' + cFiles.length + '계산기+' + nN + '노트)');
-    ok(sm.includes('/t/irr<') && sm.includes('/calc/office<'), 'sitemap: 용어·계산기 URL 포함(무확장)');
+    ok(sm.includes('/im-checklist<') && sm.includes('/t/irr<') && sm.includes('/calc/office<'), 'sitemap: IM 체크리스트·용어·계산기 URL 포함(무확장)');
   }
   // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
   let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0;
@@ -568,6 +578,7 @@ ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '�
 ok(html.includes('id="sampleStart"') && html.includes('function startOwnDeal') && html.includes("mtTrack('sample_start')") && html.includes("office:'price',logistics:'price',dev:'landcost',refi:'noi'"), '첫 입력 전환: 예시 상태 공개·딜별 첫 핵심 숫자 포커스·의도 계측');
 ok(html.includes('href="/guide"'), '홈→가이드 내부 링크(SEO·무확장 정식 URL) 존재');
 ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재');
+ok(html.includes('href="/im-checklist"') && html.includes('modelter.com/im-checklist'), '홈·앱 IM 체크리스트 → 검색 착지 연결');
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'추천'"), '미니 KPI 전 탭(분양·리파이) 확장');
