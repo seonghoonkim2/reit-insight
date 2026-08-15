@@ -95,14 +95,15 @@ footer a{color:var(--ink-3)}
   <div class="hero">
     <div class="eyebrow">보안 · 개인정보 · 정보보호 검토용</div>
     <h1>딜 데이터는 이 브라우저를<br>떠나지 않습니다.</h1>
-    <p class="lead">모델터는 매입가·임대료·렌트롤 같은 딜 정보를 서버로 보내지 않습니다. 계산·저장·공유가 전부 사용자 브라우저 안에서 일어납니다. 이 문서는 팀장·정보보호팀 검토에 그대로 제출할 수 있도록, <b>무엇을 수집하고 무엇을 절대 수집하지 않는지</b>와 <b>직접 확인하는 방법</b>을 정리한 것입니다. (인쇄 버튼으로 1~2장 PDF로 저장됩니다.)</p>
-    <div class="principle">한 줄 원칙 — <b>입력한 숫자는 전송되지 않는다.</b> 서버로 가는 것은 익명 사용 통계(어떤 버튼을 눌렀는지)뿐이며, 여기에는 어떤 딜 수치나 임차인 정보도 포함되지 않습니다. 아래에서 그 통신을 여러분이 직접 볼 수 있습니다.</div>
+    <p class="lead">모델터의 기본 계산·저장·Excel 생성은 매입가·임대료·렌트롤 같은 딜 정보를 서버로 보내지 않고 사용자 브라우저 안에서 일어납니다. 사용자가 직접 선택하는 AI 정밀 추출과 의견 전송의 외부 통신은 아래에 별도로 공개합니다. 이 문서는 팀장·정보보호팀 검토에 그대로 제출할 수 있도록, <b>무엇을 수집하고 무엇을 절대 수집하지 않는지</b>와 <b>직접 확인하는 방법</b>을 정리한 것입니다.</p>
+    <div class="principle">한 줄 원칙 — <b>기본 계산에서 입력한 숫자는 전송되지 않는다.</b> 자동으로 보내는 것은 익명 사용 통계(어떤 버튼을 눌렀는지)뿐입니다. AI 정밀 추출·의견 보내기는 사용자가 눌렀을 때만 각각 명시된 외부 서비스로 전송됩니다.</div>
   </div>
 
   <nav class="toc">
     <a href="#collect">무엇을 수집하나</a>
     <a href="#verify">직접 확인하기</a>
     <a href="#byok">AI 추출(BYOK) 흐름</a>
+    <a href="#feedback-flow">의견 전송 흐름</a>
     <a href="#storage">저장·공유</a>
     <a href="#headers">보안 헤더</a>
     <a href="#who">만든 사람</a>
@@ -110,7 +111,7 @@ footer a{color:var(--ink-3)}
 
   <section id="collect">
     <h2>무엇을 수집하고, 무엇은 절대 수집하지 않나</h2>
-    <p class="sec-intro">사이트가 서버로 보내는 유일한 통신은 익명 사용 이벤트(<code>/e</code>)입니다. 목적은 "어떤 기능이 실제로 쓰이는지"를 보는 것이며, 아래가 <b>전송되는 필드의 전부</b>입니다. 이 표는 코드(<code>worker.js</code>)의 실제 수집 필드와 자동 검증으로 1:1 일치가 강제됩니다.</p>
+    <p class="sec-intro">기본 계산 흐름에서 모델터 서버로 보내는 데이터는 익명 사용 이벤트(<code>/e</code>)뿐입니다. 목적은 "어떤 기능이 실제로 쓰이는지"를 보는 것이며, 아래가 <b>/e로 전송되는 필드의 전부</b>입니다. 이 표는 코드(<code>worker.js</code>)의 실제 수집 필드와 자동 검증으로 1:1 일치가 강제됩니다. 사용자가 선택하는 AI·의견 전송은 별도 절에서 다룹니다.</p>
     <table class="fields">
       <tr><th>필드</th><th>내용</th><th>예시</th></tr>
       <tr data-field="ev"><td>ev</td><td>이벤트 이름(어떤 동작인지)</td><td><code>session</code>, <code>xlsx_download</code></td></tr>
@@ -128,7 +129,7 @@ footer a{color:var(--ink-3)}
       <tr data-field="act"><td>act</td><td>실사용 여부(0/1) — 이 방문에서 <b>직접 값을 입력했는지</b>만 표시합니다. 예시만 둘러본 방문과 구분하려는 용도이며, <b>입력한 값 자체는 전송되지 않습니다.</b></td><td><code>0</code> / <code>1</code></td></tr>
     </table>
     <div class="never">
-      <h3>절대 수집·전송하지 않는 것</h3>
+      <h3>익명 사용 통계(/e)가 절대 수집·전송하지 않는 것</h3>
       <ul>
         <li>매입가·임대료·NOI·대출 조건 등 <b>모든 딜 수치</b></li>
         <li>임차인 실명·렌트롤 원본·업로드한 파일 내용</li>
@@ -145,7 +146,7 @@ footer a{color:var(--ink-3)}
     <ol class="steps">
       <li>모델터를 연 상태에서 키보드 <code>F12</code>를 눌러 개발자 도구를 엽니다.</li>
       <li>상단 탭에서 <b>Network(네트워크)</b>를 선택합니다.</li>
-      <li>매입가·임대료 등 딜 숫자를 입력하고 엑셀을 받아 봅니다. 네트워크 목록에서 <b>딜 숫자가 담긴 요청이 없다는 것</b>을 확인하세요 — 서버로 가는 것은 <code>/e</code>(익명 이벤트)뿐이고, 그 <b>Payload</b>를 클릭해 열어 보면 위 표의 필드만 들어 있습니다.</li>
+      <li>매입가·임대료 등 딜 숫자를 입력하고 엑셀을 받아 봅니다. 네트워크 목록에서 <b>딜 숫자가 담긴 요청이 없다는 것</b>을 확인하세요 — 기본 계산 중 모델터 서버로 가는 것은 <code>/e</code>(익명 이벤트)뿐이고, 그 <b>Payload</b>에는 위 표의 필드만 들어 있습니다. AI 정밀 추출·의견 보내기를 직접 누르면 아래에 공개한 외부 요청이 추가됩니다.</li>
       <li>비행기 모드(오프라인)로 바꿔도 계산·엑셀 생성이 그대로 동작합니다 — 서버가 없어도 되기 때문입니다.</li>
     </ol>
     <p>회사 정책상 외부 통신 자체를 막아야 한다면, 로드 후에는 네트워크 없이도 전 기능이 동작하므로 문제되지 않습니다(익명 이벤트 <code>/e</code>가 차단돼도 계산에는 영향 없음).</p>
@@ -168,9 +169,20 @@ footer a{color:var(--ink-3)}
     </div>
   </section>
 
+  <section id="feedback-flow">
+    <h2>의견 보내기(선택)의 데이터 흐름</h2>
+    <div class="card">
+      <div class="flow">
+        <span class="node">브라우저</span><span class="ar">→</span><span class="node hi">api.web3forms.com</span><span class="ar">→</span><span class="node">제작자 이메일</span>
+        <span class="x">✕ 모델터 서버 미경유</span>
+      </div>
+      <p style="margin:6px 0 0">홈 하단에서 <b>의견 보내기</b>를 누른 경우에만 작성한 의견과 선택 입력한 회신 이메일이 Web3Forms로 직접 전송됩니다. 실제 딜명·자산명·수치·임차인명·회사명은 적지 않도록 입력 화면에 고지하며, 금액·면적·비율·연락처처럼 보이는 내용은 전송 전에 브라우저가 한 번 더 경고합니다. 이 선택 기능을 쓰지 않으면 해당 통신은 없습니다.</p>
+    </div>
+  </section>
+
   <section id="offline">
     <h2>오프라인 동작</h2>
-    <p>페이지 로드 이후 <b>계산·엑셀 생성·공유 링크 생성은 네트워크 없이 동작</b>합니다 — 저장소의 <code>tools/qa/offline.js</code>를 실행하면 누구나 브라우저 자동화로 재현할 수 있습니다. 네트워크가 끊기면 익명 사용 통계(<code>/e</code>) 전송만 조용히 실패하며, 기능에는 아무 영향이 없습니다. 망분리·외부 통신 차단 사내망에서도 같은 이유로 그대로 쓸 수 있습니다.</p>
+    <p>페이지 로드 이후 <b>계산·엑셀 생성·공유 링크 생성은 네트워크 없이 동작</b>합니다 — 저장소의 <code>tools/qa/offline.js</code>를 실행하면 누구나 브라우저 자동화로 재현할 수 있습니다. 네트워크가 끊기면 익명 사용 통계(<code>/e</code>)는 조용히 실패하고, AI 정밀 추출·의견 보내기 같은 선택 통신만 사용할 수 없습니다. 핵심 계산에는 아무 영향이 없습니다.</p>
   </section>
 
   <section id="storage">
@@ -182,7 +194,7 @@ footer a{color:var(--ink-3)}
     <h2>보안 헤더 · 통신 제한</h2>
     <p class="sec-intro">사이트는 엄격한 콘텐츠 보안 정책(CSP)으로 <b>허용된 목적지 외에는 통신하지 못하게</b> 막혀 있습니다.</p>
     <div class="meta">
-      <dt>연결 허용(connect)</dt><dd><code>api.anthropic.com</code>(선택한 AI 추출 시)·폼 전송·Cloudflare 분석만. 그 외 외부 전송 차단.</dd>
+      <dt>연결 허용(connect)</dt><dd><code>api.anthropic.com</code>(선택한 AI 추출)·<code>api.web3forms.com</code>(선택한 의견 전송)·Cloudflare 분석만. 그 외 외부 전송 차단.</dd>
       <dt>프레임 삽입</dt><dd><code>X-Frame-Options: DENY</code> — 다른 사이트에 끼워넣기 불가(클릭재킹 방지)</dd>
       <dt>전송 보안</dt><dd><code>Strict-Transport-Security</code> — 항상 HTTPS</dd>
       <dt>콘텐츠 스니핑</dt><dd><code>X-Content-Type-Options: nosniff</code></dd>

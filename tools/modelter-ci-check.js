@@ -574,6 +574,12 @@ ok(html.includes("if(!_hoDone) track('handoff_open');") && html.includes("sessio
 ok(!html.includes("if(t.closest('#shareBtn')){ track('share_link')"), '북극성: share_link는 메뉴 열기가 아닌 실제 산출물만 집계');
 ok(html.includes('어떤 순간에 열었나요?') && html.includes('왜 열지 않았는지도 같은 가치'), '북극성 질적 검증: 비유도형 사용 순간 질문');
 ok(html.includes('실제 딜명·자산명·수치·임차인명·회사명은 적지 마세요.'), '북극성 질적 검증: 피드백 민감정보 입력 금지');
+ok(html.includes('function feedbackLooksSensitive') && html.includes('그래도 전송할까요?') && html.includes('Web3Forms(api.web3forms.com)'), '북극성 질적 검증: 선택 전송 목적지 공개·민감정보 사전 경고');
+{
+  const trustPath2 = path.join(DIR, 'trust.html');
+  const trust2 = fs.existsSync(trustPath2) ? fs.readFileSync(trustPath2, 'utf8') : '';
+  ok(trust2.includes('id="feedback-flow"') && trust2.includes('api.web3forms.com') && trust2.includes('모델터 서버 미경유'), '신뢰 센터: 의견 전송 데이터 흐름 공개');
+}
 {
   const evPath = path.join(__dirname, '..', 'docs', 'NORTH_STAR_EVIDENCE.md');
   const evMd = fs.existsSync(evPath) ? fs.readFileSync(evPath, 'utf8') : '';
