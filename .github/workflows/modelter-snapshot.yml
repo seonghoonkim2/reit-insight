@@ -8,7 +8,7 @@
 #   CF_API_TOKEN   = "Account Analytics : Read" 권한 토큰
 #   (시크릿이 없으면 이 워크플로우는 조용히 건너뜁니다 — 실패로 뜨지 않습니다.)
 #
-# 결과: data/ae-snapshots/<날짜>.json 을 자동 브랜치·PR로 올리고 Modelter CI를 명시적으로 실행합니다.
+# 결과: data/ae-snapshots/<날짜>.json 을 자동 브랜치·PR로 올리고 Modelter CI를 실행합니다.
 #       필수 체크가 모두 통과하면 자동 머지됩니다. 대시보드는 로컬에서 `node tools/modelter-report.js`
 #       실행 후 data/dashboard.html 을 브라우저로 열어 봅니다(트래픽 지표라 공개 배포하지 않음).
 
@@ -24,7 +24,6 @@ on:
     - cron: "30 20 * * 1"   # 매주 월요일 20:30 UTC (화 05:30 KST)
 
 permissions:
-  actions: write             # Modelter CI workflow_dispatch
   contents: write            # 스냅샷 브랜치 커밋
   pull-requests: write       # 스냅샷 PR 생성·자동 머지 예약
 
@@ -86,9 +85,27 @@ jobs:
               -f body="Analytics Engine 30일 익명 집계 스냅샷입니다. 딜 수치·임차인명·개인정보는 포함하지 않습니다. Modelter CI 전수 통과 후 자동 머지됩니다." \
               --jq '.html_url')
 
-            # GITHUB_TOKEN으로 만든 PR은 pull_request 워크플로가 자동 발화하지 않는다.
-            # 같은 head SHA에 필수 체크 3개가 생기도록 workflow_dispatch를 명시적으로 보낸다.
-            gh workflow run modelter-ci.yml --repo "$GITHUB_REPOSITORY" --ref "$branch"
-            gh pr merge "$pr_url" --repo "$GITHUB_REPOSITORY" --auto --merge --delete-branch
             echo "스냅샷 PR: $pr_url"
+            # 공개 저장소의 첫 github-actions[bot] PR만 first_time_contributors 정책에 따라
+            # 관리자 실행 승인이 필요하다. 한 번 기여자로 확정된 뒤에는 pull_request CI가 자동 발화한다.
+            gh pr merge "$pr_url" --repo "$GITHUB_REPOSITORY" --auto --merge
+
+            # 자동 머지가 실제로 끝난 뒤에만 작업 브랜치를 지운다.
+            for attempt in $(seq 1 60); do
+              state=$(gh pr view "$pr_url" --repo "$GITHUB_REPOSITORY" --json state --jq '.state')
+              if [ "$state" = "MERGED" ]; then
+                if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+                  git push origin --delete "$branch"
+                fi
+                echo "스냅샷 PR 머지·브랜치 정리 완료: $pr_url"
+                exit 0
+              fi
+              if [ "$state" = "CLOSED" ]; then
+                echo "스냅샷 PR이 머지 없이 닫혔습니다: $pr_url" >&2
+                exit 1
+              fi
+              sleep 10
+            done
+            echo "스냅샷 PR 자동 머지 대기 시간 초과: $pr_url" >&2
+            exit 1
           fi
