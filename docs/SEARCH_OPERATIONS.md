@@ -11,6 +11,15 @@
 
 `robots.txt`에는 정확히 `Sitemap: https://modelter.com/sitemap.xml`이 있어야 한다. Search Console의 사이트맵 입력란에는 루트 URL, 여러 페이지를 이어 붙인 문자열, HTML 페이지를 넣지 않는다. 등록 대상은 위 사이트맵 한 개다.
 
+## 2026-08-16 읽기 전용 확인 상태
+
+- 정식 `https://modelter.com/sitemap.xml`은 아직 제출 목록에 없다.
+- 모델터 본체에 관해 제출된 항목은 `http://modelter.com/`, `https://modelter.com/`, 여러 URL을 한 문자열로 붙인 항목 3개이며 모두 오류 또는 가져올 수 없음 상태다. 루트 URL은 사이트맵이 아니므로 다시 제출하지 않는다.
+- 색인 보고서의 마지막 갱신일은 2026-08-07이다. 그 시점에 본체에서 확인된 색인 URL은 홈·`/trust`·`/verification`·`/t/dscr` 4개다. 이후 배포한 `/im-checklist`와 생성 착지면을 이 오래된 보고서만으로 누락 판정하지 않는다.
+- 라이브 `sitemap.xml`은 HTTP 200이고 현재 canonical 44개를 담고 있다. 다음 외부 작업은 운영자 승인 뒤 이 파일 하나를 제출하는 것이다. 성공 확인 전 기존 오류 행을 지우지 않으며, 삭제 여부도 별도 확인한다.
+
+위 확인에서는 제출·삭제·색인 요청·내보내기를 하지 않았다. Search Console 계정 정보와 원시 성과표는 저장소에 기록하지 않는다.
+
 ## 검색에 영향을 주는 배포 뒤
 
 1. 라이브 `sitemap.xml`이 HTTP 200·`application/xml`인지 확인한다.
