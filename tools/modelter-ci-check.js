@@ -329,6 +329,12 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   });
   ok(fs.existsSync(capturePath) && captureSrc.includes("localStorage.setItem('mt_qa', '1')") && captureSrc.includes("if (p === '/e')"), '네이버 게시 자산: 로컬·QA 모드 재현 캡처(/e 전송 0)');
   ok(validAssets.length === 4 && assetNames.every(n => naverDoc.includes(n)), '네이버 게시 자산: 샘플 JPEG 4장·본문 대체텍스트 연결');
+  const searchOpsPath = path.join(__dirname, '..', 'docs', 'SEARCH_OPERATIONS.md');
+  const searchOps = fs.existsSync(searchOpsPath) ? fs.readFileSync(searchOpsPath, 'utf8') : '';
+  const gitignore = fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8');
+  ok(gitignore.split(/\r?\n/).includes('data/search-console/'), 'Search Console: 원시 내보내기 공개 커밋 차단');
+  ok(searchOps.includes('2026-08-15~2026-08-29') && searchOps.includes('페이지 = 정확히 https://modelter.com/t/dscr') && searchOps.includes('노출 100회 미만이면'), 'DSCR 검색: 고정 후속 창·정확 페이지 필터·최소 표본 사전 판정');
+  ok(searchOps.includes('평균 위치 10위 이내') && searchOps.includes('CTR 2% 이상') && searchOps.includes('src=dscr'), 'DSCR 검색: 순위와 스니펫 분리·계산기 전환 연결');
 }
 
 /* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */

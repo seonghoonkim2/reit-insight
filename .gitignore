@@ -35,3 +35,6 @@ dart-search/dist/
 # 계기판 대시보드·패턴 보고서(생성물)
 data/dashboard.html
 data/patterns.html
+
+# Search Console 원시 내보내기·검색어 성과 — 공개 저장소에 운영 데이터를 올리지 않음
+data/search-console/
