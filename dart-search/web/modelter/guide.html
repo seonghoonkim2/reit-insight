@@ -28,7 +28,7 @@
 {"@type":"Question","name":"화면 숫자와 다운로드 엑셀이 정말 같나요?","acceptedAnswer":{"@type":"Answer","text":"네. 화면의 IRR·Equity Multiple·DSCR 등은 내려받는 엑셀과 같은 계산식에서 나옵니다. 엑셀 파일을 실제 수식 엔진으로 다시 계산해 화면 값과 소수점 수준까지 일치하는지 검증하며, '화면 = 다운로드 엑셀' 배지가 붙은 딜 유형이 그 대상입니다."}},
 {"@type":"Question","name":"어떤 딜 유형을 지원하나요?","acceptedAnswer":{"@type":"Answer","text":"오피스·물류센터 매입(레버드 DCF 13시트), 공동주택 분양 사업수지(브릿지→본PF·중도금 6시트), 리파이낸싱 대안 비교(텀시트·연도별 DSCR 4시트)를 지원하며, 모두 수식이 살아있는 엑셀로 내려받을 수 있습니다."}},
 {"@type":"Question","name":"호텔·데이터센터 딜도 계산할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"아직입니다. 호텔·리테일·임대주택·데이터센터는 준비 중이며, 앱의 '준비중' 탭에서 유형별 수요 투표를 받아 수요가 모이는 순서대로 추가할 예정입니다. 마스터리스(책임임대차) 구조라면 수입 구조가 오피스와 같아 지금도 매입 딜 엔진으로 검토할 수 있습니다. ADR·RevPAR·GOP·PUE 같은 용어는 용어사전의 '운영형 자산' 절에 정리돼 있습니다."}},
-{"@type":"Question","name":"DSCR은 어떻게 계산하나요?","acceptedAnswer":{"@type":"Answer","text":"DSCR(부채상환계수)은 순영업이익(NOI)을 연간 원리금 상환액(DS)으로 나눈 값입니다. DSCR = NOI ÷ 원리금. 1.2x라면 원리금의 1.2배에 해당하는 NOI가 나온다는 뜻으로, 대주는 보통 1.2x 이상을 요구합니다."}},
+{"@type":"Question","name":"DSCR은 어떻게 계산하나요?","acceptedAnswer":{"@type":"Answer","text":"DSCR(부채상환계수)은 순영업이익(NOI)을 연간 원리금 상환액(DS)으로 나눈 값입니다. DSCR = NOI ÷ 원리금. 1.2x라면 원리금보다 NOI가 20% 많다는 뜻입니다. 실제 요구선과 분자 정의는 대주·자산·약정마다 다릅니다."}},
 {"@type":"Question","name":"브릿지론과 본PF는 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"브릿지론은 토지 계약부터 착공(인허가·사업 준비 기간)까지 쓰는 단기 고금리 차입이고, 본PF는 착공 이후 공사비를 조달하는 프로젝트 파이낸싱입니다. 착공 시점에 브릿지 잔액이 본PF로 차환(승계)되는 것이 일반적입니다."}},
 {"@type":"Question","name":"NOC와 명목 임대료는 뭐가 다른가요?","acceptedAnswer":{"@type":"Answer","text":"명목 임대료는 계약서상 임대면적당 금액이고, NOC(Net Occupancy Cost)는 렌트프리·관리비·전용률까지 반영해 임차인이 전용면적 1평당 실제 부담하는 비용입니다. 빌딩 간 임차 조건 비교는 NOC 기준으로 하는 것이 국내 오피스 실무 표준입니다."}}]}
 </script>
@@ -159,7 +159,7 @@ footer a{color:var(--ink-3)}
 
     <div class="term" id="dscr"><h3>DSCR <span class="en">부채상환계수 · Debt Service Coverage Ratio</span></h3>
       <span class="formula">DSCR = NOI ÷ 연간 원리금(DS)</span>
-      <p>NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금의 1.2배를 버는 것으로, 대주는 보통 1.2x 이상을 요구합니다. 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다. 모델터의 분자는 <b>NOI 기준</b>(자본적지출·레징비용 차감 전)이라, 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.</p></div>
+      <p>NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금보다 NOI가 20% 많고, 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다. 실제 요구선과 테스트 시점은 대주·자산·약정마다 다릅니다. 모델터의 분자는 <b>NOI 기준</b>(자본적지출·레징비용 차감 전)이라, 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.</p></div>
 
     <div class="term" id="icr"><h3>ICR <span class="en">이자보상배율</span></h3>
       <span class="formula">ICR = NOI ÷ 연간 이자</span>

@@ -262,7 +262,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     ok(sm.includes('/im-checklist<') && sm.includes('/t/irr<') && sm.includes('/calc/office<'), 'sitemap: IM 체크리스트·용어·계산기 URL 포함(무확장)');
   }
   // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
-  let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0;
+  let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0, checklistBad = 0;
   const allPages = tFiles.map(f => 't/' + f).concat(cFiles.map(f => 'calc/' + f));
   const existsPage = p => fs.existsSync(path.join(DIR, p));
   for (const rp of allPages) {
@@ -270,14 +270,21 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     const jm = ph.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
     try { JSON.parse(jm[1]); } catch (e) { jsonBad++; }
     if (!/rel="canonical" href="https:\/\/modelter\.com\//.test(ph)) canonBad++;
-    // 앱 CTA + seo 귀속. 준비 중 딜 착지면(호텔 등)은 열 딜 탭이 없어 딜 인자 없이 `#src=seo` 형태를 허용.
-    if (!/href="\/#(t=(office|logistics|dev|refi)&)?src=seo"/.test(ph)) ctaBad++;
+    // 앱 CTA + 검색 귀속. DSCR은 실제 활성화까지 분리 판독하므로 전용 src=dscr을 쓴다.
+    if (!/href="\/#(t=(office|logistics|dev|refi)&)?src=(seo|dscr)"/.test(ph)) ctaBad++;
+    if (!ph.includes('href="/im-checklist"')) checklistBad++;
     for (const mm of ph.matchAll(/href="\/(t|calc)\/([a-z0-9]+)"/g)) if (!existsPage(mm[1] + '/' + mm[2] + '.html')) linkBad++;
   }
   ok(jsonBad === 0, '검색 착지: 전 페이지 JSON-LD 유효 (' + jsonBad + ' 실패)');
   ok(canonBad === 0, '검색 착지: 전 페이지 canonical (' + canonBad + ' 누락)');
-  ok(ctaBad === 0, '검색 착지: 전 페이지 앱 CTA(#t=…&src=seo) (' + ctaBad + ' 누락)');
+  ok(ctaBad === 0, '검색 착지: 전 페이지 앱 CTA(#t=…&src=seo|dscr) (' + ctaBad + ' 누락)');
   ok(linkBad === 0, '검색 착지: 내부 링크 무결성 (' + linkBad + ' 깨짐)');
+  ok(checklistBad === 0, '검색 착지: 전 페이지 → IM 체크리스트 내부 링크 (' + checklistBad + ' 누락)');
+  const dscrPath = path.join(tDir, 'dscr.html');
+  const dscr = fs.existsSync(dscrPath) ? fs.readFileSync(dscrPath, 'utf8') : '';
+  ok(dscr.includes('<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>') && dscr.includes('1.0x 미만') && dscr.includes('1.5x'), 'DSCR 검색 의도: 제목·배수별 판독표');
+  ok(dscr.includes('FAQPage') && dscr.includes('NCF나 CFADS') && dscr.includes('/#t=refi&src=dscr'), 'DSCR 검색 의도: FAQ 구조화 데이터·약정 정의 주의·전용 채널 CTA');
+  ok(html.includes('src=(?:seo|dscr)'), 'DSCR 검색 의도: 계산기 착지 후 첫 입력 하이라이트 유지');
 }
 
 /* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */

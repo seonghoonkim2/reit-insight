@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>DSCR 뜻·계산식·실무 예시 | 모델터</title>
-<meta name="description" content="DSCR(부채상환계수 · Debt Service Coverage Ratio)의 정의와 계산식, 상업용 부동산 실무 예시. 대주가 대출을 승인할지, 얼마까지 빌려줄지를 이 배율의 최소 요건(코버넌트)으로 정합니다. 모델터에서 리파이 딜로 바로 계산해 보세요." />
+<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>
+<meta name="description" content="DSCR = NOI ÷ 연간 원리금. 1.0x·1.2x·1.5x가 뜻하는 상환 여력과 금리·LTV·상환 방식이 DSCR을 움직이는 원리를 CRE 실무 예시로 설명합니다." />
 <link rel="canonical" href="https://modelter.com/t/dscr" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="DSCR 뜻·계산식·실무 예시 | 모델터" />
-<meta property="og:description" content="DSCR(부채상환계수 · Debt Service Coverage Ratio)의 정의와 계산식, 상업용 부동산 실무 예시. 대주가 대출을 승인할지, 얼마까지 빌려줄지를 이 배율의 최소 요건(코버넌트)으로 정합니다. 모델터에서 리파이 딜로 바로 계산해 보세요." />
+<meta property="og:title" content="DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터" />
+<meta property="og:description" content="DSCR = NOI ÷ 연간 원리금. 1.0x·1.2x·1.5x가 뜻하는 상환 여력과 금리·LTV·상환 방식이 DSCR을 움직이는 원리를 CRE 실무 예시로 설명합니다." />
 <meta property="og:url" content="https://modelter.com/t/dscr" />
 <meta property="og:image" content="https://modelter.com/og.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"DefinedTerm","@id":"https://modelter.com/t/dscr#term","name":"DSCR","alternateName":"부채상환계수 · Debt Service Coverage Ratio","description":"DSCR = NOI ÷ 연간 원리금(DS) NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금의 1.2배를 버는 것으로, 대주는 보통 1.2x 이상을 요구합니다. 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다. 모델터의 분자는 NOI 기준 (자본적지출·레징비용 차감 전)이라, 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.","inDefinedTermSet":"https://modelter.com/guide"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"용어사전","item":"https://modelter.com/guide"},{"@type":"ListItem","position":3,"name":"DSCR","item":"https://modelter.com/t/dscr"}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"DefinedTerm","@id":"https://modelter.com/t/dscr#term","name":"DSCR","alternateName":"부채상환계수 · Debt Service Coverage Ratio","description":"DSCR = NOI ÷ 연간 원리금(DS) NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금보다 NOI가 20% 많고, 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다. 실제 요구선과 테스트 시점은 대주·자산·약정마다 다릅니다. 모델터의 분자는 NOI 기준 (자본적지출·레징비용 차감 전)이라, 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.","inDefinedTermSet":"https://modelter.com/guide"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"용어사전","item":"https://modelter.com/guide"},{"@type":"ListItem","position":3,"name":"DSCR","item":"https://modelter.com/t/dscr"}]},{"@type":"FAQPage","inLanguage":"ko","mainEntity":[{"@type":"Question","name":"DSCR 뜻은 무엇인가요?","acceptedAnswer":{"@type":"Answer","text":"DSCR은 Debt Service Coverage Ratio의 약자로, 자산의 순영업이익이 연간 원리금 상환액의 몇 배인지를 나타내는 부채상환계수입니다."}},{"@type":"Question","name":"DSCR 계산식은 무엇인가요?","acceptedAnswer":{"@type":"Answer","text":"모델터는 NOI를 연간 원금과 이자의 합계로 나눕니다. 즉 DSCR = NOI ÷ 연간 원리금입니다. 약정이 NCF나 CFADS를 분자로 쓰면 해당 정의에 맞춰 다시 계산해야 합니다."}},{"@type":"Question","name":"DSCR 1.2x는 무슨 뜻인가요?","acceptedAnswer":{"@type":"Answer","text":"연 원리금이 100이라면 NOI가 120이라는 뜻입니다. 원리금보다 20% 많은 NOI가 있지만, 1.2x가 모든 딜의 공통 승인선이라는 뜻은 아닙니다."}},{"@type":"Question","name":"DSCR과 ICR은 어떻게 다른가요?","acceptedAnswer":{"@type":"Answer","text":"DSCR은 원금과 이자를 모두 분모에 넣고, ICR은 이자만 분모에 넣습니다. 원금 분할상환이 있는 대출에서는 두 지표가 달라집니다."}}]}]}
 </script>
 <style>:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--green:#2e7d4f;--red:#b4552d;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
 @media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f;--green:#57b07f;--red:#d98a5f}}
@@ -70,6 +70,7 @@ footer a{color:var(--ink-3)}
 .wex .r{font-family:var(--mono);font-weight:700;color:var(--ink)}
 .wex .out .r{color:var(--accent-deep);font-size:15px}
 .wex tr.out td{background:#fdf8ef}
+.wex.meaning td:last-child,.wex.meaning th:last-child{text-align:left;padding-left:14px}
 .steps{counter-reset:s;list-style:none;margin:8px 0}
 .steps li{position:relative;padding:9px 0 9px 34px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--line-soft)}
 .steps li:last-child{border-bottom:none}
@@ -92,29 +93,52 @@ footer a{color:var(--ink-3)}
   <nav class="crumb"><a href="/">모델터</a> › <a href="/guide">용어사전</a> › DSCR</nav>
   <div class="hero">
     <div class="eyebrow">부동산 금융 용어</div>
-    <h1>DSCR<span class="en">부채상환계수 · Debt Service Coverage Ratio</span></h1>
+    <h1>DSCR 뜻과 계산법<span class="en">부채상환계수 · Debt Service Coverage Ratio</span></h1>
+    <p class="lead">DSCR은 자산이 한 해 벌어들인 순영업이익으로 같은 기간의 원금과 이자를 몇 배 감당하는지 보여주는 상환 여력 지표입니다. 1.2x라면 연 원리금보다 NOI가 20% 많다는 뜻입니다.</p>
   </div>
   <section>
     <h2>정의</h2>
     <span class="formula">DSCR = NOI ÷ 연간 원리금(DS)</span>
-      <p>NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금의 1.2배를 버는 것으로, 대주는 보통 1.2x 이상을 요구합니다. 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다. 모델터의 분자는 <b>NOI 기준</b>(자본적지출·레징비용 차감 전)이라, 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.</p>
+      <p>NOI가 원리금 상환액의 몇 배인지 봅니다. 1.2x면 원리금보다 NOI가 20% 많고, 1.0x 미만이면 자산 수입만으로 원리금을 못 갚는다는 뜻입니다. 실제 요구선과 테스트 시점은 대주·자산·약정마다 다릅니다. 모델터의 분자는 <b>NOI 기준</b>(자본적지출·레징비용 차감 전)이라, 약정이 NCF/CFADS 기준이면 별도 환산이 필요합니다.</p>
   </section>
   <section>
     <h2>왜 중요한가</h2>
-    <p>대주가 대출을 승인할지, 얼마까지 빌려줄지를 이 배율의 최소 요건(코버넌트)으로 정합니다.</p>
+    <p>대주가 대출을 승인할지, 얼마까지 빌려줄지를 이 배율의 최소 요건(코버넌트)으로 정합니다. 단, 실제 산식과 요구선은 대주·자산·약정마다 다르므로 텀시트의 정의를 먼저 확인해야 합니다.</p>
   </section>
   <section class="ex">
     <h2>실무 예시</h2>
-    <p>NOI 90억에 연 원리금이 70억이면 DSCR 1.29x입니다. 대주 요구선이 1.25x면 통과하지만, 금리가 1%p 오르면 1.2x 밑으로 내려가 여유가 얼마나 되는지 함께 봅니다.</p>
+    <p>NOI 90억에 연 원리금이 70억이면 DSCR은 1.29x입니다. 요구선이 1.25x인 약정이라면 0.04x의 여유가 있지만, 금리 상승이나 NOI 하락을 넣어 최소 DSCR이 언제 기준 아래로 내려가는지 함께 봐야 합니다.</p>
   </section>
   <section>
-    <a class="cta" href="/#t=refi&src=seo">리파이 딜 첫 숫자로 DSCR 계산하기 →<span class="sub">예시가 채워진 채로 열립니다 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
+    <h2>DSCR 배수, 이렇게 읽습니다</h2>
+    <div class="wex meaning"><table>
+      <tr><th>DSCR</th><th>판독</th></tr>
+      <tr><td class="r">1.0x 미만</td><td>현재 NOI만으로 연 원리금을 모두 감당하지 못합니다.</td></tr>
+      <tr><td class="r">1.0x</td><td>NOI와 원리금이 같아 공실·비용 증가를 버틸 여유가 없습니다.</td></tr>
+      <tr><td class="r">1.2x</td><td>원리금보다 NOI가 20% 많습니다. 승인선은 대주·자산·약정마다 다릅니다.</td></tr>
+      <tr><td class="r">1.5x</td><td>원리금보다 NOI가 50% 많아 상대적으로 완충 폭이 큽니다.</td></tr>
+    </table></div>
+    <p class="tip">배수가 높을수록 상환 여유는 크지만, 숫자 하나만으로 승인 여부를 단정할 수 없습니다. 약정의 분자 정의와 테스트 시점도 함께 확인하세요.</p>
+  </section>
+  <section>
+    <h2>무엇이 DSCR을 움직이나요?</h2>
+    <div class="io"><div class="card"><h2>NOI·공실</h2><p>임대수입이 줄거나 운영비가 늘면 분자인 NOI가 낮아져 DSCR이 하락합니다.</p></div><div class="card"><h2>금리</h2><p>금리가 오르면 같은 대출금의 연 이자가 늘어 분모가 커지고 DSCR이 하락합니다.</p></div><div class="card"><h2>대출금·LTV</h2><p>차입액이 커질수록 연 원리금 부담이 늘어 DSCR이 낮아질 수 있습니다.</p></div><div class="card"><h2>상환 방식</h2><p>만기일시는 보유 중 원금 부담이 없고, 분할상환은 매기 원금이 포함돼 DSCR 경로가 달라집니다.</p></div></div>
+  </section>
+  <section>
+    <h2>자주 묻는 질문</h2>
+    <details class="faq"><summary>DSCR 뜻은 무엇인가요?</summary><p>DSCR은 Debt Service Coverage Ratio의 약자로, 자산의 순영업이익이 연간 원리금 상환액의 몇 배인지를 나타내는 부채상환계수입니다.</p></details>
+    <details class="faq"><summary>DSCR 계산식은 무엇인가요?</summary><p>모델터는 NOI를 연간 원금과 이자의 합계로 나눕니다. 즉 DSCR = NOI ÷ 연간 원리금입니다. 약정이 NCF나 CFADS를 분자로 쓰면 해당 정의에 맞춰 다시 계산해야 합니다.</p></details>
+    <details class="faq"><summary>DSCR 1.2x는 무슨 뜻인가요?</summary><p>연 원리금이 100이라면 NOI가 120이라는 뜻입니다. 원리금보다 20% 많은 NOI가 있지만, 1.2x가 모든 딜의 공통 승인선이라는 뜻은 아닙니다.</p></details>
+    <details class="faq"><summary>DSCR과 ICR은 어떻게 다른가요?</summary><p>DSCR은 원금과 이자를 모두 분모에 넣고, ICR은 이자만 분모에 넣습니다. 원금 분할상환이 있는 대출에서는 두 지표가 달라집니다.</p></details>
+  </section>
+  <section>
+    <a class="cta" href="/#t=refi&src=dscr">내 NOI·대출 조건으로 DSCR 계산하기 →<span class="sub">예시가 채워진 채로 열립니다 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
     <h2 style="margin-top:14px">관련 용어</h2>
     <div class="chips"><a href="/t/icr">ICR</a><a href="/t/dy">Debt Yield</a><a href="/t/repay">상환 방식</a><a href="/calc/refi">리파이 계산기</a></div>
   </section>
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/im-checklist">IM 체크리스트</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.
 </div></footer>
 </body>

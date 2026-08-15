@@ -103,7 +103,34 @@ const TERM_META = {
   wale: { deal: "office", why: "만기가 한 시점에 몰리면 재계약 실패 시 수입이 급감해, 대주와 투자자 모두 잔여기간을 먼저 확인합니다.", ex: "렌트롤상 WALE가 4.2년이면 매각 목표 5년 안에 대부분 재계약 협상이 걸립니다. 3년 차에 40% 면적 만기가 몰려 있으면 그 구간을 따로 스트레스합니다." },
   egi: { deal: "office", why: "만실 가정으로 수입을 부풀리지 않도록, 공실·미수를 뺀 실제 기대 수입을 확정하는 단계입니다.", ex: "만실 임대료 130억에서 공실 5% 6.5억과 미수를 빼고 주차수입 3억을 더하면 EGI는 126억 안팎입니다." },
   vacancy: { deal: "office", why: "지금 만실이어도 임차인 교체 공백은 반드시 생겨, 모델을 보수적으로 세우려면 최소 공실을 깔아야 합니다.", ex: "서울 도심 오피스 매입 모델에 자연공실 4%를 기본으로 넣으면, 현재 100% 임대여도 NOI가 4%가량 낮게 잡혀 매입가 협상 여력이 생깁니다." },
-  dscr: { deal: "refi", why: "대주가 대출을 승인할지, 얼마까지 빌려줄지를 이 배율의 최소 요건(코버넌트)으로 정합니다.", ex: "NOI 90억에 연 원리금이 70억이면 DSCR 1.29x입니다. 대주 요구선이 1.25x면 통과하지만, 금리가 1%p 오르면 1.2x 밑으로 내려가 여유가 얼마나 되는지 함께 봅니다." },
+  dscr: {
+    deal: "refi",
+    src: "dscr",
+    title: "DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터",
+    desc: "DSCR = NOI ÷ 연간 원리금. 1.0x·1.2x·1.5x가 뜻하는 상환 여력과 금리·LTV·상환 방식이 DSCR을 움직이는 원리를 CRE 실무 예시로 설명합니다.",
+    h1: "DSCR 뜻과 계산법",
+    lead: "DSCR은 자산이 한 해 벌어들인 순영업이익으로 같은 기간의 원금과 이자를 몇 배 감당하는지 보여주는 상환 여력 지표입니다. 1.2x라면 연 원리금보다 NOI가 20% 많다는 뜻입니다.",
+    why: "대주가 대출을 승인할지, 얼마까지 빌려줄지를 이 배율의 최소 요건(코버넌트)으로 정합니다. 단, 실제 산식과 요구선은 대주·자산·약정마다 다르므로 텀시트의 정의를 먼저 확인해야 합니다.",
+    ex: "NOI 90억에 연 원리금이 70억이면 DSCR은 1.29x입니다. 요구선이 1.25x인 약정이라면 0.04x의 여유가 있지만, 금리 상승이나 NOI 하락을 넣어 최소 DSCR이 언제 기준 아래로 내려가는지 함께 봐야 합니다.",
+    bands: [
+      ["1.0x 미만", "현재 NOI만으로 연 원리금을 모두 감당하지 못합니다."],
+      ["1.0x", "NOI와 원리금이 같아 공실·비용 증가를 버틸 여유가 없습니다."],
+      ["1.2x", "원리금보다 NOI가 20% 많습니다. 승인선은 대주·자산·약정마다 다릅니다."],
+      ["1.5x", "원리금보다 NOI가 50% 많아 상대적으로 완충 폭이 큽니다."]
+    ],
+    drivers: [
+      ["NOI·공실", "임대수입이 줄거나 운영비가 늘면 분자인 NOI가 낮아져 DSCR이 하락합니다."],
+      ["금리", "금리가 오르면 같은 대출금의 연 이자가 늘어 분모가 커지고 DSCR이 하락합니다."],
+      ["대출금·LTV", "차입액이 커질수록 연 원리금 부담이 늘어 DSCR이 낮아질 수 있습니다."],
+      ["상환 방식", "만기일시는 보유 중 원금 부담이 없고, 분할상환은 매기 원금이 포함돼 DSCR 경로가 달라집니다."]
+    ],
+    faqs: [
+      ["DSCR 뜻은 무엇인가요?", "DSCR은 Debt Service Coverage Ratio의 약자로, 자산의 순영업이익이 연간 원리금 상환액의 몇 배인지를 나타내는 부채상환계수입니다."],
+      ["DSCR 계산식은 무엇인가요?", "모델터는 NOI를 연간 원금과 이자의 합계로 나눕니다. 즉 DSCR = NOI ÷ 연간 원리금입니다. 약정이 NCF나 CFADS를 분자로 쓰면 해당 정의에 맞춰 다시 계산해야 합니다."],
+      ["DSCR 1.2x는 무슨 뜻인가요?", "연 원리금이 100이라면 NOI가 120이라는 뜻입니다. 원리금보다 20% 많은 NOI가 있지만, 1.2x가 모든 딜의 공통 승인선이라는 뜻은 아닙니다."],
+      ["DSCR과 ICR은 어떻게 다른가요?", "DSCR은 원금과 이자를 모두 분모에 넣고, ICR은 이자만 분모에 넣습니다. 원금 분할상환이 있는 대출에서는 두 지표가 달라집니다."]
+    ]
+  },
   icr: { deal: "refi", why: "만기일시처럼 원금을 안 갚는 구조에서는 원리금 기준 DSCR보다 이자만으로 커버되는지가 실질 안전선입니다.", ex: "NOI 90억에 연 이자 55억이면 ICR 1.64x입니다. 원금 상환이 없는 이자만 대출이라 이때는 DSCR과 ICR이 같은 값입니다." },
   ltv: { deal: "office", why: "대출 한도의 상한을 정하는 첫 제약으로, 높을수록 자기자본은 덜 들지만 대주 위험과 금리가 함께 올라갑니다.", ex: "감정가 2,000억 자산에 LTV 60%면 대출 1,200억, 자기자본 800억입니다. LTV를 55%로 낮추면 자기자본이 900억으로 늘어 IRR이 달라집니다." },
   dy: { deal: "refi", why: "금리나 상환기간으로 좋아 보이게 만든 DSCR 착시를 걷어내고, 대출 자체의 맨몸 안전마진을 보는 대주 지표입니다.", ex: "대출 잔액 1,200억에 NOI 90억이면 Debt Yield 7.5%입니다. 대주 내부 기준이 8%면 대출을 1,125억으로 줄이자는 역제안이 들어옵니다." },
@@ -196,6 +223,7 @@ footer a{color:var(--ink-3)}
 .wex .r{font-family:var(--mono);font-weight:700;color:var(--ink)}
 .wex .out .r{color:var(--accent-deep);font-size:15px}
 .wex tr.out td{background:#fdf8ef}
+.wex.meaning td:last-child,.wex.meaning th:last-child{text-align:left;padding-left:14px}
 .steps{counter-reset:s;list-style:none;margin:8px 0}
 .steps li{position:relative;padding:9px 0 9px 34px;font-size:14.5px;color:var(--ink-2);border-bottom:1px solid var(--line-soft)}
 .steps li:last-child{border-bottom:none}
@@ -242,7 +270,7 @@ ${JSON.stringify(o.ld)}
 ${o.body}
 </main>
 <footer><div class="wrap">
-  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
+  모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/howto">실무 가이드</a> · <a href="/im-checklist">IM 체크리스트</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
   입력 가정에 따른 추정치이며 투자 권유가 아닌 정보 제공 목적입니다. 숫자 예시는 샘플이며 실제 시세가 아닙니다.
 </div></footer>
 </body>
@@ -262,24 +290,27 @@ function termPage(slug, terms) {
   const t = terms[slug], meta = TERM_META[slug];
   if (!t || !meta) return null;
   const deal = DEALS[meta.deal];
-  const title = `${t.ko} 뜻·계산식·실무 예시 | 모델터`;
-  const desc = `${t.ko}(${t.en})의 정의와 계산식, 상업용 부동산 실무 예시. ${meta.why} 모델터에서 ${deal.short} 딜로 바로 계산해 보세요.`;
+  const title = meta.title || `${t.ko} 뜻·계산식·실무 예시 | 모델터`;
+  const desc = meta.desc || `${t.ko}(${t.en})의 정의와 계산식, 상업용 부동산 실무 예시. ${meta.why} 모델터에서 ${deal.short} 딜로 바로 계산해 보세요.`;
   const canonical = `${BASE}/t/${slug}`;   // Cloudflare 에셋이 .html 을 떼고 서빙(무확장이 200, .html은 307)
   const rel = relatedTermChips(slug, terms, meta);
   const chips = rel.map(s => `<a href="/t/${s}">${esc(terms[s].ko)}</a>`).join('');
-  const ld = {
-    '@context': 'https://schema.org', '@graph': [
+  const graph = [
       { '@type': 'DefinedTerm', '@id': canonical + '#term', name: t.ko, alternateName: t.en, description: t.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300), inDefinedTermSet: `${BASE}/guide` },
       { '@type': 'BreadcrumbList', itemListElement: [
         { '@type': 'ListItem', position: 1, name: '모델터', item: BASE + '/' },
         { '@type': 'ListItem', position: 2, name: '용어사전', item: BASE + '/guide' },
         { '@type': 'ListItem', position: 3, name: t.ko, item: canonical } ] },
-    ]
-  };
+    ];
+  if (meta.faqs) graph.push({ '@type': 'FAQPage', inLanguage: 'ko',
+    mainEntity: meta.faqs.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
+  const ld = { '@context': 'https://schema.org', '@graph': graph };
+  const src = meta.src || 'seo';
   const body = `  <nav class="crumb"><a href="/">모델터</a> › <a href="/guide">용어사전</a> › ${esc(t.ko)}</nav>
   <div class="hero">
     <div class="eyebrow">부동산 금융 용어</div>
-    <h1>${esc(t.ko)}<span class="en">${esc(t.en)}</span></h1>
+    <h1>${esc(meta.h1 || t.ko)}<span class="en">${esc(t.en)}</span></h1>
+${meta.lead ? `    <p class="lead">${esc(meta.lead)}</p>` : ''}
   </div>
   <section>
     <h2>정의</h2>
@@ -293,8 +324,24 @@ function termPage(slug, terms) {
     <h2>실무 예시</h2>
     <p>${esc(meta.ex)}</p>
   </section>
+${meta.bands ? `  <section>
+    <h2>DSCR 배수, 이렇게 읽습니다</h2>
+    <div class="wex meaning"><table>
+      <tr><th>DSCR</th><th>판독</th></tr>
+      ${meta.bands.map(r => `<tr><td class="r">${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('\n      ')}
+    </table></div>
+    <p class="tip">배수가 높을수록 상환 여유는 크지만, 숫자 하나만으로 승인 여부를 단정할 수 없습니다. 약정의 분자 정의와 테스트 시점도 함께 확인하세요.</p>
+  </section>` : ''}
+${meta.drivers ? `  <section>
+    <h2>무엇이 DSCR을 움직이나요?</h2>
+    <div class="io">${meta.drivers.map(r => `<div class="card"><h2>${esc(r[0])}</h2><p>${esc(r[1])}</p></div>`).join('')}</div>
+  </section>` : ''}
+${meta.faqs ? `  <section>
+    <h2>자주 묻는 질문</h2>
+    ${meta.faqs.map(f => `<details class="faq"><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('\n    ')}
+  </section>` : ''}
   <section>
-    <a class="cta" href="/#t=${meta.deal}&src=seo">${esc(deal.short)} 딜 첫 숫자로 ${esc(t.ko)} 계산하기 →<span class="sub">예시가 채워진 채로 열립니다 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
+    <a class="cta" href="/#t=${meta.deal}&src=${src}">${meta.h1 ? '내 NOI·대출 조건으로 ' : esc(deal.short) + ' 딜 첫 숫자로 '}${esc(t.ko)} 계산하기 →<span class="sub">예시가 채워진 채로 열립니다 · 수식 살아있는 엑셀까지 · 설치·가입 없음</span></a>
     <h2 style="margin-top:14px">관련 용어</h2>
     <div class="chips">${chips}<a href="/calc/${meta.deal}">${esc(deal.short)} 계산기</a></div>
   </section>`;
