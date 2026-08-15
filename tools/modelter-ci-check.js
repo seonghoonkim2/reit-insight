@@ -154,6 +154,11 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const reportSrc3 = fs.readFileSync(path.join(__dirname, 'modelter-report.js'), 'utf8');
   ok(aeSrc3.includes('Q_TEAM_HANDOFF') && aeSrc3.includes('teamHandoffByAct') && md.includes('teamHandoffByAct'), '북극성 계측: 실사용 팀 전달·실제 링크 act 분해 스냅샷');
   ok(reportSrc3.includes('북극성 · 팀 전달') && reportSrc3.includes('실제 공유 링크'), '북극성 계기판: 팀 전달 사전 기준 노출');
+  const snapWorkflowPath = path.join(__dirname, '..', '.github', 'workflows', 'modelter-snapshot.yml');
+  const snapWorkflow = fs.existsSync(snapWorkflowPath) ? fs.readFileSync(snapWorkflowPath, 'utf8') : '';
+  ok(snapWorkflow.includes('automation/modelter-snapshot-${GITHUB_RUN_ID}') && snapWorkflow.includes('gh pr merge "$pr_url"'), '스냅샷 자동화: master 직접 push 대신 전수 검증 PR');
+  ok(snapWorkflow.includes('actions: write') && snapWorkflow.includes('select(.headSha == \\"$head_sha\\")') && snapWorkflow.includes('/approve"'), '스냅샷 자동화: 이 실행의 branch+head SHA CI만 승인');
+  ok(!snapWorkflow.includes('gh workflow run modelter-ci.yml') && snapWorkflow.includes('if [ "$state" = "MERGED" ]') && snapWorkflow.includes('git push origin --delete "$branch"'), '스냅샷 자동화: 중복 CI 없음·머지 후 브랜치 정리');
 }
 
 /* ── 1j) 사용성 v3(로그 기반) — 복잡도 다이어트·조정 바·위저드 발견성 ── */
