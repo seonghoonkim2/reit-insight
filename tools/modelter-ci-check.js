@@ -666,6 +666,7 @@ ok(!/let html=depthHtml\(\)/.test(html) && /dyn\.innerHTML=h/.test(html),
   '모델 깊이·IM 가져오기가 입력 위가 아니라 도구 블록에 있음');
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
 ok(html.includes('id="sampleStart"') && html.includes('function startOwnDeal') && html.includes("mtTrack('sample_start')") && html.includes("office:'price',logistics:'price',dev:'landcost',refi:'noi'"), '첫 입력 전환: 예시 상태 공개·딜별 첫 핵심 숫자 포커스·의도 계측');
+ok(html.includes('function quickFieldKeys') && html.includes('data-core-noi=') && html.includes('NOI로 입력'), '매입 첫 입력: IM 수입 형식에 맞춘 평당 임대료↔NOI 직접 전환');
 ok(html.includes('href="/guide"'), '홈→가이드 내부 링크(SEO·무확장 정식 URL) 존재');
 ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재');
 ok(html.includes('href="/im-checklist"') && html.includes('modelter.com/im-checklist'), '홈·앱 IM 체크리스트 → 검색 착지 연결');

@@ -151,7 +151,14 @@ async function closeOverlays(page) {
     });
     await page.locator('#sampleStartBtn').click();
     const ownFocus = await page.evaluate(() => document.activeElement && document.activeElement.id === 'f_price' && sessionStorage.getItem('mt_sample_start') === '1');
-    ok(e3.result && e3.sample && e3.progress && ownFocus, '예시 복원 → 예시 상태 공개 → 내 딜 첫 숫자 포커스');
+    await page.locator('[data-core-noi="noi"]').click(); await page.waitForTimeout(100);
+    const directNoi = await page.evaluate(() => {
+      const coreKeys = Array.from(document.querySelectorAll('.core-g [data-k]')).map(el => el.dataset.k);
+      const rem = exRemaining();
+      return state.noimode === 'NOI 직접 입력' && coreKeys.includes('noi1') && !coreKeys.includes('rentpp') && !coreKeys.includes('gfa') &&
+        document.activeElement && document.activeElement.dataset.k === 'noi1' && !rem.includes('rentpp') && !rem.includes('campp') && !rem.includes('depmult');
+    });
+    ok(e3.result && e3.sample && e3.progress && ownFocus && directNoi, '예시 공개 → 첫 숫자 포커스 → IM NOI 직접 입력 전환');
     await ctx.close();
   }
 
