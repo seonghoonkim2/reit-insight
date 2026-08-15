@@ -1,6 +1,6 @@
 # 저장소 안내 (reit-insight)
 
-한 저장소에 세 프로젝트가 있습니다. **현재 주력은 ① 모델터**이며, master 푸시 시 Cloudflare Worker로 modelter.com에 자동 배포됩니다.
+한 저장소에 세 프로젝트가 있습니다. **현재 주력은 ① 모델터**이며, 보호된 master에 PR이 머지되면 Cloudflare Worker가 modelter.com에 자동 배포합니다.
 
 | 프로젝트 | 위치 | 상태 |
 |---|---|---|
@@ -15,7 +15,7 @@
 - 딜 4종: 오피스·물류 매입(13시트), 공동주택 분양 사업수지(6시트, 브릿지→본PF·중도금 월별 엔진), 리파이낸싱 비교(4시트)
 - 파일: `dart-search/web/modelter/index.html`(앱 전체), `guide.html`(용어사전·SEO), `og.png`, `robots.txt`, `sitemap.xml`, `_headers`
 - 자본구조 4단: 선순위 → **중순위(메자닌)** → 보증금 승계 → 우선주 → 보통주. 중순위는 이자 지급 방식이 핵심 분기 — `이자만 지급`(현금, DSCR 하락)과 `만기일시상환(이자 누적·PIK)`(잔액 증가, 매각 시 일괄)
-- 부가: 공유 링크(#v=/#e=, LZW 압축, 임차인명 마스킹), 한 줄 보고 복사, 모바일 위저드(⚡핵심만), 딥링크 `#t=office|logistics|dev|refi(&view=lender)`, IC 원페이저 인쇄, 자동 판정, 억·조 환산 힌트
+- 부가: 공유 링크(#v=/#e=, LZW 압축, 임차인명 마스킹), 한 줄 보고 복사, 모바일 위저드(⚡핵심만), 딥링크 `#t=office|logistics|dev|refi(&view=lender)`, IC 원페이저 인쇄, 자동 판정, 억·조 환산 힌트. 공유 링크 압축은 암호화가 아니므로 권한 있는 채널로만 전달
 - **도착 시 자동 팝업 없음**(2026-08-11) — What's new 는 공지 배너 버튼으로만. 재방문(`mt_used`)은 소개를 접고 도구부터
 
 ### 핵심 원칙 — 파리티
@@ -32,13 +32,16 @@ python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pi
 
 ### 작업 절차 (매 변경마다)
 
-1. `dart-search/web/modelter/index.html` 편집 (세션 로컬 사본을 쓰면 이 경로로 cp — **저장소 사본이 진실**)
-2. `node tools/modelter-ci-check.js` — 마커 + 헤드리스 행동 검사 (배포 경로 파일을 읽음)
-   + `node tools/qa/invariants.js` — 엔진 경제 단조성 17건(의존성 없음, ~2초)
-3. 계산·엑셀 로직 변경 시: 파리티 2단계
-4. Playwright QA (`/opt/pw-browsers/chromium-*/chrome-linux/chrome`, http 서버로 서빙 — file:// 불가)
-5. `grep -c "__mtCalc" dart-search/web/modelter/index.html` → **0** 확인
-6. commit + push master → 자동 배포
+1. `codex/…` 작업 브랜치에서 편집한다. **저장소 사본이 진실**이며 master 직접 푸시는 금지다.
+2. `node tools/stamp-build.js`
+3. `node tools/gen-verification.js` — 4딜 중 하나라도 파리티를 재현하지 못하면 중단
+4. `node tools/gen-pages.js` 후 `node tools/gen-pages.js --check`
+5. `node tools/modelter-ci-check.js` 후 `node tools/qa/invariants.js`
+6. `grep -c "__mtCalc" dart-search/web/modelter/index.html` → **0** 확인
+7. `node tools/qa/smoke.js` — 실제 브라우저 49개 경로. Playwright·Chromium 경로가 자동 탐색되지 않으면 `CHROME_BIN`을 명시
+8. 계산·엑셀 로직 변경 시 위 절차와 별도로 11개 딜·경계 변형의 파리티 2단계를 전수 실행
+9. 한국어 커밋 → 작업 브랜치 push → PR. master 보호 규칙의 `검증`·`파리티 11조합`·`브라우저 스모크 49건`이 모두 통과한 뒤 머지
+10. Cloudflare 배포 성공과 라이브 `MT_BUILD`를 확인한다. 계기판 스냅샷도 master 직접 커밋이 아니라 자동 브랜치·PR·동일 게이트를 거친다.
 
 ### 불변 규칙 (완화 금지)
 
@@ -73,4 +76,4 @@ DART 사업보고서 전문 검색. OpenDART 수집(`collect.py`)·AI 요약(`su
 
 - 사용자는 **코딩 입문자**(코람코자산신탁 상장리츠팀), 한국어로 소통, 쉬운 설명과 작은 단계
 - 커밋 메시지는 한국어, 변경 의도가 드러나게
-- **푸시 권한**: 사용자가 모든 브랜치(master 포함) 푸시를 사전 승인함(2026-07-09) — 검증(CI·QA·파리티) 통과 후 허락 없이 머지·푸시 가능
+- **푸시·머지 권한**: 사용자가 사전 승인함(2026-07-09). 작업 브랜치 push와 검증 완료 PR 머지는 추가 허락 없이 가능하지만, master 보호 규칙을 우회하거나 직접 푸시하지 않는다.
