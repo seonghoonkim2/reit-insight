@@ -27,7 +27,7 @@
 
 const DATASET = 'Modelter';
 // 산출물 목록·라벨은 공용 모듈에서(report.js 와 단일 진실 공유 — 드리프트 방지)
-const { OUTPUT_EVENTS, FEAT_LABEL, DEAL_LABEL } = require('./modelter-labels');
+const { OUTPUT_EVENTS, FIRST_NUMBER_BUCKETS, FEAT_LABEL, DEAL_LABEL } = require('./modelter-labels');
 
 // ── 인자 파싱 ──
 function arg(name, def) {
@@ -42,7 +42,8 @@ const ACCOUNT = arg('account', process.env.CF_ACCOUNT_ID || '');
 const TOKEN = arg('token', process.env.CF_API_TOKEN || '');
 const DAYS = parseInt(arg('days', '7'), 10) || 7;
 const FLAG_BOTS = process.argv.includes('--include-bots');  // 기본은 봇 제외(blob10='1' 태깅분) — 구 데이터(blob10='')는 그대로 포함
-const WHERE = `timestamp > now() - INTERVAL '${DAYS}' DAY` + (FLAG_BOTS ? '' : " AND blob10 != '1'");
+const BOT_FILTER = FLAG_BOTS ? '' : " AND blob10 != '1'";
+const WHERE = `timestamp > now() - INTERVAL '${DAYS}' DAY` + BOT_FILTER;
 
 // ── 쿼리 정의 ──
 const Q = {
@@ -65,10 +66,17 @@ const Q_ACT_OUT = `SELECT blob11 AS a, sum(_sample_interval) AS n FROM ${DATASET
 /* 북극성 팀 전달 — 2026-08-15 KST 배포 뒤의 사전 등록 14일 창만 센다.
    종료 상한이 없으면 뒤늦게 생성한 스냅샷의 누적값이 계속 커져 14일 판정을 왜곡한다.
    메뉴 발견(handoff_open)·실제 링크 생성(share_link)은 act 여부로 분리하고,
-   같은 고정 창의 session·activate도 함께 저장해 활성화율 기준을 정확히 판정한다. */
+   같은 고정 창의 session·activate도 함께 저장해 활성화율 기준을 정확히 판정한다.
+   이 절대기간 쿼리에는 최근 DAYS 조건을 섞지 않는다. */
 const TEAM_HANDOFF_SINCE_UTC = '2026-08-14 23:03:30';
 const TEAM_HANDOFF_UNTIL_UTC = '2026-08-28 23:03:30';
-const Q_TEAM_HANDOFF = `SELECT blob1 AS e, blob11 AS a, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND timestamp >= toDateTime('${TEAM_HANDOFF_SINCE_UTC}') AND timestamp < toDateTime('${TEAM_HANDOFF_UNTIL_UTC}') AND blob1 IN ('session','activate','handoff_open','share_link') GROUP BY e, a`;
+const TEAM_WINDOW_EVENTS = ['session', 'activate', 'handoff_open', 'share_link'];
+const Q_TEAM_HANDOFF = `SELECT blob1 AS e, blob11 AS a, sum(_sample_interval) AS n FROM ${DATASET} WHERE timestamp >= toDateTime('${TEAM_HANDOFF_SINCE_UTC}') AND timestamp < toDateTime('${TEAM_HANDOFF_UNTIL_UTC}')${BOT_FILTER} AND blob1 IN (${TEAM_WINDOW_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY e, a`;
+/* 첫 숫자 속도 이벤트는 실제 프로덕션 배포 완료(2026-08-15 10:18:30 KST)부터 별도 14일 창을 센다.
+   팀 전달보다 2시간 15분 늦게 계측됐으므로 같은 시작시각으로 소급하지 않는다. */
+const FIRST_NUMBER_SINCE_UTC = '2026-08-15 01:18:30';
+const FIRST_NUMBER_UNTIL_UTC = '2026-08-29 01:18:30';
+const Q_FIRST_NUMBER_WINDOW = `SELECT blob1 AS e, sum(_sample_interval) AS n FROM ${DATASET} WHERE timestamp >= toDateTime('${FIRST_NUMBER_SINCE_UTC}') AND timestamp < toDateTime('${FIRST_NUMBER_UNTIL_UTC}')${BOT_FILTER} AND blob1 IN (${FIRST_NUMBER_BUCKETS.map(b => `'${b.event}'`).join(',')}) GROUP BY e`;
 /* 딜 커버리지 게이트 — deal_want 는 2026-07-14 부터 브라우저당 유형별 1표(dedupe). 그 이전은 클릭 수라 섞으면 안 된다.
    ⚠ AE 보존기간(약 90일)을 넘기면 이 절대 기간 쿼리는 과소집계된다 — 2026-10 이후엔 커밋된 스냅샷 누적 합산으로 전환할 것. */
 const GATE_SINCE = '2026-07-14 00:00:00';
@@ -203,6 +211,12 @@ function validateSnap(snap) {
       const row = th[ev] || {};
       for (const k of ['act', 'nonact', 'unknown']) if (typeof row[k] !== 'number' || !isFinite(row[k])) errs.push('teamHandoffByAct.' + ev + '.' + k + ' 숫자 아님');
     }
+    if (th.firstNumber) {
+      for (const k of ['since', 'until']) if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/.test(String(th.firstNumber[k] || ''))) errs.push('teamHandoffByAct.firstNumber.' + k + ' 시각 형식 위반');
+      for (const b of FIRST_NUMBER_BUCKETS) {
+        if (typeof th.firstNumber[b.event] !== 'number' || !isFinite(th.firstNumber[b.event])) errs.push('teamHandoffByAct.firstNumber.' + b.event + ' 숫자 아님');
+      }
+    }
   }
   return errs;
 }
@@ -238,6 +252,8 @@ async function main() {
     for (const [name, sql] of Object.entries(Q)) console.log('-- ' + name + '\n' + sql + '\n');
     console.log('-- attribution_src\n' + Q_ATTR_SRC + '\n');
     console.log('-- attribution_ref\n' + Q_ATTR_REF + '\n');
+    console.log('-- team_handoff_fixed_14d\n' + Q_TEAM_HANDOFF + '\n');
+    console.log('-- first_number_fixed_14d\n' + Q_FIRST_NUMBER_WINDOW + '\n');
     console.log('# curl 예:\n#   curl "https://api.cloudflare.com/client/v4/accounts/<계정ID>/analytics_engine/sql" \\\n#     -H "Authorization: Bearer <토큰>" --data "' + Q.events + '"');
     return;
   }
@@ -290,19 +306,28 @@ async function main() {
         extra.outputsByAct = o;
       } catch (e) { console.error('act 분해 조회 건너뜀: ' + e.message); }
       try {                                            // 북극성 팀 전달 — 오계측 분리 배포 이후만
-        const rows = await runSQL(Q_TEAM_HANDOFF);
+        const [rows, firstRows] = await Promise.all([runSQL(Q_TEAM_HANDOFF), runSQL(Q_FIRST_NUMBER_WINDOW)]);
         const h = {
           since: '2026-08-15',
           decisionDate: '2026-08-29',
           window: { session: 0, activate: 0 },
           handoff_open: { act: 0, nonact: 0, unknown: 0 },
           share_link: { act: 0, nonact: 0, unknown: 0 },
+          firstNumber: {
+            since: '2026-08-15T10:18:30+09:00',
+            until: '2026-08-29T10:18:30+09:00',
+            ...Object.fromEntries(FIRST_NUMBER_BUCKETS.map(b => [b.event, 0])),
+          },
         };
         for (const r of rows) {
           const e = String(r.e || ''), a = String(r.a == null ? '' : r.a), n = Number(r.n || 0);
           if (e === 'session' || e === 'activate') { h.window[e] += n; continue; }
           if (!h[e]) continue;
           if (a === '1') h[e].act += n; else if (a === '0') h[e].nonact += n; else h[e].unknown += n;
+        }
+        for (const r of firstRows) {
+          const e = String(r.e || '');
+          if (Object.prototype.hasOwnProperty.call(h.firstNumber, e)) h.firstNumber[e] += Number(r.n || 0);
         }
         extra.teamHandoffByAct = h;
       } catch (e) { console.error('팀 전달 act 분해 조회 건너뜀: ' + e.message); }
@@ -326,4 +351,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { Q, Q_TEAM_HANDOFF, TEAM_HANDOFF_SINCE_UTC, TEAM_HANDOFF_UNTIL_UTC, render, toMap, attrByGroup, renderAttr, funnelOf, isoWeek, validateSnap };
+module.exports = { Q, Q_TEAM_HANDOFF, Q_FIRST_NUMBER_WINDOW, TEAM_HANDOFF_SINCE_UTC, TEAM_HANDOFF_UNTIL_UTC, FIRST_NUMBER_SINCE_UTC, FIRST_NUMBER_UNTIL_UTC, render, toMap, attrByGroup, renderAttr, funnelOf, isoWeek, validateSnap };
