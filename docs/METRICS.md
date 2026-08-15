@@ -29,14 +29,14 @@
 
 | AE | 필드 | 내용 |
 |---|---|---|
-| blob1 (index) | ev | 이벤트명 |
-| blob2 | deal | 딜 유형(office·logistics·dev·refi). `hotel`·`retail`·`rental`·`datacenter`는 deal_want 투표값. ⚠ `reit`는 2026-07-06 제거된 옛 '리츠·펀드 운용' 탭의 잔상 — 07-06 이전 구간을 포함하는 집계 창에만 나타나며 이후 신규 발화 없음 |
-| blob3 | depth | 입력 깊이(quick·standard·full) |
+| blob1 (index) | ev | 아래 이벤트 사전 65개 + 운영 점검 `ci_probe_live`만 허용. 그 외 값은 이벤트 전체 폐기 |
+| blob2 | deal | 8개 유한 목록(office·logistics·dev·refi·hotel·retail·rental·datacenter). 뒤 4개는 deal_want 투표값. ⚠ `reit`는 2026-07-06 제거된 옛 탭의 과거 데이터에만 남으며 이후 Worker가 받지 않음 |
+| blob3 | depth | 3개 유한 목록(quick·standard·full) |
 | blob4 | dev | 기기(desktop·mobile) |
 | blob5 | ref | 유입 호스트 — 클라이언트 `dr`(진입 document.referrer 호스트) 우선, 없으면 비콘 referer |
 | blob6 | cc | 국가 코드 |
-| blob7 | feats | 활성 기능 플래그(쉼표 결합) |
-| blob8 | axis | 민감도 축(growth·rate) |
+| blob7 | feats | 9개 유한 기능 플래그의 쉼표 결합(rr·dep·fee·bido·vac·resi·hold·pref·scen), 중복·임의값 폐기 |
+| blob8 | axis | 4개 유한 민감도 축(growth·rate·dev_price·dev_cost) |
 | blob9 | src | 채널 태그(15개 유한 허용 목록: `xlsx`·`ppt`·`png`·`qr`·`share`·`notes`·`team`·`hero`·`pdf`·`sns`·`seo`·`dscr`·`imcheck`·`howto`·`pwa`) |
 | blob10 | bot | 자동화 트래픽(0/1) — §2 분모 규칙 |
 | double1 | rr | 렌트롤 사용(0/1) |
@@ -152,3 +152,4 @@
 | 2026-08-16 | 정적 검색·콘텐츠 착지에서 원 외부 유입 호스트를 같은 탭의 `mt_ref0`에 계승 | `/e`의 기존 `ref` 필드·호스트 정화·개인정보 범위는 불변. 정적 면→앱 CTA에서 자기 도메인으로 덮이던 과소집계를 보정하므로 유입 호스트의 전후 절대량은 직접 비교 금지 |
 | 2026-08-16 | `src`를 브라우저·Worker 동일 15개 유한 허용 목록으로 고정 | 임의 숫자·자유 문자열은 저장하지 않음. 기존 정상 채널의 퍼널 정의는 불변이며, 이후 `src` 추가는 앱·Worker·신뢰센터·이 문서를 함께 변경해야 함 |
 | 2026-08-16 | 기존 `team` 채널 딥링크에 첫 입력 인계 적용 | 팀 파일럿의 무상태 딜 링크가 예시→자기 숫자 전환 안내를 받음. 신규 이벤트·필드 없이 기존 `bySrc.team`과 북극성 고정 창으로만 판독 |
+| 2026-08-16 | `/e`의 ev·deal·depth·feats·axis도 Worker 유한 허용 목록으로 고정 | 미등록 이벤트는 전체 폐기, 등록 이벤트의 임의 차원값은 빈 값으로 폐기. 브라우저 정상 이벤트·기존 AE 필드·판독 정의는 불변 |

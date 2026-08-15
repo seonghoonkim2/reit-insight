@@ -145,6 +145,18 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const workerSrc = [...workerBlock.matchAll(/"([a-z0-9_]+)"/g)].map(m => m[1]).sort();
   ok(JSON.stringify(clientSrc) === JSON.stringify(expectedSrc) && JSON.stringify(workerSrc) === JSON.stringify(expectedSrc), 'src 채널: 클라이언트·worker 15개 유한 허용 목록 정확 일치');
   ok(workerSrc2.includes('SRC_CHANNELS.has(srcRaw) ? srcRaw : ""'), 'worker.js: 임의 숫자·자유 문자열 src 폐기');
+  const enumValues = name => {
+    const m = workerSrc2.match(new RegExp('const ' + name + ' = (?:new Set\\()?\\[([^\\]]*)\\]\\)?;'));
+    return m ? [...m[1].matchAll(/"([a-z0-9_]+)"/g)].map(x => x[1]).sort() : [];
+  };
+  ok(JSON.stringify(enumValues('DEAL_NAMES')) === JSON.stringify(['datacenter', 'dev', 'hotel', 'logistics', 'office', 'refi', 'rental', 'retail']), 'worker.js: 딜 유형 8개 유한 목록');
+  ok(JSON.stringify(enumValues('DEPTH_NAMES')) === JSON.stringify(['full', 'quick', 'standard']), 'worker.js: 모델 깊이 3개 유한 목록');
+  ok(JSON.stringify(enumValues('FEAT_NAMES')) === JSON.stringify(['bido', 'dep', 'fee', 'hold', 'pref', 'resi', 'rr', 'scen', 'vac']), 'worker.js: 기능 플래그 9개 유한 목록');
+  ok(JSON.stringify(enumValues('AXIS_NAMES')) === JSON.stringify(['dev_cost', 'dev_price', 'growth', 'rate']), 'worker.js: 민감도 축 4개 유한 목록');
+  try {
+    const privacyOut = require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'qa', 'worker-privacy.mjs')], { encoding: 'utf8', timeout: 15000 });
+    ok(privacyOut.includes('WORKER PRIVACY OK'), 'worker.js: 실제 fetch에서 미등록 이벤트·임의 차원값 폐기');
+  } catch (e) { ok(false, 'worker.js: 유한 토큰 실행 검사 (' + (e.stderr || e.message) + ')'); }
 }
 
 /* ── 1k) 판독 분모 위생(P2) — 봇 태깅 + 운영자 QA 제외 ──
@@ -183,6 +195,11 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const ghostDoc = docEvents.filter(e => !codeEvents.includes(e));
   ok(missingDoc.length === 0, '계측 사전: 코드 발화 이벤트 전부 문서화 (누락: ' + (missingDoc.join(',') || '없음') + ')');
   ok(ghostDoc.length === 0, '계측 사전: 문서에만 있는 유령 이벤트 없음 (초과: ' + (ghostDoc.join(',') || '없음') + ')');
+  const workerSrc4 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
+  const workerEventBlock = (workerSrc4.match(/const EVENT_NAMES = new Set\(\[([^\]]+)\]\);/) || [])[1] || '';
+  const workerEvents = [...workerEventBlock.matchAll(/"([a-z_0-9]+)"/g)].map(m => m[1]).sort();
+  const expectedWorkerEvents = [...codeEvents, 'ci_probe_live'].sort();
+  ok(JSON.stringify(workerEvents) === JSON.stringify(expectedWorkerEvents), '계측 사전: worker 이벤트 허용 목록 = 앱 65개 + 운영 점검 1개');
   // 네거티브 자기 검사 — 이 비교기가 가짜 이벤트를 실제로 잡는지(잡지 못하면 게이트 자체가 무의미)
   ok([...docEvents, 'zz_fake_event'].filter(e => !codeEvents.includes(e)).length > 0, '계측 사전: 비교기 네거티브 자기 검사(가짜 이벤트 감지)');
   // 산출물 정의 단일 진실 — labels.js OUTPUT_EVENTS 전부가 문서 표에 존재
@@ -239,7 +256,7 @@ ok(html.includes("track('deal_want'"), '수요 가짜 문: deal_want 수집(딜 
 {
   // 무전송 불변 재확인 — src·deal_want 는 채널명/딜유형명만, 수치·PII 금지
   const workerSrc = fs.existsSync(path.join(__dirname, '..', 'worker.js')) ? fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8') : '';
-  ok(/const\s+srcRaw\s*=\s*s\(d\.src,\s*8\)\.toLowerCase\(\)\.replace\(\/\[\^a-z0-9_\]/.test(workerSrc), 'worker.js: src 문자 정화 후 유한 허용 목록 판정');
+  ok(workerSrc.includes('const srcRaw = token(d.src, 8);') && workerSrc.includes('EVENT_NAMES.has(evRaw)'), 'worker.js: 모든 문자열 차원 토큰 정화 후 유한 허용 목록 판정');
 }
 
 /* ── 1d) 산출물 회수 루프(E2) — 회수 링크·QR·착지 CTA ── */
