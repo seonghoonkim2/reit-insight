@@ -358,6 +358,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   });
   ok(fs.existsSync(capturePath) && captureSrc.includes("localStorage.setItem('mt_qa', '1')") && captureSrc.includes("if (p === '/e')"), '네이버 게시 자산: 로컬·QA 모드 재현 캡처(/e 전송 0)');
   ok(validAssets.length === 4 && assetNames.every(n => naverDoc.includes(n)), '네이버 게시 자산: 샘플 JPEG 4장·본문 대체텍스트 연결');
+  ok(naverDoc.includes('매입가, 연면적, 임대료 또는 NOI') && naverDoc.includes('“NOI로 입력”'), '네이버 게시 원고: 매입 첫 숫자 필수 입력·NOI 직접입력 동선 정합');
   const searchOpsPath = path.join(__dirname, '..', 'docs', 'SEARCH_OPERATIONS.md');
   const searchOps = fs.existsSync(searchOpsPath) ? fs.readFileSync(searchOpsPath, 'utf8') : '';
   const gitignore = fs.readFileSync(path.join(__dirname, '..', '.gitignore'), 'utf8');
