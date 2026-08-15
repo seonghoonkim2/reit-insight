@@ -143,11 +143,15 @@ async function closeOverlays(page) {
       fillExample(); state.gfa = ''; renderSim();
       const el = document.querySelector('.sim-empty');
       const rentBlocked = el && /연면적/.test(el.textContent);
-      fillExample(); state.noimode = 'NOI 직접 입력'; state.noi1 = '6000'; state.gfa = ''; renderSim();
+      fillExample(); state.noimode = 'NOI 직접 입력'; state.noi1 = '6000'; state.gfa = ''; update();
       const el2 = document.querySelector('.sim-empty');
-      return rentBlocked && el2 && /연면적/.test(el2.textContent);
+      const gfaBlocked = el2 && /연면적/.test(el2.textContent) && document.getElementById('sensCard').hidden;
+      fillExample(); state.noimode = 'NOI 직접 입력'; state.noi1 = ''; update();
+      const el3 = document.querySelector('.sim-empty');
+      const noiBlocked = el3 && /1차연도 NOI/.test(el3.textContent) && document.getElementById('sensCard').hidden && !document.getElementById('sensBody').textContent.trim();
+      return rentBlocked && gfaBlocked && noiBlocked;
     });
-    ok(e2, '임대료·NOI 직접입력 모두 연면적 삭제 → 빈 상태');
+    ok(e2, '임대료·NOI 직접입력 누락 → 결과·민감도 동시 빈 상태');
     const e3 = await page.evaluate(() => {
       fillExample(); renderSim(); renderInpProg();
       return { result: !document.querySelector('.sim-empty'), sample: !document.getElementById('sampleStart').hidden, progress: /예시 입력/.test(document.getElementById('ipTxt').textContent) };
