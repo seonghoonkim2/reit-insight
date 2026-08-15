@@ -673,7 +673,10 @@ ok(html.includes('href="/im-checklist"') && html.includes('modelter.com/im-check
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'추천'"), '미니 KPI 전 탭(분양·리파이) 확장');
-ok(html.includes('mt_nudge') && html.includes('nudge_save'), '저장 넛지(세션 1회) 존재');
+ok(html.includes('mt_nudge') && html.includes('nudge_save') &&
+  /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 1차 검토 공유/.test(html) &&
+  /exRemaining\(\)\.length>0[\s\S]{0,350}예시로 남은 가정/.test(html),
+  '저장·팀 전달 넛지: 세션 1회·기존 공유 중복 억제·예시 상태별 문구');
 ok(html.includes('스스로 검증하는 엑셀'), "What's new v3 내용 현행화");
 ok(html.includes('내 숫자가 대입된 산식') && html.includes('가정 출처, 전 딜 엑셀에'), "What's new v3 내용 4차 현행화(산식 대입·출처 엑셀)");
 ok(html.includes('더 깐깐해진 점검'), "What's new v3 내용 4차 현행화(점검·경고)");
