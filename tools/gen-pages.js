@@ -260,6 +260,10 @@ function shell(o) {
 ${JSON.stringify(o.ld)}
 </script>
 <style>${CSS}</style>
+<script>
+/* 외부 검색·콘텐츠 → 정적 착지 → 계산기 이동 사이에 유입 호스트만 같은 탭에 보존한다. */
+try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(document.referrer).hostname;if(_rh&&_rh!==location.hostname)sessionStorage.setItem('mt_ref0',_rh.slice(0,40));}}catch(_e){}
+</script>
 </head>
 <body>
 <header><div class="wrap">

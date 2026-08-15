@@ -69,6 +69,23 @@ if (fs.existsSync(path.join(DIR, 'sitemap.xml'))) {
   ok(locs.every(u => !/\.html(?:$|[?#])/.test(u)), 'sitemap: canonical 무확장 URL만(.html 0)');
 }
 
+/* 외부 검색/콘텐츠 → 정적 착지 → 앱 CTA 경로에서 원 유입 호스트가 자기참조로 덮이는 누수 방지.
+ * 기존 ref 필드의 호스트만 같은 탭 sessionStorage에 계승하며, 정적 면에서는 /e를 보내지 않는다. */
+{
+  const staticPages = [];
+  const walk = d => { for (const ent of fs.readdirSync(d, { withFileTypes: true })) {
+    const p = path.join(d, ent.name);
+    if (ent.isDirectory()) walk(p);
+    else if (ent.name.endsWith('.html') && ent.name !== 'index.html') staticPages.push(p);
+  } };
+  walk(DIR);
+  const carryBad = staticPages.filter(p => {
+    const s = fs.readFileSync(p, 'utf8');
+    return !(s.includes("sessionStorage.getItem('mt_ref0')") && s.includes('document.referrer') && s.includes('_rh!==location.hostname') && s.includes('_rh.slice(0,40)'));
+  });
+  ok(staticPages.length >= 43 && carryBad.length === 0, '유입원 계승: 정적 착지 전수에서 외부 호스트만 같은 탭 보존 (' + staticPages.length + '개, 누락 ' + carryBad.length + ')');
+}
+
 /* ── 1b) 신뢰 센터(trust.html) ↔ worker.js /e 수집 필드 1:1 강제 ──
  *  화면에 "이것만 수집한다"고 써 붙인 표와 코드가 실제로 보내는 필드가 어긋나면 배포 차단.
  *  (신뢰 문서가 코드보다 뒤처지거나 앞서가는 것을 CI가 막음) */
@@ -298,6 +315,10 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
 /* ── 1g) 재현성 스탬프 + 파리티 공표(E6) ── */
 ok(html.includes("window.MT_BUILD=") && html.includes('function mtBuild()'), '재현성: 빌드 스탬프 상수(MT_BUILD)·헬퍼');
 ok(fs.existsSync(path.join(__dirname, 'stamp-build.js')), '재현성: 빌드 스탬프 스크립트(stamp-build.js)');
+if (fs.existsSync(path.join(__dirname, 'stamp-build.js'))) {
+  const stampSrc = fs.readFileSync(path.join(__dirname, 'stamp-build.js'), 'utf8');
+  ok(stampSrc.includes("timeZone: 'Asia/Seoul'") && stampSrc.includes('const date = seoulDate();'), '재현성: 한국 서비스 빌드 날짜는 KST 기준(자정 경계 회귀 방지)');
+}
 ok(fs.existsSync(path.join(__dirname, 'gen-verification.js')), '재현성: 파리티 공표 생성기(gen-verification.js)');
 ok(fs.existsSync(path.join(DIR, 'verification.html')), '재현성: /verification 페이지 존재');
 // 4산출물 스탬프 표기 코드 경로

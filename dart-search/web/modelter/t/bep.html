@@ -83,6 +83,10 @@ footer a{color:var(--ink-3)}
 .faq summary::before{content:"＋";color:var(--accent);font-weight:800;margin-right:9px}
 .faq[open] summary::before{content:"－"}
 .faq p{font-size:14px;color:var(--ink-2);padding:9px 0 2px 23px;line-height:1.65}</style>
+<script>
+/* 외부 검색·콘텐츠 → 정적 착지 → 계산기 이동 사이에 유입 호스트만 같은 탭에 보존한다. */
+try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(document.referrer).hostname;if(_rh&&_rh!==location.hostname)sessionStorage.setItem('mt_ref0',_rh.slice(0,40));}}catch(_e){}
+</script>
 </head>
 <body>
 <header><div class="wrap">
