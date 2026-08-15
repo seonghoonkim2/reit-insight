@@ -155,6 +155,7 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   ok(aeSrc3.includes('Q_TEAM_HANDOFF') && aeSrc3.includes('teamHandoffByAct') && md.includes('teamHandoffByAct'), '북극성 계측: 실사용 팀 전달·실제 링크 act 분해 스냅샷');
   ok(aeSrc3.includes('TEAM_HANDOFF_UNTIL_UTC') && aeSrc3.includes("timestamp < toDateTime('${TEAM_HANDOFF_UNTIL_UTC}')") && aeSrc3.includes("blob1 IN ('session','activate','handoff_open','share_link')"), '북극성 계측: 사전 등록 14일 상한·동일 창 활성화율 고정');
   ok(reportSrc3.includes('북극성 · 팀 전달') && reportSrc3.includes('실제 공유 링크') && reportSrc3.includes('판정 보류') && reportSrc3.includes('정량 통과 · 정성 증거 확인 필요'), '북극성 계기판: 조기 판정 금지·정성 증거 분리');
+  ok(html.includes("track('first_number_5m')") && html.includes("track('first_number_15m')") && html.includes("track('first_number_30m')") && html.includes("track('first_number_slow')") && reportSrc3.includes('첫 숫자 속도'), '북극성 계측: 첫 자기 딜 결과 시간 4구간·계기판');
   const snapWorkflowPath = path.join(__dirname, '..', '.github', 'workflows', 'modelter-snapshot.yml');
   const snapWorkflow = fs.existsSync(snapWorkflowPath) ? fs.readFileSync(snapWorkflowPath, 'utf8') : '';
   ok(snapWorkflow.includes('automation/modelter-snapshot-${GITHUB_RUN_ID}') && snapWorkflow.includes('gh pr merge "$pr_url"'), '스냅샷 자동화: master 직접 push 대신 전수 검증 PR');

@@ -1976,7 +1976,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-15·3a2812f274';
+window.MT_BUILD='2026-08-15·79660c62d9';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -11442,10 +11442,17 @@ var qrcode = function() {
   window.mtTrack=track;
   try{ var _mxf=document.getElementById('mxFold'); if(_mxf) _mxf.addEventListener('toggle',function(){ if(_mxf.__auto){ _mxf.__auto=false; return; } _mxf.__user=true; }); }catch(e){}
   // 퍼널 신호(세션당 1회): session(방문) → activate(직접 입력) → computed(자기 딜 결과 도달) → 산출물
-  var actFired=false, compFired=false;
+  var actFired=false, compFired=false, firstNumberStart=Date.now();
   // 실사용 표식 — 다음 방문에 소개를 접고 도구부터 보여주는 기준(수치·PII 없이 '써 봤다' 한 비트만 로컬 저장)
   window.__mtActivate=function(){ if(actFired) return; actFired=true; try{ localStorage.setItem('mt_used','1'); }catch(e){} try{ track('activate'); }catch(e){} };
   window.__mtComputed=function(){ if(compFired||!actFired) return; compFired=true; try{ track('computed'); }catch(e){}
+    // 첫 숫자 속도 — 정확한 시간은 보내지 않고 페이지 진입→첫 자기 딜 결과의 거친 구간만 세션당 1회 전송.
+    try{ var firstNumberMs=Math.max(0,Date.now()-firstNumberStart);
+      if(firstNumberMs<=300000) track('first_number_5m');
+      else if(firstNumberMs<=900000) track('first_number_15m');
+      else if(firstNumberMs<=1800000) track('first_number_30m');
+      else track('first_number_slow');
+    }catch(eT){}
     // 저장 넛지: 자기 딜 결과까지 봤는데 저장·공유 없이 이탈하기 쉬운 시점에 1회만
     try{
       setTimeout(function(){
