@@ -38,6 +38,8 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&am
 const num = n => Math.round(Number(n) || 0).toLocaleString();
 const dnum = v => { const n = Math.round(Number(v)); return Number.isFinite(n) && n > 0 ? n : '?'; };  // days 를 안전한 정수로(HTML 삽입 무해화)
 const pct = (a, b) => { a = Number(a) || 0; b = Number(b) || 0; return b > 0 ? (a / b * 100).toFixed(1) + '%' : '—'; };  // 부분/누락 값도 NaN% 대신 안전한 수치로
+const utcDay = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || '')) ? Date.parse(String(s) + 'T00:00:00Z') : NaN;
+const addDays = (s, n) => { const t = utcDay(s); return Number.isFinite(t) ? new Date(t + n * 86400000).toISOString().slice(0, 10) : ''; };
 
 // ── 인라인 SVG 차트 (외부 의존 없음) ──
 function lineChart(series, opt) {
@@ -155,13 +157,30 @@ function build(snaps) {
   const th = last.teamHandoffByAct || null;
   const ho = (th && th.handoff_open) || { act: 0, nonact: 0, unknown: 0 };
   const sl = (th && th.share_link) || { act: 0, nonact: 0, unknown: 0 };
+  const teamWin = th && th.window;
+  const hasTeamWin = !!teamWin && Number.isFinite(Number(teamWin.session)) && Number.isFinite(Number(teamWin.activate));
+  const expSince = (th && th.since) || '';
+  const decisionDate = (th && th.decisionDate) || addDays(expSince, 14);
+  const elapsedRaw = Math.floor((utcDay(last.endDate) - utcDay(expSince)) / 86400000) + 1;
+  const elapsed = Number.isFinite(elapsedRaw) ? Math.max(0, Math.min(14, elapsedRaw)) : 0;
+  const ready = !!decisionDate && String(last.endDate) >= decisionDate;
+  const activation = hasTeamWin ? (Number(teamWin.activate) || 0) : 0;
+  const sessions = hasTeamWin ? (Number(teamWin.session) || 0) : 0;
+  const activationOk = sessions > 0 && activation / sessions >= 0.1;
+  let verdict = `판정 보류 · ${elapsed}/14일 · ${decisionDate || '종료일 미정'} 판정`;
+  if (!hasTeamWin) verdict = '판정 보류 · 동일 창 활성화 집계 대기';
+  else if (ready) {
+    if ((Number(ho.act) || 0) < 3 || !activationOk) verdict = '철회 기준 도달';
+    else if ((Number(ho.act) || 0) >= 10 && (Number(sl.act) || 0) >= 5) verdict = '정량 통과 · 정성 증거 확인 필요';
+    else verdict = '부분 채택 후보 · 정성 증거 확인 필요';
+  }
   const teamRows = [
     ['공유 메뉴 열기', Number(ho.act) || 0, 10],
     ['실제 공유 링크', Number(sl.act) || 0, 5],
   ].map(([lb, v, target]) => `<div class="frow"><span class="fk">${lb}</span><span class="ftrack"><span class="ffill" style="width:${Math.min(100, v / target * 100)}%"></span></span><span class="fn">${num(v)} / ${target}</span></div>`).join('');
   const teamCard = th
-    ? `<div class="card"><h2>북극성 · 팀 전달 <span>실사용(act=1) · ${esc(th.since || '')} 이후</span></h2><div class="funnel">${teamRows}</div>
-      <p class="note">14일 사전 기준: 공유 메뉴 10건, 실제 링크 5건. 예시·비활성 세션은 메뉴 ${num(ho.nonact)}건 / 링크 ${num(sl.nonact)}건으로 분리해 성과에 넣지 않습니다.</p></div>`
+    ? `<div class="card"><h2>북극성 · 팀 전달 <span>실사용(act=1) · ${esc(expSince)} 시작</span></h2><div class="decision"><b>${esc(verdict)}</b><span>${hasTeamWin ? `고정 실험창 활성화 ${num(activation)} / 방문 ${num(sessions)} (${pct(activation, sessions)})` : '고정 실험창 집계는 다음 스냅샷부터 표시'}</span></div><div class="funnel">${teamRows}</div>
+      <p class="note">14일 사전 기준: 공유 메뉴 10건, 실제 링크 5건, 활성화율 10% 이상. 종료 전 수치는 진행 신호일 뿐 채택·철회로 판정하지 않습니다. 예시·비활성 세션은 메뉴 ${num(ho.nonact)}건 / 링크 ${num(sl.nonact)}건으로 분리해 성과에 넣지 않습니다.</p></div>`
     : `<div class="card"><h2>북극성 · 팀 전달</h2><p class="empty">새 스냅샷부터 실사용 공유 메뉴·실제 링크가 분리 집계됩니다.</p></div>`;
 
   const body = `
@@ -232,6 +251,8 @@ h1{font-size:22px;margin:0 0 2px}.sub{color:var(--ink3);font-size:12.5px;margin:
 .bn{min-width:72px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}.bn i{font-style:normal;color:var(--muted);font-weight:500;font-size:10.5px;margin-left:5px}
 .fn{min-width:56px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .note{font-size:11px;color:var(--muted);margin:9px 0 0}.note code,pre{background:var(--line2);border-radius:4px;padding:1px 5px;font-size:11px}
+.decision{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-2px 0 11px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:11.5px}.decision span{color:var(--ink3);text-align:right}
+@media(max-width:560px){.decision{align-items:flex-start;flex-direction:column}.decision span{text-align:left}}
 .snt{width:100%;border-collapse:collapse;font-size:12px}.snt th,.snt td{border:1px solid var(--line2);padding:4px 8px;text-align:right}.snt th{color:var(--ink3);font-weight:600;background:var(--bg)}.snt td:first-child,.snt th:first-child{text-align:left}
 .empty,.empty-state{color:var(--muted)}.empty-state pre{display:block;padding:9px 12px;margin:8px 0;white-space:pre-wrap}
 .foot{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6}

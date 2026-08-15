@@ -62,10 +62,13 @@ const Q_DAILY = `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, blo
 /* 북극성(K3) — 산출물이 '자기 숫자'로 만들어졌는지. blob11=act(1=활성화 세션). 2026-07-26 계측 개시.
    blob11='' 은 미계측 구간이므로 unknown 으로 분리한다(act/nonact 와 합치면 기준선이 오염됨). */
 const Q_ACT_OUT = `SELECT blob11 AS a, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND blob1 IN (${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY a`;
-/* 북극성 팀 전달 — 2026-08-15 KST 배포 뒤부터 메뉴 발견(handoff_open)과 실제 링크 생성(share_link)을
-   act 여부로 분리한다. 이전 share_link는 메뉴 열기만 한 건도 포함해 새 정의와 섞으면 안 된다. */
+/* 북극성 팀 전달 — 2026-08-15 KST 배포 뒤의 사전 등록 14일 창만 센다.
+   종료 상한이 없으면 뒤늦게 생성한 스냅샷의 누적값이 계속 커져 14일 판정을 왜곡한다.
+   메뉴 발견(handoff_open)·실제 링크 생성(share_link)은 act 여부로 분리하고,
+   같은 고정 창의 session·activate도 함께 저장해 활성화율 기준을 정확히 판정한다. */
 const TEAM_HANDOFF_SINCE_UTC = '2026-08-14 23:03:30';
-const Q_TEAM_HANDOFF = `SELECT blob1 AS e, blob11 AS a, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND timestamp >= toDateTime('${TEAM_HANDOFF_SINCE_UTC}') AND blob1 IN ('handoff_open','share_link') GROUP BY e, a`;
+const TEAM_HANDOFF_UNTIL_UTC = '2026-08-28 23:03:30';
+const Q_TEAM_HANDOFF = `SELECT blob1 AS e, blob11 AS a, sum(_sample_interval) AS n FROM ${DATASET} WHERE ${WHERE} AND timestamp >= toDateTime('${TEAM_HANDOFF_SINCE_UTC}') AND timestamp < toDateTime('${TEAM_HANDOFF_UNTIL_UTC}') AND blob1 IN ('session','activate','handoff_open','share_link') GROUP BY e, a`;
 /* 딜 커버리지 게이트 — deal_want 는 2026-07-14 부터 브라우저당 유형별 1표(dedupe). 그 이전은 클릭 수라 섞으면 안 된다.
    ⚠ AE 보존기간(약 90일)을 넘기면 이 절대 기간 쿼리는 과소집계된다 — 2026-10 이후엔 커밋된 스냅샷 누적 합산으로 전환할 것. */
 const GATE_SINCE = '2026-07-14 00:00:00';
@@ -192,8 +195,12 @@ function validateSnap(snap) {
   for (const k of ['session', 'activate', 'computed', 'output']) if (typeof f[k] !== 'number' || !isFinite(f[k])) errs.push('funnel.' + k + ' 숫자 아님');
   if (!snap.events || typeof snap.events !== 'object' || !Object.keys(snap.events).length) errs.push('events 비어 있음');
   if (snap.teamHandoffByAct) {
+    const th = snap.teamHandoffByAct;
+    for (const k of ['since', 'decisionDate']) if (!/^\d{4}-\d{2}-\d{2}$/.test(String(th[k] || ''))) errs.push('teamHandoffByAct.' + k + ' 날짜 형식 위반');
+    const win = th.window || {};
+    for (const k of ['session', 'activate']) if (typeof win[k] !== 'number' || !isFinite(win[k])) errs.push('teamHandoffByAct.window.' + k + ' 숫자 아님');
     for (const ev of ['handoff_open', 'share_link']) {
-      const row = snap.teamHandoffByAct[ev] || {};
+      const row = th[ev] || {};
       for (const k of ['act', 'nonact', 'unknown']) if (typeof row[k] !== 'number' || !isFinite(row[k])) errs.push('teamHandoffByAct.' + ev + '.' + k + ' 숫자 아님');
     }
   }
@@ -286,11 +293,14 @@ async function main() {
         const rows = await runSQL(Q_TEAM_HANDOFF);
         const h = {
           since: '2026-08-15',
+          decisionDate: '2026-08-29',
+          window: { session: 0, activate: 0 },
           handoff_open: { act: 0, nonact: 0, unknown: 0 },
           share_link: { act: 0, nonact: 0, unknown: 0 },
         };
         for (const r of rows) {
           const e = String(r.e || ''), a = String(r.a == null ? '' : r.a), n = Number(r.n || 0);
+          if (e === 'session' || e === 'activate') { h.window[e] += n; continue; }
           if (!h[e]) continue;
           if (a === '1') h[e].act += n; else if (a === '0') h[e].nonact += n; else h[e].unknown += n;
         }
@@ -316,4 +326,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { Q, Q_TEAM_HANDOFF, TEAM_HANDOFF_SINCE_UTC, render, toMap, attrByGroup, renderAttr, funnelOf, isoWeek, validateSnap };
+module.exports = { Q, Q_TEAM_HANDOFF, TEAM_HANDOFF_SINCE_UTC, TEAM_HANDOFF_UNTIL_UTC, render, toMap, attrByGroup, renderAttr, funnelOf, isoWeek, validateSnap };
