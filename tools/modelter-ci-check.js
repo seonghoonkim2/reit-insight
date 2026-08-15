@@ -666,6 +666,7 @@ ok(!/let html=depthHtml\(\)/.test(html) && /dyn\.innerHTML=h/.test(html),
   '모델 깊이·IM 가져오기가 입력 위가 아니라 도구 블록에 있음');
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
 ok(html.includes('id="sampleStart"') && html.includes('function startOwnDeal') && html.includes("mtTrack('sample_start')") && html.includes("office:'price',logistics:'price',dev:'landcost',refi:'noi'"), '첫 입력 전환: 예시 상태 공개·딜별 첫 핵심 숫자 포커스·의도 계측');
+ok(html.includes('function quickFieldKeys') && html.includes('data-core-noi=') && html.includes('NOI로 입력'), '매입 첫 입력: IM 수입 형식에 맞춘 평당 임대료↔NOI 직접 전환');
 ok(html.includes('href="/guide"'), '홈→가이드 내부 링크(SEO·무확장 정식 URL) 존재');
 ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재');
 ok(html.includes('href="/im-checklist"') && html.includes('modelter.com/im-checklist'), '홈·앱 IM 체크리스트 → 검색 착지 연결');
@@ -721,7 +722,7 @@ ok(html.includes('탭하면 결과로 이동'), '미니 KPI 탭 → 결과 스�
 ok(!/openWN\(\);?\s*\/\/\s*첫 방문/.test(html) && !html.includes('__mtOnboarding'), '온보딩 잔재 없음(딥링크 억제 분기 포함)');
 ok(html.includes('window.__wizOpen') && html.includes('id="wizBtn"') && html.includes('wiz-sheet'), '모바일 빠른 입력 위저드 존재');
 ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.includes("['asset','noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 핵심 필드 세트');
-ok(html.includes("_gf=mnum('gfa')"), '임대료 기준 연면적 필수 가드(침묵 기본값 차단)');
+ok(html.includes("_gf=mnum('gfa')"), '매입 계산 연면적 필수 가드(임대료·NOI 직접입력 침묵 기본값 차단)');
 ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
 ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');

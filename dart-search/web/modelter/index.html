@@ -1178,6 +1178,8 @@ body.mt-ro .panel-head .dt::after{content:" · 읽기 전용";color:var(--accent
 @keyframes coreHi{0%{background:#fdf6ea}60%{background:#fdf6ea}100%{background:transparent}}
 @media(prefers-reduced-motion:reduce){.core-g.core-hi{animation:none}}
 .core-note{padding:0 20px 10px;font-size:12px;color:var(--ink-3);line-height:1.5;margin-top:-4px}
+.core-mode{flex:none;margin-left:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--accent-deep);font:700 11px var(--font);padding:4px 8px;cursor:pointer;letter-spacing:0;text-transform:none}
+.core-mode:hover{border-color:var(--accent)}
 /* 핵심 입력 진행률 */
 .inp-prog{display:flex;align-items:center;gap:8px;padding:0 20px 10px;font-size:11.5px;color:var(--ink-3)}
 .inp-prog .ip-bar{flex:1;height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden}
@@ -1978,12 +1980,24 @@ const QUICK_FIELDS={
   dev:["asset","devtype","tpc","saleprice","exitcap","exitmode"],
   refi:["asset","noi","oldbal","oldrate","dscrmin"]
 };
+// 매입 딜은 IM에 있는 수입 형식에 맞춰 핵심 입력을 바꾼다.
+// Excel 엔진이 매입가를 평당가×연면적으로 연결하므로 두 방식 모두 연면적이 필수다.
+// NOI 직접 방식은 평당 임대료만 1차연도 NOI로 바꾼다.
+function quickFieldKeys(deal){
+  var keys=(QUICK_FIELDS[deal]||[]).slice();
+  if(deal==="office"||deal==="logistics"){
+    var md=(state&&state["noimode"]||"").trim(), direct=md.indexOf("직접")>=0;
+    if(keys.indexOf("gfa")<0) keys.splice(Math.max(0,keys.indexOf("price"))+1,0,"gfa");
+    if(direct) keys=keys.map(function(k){ return k==="rentpp"?"noi1":k; });
+  }
+  return keys;
+}
 
 let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-16·fff5191d4a';
+window.MT_BUILD='2026-08-16·3515e32ee9';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2002,6 +2016,11 @@ function exClearAllTrack(){ try{ exampleKeys.clear(); exUserEdited=false; srcTag
 function exRemaining(){ // 현재 딜 폼에 존재하는 숫자·텍스트 필드 중, 값이 있고 아직 예시 그대로인 키
   var out=[]; try{ exampleKeys.forEach(function(k){
     if(((state[k]||'')+'').trim()==='') return;
+    // 현재 NOI 입력 방식에서 쓰지 않는 숨김 값은 산출물의 '예시 잔존'으로 세지 않는다.
+    if(cur==='office'||cur==='logistics'){
+      var _direct=((state['noimode']||'')+'').indexOf('직접')>=0;
+      if((_direct&&['rentpp','campp','depmult'].indexOf(k)>=0)||(!_direct&&k==='noi1')) return;
+    }
     var f=exFieldDef(k); if(!f||f.t==='select'||f.t==='textarea'||f.t==='range') return;
     out.push(k);
   }); }catch(e){} return out;
@@ -2382,8 +2401,12 @@ function renderForm(){
   let gn=0;
   const isQuick = depth==="quick";
   const rrEligible = (cur==="office"||cur==="logistics");
-  let quickKeys = QUICK_FIELDS[cur]||[];
+  let quickKeys = quickFieldKeys(cur);
   if(cur==="dev") quickKeys = devResi()? ["asset","devtype","landcost","conscost","othercost","equity","pfrate"] : ["asset","devtype","tpc","saleprice","exitcap","exitmode"];
+  const directNoi = rrEligible && ((state["noimode"]||"").indexOf("직접")>=0);
+  const coreModeHtml = rrEligible
+    ? `<button class="core-mode" type="button" data-core-noi="${directNoi?'rent':'noi'}" aria-label="${directNoi?'평당 임대료 방식으로 입력':'IM의 연 NOI로 직접 입력'}" title="${directNoi?'평당 임대료·관리비 방식으로 바꿉니다':'IM에 연 NOI만 있으면 여기서 바로 바꿉니다'}">${directNoi?'임대료로 입력':'NOI로 입력'}</button>`
+    : '';
   // 깊이 선택·IM 가져오기는 '숫자를 넣기 전에 고를 것'이 아니다 → 입력 아래 '도구 · 저장' 블록으로(2026-08-11).
   // 여기서는 입력 그룹만 만들고, 도구 내용은 renderTools() 가 #toolsDyn 에 따로 그린다.
   let html='';
@@ -2395,7 +2418,7 @@ function renderForm(){
     allFields.sort((a,b)=>quickKeys.indexOf(a.k)-quickKeys.indexOf(b.k));
     const cols=allFields.some(x=>x.full)?'one':'';
     const qExtra = rrEligible ? rrFormBlockHtml() : (devResi()? devGridsHtml() : "");
-    html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${GL[gn++]}</span> 핵심 가정값 <span class="opt-badge" style="background:rgba(169,121,43,.1);color:var(--accent-deep);border-color:transparent">빠른 검토 · 필수 항목만</span></div><div class="fields ${cols}">${allFields.map(fieldHtml).join("")}${qExtra}</div></div>`;
+    html+=`<div class="fgroup"><div class="fgroup-h"><span class="gl">${GL[gn++]}</span> 핵심 가정값 <span class="opt-badge" style="background:rgba(169,121,43,.1);color:var(--accent-deep);border-color:transparent">빠른 검토 · 필수 항목만</span>${coreModeHtml}</div><div class="fields ${cols}">${allFields.map(fieldHtml).join("")}${qExtra}</div></div>`;
   }else{
     const mode=(state["noimode"]||"").trim();
     const rentBased = mode==="" || mode.startsWith("임대료");
@@ -2421,7 +2444,7 @@ function renderForm(){
     coreFields.sort((a,b)=>quickKeys.indexOf(a.k)-quickKeys.indexOf(b.k));
     if(coreFields.length){
       const ccols=coreFields.some(x=>x.full)?'one':'';
-      html+=`<div class="fgroup core-g"><div class="fgroup-h"><span class="gl">${GL[gn++]}</span> 핵심 입력<span class="gh-cnt"></span></div>`
+      html+=`<div class="fgroup core-g"><div class="fgroup-h"><span class="gl">${GL[gn++]}</span> 핵심 입력<span class="gh-cnt"></span>${coreModeHtml}</div>`
         +`<div class="core-note">이 ${coreFields.length}개만 넣어도 결과가 나옵니다 — 나머지는 통상값이 적용되고, 아래에서 언제든 조정할 수 있습니다.</div>`
         +`<div class="fields ${ccols}">${coreFields.map(fieldHtml).join("")}</div></div>`;
     }
@@ -2448,6 +2471,16 @@ function renderForm(){
   html+=commonHtml(GL[gn++]);
   $("formBody").innerHTML=html;
   renderTools(rrEligible);
+
+  // IM의 수입 표기에 맞춰 핵심 입력에서 바로 전환. 기존 계산 경로를 그대로 쓰고, 전환 뒤 첫 숫자 칸에 포커스한다.
+  const coreNoiBtn=$("formBody").querySelector("[data-core-noi]");
+  if(coreNoiBtn) coreNoiBtn.addEventListener("click",function(ev){
+    const toDirect=coreNoiBtn.dataset.coreNoi==="noi";
+    state["noimode"]=toDirect?"NOI 직접 입력":"임대료·관리비로 산출";
+    if(ev&&ev.isTrusted){ if(typeof exTouch==="function") exTouch("noimode"); if(window.__mtActivate) window.__mtActivate(); }
+    renderForm(); restoreInputs(); update();
+    setTimeout(function(){ var f=document.querySelector('[data-k="'+(toDirect?'noi1':'rentpp')+'"]'); if(f){ try{ f.focus(); f.select(); }catch(e){} } },40);
+  });
 
   // bind inputs + inline validation
   $("formBody").querySelectorAll("[data-k]").forEach(el=>{
@@ -2776,7 +2809,7 @@ function update(){
 /* 핵심 입력 진행률 — 딜별 필수 필드가 얼마나 채워졌는지(완성도 안심 지표) */
 function renderInpProg(){
   var box=$('inpProg'), fill=$('ipFill'), txt=$('ipTxt'); if(!box||!fill||!txt) return;
-  var keys=(typeof QUICK_FIELDS!=='undefined'&&QUICK_FIELDS[cur])?QUICK_FIELDS[cur].slice():[];
+  var keys=(typeof quickFieldKeys==='function')?quickFieldKeys(cur):((typeof QUICK_FIELDS!=='undefined'&&QUICK_FIELDS[cur])?QUICK_FIELDS[cur].slice():[]);
   if(cur==='dev'&&typeof devResi==='function'&&devResi()){
     // 분양은 그리드가 핵심 — 평형 1행 이상 채워졌는지 포함
     var hasApt=false; try{ var ar=devRows('aptrows',[]); hasApt=ar.some(function(r){ return parseNum(String(r.p||''))>0 && parseNum(String(r.n||''))>0; }); }catch(e){}
@@ -4628,13 +4661,8 @@ function renderVerdict(r){
 }
 /* 결과 계산에 필요한 미입력 핵심 필드의 라벨 목록 */
 function missingKeyFields(){
-  var keys=(typeof QUICK_FIELDS!=='undefined'&&QUICK_FIELDS[cur])?QUICK_FIELDS[cur].slice():[];
+  var keys=(typeof quickFieldKeys==='function')?quickFieldKeys(cur):((typeof QUICK_FIELDS!=='undefined'&&QUICK_FIELDS[cur])?QUICK_FIELDS[cur].slice():[]);
   var labs=[];
-  if(cur==='office'||cur==='logistics'){
-    var md=(state['noimode']||'').trim();
-    if(md&&md.indexOf('임대료')!==0) keys=keys.map(function(k){ return k==='rentpp'?'noi1':k; });
-    else if(keys.indexOf('gfa')<0) keys.splice(Math.max(0,keys.indexOf('price'))+1,0,'gfa');   // 임대료 기준이면 연면적도 필수
-  }
   if(cur==='dev'&&typeof devResi==='function'&&devResi()){
     keys=['landcost','conscost'];
     var hasApt=false; try{ devRows('aptrows',[]).forEach(function(rw){ if(parseNum(String(rw.n||''))>0&&parseNum(String(rw.p||''))>0) hasApt=true; }); }catch(e){}
@@ -6411,9 +6439,9 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
   function _newSimDcf(){
     var rr=rrLeaseResult(); if(rr) return rr;
     // 핵심 입력(매입가 + 임대수입원)이 비면 내장 기본값으로 몰래 계산하지 않고 빈 상태 안내로 보냄
-    var _p=mnum('price'); if(!isFinite(_p)||_p<=0) return null;
+    var _p=mnum('price'), _gf=mnum('gfa'); if(!isFinite(_p)||_p<=0||!isFinite(_gf)||_gf<=0) return null;
     var _md=(state['noimode']||'').trim(); var _rb=(_md===''||_md.indexOf('임대료')===0);
-    if(_rb){ var _rp=mnum('rentpp'), _gf=mnum('gfa'); if(!isFinite(_rp)||_rp<=0||!isFinite(_gf)||_gf<=0) return null; }
+    if(_rb){ var _rp=mnum('rentpp'); if(!isFinite(_rp)||_rp<=0) return null; }
     else { var _n1=mnum('noi1'); if(!isFinite(_n1)||_n1<=0) return null; }
     var r=calcModel(assumFull());
     var em=isFinite(r.EM)?r.EM.toFixed(2)+'x':'—', ds=isFinite(r.minDSCR)?r.minDSCR.toFixed(2)+'x':'—';
