@@ -13,7 +13,7 @@
 숫자만 넣으면 IRR·DSCR 결과를 화면에서 바로 보여주고, **수식이 살아있는 엑셀**을 그 자리에서 생성하는 단일 파일 웹앱. 빌드 과정 없음.
 
 - 딜 4종: 오피스·물류 매입(13시트), 공동주택 분양 사업수지(6시트, 브릿지→본PF·중도금 월별 엔진), 리파이낸싱 비교(4시트)
-- 파일: `dart-search/web/modelter/index.html`(앱 전체), `guide.html`(용어사전·SEO), `howto.html`(실무 워크플로), `im-checklist.html`(IM 첫 검토), `trust.html`(데이터 흐름), `verification.html`(화면=Excel 검증), `og.png`, `robots.txt`, `sitemap.xml`, `_headers`
+- 파일: `dart-search/web/modelter/index.html`(앱 전체), `guide.html`(용어사전·SEO), `howto.html`(실무 워크플로), `im-checklist.html`(IM 첫 검토), `trust.html`(데이터 흐름), `verification.html`(화면=Excel 검증), `og.png`, `robots.txt`, `sitemap.xml`, `_headers`. 검색 배포 후 운영은 `docs/SEARCH_OPERATIONS.md`
 - 자본구조 4단: 선순위 → **중순위(메자닌)** → 보증금 승계 → 우선주 → 보통주. 중순위는 이자 지급 방식이 핵심 분기 — `이자만 지급`(현금, DSCR 하락)과 `만기일시상환(이자 누적·PIK)`(잔액 증가, 매각 시 일괄)
 - 부가: 공유 링크(#v=/#e=, LZW 압축, 임차인명 마스킹), 한 줄 보고 복사, 모바일 위저드(⚡핵심만), 딥링크 `#t=office|logistics|dev|refi(&view=lender)`, IC 원페이저 인쇄, 자동 판정, 억·조 환산 힌트. 공유 링크 압축은 암호화가 아니므로 권한 있는 채널로만 전달
 - **도착 시 자동 팝업 없음**(2026-08-11) — What's new 는 공지 배너 버튼으로만. 재방문(`mt_used`)은 소개를 접고 도구부터
@@ -42,6 +42,7 @@ python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pi
 8. 계산·엑셀 로직 변경 시 위 절차와 별도로 11개 딜·경계 변형의 파리티 2단계를 전수 실행
 9. 한국어 커밋 → 작업 브랜치 push → PR. master 보호 규칙의 `검증`·`파리티 11조합`·`브라우저 스모크 49건`이 모두 통과한 뒤 머지
 10. Cloudflare 배포 성공과 라이브 `MT_BUILD`를 확인한다. 계기판 스냅샷도 master 직접 커밋이 아니라 자동 브랜치·PR·동일 게이트를 거친다.
+11. 검색 착지·canonical·sitemap을 바꿨다면 `docs/SEARCH_OPERATIONS.md`에 따라 라이브 사이트맵과 Search Console 발견 상태를 확인한다. 사이트맵 정답은 `https://modelter.com/sitemap.xml` 한 개다.
 
 ### 불변 규칙 (완화 금지)
 
