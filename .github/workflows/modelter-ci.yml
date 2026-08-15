@@ -34,7 +34,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: formulas 설치 (공표 페이지 독립 재계산)
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: formulas 설치 (엑셀 수식 독립 재계산)
