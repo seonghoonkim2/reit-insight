@@ -19,8 +19,9 @@ const path = require('path');
  * 그 뒤 simModel()·엑셀 생성이 바뀐 상태를 읽는다(mnum/assumOverrides가 state를 직접 읽음). */
 const VARIANTS = {
   office_nopref:  { base: 'office', patch: "stackState['pref_on']=false;" },
-  // 앱 셀렉트 옵션 문자열 그대로 — indexOf('비도관') 분기와 assumOverrides C66이 이 값을 읽음
-  office_nonpass: { base: 'office', patch: "state['taxmode']='비도관(법인세 적용)';" },
+  // 앱 셀렉트 옵션 문자열 그대로 — 비도관 세후 분기와 IM의 연 NOI 직접 입력 경로를 한 변형에서 함께 검증.
+  // 직접 NOI는 임대료 산출 예시와 다른 값으로 두어 화면·엑셀 양쪽의 모드 전환이 실제 숫자를 바꾸게 한다.
+  office_nonpass: { base: 'office', patch: "state['taxmode']='비도관(법인세 적용)'; state['noimode']='NOI 직접 입력'; state['noi1']='6000';" },
   office_hold7:   { base: 'office', patch: "state['hold']='7';" },
   // 무차입(LTV 0) — 커버리지 지표(DSCR·ICR·Debt Yield)의 분모가 0이 되는 경계.
   // 가드가 빠지면 #DIV/0! 이 표지까지 전파되고, 비유한값이 숫자 셀에 들어가 엑셀이 파일을 거부한다.

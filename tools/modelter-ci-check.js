@@ -731,6 +731,8 @@ ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
 ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'parity', 'gen-xlsx.js')) && fs.existsSync(path.join(__dirname, 'parity', 'check.py')), '파리티 하네스(tools/parity) 존재');
+const parityGen = fs.readFileSync(path.join(__dirname, 'parity', 'gen-xlsx.js'), 'utf8');
+ok(parityGen.includes("office_nonpass") && parityGen.includes("state['noimode']='NOI 직접 입력'") && parityGen.includes("state['noi1']='6000'"), '파리티 11조합: NOI 직접 입력 화면↔엑셀 경로 포함');
 ok(fs.existsSync(path.join(__dirname, 'qa', 'smoke.js')), '스모크 QA 스위트(tools/qa) 존재');
 ok(fs.existsSync(path.join(__dirname, 'modelter-ae.js')), '계기판 조회 스크립트(Analytics Engine) 존재');
 ok(html.includes('k:"midfree"') && html.includes('k:"midrate"'), '중도금 무이자(대납이자) 입력 존재');
