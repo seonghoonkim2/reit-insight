@@ -146,6 +146,9 @@ async function closeOverlays(page) {
     await page.goto(URL0 + 'im-checklist', { referer: 'https://www.google.com/search?q=cre+im' });
     await page.locator('a[href="/#t=office&src=imcheck"]').first().click(); await page.waitForTimeout(700);
     const refCarry = await page.evaluate(() => sessionStorage.getItem('mt_ref0'));
+    await page.evaluate(() => sessionStorage.removeItem('mt_src'));
+    await page.goto(URL0 + '?smoke_src=invalid#t=refi&src=120000'); await page.waitForTimeout(700);
+    const invalidSrc = await page.evaluate(() => sessionStorage.getItem('mt_src'));
     const sources = ['seo', 'dscr', 'imcheck', 'howto', 'sns'];
     const states = [];
     for (const src of sources) {
@@ -162,7 +165,7 @@ async function closeOverlays(page) {
       })));
     }
     const st = states[states.length - 1];
-    ok(refCarry === 'www.google.com' && states.every((s, i) => s.cur === 'refi' && s.res && s.hi && s.toast && s.src === sources[i]), '정적 착지 외부 유입원 보존 + 고의도 콘텐츠 5채널 → 탭·예시·첫 입력 인계');
+    ok(refCarry === 'www.google.com' && invalidSrc === null && states.every((s, i) => s.cur === 'refi' && s.res && s.hi && s.toast && s.src === sources[i]), '정적 착지 유입원 보존 + 임의 src 차단 + 고의도 콘텐츠 5채널 → 첫 입력 인계');
     ok(!st.ob && !st.wn, '딥링크 진입 시 자동 팝업 없음');
     await ctx.close();
   }

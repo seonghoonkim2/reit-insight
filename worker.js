@@ -2,6 +2,8 @@
 // 입력 숫자·렌트롤 내용·개인정보는 절대 저장하지 않음. 이벤트명/딜유형/활성기능 플래그/기기/유입호스트만.
 //  · feats = 활성 기능 플래그(rr·dep·fee·bido·vac·hold·pref·scen) — 어떤 선택기능이 실제로 쓰이는지(수치 없음)
 // 저장: Workers Logs(console.log, 대시보드에서 조회). env.AE 바인딩이 있으면 Analytics Engine에도 기록.
+const SRC_CHANNELS = new Set(["xlsx", "ppt", "png", "qr", "share", "notes", "team", "hero", "pdf", "sns", "seo", "dscr", "imcheck", "howto", "pwa"]);
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -25,7 +27,8 @@ export default {
           const feats = s(d.feats, 48);                       // "rr,bido,scen" 형태의 활성기능 플래그
           const axis = s(d.axis, 12);                          // sens_axis 이벤트의 축(growth|rate)
           const featN = feats ? feats.split(",").filter(Boolean).length : 0;
-          const src = s(d.src, 8).replace(/[^A-Za-z0-9_]/g, ""); // 채널 어트리뷰션 태그(화이트리스트 문자만) — 채널명뿐, 수치·PII 없음
+          const srcRaw = s(d.src, 8).toLowerCase().replace(/[^a-z0-9_]/g, "");
+          const src = SRC_CHANNELS.has(srcRaw) ? srcRaw : "";     // 사전 정의 채널만 — 임의 숫자·자유 문자열·PII 없음
           // 봇 판별 — 검색 착지 개설로 JS 실행 크롤러가 방문 분모에 섞이는 것을 태깅(제외는 조회 시).
           //  단어경계 일반어 + 국내외 크롤러 명시 목록 + 클라이언트 webdriver 신호(d.wd). UA 원문은 저장하지 않음.
           //  접미 경계 (…)\b — Googlebot·Bingbot 같은 합성명을 잡되, 실기기 오탐(CUBOT 폰)은 명시 제외
