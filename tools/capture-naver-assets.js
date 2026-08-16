@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* 네이버 IM 첫 검토 글용 샘플 화면 4장 재현 캡처.
+/* 네이버 IM 첫 검토 글용 썸네일+샘플 화면 5장 재현 캡처.
  * - 배포 서버가 아니라 로컬 정적 파일만 연다: 실제 /e 전송 0
  * - 매번 새 브라우저 컨텍스트를 써 기존 사용자 저장값 0
  * - 앱에 내장된 예시 딜만 사용: 실제 딜명·수치·PII 0
@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const { pathToFileURL } = require('url');
 
 function req(mod) {
   try { return require(mod); } catch (_) {}
@@ -25,6 +26,7 @@ if (!pw) { console.error('playwright 모듈을 찾지 못했습니다'); process
 const ROOT = path.resolve(__dirname, '..');
 const WEB = path.join(ROOT, 'dart-search', 'web', 'modelter');
 const OUT = path.join(ROOT, 'docs', 'assets', 'naver-im-first-look');
+const THUMB = path.join(__dirname, 'naver-im-first-look-thumbnail.svg');
 const PORT = 8978;
 const URL0 = `http://127.0.0.1:${PORT}/`;
 
@@ -42,9 +44,11 @@ const server = http.createServer((rq, rs) => {
 });
 
 async function settle(page) {
-  await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto!important}' });
+  await page.waitForLoadState('load');
+  await page.evaluate(() => document.fonts && document.fonts.ready);
+  await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}html{scroll-behavior:auto!important}' });
   await page.evaluate(() => { try { localStorage.setItem('mt_qa', '1'); } catch (_) {} });
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(200);
 }
 
 async function capture(page, name) {
@@ -60,12 +64,22 @@ async function capture(page, name) {
   await new Promise(resolve => server.listen(PORT, resolve));
   const browser = await pw.chromium.launch({ headless: true });
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1, colorScheme: 'light' });
+  await ctx.route('**/*', route => {
+    const u = route.request().url();
+    if (u.startsWith(URL0) || u.startsWith('file://')) route.continue();
+    else route.abort();
+  });
   const page = await ctx.newPage();
   try {
-    console.log('네이버 게시용 샘플 화면 캡처');
+    console.log('네이버 게시용 썸네일·샘플 화면 캡처');
+
+    await page.goto(pathToFileURL(THUMB).href, { waitUntil: 'load' });
+    await page.waitForTimeout(150);
+    await capture(page, '00-thumbnail.jpg');
 
     await page.goto(URL0, { waitUntil: 'domcontentloaded' });
     await settle(page);
+    await page.waitForTimeout(1200);
     await page.evaluate(() => scrollTo(0, 0));
     await capture(page, '01-home-first-number.jpg');
 
@@ -76,8 +90,13 @@ async function capture(page, name) {
 
     await page.goto(URL0 + '?publish_asset=1#t=office&src=sns', { waitUntil: 'domcontentloaded' });
     await settle(page);
-    await page.evaluate(() => { const el = document.getElementById('builder-start'); if (el) el.scrollIntoView({ block: 'start' }); scrollBy(0, -70); });
-    await page.waitForTimeout(550);
+    // 계산 직후 KPI의 1초 강조가 끝나고, 5.2초짜리 예시 고지는 남아 있는 고정 구간에서 찍는다.
+    await page.waitForTimeout(3300);
+    await page.evaluate(() => {
+      const el = document.getElementById('builder-start');
+      if (el) scrollTo(0, Math.round(scrollY + el.getBoundingClientRect().top - 70));
+    });
+    await page.waitForTimeout(100);
     await capture(page, '03-office-first-number.jpg');
 
     await page.locator('#handoffBtn').scrollIntoViewIfNeeded();
@@ -88,7 +107,7 @@ async function capture(page, name) {
     await page.waitForTimeout(250);
     await capture(page, '04-team-handoff.jpg');
 
-    console.log('✅ 실제 딜·계정 정보 없는 게시 자산 4장 생성');
+    console.log('✅ 실제 딜·계정 정보 없는 게시 자산 5장 생성');
   } finally {
     await ctx.close();
     await browser.close();

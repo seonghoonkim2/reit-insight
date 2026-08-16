@@ -6,6 +6,25 @@
 const fs = require('fs');
 const path = require('path');
 
+function jpegSize(b) {
+  if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8) return null;
+  let i = 2;
+  const sof = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]);
+  while (i + 8 < b.length) {
+    if (b[i++] !== 0xff) continue;
+    while (i < b.length && b[i] === 0xff) i++;
+    const marker = b[i++];
+    if (marker === 0xd9 || marker === 0xda) break;
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+    if (i + 2 > b.length) break;
+    const len = b.readUInt16BE(i);
+    if (len < 2 || i + len > b.length) break;
+    if (sof.has(marker) && len >= 7) return { height: b.readUInt16BE(i + 3), width: b.readUInt16BE(i + 5) };
+    i += len;
+  }
+  return null;
+}
+
 const DIR = path.join(__dirname, '..', 'dart-search', 'web', 'modelter');
 const HTML = path.join(DIR, 'index.html');
 const fails = [];
@@ -368,14 +387,19 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const naverDoc = fs.existsSync(naverDocPath) ? fs.readFileSync(naverDocPath, 'utf8') : '';
   const capturePath = path.join(__dirname, 'capture-naver-assets.js');
   const captureSrc = fs.existsSync(capturePath) ? fs.readFileSync(capturePath, 'utf8') : '';
+  const thumbPath = path.join(__dirname, 'naver-im-first-look-thumbnail.svg');
+  const thumbSrc = fs.existsSync(thumbPath) ? fs.readFileSync(thumbPath, 'utf8') : '';
   const assetDir = path.join(__dirname, '..', 'docs', 'assets', 'naver-im-first-look');
-  const assetNames = ['01-home-first-number.jpg', '02-im-checklist.jpg', '03-office-first-number.jpg', '04-team-handoff.jpg'];
+  const assetNames = ['00-thumbnail.jpg', '01-home-first-number.jpg', '02-im-checklist.jpg', '03-office-first-number.jpg', '04-team-handoff.jpg'];
   const validAssets = assetNames.filter(n => {
     const p = path.join(assetDir, n); if (!fs.existsSync(p)) return false;
-    const b = fs.readFileSync(p); return b.length >= 30000 && b[0] === 0xff && b[1] === 0xd8;
+    const b = fs.readFileSync(p);
+    const size = jpegSize(b);
+    return b.length >= 30000 && size && size.width === 1440 && size.height === 960;
   });
-  ok(fs.existsSync(capturePath) && captureSrc.includes("localStorage.setItem('mt_qa', '1')") && captureSrc.includes("if (p === '/e')"), '네이버 게시 자산: 로컬·QA 모드 재현 캡처(/e 전송 0)');
-  ok(validAssets.length === 4 && assetNames.every(n => naverDoc.includes(n)), '네이버 게시 자산: 샘플 JPEG 4장·본문 대체텍스트 연결');
+  ok(fs.existsSync(capturePath) && captureSrc.includes("localStorage.setItem('mt_qa', '1')") && captureSrc.includes("if (p === '/e')") && captureSrc.includes("ctx.route('**/*'") && captureSrc.includes('else route.abort()'), '네이버 게시 자산: 외부 요청 차단·로컬 QA 모드 재현 캡처(/e 전송 0)');
+  ok(thumbSrc.includes('width="1440" height="960"') && thumbSrc.includes('IM 받았으면,') && thumbSrc.includes('첫 숫자 15분'), '네이버 썸네일: 1440×960·IM 첫 숫자 메시지');
+  ok(validAssets.length === 5 && assetNames.every(n => naverDoc.includes(n)) && captureSrc.includes('naver-im-first-look-thumbnail.svg'), '네이버 게시 자산: 썸네일+샘플 JPEG 5장(1440×960)·본문 대체텍스트 연결');
   ok(naverDoc.includes('매입가, 연면적, 임대료 또는 NOI') && naverDoc.includes('“NOI로 입력”'), '네이버 게시 원고: 매입 첫 숫자 필수 입력·NOI 직접입력 동선 정합');
   const searchOpsPath = path.join(__dirname, '..', 'docs', 'SEARCH_OPERATIONS.md');
   const searchOps = fs.existsSync(searchOpsPath) ? fs.readFileSync(searchOpsPath, 'utf8') : '';
