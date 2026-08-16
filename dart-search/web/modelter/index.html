@@ -13,13 +13,17 @@ try{if(localStorage.getItem('mt_used')==='1')document.documentElement.setAttribu
 <meta name="naver-site-verification" content="cd616751139fa63aa46c35c65255eabc0a321ca7" />
 <link rel="canonical" href="https://modelter.com/" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="모델터 · CRE 딜 첫 IRR·DSCR 계산" />
-<meta property="og:description" content="매입가, 임대료 또는 NOI, 대출 조건, Exit Cap으로 첫 결과를 확인하고 같은 수식의 Excel을 내려받으세요." />
+<meta property="og:title" content="딜 받았으면, 모델터부터. | CRE 첫 계산" />
+<meta property="og:description" content="IM이나 티저를 받으면 매입가, 임대료 또는 NOI, 대출 조건, Exit Cap으로 첫 IRR·DSCR과 하방을 확인하세요." />
 <meta property="og:url" content="https://modelter.com/" />
-<meta property="og:image" content="https://modelter.com/og.png" />
+<meta property="og:image" content="https://modelter.com/og-first-deal-v1.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="딜 받았으면, 모델터부터. 한국 CRE 딜 첫 계산" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="딜 받았으면, 모델터부터. | CRE 첫 계산" />
+<meta name="twitter:description" content="첫 IRR·DSCR과 하방을 확인하고 같은 숫자로 Excel과 PPT를 만드세요." />
+<meta name="twitter:image" content="https://modelter.com/og-first-deal-v1.png" />
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"모델터","alternateName":"Modelter","url":"https://modelter.com/","description":"한국 상업용 부동산 딜의 첫 IRR·DSCR과 하방을 계산하고, 같은 수식의 Excel을 만드는 무료 재무모델 도구입니다.","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ko","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"author":{"@type":"Person","name":"Seonghoon Kim","url":"https://www.linkedin.com/in/seonghoonk/"},"featureList":["오피스·물류 매입 레버드 DCF","공동주택 분양 사업수지","리파이낸싱 대안 비교","수식이 들어 있는 Excel 다운로드","렌트롤 반영"],"subjectOf":{"@type":"Article","name":"부동산 금융 용어사전 · 재무모델 가이드","url":"https://modelter.com/guide"}}
@@ -1997,7 +2001,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-16·d2996a0634';
+window.MT_BUILD='2026-08-16·c9eb3daac1';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
