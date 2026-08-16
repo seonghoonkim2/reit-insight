@@ -595,6 +595,7 @@ ok(html.includes('모델터 서버에는 보내거나 저장하지 않습니다'
 ok(!html.includes("localStorage.setItem('mt_byok"), 'BYOK: 키를 localStorage에 저장하지 않음(세션만)');
 ok(html.includes('문서에 없으면 null (추측 금지)'), 'BYOK: 추측 금지 추출 규칙');
 ok(html.includes('MTIM.checklist()') && html.includes('IM에서 찾을 숫자'), 'IM 체크리스트(키 없이 시작) 존재');
+ok(html.includes('필수값은 직접 확인 · 나머지 빈 항목은 기본 가정 적용') && !html.includes('못 찾은 항목은 표준가정으로 계산'), 'IM 체크리스트 복사문: 필수값·기본 가정 구분');
 ok(html.includes('function localExtract') && html.includes('MTIM.quick()'), 'IM 무키 로컬 자동 인식 존재');
 ok(html.includes('브라우저 안에서만 처리') && html.includes('외부로 전송하지 않습니다'), 'IM 무키 무전송 고지 존재');
 ok(html.includes('보수 시나리오(Exit ') && html.includes('참고선 5%보다 낮습니다'), '판정 다운사이드 한 줄 존재');
@@ -781,6 +782,7 @@ ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.in
 ok(html.includes("_gf=mnum('gfa')"), '매입 계산 연면적 필수 가드(임대료·NOI 직접입력 침묵 기본값 차단)');
 ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
 ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');
+ok(['시도해주세요','확인해주세요','입력해주세요','바꿔주세요'].every(s => !html.includes(s)) && html.includes('입력 화면에서 직접 입력해 주세요'), '문장 품질: 요청 표현 띄어쓰기·개발자 용어 정리');
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'parity', 'gen-xlsx.js')) && fs.existsSync(path.join(__dirname, 'parity', 'check.py')), '파리티 하네스(tools/parity) 존재');
 const parityGen = fs.readFileSync(path.join(__dirname, 'parity', 'gen-xlsx.js'), 'utf8');
