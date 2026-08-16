@@ -2001,7 +2001,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-16·a128e27792';
+window.MT_BUILD='2026-08-16·35d46e0075';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -4915,10 +4915,10 @@ async function sendFeedback(){
       $("fbText").value=""; $("fbEmail").value="";
       toast("의견이 전송되었습니다. 감사합니다");
     }else{
-      toast("전송에 실패했습니다. 잠시 후 다시 시도해주세요");
+      toast("전송에 실패했습니다. 잠시 후 다시 시도해 주세요");
     }
   }catch(e){
-    toast("전송에 실패했습니다. 네트워크를 확인해주세요");
+    toast("전송에 실패했습니다. 네트워크를 확인해 주세요");
   }finally{
     btn.disabled=false; btn.innerHTML=orig;
   }
@@ -8241,7 +8241,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       var opts=RR_FLDS.map(function(f){ return '<option value="'+f[0]+'"'+(f[0]===curFld?' selected':'')+'>'+f[1]+'</option>'; }).join('');
       mapRows+='<tr'+(curFld===''?' class="rr-skip"':'')+'><td class="rr-oc">'+_hesc(h)+'</td><td><select class="rr-fld" data-rrcol="'+c+'">'+opts+'</select></td><td class="rr-smp">'+_hesc(samples.join(' · ')||'—')+'</td></tr>';
     }
-    $id('rrMap').innerHTML='<div class="rr-map-h">① 열 매핑 확인 <span>자동으로 짚은 결과입니다. 잘못 연결된 열은 직접 바꿔주세요</span></div>'+
+    $id('rrMap').innerHTML='<div class="rr-map-h">① 열 매핑 확인 <span>자동으로 찾은 결과입니다. 잘못 연결된 열은 직접 바꿔 주세요</span></div>'+
       '<div class="rr-map-wrap"><table class="rr-maptbl"><tr><th>원본 열</th><th>모델터 항목</th><th>샘플 값</th></tr>'+mapRows+'</table></div>'+
       '<div class="rr-note">면적단위 '+(ex.areaUnit==='sqm'?'㎡→평 환산':'평')+' · 임차인 '+agg.count+'개 인식</div>';
     // ── 행 단위 검증 경고 ──
@@ -11053,7 +11053,7 @@ var qrcode = function() {
       else if(b3.dataset.im==='ckcopy'){
         var txt='[모델터] IM에서 찾을 숫자 — '+d.label+'\n'
           +secs.map(function(sc){ return '■ '+sc.h+'\n'+sc.rows.map(function(r){ return '□ '+r.l+(r.u?(' ('+r.u+')'):'')+(r.h?(' — '+r.h):''); }).join('\n'); }).join('\n\n')
-          +'\n\n※ 금액=백만원 · 면적=평 · 못 찾은 항목은 표준가정으로 계산 · modelter.com/im-checklist';
+          +'\n\n※ 금액=백만원 · 면적=평 · 필수값은 직접 확인 · 나머지 빈 항목은 기본 가정 적용 · modelter.com/im-checklist';
         var done=function(){ if(typeof toast==='function') toast('체크리스트를 복사했습니다 — 메모장·인쇄용으로 붙여넣으세요',2400); };
         if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(function(){ prompt('아래 내용을 복사하세요:',txt); });
         else prompt('아래 내용을 복사하세요:',txt);
@@ -11288,9 +11288,9 @@ var qrcode = function() {
     var f=W.fs[W.i]; if(!f||f.t!=='num'||!W.ov) return null;
     var inp=W.ov.querySelector('#wizIn'); var v=(inp&&inp.value||'').trim(); if(v==='') return null;
     var n=parseNum(v);
-    if(!isFinite(n)) return '숫자로 입력해주세요';
+    if(!isFinite(n)) return '숫자를 입력해 주세요';
     if(f.min!==undefined&&n<f.min) return f.min+' 이상이어야 합니다';
-    if(f.max!==undefined&&n>f.max) return f.max+' 이하로 입력해주세요';
+    if(f.max!==undefined&&n>f.max) return f.max+' 이하로 입력해 주세요';
     return null;
   }
   function nav(w){
@@ -11307,7 +11307,7 @@ var qrcode = function() {
   }
   function open(){
     if(document.body.classList.contains('mt-ro')){ toast('읽기 전용 모드에서는 입력할 수 없습니다 — 상단 "내 모델로 열기"를 누르세요'); return; }
-    W.fs=fieldsFor(); if(!W.fs.length){ toast('이 딜 유형은 폼에서 직접 입력해주세요'); return; }
+    W.fs=fieldsFor(); if(!W.fs.length){ toast('이 딜 유형은 입력 화면에서 직접 입력해 주세요'); return; }
     W.i=0;
     W.ov=document.createElement('div'); W.ov.className='wiz-ov';
     W.ov.innerHTML='<div class="wiz-sheet"></div>';
