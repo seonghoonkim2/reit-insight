@@ -5,7 +5,7 @@
 ## 게시 세팅
 
 - 제목: **상업용 부동산 IM을 받았을 때, 15분 안에 IRR·DSCR 보는 순서**
-- 썸네일 문구: **IM 받았으면 / 첫 숫자 15분**
+- 썸네일: [`00-thumbnail.jpg`](assets/naver-im-first-look/00-thumbnail.jpg) — 문구 **IM 받았으면 / 첫 숫자 15분**
 - 설명 첫 문장: `IM이나 티저를 받은 뒤, 계속 검토할 딜인지 먼저 가려내는 15분 검토 순서입니다.`
 - 카테고리: 상업용 부동산 / 부동산 금융 / 실무 도구 중 기존 블로그 분류에 맞는 하나
 - 해시태그: `#상업용부동산 #CRE #IM검토 #IRR #DSCR #CapRate #부동산금융 #재무모델`
@@ -94,21 +94,22 @@ https://modelter.com/#t=office&src=sns
 
 첫 계산은 투자 권유나 투자심의 모델을 대신하지 않습니다. 화면과 글에 나온 숫자와 범위는 샘플이며 실제 시세가 아닙니다. 실사 자료, 약정 정의, 법률·세무 검토와 회사별 기준으로 다시 확인해 주세요.
 
-## 게시 이미지 4장 — 생성 완료
+## 게시 이미지 5장 — 생성 완료
 
 모든 화면은 새 브라우저 컨텍스트의 샘플 모드로만 캡처했으며 브라우저 주소창·알림·계정 정보가 없다. `node tools/capture-naver-assets.js`로 로컬 앱에서만 재현하므로 `/e` 전송도 발생하지 않는다.
 
-1. [`01-home-first-number.jpg`](assets/naver-im-first-look/01-home-first-number.jpg) — 대체텍스트: `상업용 부동산 첫 숫자를 계산하는 모델터`
-2. [`02-im-checklist.jpg`](assets/naver-im-first-look/02-im-checklist.jpg) — 대체텍스트: `상업용 부동산 IM 검토 체크리스트`
-3. [`03-office-first-number.jpg`](assets/naver-im-first-look/03-office-first-number.jpg) — 대체텍스트: `매입가와 NOI 가정으로 IRR과 DSCR을 확인하는 화면`
-4. [`04-team-handoff.jpg`](assets/naver-im-first-look/04-team-handoff.jpg) — 대체텍스트: `첫 숫자를 팀에 전달하고 화면과 Excel 일치를 확인하는 과정`
+1. [`00-thumbnail.jpg`](assets/naver-im-first-look/00-thumbnail.jpg) — 게시 썸네일. 대체텍스트: `상업용 부동산 IM을 받은 뒤 첫 숫자를 15분 안에 확인하는 순서`
+2. [`01-home-first-number.jpg`](assets/naver-im-first-look/01-home-first-number.jpg) — 대체텍스트: `상업용 부동산 첫 숫자를 계산하는 모델터`
+3. [`02-im-checklist.jpg`](assets/naver-im-first-look/02-im-checklist.jpg) — 대체텍스트: `상업용 부동산 IM 검토 체크리스트`
+4. [`03-office-first-number.jpg`](assets/naver-im-first-look/03-office-first-number.jpg) — 대체텍스트: `매입가와 NOI 가정으로 IRR과 DSCR을 확인하는 화면`
+5. [`04-team-handoff.jpg`](assets/naver-im-first-look/04-team-handoff.jpg) — 대체텍스트: `첫 숫자를 팀에 전달하고 화면과 Excel 일치를 확인하는 과정`
 
-네이버에는 위 순서대로 올리고 3·4번 화면의 `강남 A타워`와 숫자는 앱에 내장된 가상 샘플이라고 본문 또는 이미지 설명에 한 번 더 적는다. 새 캡처가 필요하면 스크립트를 다시 실행한 뒤 네 파일을 모두 교체해 서로 다른 빌드의 화면을 섞지 않는다.
+네이버 대표 이미지는 1번 썸네일로 지정한다. 본문에는 2~5번을 순서대로 올리고 4·5번 화면의 `강남 A타워`와 숫자는 앱에 내장된 가상 샘플이라고 본문 또는 이미지 설명에 한 번 더 적는다. 새 캡처가 필요하면 스크립트를 다시 실행한 뒤 다섯 파일을 모두 교체해 서로 다른 빌드의 화면을 섞지 않는다.
 
 ## 게시 직전 점검
 
 - [ ] 실제 딜명·수치·임차인명·회사명·개인정보가 본문과 이미지에 없다.
-- [ ] 이미지 3·4의 `강남 A타워`가 가상 샘플이라는 설명이 붙어 있다.
+- [ ] 이미지 4·5의 `강남 A타워`가 가상 샘플이라는 설명이 붙어 있다.
 - [ ] 모든 숫자 예시는 샘플이며 실제 시세가 아니라는 문구가 있다.
 - [ ] 투자 권유가 아니며 실사·약정·법률·세무·회사 기준으로 재검증한다는 문구가 있다.
 - [ ] 공유 링크가 암호화가 아니며 권한 채널에서만 써야 한다는 문구가 있다.

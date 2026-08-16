@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" role="img" aria-labelledby="title desc">
+  <title id="title">IM 받았으면, 첫 숫자 15분</title>
+  <desc id="desc">상업용 부동산 IM을 받은 뒤 IRR, DSCR과 하방을 확인하는 15분 검토 순서</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf7ef"/>
+      <stop offset="1" stop-color="#eee1c9"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#7c5a21" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect width="1440" height="960" fill="url(#bg)"/>
+  <rect width="1440" height="12" fill="#a9792b"/>
+
+  <g transform="translate(110 92)">
+    <rect width="72" height="72" rx="19" fill="#a9792b" filter="url(#shadow)"/>
+    <rect x="19" y="38" width="9" height="20" rx="3" fill="#fffaf1"/>
+    <rect x="32" y="28" width="9" height="30" rx="3" fill="#fffaf1"/>
+    <rect x="45" y="17" width="9" height="41" rx="3" fill="#fffaf1"/>
+    <text x="96" y="40" fill="#1b2230" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="41" font-weight="800">모델터</text>
+    <text x="99" y="66" fill="#9b7741" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="6">MODELTER</text>
+  </g>
+
+  <g transform="translate(110 278)" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+    <text x="0" y="0" fill="#6f6558" font-size="27" font-weight="750" letter-spacing="1.5">상업용 부동산 IM 1차 검토</text>
+    <text x="0" y="108" fill="#1b2230" font-size="83" font-weight="850" letter-spacing="-4">IM 받았으면,</text>
+    <text x="0" y="205" fill="#9b6417" font-size="92" font-weight="850" letter-spacing="-4">첫 숫자 15분</text>
+    <text x="3" y="281" fill="#514c45" font-size="34" font-weight="650">매입가 · 임대료/NOI · 대출 조건 · Exit Cap</text>
+    <text x="3" y="341" fill="#514c45" font-size="34" font-weight="650">IRR · DSCR · 하방부터 확인하는 순서</text>
+  </g>
+
+  <g transform="translate(950 260)" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+    <rect width="365" height="418" rx="28" fill="#fffdf9" stroke="#e2d5bf" stroke-width="2" filter="url(#shadow)"/>
+    <text x="34" y="58" fill="#a9792b" font-size="23" font-weight="800">15분 체크리스트</text>
+    <line x1="34" y1="84" x2="331" y2="84" stroke="#e8dece" stroke-width="2"/>
+
+    <circle cx="58" cy="136" r="23" fill="#f1e6d2"/>
+    <text x="58" y="144" fill="#9b6417" text-anchor="middle" font-size="17" font-weight="800">01</text>
+    <text x="98" y="144" fill="#252a33" font-size="25" font-weight="750">기준·단위 확인</text>
+
+    <circle cx="58" cy="220" r="23" fill="#f1e6d2"/>
+    <text x="58" y="228" fill="#9b6417" text-anchor="middle" font-size="17" font-weight="800">02</text>
+    <text x="98" y="228" fill="#252a33" font-size="25" font-weight="750">최소 가정 입력</text>
+
+    <circle cx="58" cy="304" r="23" fill="#e1efe6"/>
+    <text x="58" y="312" fill="#2e7d4f" text-anchor="middle" font-size="17" font-weight="800">03</text>
+    <text x="98" y="312" fill="#252a33" font-size="25" font-weight="750">첫 결과·하방</text>
+
+    <circle cx="58" cy="368" r="7" fill="#2e7d4f"/>
+    <text x="78" y="376" fill="#6c665e" font-size="19" font-weight="650">팀에 1차 검토 공유</text>
+  </g>
+
+  <g transform="translate(110 862)" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+    <circle cx="8" cy="-8" r="7" fill="#2e7d4f"/>
+    <text x="31" y="0" fill="#9b6417" font-size="34" font-weight="850">modelter.com</text>
+    <text x="1205" y="-2" fill="#6f6558" text-anchor="end" font-size="21" font-weight="650">무료 · 회원가입 없음 · 딜 수치 서버 미전송</text>
+  </g>
+</svg>
