@@ -382,6 +382,9 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const dscr = fs.existsSync(dscrPath) ? fs.readFileSync(dscrPath, 'utf8') : '';
   ok(dscr.includes('<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>') && dscr.includes('1.0x 미만') && dscr.includes('1.5x'), 'DSCR 검색 의도: 제목·배수별 판독표');
   ok(dscr.includes('FAQPage') && dscr.includes('NCF나 CFADS') && dscr.includes('/#t=refi&src=dscr'), 'DSCR 검색 의도: FAQ 구조화 데이터·약정 정의 주의·전용 채널 CTA');
+  const devCalcPath = path.join(cDir, 'dev.html');
+  const devCalc = fs.existsSync(devCalcPath) ? fs.readFileSync(devCalcPath, 'utf8') : '';
+  ok(devCalc.includes('토지비 지급 시점과 공사비 기성 곡선(균등 또는 S-커브)을 반영합니다') && !devCalc.includes('공사비는 S-커브(기성 곡선)로 월별 전개됩니다'), '개발 검색 착지: 토지 지급·선택 기성 곡선 설명');
   ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('첫 항목부터 실제 값으로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
   const naverDocPath = path.join(__dirname, '..', 'docs', 'NAVER_BLOG_IM_FIRST_LOOK.md');
   const naverDoc = fs.existsSync(naverDocPath) ? fs.readFileSync(naverDocPath, 'utf8') : '';
@@ -692,6 +695,7 @@ ok(html.includes('function devSolveSold'), '손익분기·PF상환한계 분양�
 ok(html.includes('function devStructHtml'), '분양수지 시각화(타임라인·사업비·차트) 존재');
 ok(html.includes('k:"preperiod"') && html.includes('k:"brate"'), '브릿지(선행기간·금리) 입력 존재');
 ok(html.includes('k:"conscurve"') && html.includes('k:"landdp"') && html.includes('k:"landpay"'), 'v3: 기성 곡선·토지 분할 입력 존재');
+ok(html.includes('토지비는 0개월차 계약금과 지정한 시점의 잔금으로 나눕니다') && html.includes('선택한 기성 곡선(균등 또는 S-커브)') && !html.includes('토지비+취득 제세(착수 일괄)'), '개발 현금흐름 설명: 토지 분할·선택 기성 곡선과 엔진 일치');
 ok(html.includes('window.__setDevView'), '시행↔대주 관점 토글 존재');
 ok(html.includes('function devLenderHtml'), '대주 뷰(스트레스 표) 존재');
 ok(html.includes('var mtLZ=') && html.includes('function decompress'), '공유 링크 압축(mtLZ) 존재');
