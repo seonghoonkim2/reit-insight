@@ -13,9 +13,13 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // Cloudflare는 Worker에 넘기는 URL scheme을 https로 정규화할 수 있어,
+    // 원래 방문 scheme이 담긴 CF-Visitor도 함께 본다.
+    let cfVisitor = {};
+    try { cfVisitor = JSON.parse(request.headers.get("cf-visitor") || "{}"); } catch (_) {}
     // 첫 방문도 항상 암호화된 정식 주소로 보낸다. 경로·쿼리는 유지하고,
     // 308로 GET뿐 아니라 혹시 들어온 POST 메서드도 바꾸지 않는다.
-    if (url.protocol === "http:") {
+    if (url.protocol === "http:" || cfVisitor.scheme === "http") {
       url.protocol = "https:";
       return Response.redirect(url.toString(), 308);
     }
