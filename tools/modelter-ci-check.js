@@ -71,7 +71,7 @@ ok(fs.existsSync(path.join(DIR, 'sitemap.xml')), 'sitemap.xml 존재');
   const workerSrc = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
   ok(!!liveSearchSrc, '배포 뒤 검색 표면 실검사 존재');
   ok(liveSearchSrc.includes("redirect: 'manual'") && liveSearchSrc.includes('canonical(text)') && liveSearchSrc.includes('hasNoindex(text)'), '검색 실검사: redirect·canonical·noindex 확인');
-  ok(workerSrc.includes('url.protocol === "http:" || cfVisitor.scheme === "http"') && workerSrc.includes('Response.redirect(url.toString(), 308)') && liveSearchSrc.includes("get('http://modelter.com/')"), '정식 주소: Cloudflare 원 방문 scheme의 HTTP 요청을 HTTPS 308로 전환하고 실서버에서 확인');
+  ok(workerSrc.includes('(request.cf && request.cf.httpProtocol && !request.cf.tlsVersion)') && workerSrc.includes('Response.redirect(url.toString(), 308)') && liveSearchSrc.includes("get('http://modelter.com/')"), '정식 주소: Cloudflare TLS 메타데이터로 HTTP 요청을 HTTPS 308로 전환하고 실서버에서 확인');
   ok(searchOps.includes('node tools/qa/live-search.mjs'), '검색 운영 문서: 라이브 실검사 절차');
 }
 if (fs.existsSync(path.join(DIR, 'robots.txt'))) {
