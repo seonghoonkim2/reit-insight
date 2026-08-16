@@ -40,6 +40,9 @@
 /og.png
   Cache-Control: public, max-age=86400
 
+/og-first-deal-v1.png
+  Cache-Control: public, max-age=86400
+
 /icon-192.png
   Cache-Control: public, max-age=86400
 

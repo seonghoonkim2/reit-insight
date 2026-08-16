@@ -64,7 +64,7 @@ function build() {
 <meta property="og:title" content="화면 값과 Excel 수식 검증 결과 | 모델터" />
 <meta property="og:description" content="네 가지 딜의 화면 값과 Excel 수식을 별도 엔진으로 다시 계산해 대조했습니다." />
 <meta property="og:url" content="${BASE}/verification" />
-<meta property="og:image" content="${BASE}/og.png" />
+<meta property="og:image" content="${BASE}/og-first-deal-v1.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />

@@ -433,7 +433,7 @@ async function closeOverlays(page) {
   {
     const html = fs.readFileSync(path.join(WEB, 'index.html'), 'utf8');
     ok(!html.includes('__mtCalc'), '__mtCalc 훅 없음');
-    ok(fs.existsSync(path.join(WEB, 'guide.html')) && fs.existsSync(path.join(WEB, 'howto.html')) && fs.existsSync(path.join(WEB, 'og.png')), 'guide·howto·og.png 존재');
+    ok(fs.existsSync(path.join(WEB, 'guide.html')) && fs.existsSync(path.join(WEB, 'howto.html')) && fs.existsSync(path.join(WEB, 'og-first-deal-v1.png')), 'guide·howto·첫 딜 OG 이미지 존재');
     const gz = require('zlib').gzipSync(Buffer.from(html), { level: 6 }).length;
     ok(gz < 300 * 1024, 'gzip 전송량 ' + Math.round(gz / 1024) + 'KB (<300KB 예산)');
   }

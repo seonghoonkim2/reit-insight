@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">딜 받았으면, 모델터부터.</title>
+  <desc id="desc">한국 상업용 부동산 딜의 첫 IRR과 DSCR을 계산하는 모델터 소셜 미리보기</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf7ef"/>
+      <stop offset="1" stop-color="#eee2cc"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#7c5a21" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="10" fill="#a9792b"/>
+
+  <g transform="translate(72 58)">
+    <rect width="64" height="64" rx="17" fill="#a9792b" filter="url(#shadow)"/>
+    <rect x="17" y="34" width="8" height="17" rx="3" fill="#fffaf1"/>
+    <rect x="29" y="25" width="8" height="26" rx="3" fill="#fffaf1"/>
+    <rect x="41" y="15" width="8" height="36" rx="3" fill="#fffaf1"/>
+    <text x="84" y="35" fill="#1b2230" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif" font-size="36" font-weight="800">모델터</text>
+    <text x="86" y="58" fill="#9b7741" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="6">MODELTER</text>
+  </g>
+
+  <g transform="translate(72 186)" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+    <text x="0" y="0" fill="#6f6558" font-size="22" font-weight="700" letter-spacing="1.5">한국 CRE 딜 첫 계산</text>
+    <text x="0" y="82" fill="#1b2230" font-size="66" font-weight="850" letter-spacing="-3">딜 받았으면,</text>
+    <text x="0" y="158" fill="#9b6417" font-size="72" font-weight="850" letter-spacing="-3">모델터부터.</text>
+    <text x="2" y="216" fill="#514c45" font-size="25" font-weight="550">매입가 · 임대료/NOI · 대출 조건 · Exit Cap</text>
+    <text x="2" y="263" fill="#514c45" font-size="25" font-weight="550">IRR · DSCR · 하방 → 같은 숫자로 Excel · PPT</text>
+  </g>
+
+  <g transform="translate(820 152)" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+    <rect width="310" height="322" rx="24" fill="#fffdf9" stroke="#e2d5bf" stroke-width="2" filter="url(#shadow)"/>
+    <text x="28" y="48" fill="#a9792b" font-size="18" font-weight="800">1차 검토 흐름</text>
+    <line x1="28" y1="70" x2="282" y2="70" stroke="#e8dece" stroke-width="2"/>
+
+    <circle cx="48" cy="112" r="20" fill="#f1e6d2"/>
+    <text x="48" y="119" fill="#9b6417" text-anchor="middle" font-size="16" font-weight="800">01</text>
+    <text x="82" y="119" fill="#252a33" font-size="22" font-weight="750">첫 가정 입력</text>
+
+    <circle cx="48" cy="180" r="20" fill="#f1e6d2"/>
+    <text x="48" y="187" fill="#9b6417" text-anchor="middle" font-size="16" font-weight="800">02</text>
+    <text x="82" y="187" fill="#252a33" font-size="22" font-weight="750">IRR · DSCR 확인</text>
+
+    <circle cx="48" cy="248" r="20" fill="#e1efe6"/>
+    <text x="48" y="255" fill="#2e7d4f" text-anchor="middle" font-size="16" font-weight="800">03</text>
+    <text x="82" y="255" fill="#252a33" font-size="22" font-weight="750">팀에 1차 검토 공유</text>
+
+    <rect x="28" y="282" width="254" height="2" fill="#eee6d9"/>
+    <text x="28" y="306" fill="#6c665e" font-size="15" font-weight="650">무료 · 회원가입 없음 · 브라우저 계산</text>
+  </g>
+
+  <g transform="translate(72 566)" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+    <circle cx="7" cy="-7" r="6" fill="#2e7d4f"/>
+    <text x="25" y="0" fill="#9b6417" font-size="28" font-weight="850">modelter.com</text>
+    <text x="1058" y="-2" fill="#6f6558" text-anchor="end" font-size="17" font-weight="650">딜 수치는 서버로 보내지 않습니다</text>
+  </g>
+</svg>

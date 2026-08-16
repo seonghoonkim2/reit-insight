@@ -1,7 +1,7 @@
 /* 모델터 CI 검증 — 라이브 배포 전 깨진 코드/빠진 파일 차단
  * 실행: node tools/modelter-ci-check.js   (의존성 없음)
  * 검사: ① 앱 로드(전 script 문법) ② 4개 딜 계산 무예외 ③ 렌트롤 경로(struct/tranche/mini)
- *       ④ 핵심 모듈/수정 존재 ⑤ _headers(CSP·X-Frame-Options) ⑥ og.png 존재
+ *       ④ 핵심 모듈/수정 존재 ⑤ _headers(CSP·X-Frame-Options) ⑥ 소셜 미리보기 존재
  */
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +23,25 @@ const gzKB = Math.round(require('zlib').gzipSync(Buffer.from(html), { level: 6 }
 ok(gzKB < 300, '성능 예산: gzip 전송량 ' + gzKB + 'KB < 300KB (초과 시 출력 생성기 지연 로딩부터 검토)');
 
 /* ── 1) 정적 존재 검사 ── */
-ok(fs.existsSync(path.join(DIR, 'og.png')), 'og.png 존재 (소셜 미리보기 404 방지)');
+{
+  const ogName = 'og-first-deal-v1.png';
+  const ogPath = path.join(DIR, ogName);
+  const ogSource = path.join(__dirname, 'og-first-deal.svg');
+  ok(fs.existsSync(ogPath), ogName + ' 존재 (소셜 미리보기 404 방지)');
+  if (fs.existsSync(ogPath)) {
+    const png = fs.readFileSync(ogPath);
+    ok(png.length > 24 && png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630,
+      '소셜 미리보기 1200×630');
+  }
+  const ogSvg = fs.existsSync(ogSource) ? fs.readFileSync(ogSource, 'utf8') : '';
+  ok(ogSvg.includes('딜 받았으면,') && ogSvg.includes('모델터부터.') && ogSvg.includes('팀에 1차 검토 공유'),
+    '소셜 미리보기: 첫 딜 순간·팀 전달 메시지');
+  ok(html.includes('og:image" content="https://modelter.com/' + ogName + '"') &&
+     html.includes('twitter:image" content="https://modelter.com/' + ogName + '"'),
+    '홈 OG·Twitter 이미지가 새 첫 딜 카드 사용');
+  ok(html.includes('og:title" content="딜 받았으면, 모델터부터. | CRE 첫 계산"'),
+    '홈 소셜 제목이 북극성 순간을 명시');
+}
 ok(fs.existsSync(path.join(DIR, 'robots.txt')), 'robots.txt 존재 (크롤 안내)');
 ok(fs.existsSync(path.join(DIR, 'sitemap.xml')), 'sitemap.xml 존재');
 {
@@ -592,7 +610,13 @@ ok(html.includes('function checkAssumptions') && html.includes('function inquiry
 ok(html.includes("props['evidence']") && html.includes('근거 원문'), 'AI 추출 근거 원문 표시 존재');
 ok(html.includes("'sellerirr'") && html.includes('매도자 제시 IRR'), '매도자 제시치 대조 존재');
 ok(html.includes('function imgToB64') && html.includes("id=\"imxImg\""), '사진(비전) IM 추출 존재');
-ok(html.includes('rel="manifest"') && html.includes("navigator.serviceWorker.register('/sw.js')"), 'PWA(manifest+SW 등록) 존재');
+{
+  const manifestPath = path.join(DIR, 'manifest.webmanifest');
+  const manifest = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : '';
+  ok(html.includes('rel="manifest"') && html.includes("navigator.serviceWorker.register('/sw.js')"), 'PWA(manifest+SW 등록) 존재');
+  ok(manifest.includes('모델터 — CRE 딜 첫 계산') && manifest.includes('첫 IRR·DSCR과 하방'),
+    'PWA 설치 이름·설명이 첫 딜 순간과 정합');
+}
 ok(html.includes('Kazuhiko Arase') && html.includes('function qrPop'), 'QR 이어가기(MIT 인코더 내장) 존재');
 ok(html.includes('결과부터 보이게') || html.includes('입력 폼이 아니라 결과부터'), '읽기 전용 모바일 결과 우선 착지 존재');
 ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
