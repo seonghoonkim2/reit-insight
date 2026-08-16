@@ -13,6 +13,13 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // 첫 방문도 항상 암호화된 정식 주소로 보낸다. 경로·쿼리는 유지하고,
+    // 308로 GET뿐 아니라 혹시 들어온 POST 메서드도 바꾸지 않는다.
+    if (url.protocol === "http:") {
+      url.protocol = "https:";
+      return Response.redirect(url.toString(), 308);
+    }
+
     if (url.pathname === "/e" && request.method === "POST") {
       try {
         const d = await request.json();
