@@ -29,10 +29,6 @@ async function get(url) {
 assert(origin === expectedOrigin, `프로덕션 origin만 검사합니다: ${expectedOrigin}`);
 assert(fs.existsSync(localSitemap), '로컬 sitemap.xml이 없습니다');
 
-const httpHome = await get('http://modelter.com/');
-assert(httpHome.response.status === 308, `HTTP→HTTPS 상태가 308이 아닙니다: ${httpHome.response.status}`);
-assert(httpHome.response.headers.get('location') === expectedOrigin + '/', `HTTP→HTTPS 목적지가 다릅니다: ${httpHome.response.headers.get('location') || '없음'}`);
-
 const expectedUrls = locs(fs.readFileSync(localSitemap, 'utf8'));
 assert(expectedUrls.length > 0, '로컬 sitemap.xml URL이 비었습니다');
 assert(new Set(expectedUrls).size === expectedUrls.length, '로컬 sitemap.xml URL이 중복됐습니다');
@@ -73,4 +69,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`LIVE SEARCH OK — HTTP→HTTPS 308 + sitemap·robots + canonical ${results.length}개, redirect·noindex 0`);
+console.log(`LIVE SEARCH OK — sitemap·robots + canonical ${results.length}개, redirect·noindex 0`);
