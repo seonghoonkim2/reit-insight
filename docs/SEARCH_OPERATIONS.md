@@ -11,18 +11,20 @@
 
 `robots.txt`에는 정확히 `Sitemap: https://modelter.com/sitemap.xml`이 있어야 한다. Search Console의 사이트맵 입력란에는 루트 URL, 여러 페이지를 이어 붙인 문자열, HTML 페이지를 넣지 않는다. 등록 대상은 위 사이트맵 한 개다.
 
-## 2026-08-16 읽기 전용 확인 상태
+## 2026-08-17 완료 상태
 
-- 정식 `https://modelter.com/sitemap.xml`은 아직 제출 목록에 없다.
-- 모델터 본체에 관해 제출된 항목은 `http://modelter.com/`, `https://modelter.com/`, 여러 URL을 한 문자열로 붙인 항목 3개이며 모두 오류 또는 가져올 수 없음 상태다. 루트 URL은 사이트맵이 아니므로 다시 제출하지 않는다.
-- 색인 보고서의 마지막 갱신일은 2026-08-07이다. 그 시점에 본체에서 확인된 색인 URL은 홈·`/trust`·`/verification`·`/t/dscr` 4개다. 이후 배포한 `/im-checklist`와 생성 착지면을 이 오래된 보고서만으로 누락 판정하지 않는다.
-- 라이브 `sitemap.xml`은 HTTP 200이고 현재 canonical 44개를 담고 있다. 다음 외부 작업은 운영자 승인 뒤 이 파일 하나를 제출하는 것이다. 성공 확인 전 기존 오류 행을 지우지 않으며, 삭제 여부도 별도 확인한다.
+- Search Console에 정식 `https://modelter.com/sitemap.xml` 한 개를 제출했다. 상태는 **성공**, 발견된 페이지 44개로 확인했다.
+- 사이트맵이 아닌 `http://modelter.com/`, `https://modelter.com/`, 여러 URL을 이어 붙인 항목 3개는 정확한 대상을 다시 확인한 뒤 제출 목록에서 삭제했다.
+- `https://modelter.com/im-checklist`는 실제 URL 테스트에서 색인 가능 상태를 확인한 뒤 색인 생성을 요청했고, 요청 접수 메시지를 확인했다.
+- Cloudflare의 **Always Use HTTPS**를 켰다. `http://modelter.com/path-check?q=1`이 301로 `https://modelter.com/path-check?q=1`에 이동해 경로와 쿼리가 보존되는 것을 확인했다.
+- `NOINDEX` 알림의 확인 대상은 `https://korea.modelter.com/contact/`였다. 이 페이지는 의도적인 `noindex,follow`이고 본체 사이트맵에도 없으므로 수정 검증을 시작하지 않는다. `modelter.com` 본체의 44개 canonical에는 `noindex`가 없다.
+- 색인 보고서의 마지막 갱신일은 2026-08-07이었다. 그 시점의 오래된 URL 수만으로 이후 배포한 `/im-checklist`와 생성 착지면을 누락 판정하지 않는다.
 
-위 확인에서는 제출·삭제·색인 요청·내보내기를 하지 않았다. Search Console 계정 정보와 원시 성과표는 저장소에 기록하지 않는다.
+계정 정보와 원시 성과표는 저장소에 기록하지 않는다. 제출은 발견을 돕는 신호일 뿐 색인·노출·순위를 보장하지 않는다.
 
 ## 검색에 영향을 주는 배포 뒤
 
-1. `node tools/qa/live-search.mjs`를 실행한다. 라이브 `sitemap.xml`·`robots.txt`와 등록 URL 전부를 GET으로 읽어 HTTP 200·Content-Type·무리다이렉트·canonical 일치·`noindex` 0을 검사하며, 브라우저 JS를 실행하지 않아 `/e` 이벤트를 만들지 않는다.
+1. `node tools/qa/live-search.mjs`를 실행한다. HTTP→HTTPS의 301/308과 경로·쿼리 보존, 라이브 `sitemap.xml`·`robots.txt`, 등록 URL 전부의 HTTP 200·Content-Type·무리다이렉트·canonical 일치·`noindex` 0을 검사한다. 브라우저 JS를 실행하지 않아 `/e` 이벤트를 만들지 않는다.
 2. 스크립트가 비교하는 로컬 `<loc>` 개수가 생성기·CI의 예상 개수와 같고, 새 URL이 무확장 canonical로 들어갔는지 확인한다.
 3. Search Console → **Sitemaps**에서 정확한 사이트맵 행의 상태가 `성공`인지 확인한다.
 4. Search Console 도메인 속성에는 `korea.modelter.com`도 함께 잡히므로, 모델터 본체 실적은 페이지 필터 **다음이 포함된 URL = `https://modelter.com/`** 로 분리한다.
