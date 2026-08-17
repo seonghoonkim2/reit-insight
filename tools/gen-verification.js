@@ -50,19 +50,19 @@ function build() {
     return `<tr><td>${esc(r.n)}</td><td>${badge}</td><td>${err}</td></tr>`;
   }).join('');
 
-  const ld = { '@context': 'https://schema.org', '@type': 'TechArticle', headline: '모델터 화면 값과 Excel 수식 검증 결과', datePublished: bj.date || '', about: '재무모델 화면 계산값과 다운로드 Excel 수식의 일치 검증', url: BASE + '/verification' };
+  const ld = { '@context': 'https://schema.org', '@type': 'TechArticle', headline: '모델터 화면 값과 엑셀 수식 검증 결과', datePublished: bj.date || '', about: '재무모델 화면 계산값과 다운로드 엑셀 수식의 일치 검증', url: BASE + '/verification' };
 
   const page = `<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>화면 값과 Excel 수식 검증 결과 | 모델터</title>
-<meta name="description" content="모델터의 화면 값과 다운로드 Excel 수식이 같은지 별도 수식 엔진으로 재계산한 결과와 재현 방법을 공개합니다." />
+<title>화면 값과 엑셀 수식 검증 결과 | 모델터</title>
+<meta name="description" content="모델터의 화면 값과 다운로드 엑셀 수식이 같은지 별도 수식 엔진으로 재계산한 결과와 재현 방법을 공개합니다." />
 <link rel="canonical" href="${BASE}/verification" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="화면 값과 Excel 수식 검증 결과 | 모델터" />
-<meta property="og:description" content="네 가지 딜의 화면 값과 Excel 수식을 별도 엔진으로 다시 계산해 대조했습니다." />
+<meta property="og:title" content="화면 값과 엑셀 수식 검증 결과 | 모델터" />
+<meta property="og:description" content="네 가지 딜의 화면 값과 엑셀 수식을 별도 엔진으로 다시 계산해 대조했습니다." />
 <meta property="og:url" content="${BASE}/verification" />
 <meta property="og:image" content="${BASE}/og-first-deal-v1.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -120,33 +120,33 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 </div></header>
 <main class="wrap">
   <div class="hero">
-    <div class="eyebrow">화면 값·Excel 수식 대조</div>
-    <h1>화면 값과 Excel 수식이<br>같은지 확인했습니다.</h1>
-    <p class="lead">화면 값과 다운로드 Excel 수식을 별도 엔진으로 다시 계산해 대조합니다. 아래에 최신 결과와 같은 검사를 실행하는 명령을 적었습니다.</p>
+    <div class="eyebrow">화면 값·엑셀 수식 대조</div>
+    <h1>화면 값과 엑셀 수식이<br>같은지 확인했습니다.</h1>
+    <p class="lead">화면 값과 다운로드 엑셀 수식을 별도 엔진으로 다시 계산해 대조합니다. 아래에 최신 결과와 같은 검사를 실행하는 명령을 적었습니다.</p>
     <div class="build">빌드 <b>${esc(build)}</b>${bj.git ? (' · git ' + esc(bj.git)) : ''}${bj.date ? (' · ' + esc(bj.date)) : ''}</div>
   </div>
 
   <section>
     <h2>파리티 결과 ${allOK ? '— 네 가지 딜 일치' : (anyRun ? '' : '(재계산 미실행)')}</h2>
     <table class="res"><tr><th>딜 유형</th><th>판정</th><th>세부</th></tr>${rowsHtml}</table>
-    <p>Excel 자가검증 시트, IC PPT 표지, 요약 카드 PNG와 검토 메모에는 위 <b>빌드 식별자</b>가 들어갑니다. 같은 식별자로 산출물과 검증 결과를 연결해 어떤 빌드에서 나온 값인지 확인할 수 있습니다.${anyRun ? '' : ' (현재 생성 환경에 Python·formulas가 없어 재계산을 실행하지 못했습니다. 실제 결과는 배포 환경에서 다시 생성합니다.)'}</p>
+    <p>엑셀 자가검증 시트, IC PPT 표지, 요약 카드 PNG와 검토 메모에는 위 <b>빌드 식별자</b>가 들어갑니다. 같은 식별자로 산출물과 검증 결과를 연결해 어떤 빌드에서 나온 값인지 확인할 수 있습니다.${anyRun ? '' : ' (현재 생성 환경에 Python·formulas가 없어 재계산을 실행하지 못했습니다. 실제 결과는 배포 환경에서 다시 생성합니다.)'}</p>
   </section>
 
   <section>
     <h2>직접 재현하는 법</h2>
-    <p>저장소에서 아래 명령을 실행하면 같은 검사를 재현할 수 있습니다. <code>formulas</code>는 Excel 수식을 파이썬에서 다시 계산하며 모델터 계산 엔진과는 별도로 동작합니다.</p>
+    <p>저장소에서 아래 명령을 실행하면 같은 검사를 재현할 수 있습니다. <code>formulas</code>는 엑셀 수식을 파이썬에서 다시 계산하며 모델터 계산 엔진과는 별도로 동작합니다.</p>
     <ol class="steps">
       <li><code>pip install formulas</code> — 엑셀 수식 재계산 라이브러리 설치</li>
       <li><code>node tools/parity/gen-xlsx.js office</code> — 예시 딜로 엑셀 생성 + 화면 계산값(기대치) 기록</li>
       <li><code>python3 tools/parity/check.py office</code> — 생성된 엑셀의 <b>수식을 재계산</b>해 화면 계산값과 대조(허용 오차는 지표별 1e-3~1e-2 — 실측 오차는 e-10 이하)</li>
       <li><code>office</code> 자리에 <code>logistics</code>·<code>dev</code>·<code>refi</code>를 넣어 딜별로 반복 — 4딜 전수</li>
     </ol>
-    <p>허용 오차는 부동소수점 반올림 수준입니다. 계산이나 Excel 로직을 바꾸면 이 검사를 다시 실행하며, 값이 맞지 않으면 배포하지 않습니다.</p>
+    <p>허용 오차는 부동소수점 반올림 수준입니다. 계산이나 엑셀 로직을 바꾸면 이 검사를 다시 실행하며, 값이 맞지 않으면 배포하지 않습니다.</p>
   </section>
 
   <section>
     <h2>파일 안에서도 확인할 수 있습니다</h2>
-    <p>Excel의 검증 시트에는 <b>생성 당시의 화면 값</b>이 함께 들어갑니다. 수식이나 입력값이 바뀌면 PASS/FAIL 결과로 확인할 수 있고, 빌드 식별자로 이 페이지의 검증 결과도 찾을 수 있습니다.</p>
+    <p>엑셀의 검증 시트에는 <b>생성 당시의 화면 값</b>이 함께 들어갑니다. 수식이나 입력값이 바뀌면 PASS/FAIL 결과로 확인할 수 있고, 빌드 식별자로 이 페이지의 검증 결과도 찾을 수 있습니다.</p>
   </section>
 </main>
 <footer><div class="wrap">

@@ -738,8 +738,8 @@ ok(html.includes('mt_nudge') && html.includes('nudge_save') &&
   /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 공유하세요/.test(html) &&
   /exRemaining\(\)\.length>0[\s\S]{0,350}남은 예시값/.test(html),
   '저장·팀 전달 넛지: 세션 1회·기존 공유 중복 억제·예시 상태별 문구');
-ok(html.includes('Excel에서 검증 결과 확인'), "What's new v3 내용 현행화");
-ok(html.includes('내 값이 계산에 들어가는 방식') && html.includes('출처와 기준일을 Excel에 기록'), "What's new v3 내용 4차 현행화(산식 대입·출처 Excel)");
+ok(html.includes('엑셀에서 검증 결과 확인'), "What's new v3 내용 현행화");
+ok(html.includes('내 값이 계산에 들어가는 방식') && html.includes('출처와 기준일을 엑셀에 기록'), "What's new v3 내용 4차 현행화(산식 대입·출처 엑셀)");
 ok(html.includes('입력값을 더 꼼꼼히 확인합니다'), "What's new v3 내용 4차 현행화(점검·경고)");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('const FIELD_REF_DEAL=') && html.includes('function fieldRef'), '시장 참고치 v2(딜 유형별) 존재');
