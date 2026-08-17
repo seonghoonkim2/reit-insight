@@ -2001,7 +2001,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-18·46629e3baf';
+window.MT_BUILD='2026-08-18·ea312b9d5f';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -4475,7 +4475,7 @@ function simDevBulk(){
 function simModel(){ if(cur==='office'||cur==='logistics') return simDcf(); if(cur==='dev') return simDev(); if(cur==='refi') return simRefi(); return null; }
 
 /* 결과 자동 판정 — 계산된 KPI를 읽어 한 줄 코멘트로(계산 안 바꿈, raw 해석만). 통상 실무 눈높이 기준 */
-/* 하우스 기준(내 허들) — 판정·커버넌트·차환·대주 뷰가 통상값 대신 내 기준 사용 */
+/* 팀 판정 기준 — 판정·커버넌트·차환·대주 관점이 통상값 대신 저장한 기준 사용 */
 function houseLoad(){ try{ return JSON.parse(localStorage.getItem('mt_house')||'{}')||{}; }catch(e){ return {}; } }
 function houseGet(k,d){ var h=houseLoad(); var v=parseFloat(h[k]); return isFinite(v)&&v>0?v:d; }
 function houseOn(){ return (houseGet('irr',0)>0||houseGet('dscr',0)>0||houseGet('ltv',0)>0); }
@@ -4499,7 +4499,7 @@ function houseImportPreview(pay){
   var mdN=md?Object.keys(md).length:0;
   var ov2=document.createElement('div'); ov2.className='imx-ov';
   ov2.innerHTML='<div class="imx"><h3>🎯 팀 기준 설치</h3>'
-    +'<div class="imx-sub">'+(team?('<b>'+esc(team)+(ver?(' '+esc(ver)):'')+'</b>의 '):'')+'심사 기준을 이 브라우저에 설치합니다. 자동 판정·커버넌트·차환·대주 뷰와 산출물 표기에 반영됩니다. <b>지금 설정을 덮어씁니다.</b></div>'
+    +'<div class="imx-sub">'+(team?('<b>'+esc(team)+(ver?(' '+esc(ver)):'')+'</b>의 '):'')+'심사 기준을 이 브라우저에 설치합니다. 자동 판정·커버넌트·차환·대주 관점과 산출물 표기에 반영됩니다. <b>지금 설정을 덮어씁니다.</b></div>'
     +'<table class="imx-tbl">'
     +row('목표 레버드 IRR', h.irr?(h.irr+'%'):'')
     +row('최소 DSCR', h.dscr?(h.dscr+'x'):'')
@@ -4529,8 +4529,8 @@ window.__mtHouseImport=houseImportPreview;
 function housePop(){
   var h=houseLoad();
   var ov2=document.createElement('div'); ov2.className='imx-ov';
-  ov2.innerHTML='<div class="imx"><h3>🎯 내 판정 기준 (하우스 허들)</h3>'
-    +'<div class="imx-sub">자동 판정·커버넌트·차환 갭·대주 뷰가 통상값 대신 <b>우리 회사 기준</b>으로 판정합니다. 비워두면 통상값(IRR 8% · DSCR 1.2x · LTV 60%)을 씁니다.</div>'
+  ov2.innerHTML='<div class="imx"><h3>🎯 내 판정 기준</h3>'
+    +'<div class="imx-sub">자동 판정·커버넌트·차환 갭·대주 관점에 <b>우리 회사 기준</b>을 적용합니다. 비워두면 통상값(IRR 8% · DSCR 1.2x · LTV 60%)을 씁니다.</div>'
     +'<table class="imx-tbl">'
     +'<tr><td><b>목표 레버드 IRR</b> <span style="color:var(--muted);font-size:11px">%</span></td><td><input data-house="irr" inputmode="decimal" placeholder="8" value="'+esc(h.irr||'')+'"></td></tr>'
     +'<tr><td><b>최소 DSCR</b> <span style="color:var(--muted);font-size:11px">x</span></td><td><input data-house="dscr" inputmode="decimal" placeholder="1.2" value="'+esc(h.dscr||'')+'"></td></tr>'
@@ -4556,7 +4556,7 @@ function housePop(){
       if(window.mtTrack) try{ mtTrack('house_share'); }catch(e5){}
       return;   // 모달 유지 — 팀명·버전 확인 후 계속
     }
-    toast('내 판정 기준 저장됨 — 판정·커버넌트·대주 뷰에 반영');
+    toast('내 판정 기준을 저장했습니다. 판정·커버넌트·대주 관점에 반영됩니다');
     if(window.mtTrack) try{ mtTrack('house_set'); }catch(e4){}
     closeH();
   });
@@ -6195,7 +6195,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
           ?('<div class="cov-refi cov-gap">만기에 갚을 잔액은 <b>'+meok(_bal)+'</b>. 그때 가치에 '+_limLb+'를 적용하면 <b>'+meok(_cap)+'</b>까지 조달이 되니 <b>'+meok(_gap)+'</b> 여유가 있습니다. 차환 자체는 무리 없어 보입니다.</div>')
           :('<div class="cov-refi cov-gap">만기에 갚을 잔액이 <b>'+meok(_bal)+'</b>인데, '+_limLb+'로 조달할 수 있는 건 <b>'+meok(_cap)+'</b> 정도입니다. <b class="cv-neg">'+meok(-_gap)+'이 모자라니</b> 만기 전 일부 상환이나 에쿼티 보강, 아니면 매각까지 열어놓고 봐야 합니다.</div>');
       }
-      // 대주 뷰 — 금리 × 공실 결합 스트레스 (가정 시트 기준 최소 DSCR)
+      // 대주 관점 — 금리 × 공실 결합 스트레스 (가정 시트 기준 최소 DSCR)
       var lender='';
       try{
         if(typeof calcModel==='function'&&typeof assumFull==='function'){
@@ -6217,7 +6217,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
             }).join('')+'</tr>';
           });
           if(_any){
-            lender='<div class="cov-lender"><div class="cl-h">대주 뷰 — 금리 × 공실 결합 스트레스 <span>최소 DSCR · 기준 '+_minReq.toFixed(2)+'x'+(isFinite(minD)?'':' (통상값)')+'</span></div>'
+            lender='<div class="cov-lender"><div class="cl-h">대주 관점 · 금리 × 공실 결합 스트레스 <span>최소 DSCR · 기준 '+_minReq.toFixed(2)+'x'+(isFinite(minD)?'':' (통상값)')+'</span></div>'
               +'<table class="sens-tbl cov-tbl cl-tbl"><tr><th>금리＼공실</th><th>+0%p</th><th>+5%p</th><th>+10%p</th></tr>'+_lrows+'</table>'
               +'<div class="cov-refi">금리와 공실이 동시에 나빠질 때 최소 DSCR이 어디까지 낮아지는지 보여줍니다. 가정 시트 기준이라 렌트롤은 반영하지 않습니다. 빨간 칸은 기준 미달, 노란 칸은 여유가 0.1x 이내인 구간입니다.</div></div>';
           }
@@ -6225,7 +6225,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       }catch(eLd){}
       var opn=judge?' open':'';
       return '<details class="sim-cf cov-d"'+opn+'><summary>부채 커버넌트 · 리파이 참고 ▾</summary>'
-        +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><button type="button" class="sl-btn" onclick="if(window.housePop)housePop()" title="브라우저 공통 허들 — 판정·차환·대주 뷰에 반영">🎯 내 기준</button><span>기준을 비워두면 내 기준(설정해 둔 경우)으로, 그것도 없으면 판정 없이 숫자만 보여줍니다</span></div>'
+        +'<div class="cov-th">기준(선택): <label>최소 DSCR <input data-cov="covdscr" inputmode="decimal" value="'+(state['covdscr']||'')+'" placeholder="1.2"></label><label>최대 LTV% <input data-cov="covltv" inputmode="decimal" value="'+(state['covltv']||'')+'" placeholder="70"></label><button type="button" class="sl-btn" onclick="if(window.housePop)housePop()" title="저장한 판정 기준을 판정·차환·대주 관점에 반영">🎯 내 기준</button><span>기준을 비워두면 저장한 내 기준을 쓰고, 저장한 기준도 없으면 판정 없이 숫자만 보여줍니다</span></div>'
         +'<div class="cov-wrap"><table class="sens-tbl cov-tbl"><tr><th>연차</th><th>NOI</th><th>원리금</th><th>DSCR</th><th>ICR</th><th title="NOI ÷ 그 해 기말 대출잔액">Debt Yield<br><span style="font-weight:400;font-size:10px;color:var(--muted)">(기말잔액 기준)</span></th><th>내재 LTV</th><th>판정</th></tr>'+rows+'</table></div>'+refi+lender+'</details>';
     }catch(e){ return ''; }
   }
