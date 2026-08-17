@@ -4,15 +4,15 @@
  "endDate": "2026-08-17",
  "week": "2026-W34",
  "days": 30,
- "generatedAt": "2026-08-17T14:45:07.028Z",
+ "generatedAt": "2026-08-17T20:52:30.789Z",
  "funnel": {
-  "session": 873,
+  "session": 875,
   "activate": 103,
   "computed": 102,
   "output": 274
  },
  "events": {
-  "session": 873,
+  "session": 875,
   "deal_select": 455,
   "onboard": 175,
   "depth_change": 172,
@@ -22,10 +22,10 @@
   "computed": 102,
   "dev_view": 96,
   "nudge_save": 95,
-  "deal_want": 76,
+  "deal_want": 77,
   "tip_next": 64,
   "solver": 59,
-  "landing": 42,
+  "landing": 43,
   "sens_axis": 42,
   "slot_save": 40,
   "prompt_copy": 38,
@@ -47,10 +47,10 @@
   "first_number_5m": 7,
   "pdf_export": 7,
   "wizard": 5,
+  "mydef_save": 4,
   "sample_deal": 4,
   "coach_ok": 4,
   "im_checklist": 4,
-  "mydef_save": 4,
   "im_quick": 2,
   "sample_start": 2,
   "slot_delete": 1,
@@ -58,21 +58,21 @@
   "handoff_open": 1
  },
  "deals": {
-  "office": 1734,
+  "office": 1737,
   "dev": 789,
   "logistics": 243,
   "refi": 173,
-  "hotel": 36,
+  "hotel": 37,
   "retail": 17,
   "datacenter": 13,
   "rental": 10
  },
  "device": {
   "desktop": 2375,
-  "mobile": 649
+  "mobile": 653
  },
  "ref": {
-  "modelter.com": 1875,
+  "modelter.com": 1879,
   "www.google.com": 504,
   "blog.naver.com": 138,
   "www.bing.com": 132,
@@ -90,7 +90,7 @@
   "fee,hold,pref": 3,
   "dep,fee,vac,hold": 10,
   "hold,pref": 4,
-  "dep,fee,vac,pref": 1724,
+  "dep,fee,vac,pref": 1728,
   "dep,fee,vac,scen": 6,
   "fee,vac,pref": 1,
   "dep,fee,pref": 4,
@@ -106,13 +106,13 @@
   "dep,fee,bido,vac,pref": 12
  },
  "depth": {
-  "standard": 2433,
+  "standard": 2437,
   "deep": 527,
   "quick": 55
  },
  "src": {
   "seo": 86,
-  "pwa": 25,
+  "pwa": 27,
   "share": 21,
   "xlsx": 5,
   "sns": 2
@@ -126,7 +126,7 @@
     "output": 5
    },
    "(직접/미상)": {
-    "session": 828,
+    "session": 829,
     "activate": 101,
     "computed": 100,
     "output": 267
@@ -138,7 +138,7 @@
     "output": 1
    },
    "pwa": {
-    "session": 9,
+    "session": 10,
     "activate": 0,
     "computed": 0,
     "output": 0
@@ -158,7 +158,7 @@
   },
   "byRef": {
    "modelter.com": {
-    "session": 660,
+    "session": 662,
     "activate": 60,
     "computed": 59,
     "output": 161
@@ -256,10 +256,6 @@
   }
  },
  "daily": [
-  {
-   "day": "2026-07-18",
-   "session": 1
-  },
   {
    "day": "2026-07-19",
    "onboard": 4,
@@ -863,9 +859,9 @@
    "day": "2026-08-17",
    "first_number_5m": 3,
    "example_fill": 2,
-   "session": 12,
-   "landing": 2,
-   "deal_want": 5,
+   "session": 15,
+   "landing": 3,
+   "deal_want": 6,
    "activate": 3,
    "sample_start": 1,
    "computed": 3,
@@ -883,7 +879,7 @@
   "since": "2026-08-15",
   "decisionDate": "2026-08-29",
   "window": {
-   "session": 54,
+   "session": 57,
    "activate": 7
   },
   "handoff_open": {
@@ -908,7 +904,7 @@
  "sampleStartWindow": {
   "since": "2026-08-15T11:23:17+09:00",
   "until": "2026-08-29T11:23:17+09:00",
-  "session": 45,
+  "session": 48,
   "sample_start": 2,
   "activate": 6,
   "computed": 6
@@ -916,7 +912,7 @@
  "dealWantGate": {
   "since": "2026-07-14",
   "target": 50,
-  "hotel": 45,
+  "hotel": 46,
   "retail": 21,
   "rental": 16,
   "datacenter": 15
