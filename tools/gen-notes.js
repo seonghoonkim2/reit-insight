@@ -63,8 +63,8 @@ function build() {
   const { mtLZ, EXAMPLES } = extractApp();
   const mr = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'market-ref.json'), 'utf8'));
   const q = quarterMeta(mr);
-  const title = `${q.year}년 ${q.n}분기 상업용 부동산 시장 노트 — 참고치로 바로 모델 돌려보기 | 모델터`;
-  const desc = `${q.year}년 ${q.n}분기 오피스·물류 Cap Rate, PF 금리 참고치와 그 가정이 채워진 라이브 재무모델. 클릭 한 번으로 IRR·DSCR을 확인하세요.`;
+  const title = `${q.year}년 ${q.n}분기 상업용 부동산 참고치로 모델 돌려보기 | 모델터`;
+  const desc = `${q.year}년 ${q.n}분기 오피스·물류 Cap Rate와 PF 금리 참고치를 예시 모델에 넣어 IRR·DSCR 변화를 확인합니다.`;
   const canonical = `${BASE}/notes/${q.id}`;   // 무확장이 정식 서빙 URL(.html은 307)
 
   // 참고치(딜 오버라이드 우선) 헬퍼
@@ -83,11 +83,12 @@ function build() {
 
   const cardsHtml = cards.map(c => {
     const link = prefillLink(mtLZ, EXAMPLES, c.deal, c.override);
+    const cta = c.deal === 'office' ? '오피스 예시 모델 열기' : c.deal === 'logistics' ? '물류 예시 모델 열기' : '분양 예시 모델 열기';
     return `  <section class="note-card">
     <h2>${esc(c.label)}</h2>
     <p class="figure">${esc(c.text.replace(/^참고\s*/, ''))} <span class="src" title="출처: ${esc(c.src)} · ${esc(c.asof)} 기준 · 참고치이며 개별 자산별로 다릅니다">${esc(c.asof)} · ${esc(c.src)}</span></p>
     <p>${esc(c.blurb)}</p>
-    <a class="cta" href="${link}">이 가정으로 지금 모델 돌려보기 →<span class="sub">예시 딜이 채워진 채 열립니다 · 숫자만 바꾸면 결과가 바로 · 가입·설치 없음</span></a>
+    <a class="cta" href="${link}">${cta} →<span class="sub">예시값이 들어 있습니다 · 숫자를 바꾸면 결과가 다시 계산됩니다</span></a>
   </section>`;
   }).join('\n');
 
@@ -151,17 +152,17 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 <body>
 <header><div class="wrap">
   <a class="logo" href="/"><span class="m"></span>모델터</a>
-  <a class="back" href="/">← 모델 만들러</a>
+  <a class="back" href="/">← 모델 만들기</a>
 </div></header>
 <main class="wrap">
   <nav class="crumb"><a href="/">모델터</a> › 시장 노트 › ${esc(q.year)}년 ${esc(q.n)}분기</nav>
   <div class="hero">
     <div class="eyebrow">분기 시장 노트 · ${esc(mr.asof || '')}</div>
-    <h1>${esc(q.year)}년 ${esc(q.n)}분기 참고치,<br>클릭 한 번으로 모델에 넣어 보기</h1>
-    <p class="lead">이번 분기 오피스·물류 Cap Rate와 분양 PF 금리 참고치입니다. 각 수치는 그 가정이 <b>미리 채워진 라이브 재무모델</b>로 이어집니다 — 링크를 누르면 예시 딜이 그대로 열려, 숫자만 바꾸며 IRR·DSCR을 30초 만에 확인할 수 있습니다.</p>
+    <h1>${esc(q.year)}년 ${esc(q.n)}분기 참고치를<br>예시 모델에 넣어 봤습니다</h1>
+    <p class="lead">오피스·물류 Exit Cap과 분양 PF 금리 참고치를 정리했습니다. 항목별 링크를 누르면 해당 가정이 들어간 예시 딜이 열립니다. 숫자를 바꾸면 IRR·DSCR이 어떻게 달라지는지 확인할 수 있습니다.</p>
   </div>
 ${cardsHtml}
-  <div class="disc">${esc(mr.note || '')} 위 수치는 공개 기준·업계 관행을 정리한 <b>참고치</b>이며 특정 자산의 시세·감정평가액이 아닙니다. 개별 자산·입지·시점별로 다르며, <b>투자 권유가 아닌 정보 제공 목적</b>입니다.</div>
+  <div class="disc">${esc(mr.note || '')} <b>투자 권유가 아닌 정보 제공 목적</b>입니다.</div>
 </main>
 <footer><div class="wrap">
   모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
