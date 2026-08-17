@@ -1985,7 +1985,7 @@ const QUICK_FIELDS={
   refi:["asset","noi","oldbal","oldrate","dscrmin"]
 };
 // 매입 딜은 IM에 있는 수입 형식에 맞춰 핵심 입력을 바꾼다.
-// Excel 엔진이 매입가를 평당가×연면적으로 연결하므로 두 방식 모두 연면적이 필수다.
+// 엑셀 엔진이 매입가를 평당가×연면적으로 연결하므로 두 방식 모두 연면적이 필수다.
 // NOI 직접 방식은 평당 임대료만 1차연도 NOI로 바꾼다.
 function quickFieldKeys(deal){
   var keys=(QUICK_FIELDS[deal]||[]).slice();
@@ -2001,7 +2001,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-18·4a7a96e9f4';
+window.MT_BUILD='2026-08-18·7fd4537e1a';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2899,7 +2899,7 @@ function mRefi(){
       if(isFinite(rate)&&isFinite(noi)&&rate>0){ var intr=loan*rate/100; icr=noi/intr; parts.push('ICR '+mfmt(icr,2)+'x'); }
       if(isFinite(oldbal)){ var co=loan-oldbal; parts.push((co>=0?'순인출 +':'순상환 ')+meok(Math.abs(co))); }
       rows.push({l:'대안 '+n+' (LTV '+mfmt(ltv,0)+'%'+(isFinite(rate)?(', '+mfmt(rate,1)+'%'):'')+')', v:parts.join(' · ')});
-      if(isFinite(icr)&&isFinite(dmin)&&icr<dmin) warns.push('대안 '+n+': ICR '+mfmt(icr,2)+'x < 기준 '+mfmt(dmin,2)+'x (이자보상 미달, 원금상환 포함 DSCR은 더 낮음).');
+      if(isFinite(icr)&&isFinite(dmin)&&icr<dmin) warns.push('대안 '+n+'의 ICR은 '+mfmt(icr,2)+'x로 기준 '+mfmt(dmin,2)+'x보다 낮습니다. 원금 상환까지 포함하면 DSCR은 더 낮습니다.');
     }
   });
   return {rows:rows,warns:warns,note:'ICR = NOI ÷ 연이자(만기일시 가정). 원리금 상환형 DSCR은 더 낮습니다. 정밀 산정은 Claude가 수행합니다.'};
@@ -4010,7 +4010,7 @@ function renderSens(){
         +'<button type="button" class="hx-tg'+(sensAxis==='rate'?' on':'')+'" onclick="__setSensAxis(\'rate\')">선순위 금리</button></div>';
       var scH=''; try{ scH=scenarioTable(); }catch(eS){}
       $('sensBody').innerHTML=tg+renderHeat(m)+scH;
-      $('sensNote').textContent='각 칸 = 해당 Exit Cap·'+(sensAxis==='rate'?'선순위 금리':'성장률')+'에서의 레버드 IRR. 가운데 칸이 현재 가정(모델 결과와 동일). 파랑=높음·주황=낮음.';
+      $('sensNote').textContent='각 칸은 해당 Exit Cap과 '+(sensAxis==='rate'?'선순위 금리':'성장률')+'로 다시 계산한 레버드 IRR입니다. 가운데 칸이 현재 가정이며, 파랑은 높은 값, 주황은 낮은 값입니다.';
       return;
     }
   }
@@ -4574,19 +4574,19 @@ function dealVerdict(r){
     var irr=raw.IRR;
     var hIrr=houseGet('irr',8)/100, hDscr=houseGet('dscr',1.2);
     var hOn=houseOn();
-    var hNm=hOn?(houseName()+' 기준 '):'', lead, dsAt=-1;
-    if(irr>=hIrr){ lead='IRR '+fp(irr)+' · '+hNm+mfmt(hIrr*100,1)+'% 이상'; parts.push(lead+'.'); }
-    else if(irr<hIrr-0.03){ lead='IRR '+fp(irr)+' · '+hNm+mfmt(hIrr*100,1)+'%보다 '+mfmt((hIrr-irr)*100,1)+'%p 낮음'; parts.push(lead+'. 가격과 주요 가정을 다시 확인하세요.'); tone='warn'; }
-    else { lead='IRR '+fp(irr)+' · '+hNm+mfmt(hIrr*100,1)+'%보다 '+mfmt((hIrr-irr)*100,1)+'%p 낮음'; parts.push(lead+'.'); if(tone==='good') tone='mid'; }
+    var hNm=hOn?(houseName()+' 기준'):'참고 기준', lead, dsAt=-1;
+    if(irr>=hIrr){ lead='IRR은 '+fp(irr)+'로 '+hNm+' '+mfmt(hIrr*100,1)+'%를 충족합니다'; parts.push(lead+'.'); }
+    else if(irr<hIrr-0.03){ lead='IRR은 '+fp(irr)+'로 '+hNm+' '+mfmt(hIrr*100,1)+'%보다 '+mfmt((hIrr-irr)*100,1)+'%p 낮습니다'; parts.push(lead+'. 가격과 주요 가정을 다시 확인하세요.'); tone='warn'; }
+    else { lead='IRR은 '+fp(irr)+'로 '+hNm+' '+mfmt(hIrr*100,1)+'%보다 '+mfmt((hIrr-irr)*100,1)+'%p 낮습니다'; parts.push(lead+'.'); if(tone==='good') tone='mid'; }
     if(raw.minDSCR!=null&&isFinite(raw.minDSCR)){
-      if(raw.minDSCR>=hDscr) parts.push('최소 DSCR '+fx(raw.minDSCR)+' · '+hNm+mfmt(hDscr,2)+'x 이상.');
-      else { parts.push('최소 DSCR '+fx(raw.minDSCR)+' · '+hNm+mfmt(hDscr,2)+'x보다 낮습니다.'); tone='warn'; }
+      if(raw.minDSCR>=hDscr) parts.push('최소 DSCR은 '+fx(raw.minDSCR)+'로 '+hNm+' '+mfmt(hDscr,2)+'x를 충족합니다.');
+      else { parts.push('최소 DSCR은 '+fx(raw.minDSCR)+'로 '+hNm+' '+mfmt(hDscr,2)+'x보다 낮습니다.'); tone='warn'; }
     }
     var price=parseNum(state.price), noi0=(raw.NOI&&raw.NOI.length)?raw.NOI[0]:null, ec=raw.exitCap;
     if(isFinite(price)&&price>0&&noi0!=null&&isFinite(ec)){
       var entry=noi0/price, sp=(ec-entry)*100;
       if(sp>=0.1) parts.push('Exit Cap은 진입 Cap보다 '+mfmt(sp,1)+'%p 높습니다.');
-      else if(sp>=-0.5) parts.push('Exit Cap은 진입 Cap과 ±0.5%p 이내입니다.');   // 앱 검증 허용치(±0.5%p) 이내
+      else if(sp>=-0.5) parts.push('Exit Cap과 진입 Cap의 차이는 0.5%p 이내입니다.');   // 앱 검증 허용치(±0.5%p) 이내
       else { parts.push('Exit Cap은 진입 Cap보다 '+mfmt(-sp,1)+'%p 낮습니다. 매각가가 높아지는 가정이므로 근거를 확인하세요.'); tone='warn'; }
     }
     // 매도자 제시 IRR 대조(#28) — IM 제시치 vs 내 계산
@@ -4607,8 +4607,8 @@ function dealVerdict(r){
           var _dEc=_b.ec+1.0, _dG=_b.g-1.0;
           var _dIRR=window.__mtSens2(_dEc,_dG,'growth');
           if(_dIRR!=null&&isFinite(_dIRR)){
-            if(_dIRR<0.05){ parts.push('보수 시나리오(Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%)의 IRR은 '+fp(_dIRR)+'로 참고선 5%보다 낮습니다.'); dsAt=parts.length-1; }
-            else { parts.push('보수 시나리오(Exit '+mfmt(_dEc,1)+'%·성장 '+mfmt(_dG,1)+'%)의 IRR은 '+fp(_dIRR)+'입니다.'); dsAt=parts.length-1; }
+            if(_dIRR<0.05){ parts.push('Exit Cap '+mfmt(_dEc,1)+'%, 성장률 '+mfmt(_dG,1)+'%인 보수 시나리오에서는 IRR이 '+fp(_dIRR)+'로, 참고선 5%를 밑돕니다.'); dsAt=parts.length-1; }
+            else { parts.push('Exit Cap '+mfmt(_dEc,1)+'%, 성장률 '+mfmt(_dG,1)+'%인 보수 시나리오에서는 IRR이 '+fp(_dIRR)+'입니다.'); dsAt=parts.length-1; }
           }
         }
       }
@@ -4620,13 +4620,13 @@ function dealVerdict(r){
   if(cur==='dev'&&typeof devResi==='function'&&devResi()){
     if(raw.margin==null||!isFinite(raw.margin)) return null;
     var p2=[], t2='good', m=raw.margin, lead2;
-    if(m>=10){ lead2='사업이익률 '+mfmt(m,1)+'% · 참고 기준 10% 이상'; p2.push(lead2+'.'); }
-    else if(m<5){ lead2='사업이익률 '+mfmt(m,1)+'% · 참고 기준 10%보다 '+mfmt(10-m,1)+'%p 낮음'; p2.push(lead2+'. 분양가와 사업비를 다시 확인하세요.'); t2='warn'; }
-    else { lead2='사업이익률 '+mfmt(m,1)+'% · 참고 기준 10%보다 '+mfmt(10-m,1)+'%p 낮음'; p2.push(lead2+'.'); t2='mid'; }
+    if(m>=10){ lead2='사업이익률은 '+mfmt(m,1)+'%로 참고 기준 10%를 충족합니다'; p2.push(lead2+'.'); }
+    else if(m<5){ lead2='사업이익률은 '+mfmt(m,1)+'%로 참고 기준 10%보다 '+mfmt(10-m,1)+'%p 낮습니다'; p2.push(lead2+'. 분양가와 사업비를 다시 확인하세요.'); t2='warn'; }
+    else { lead2='사업이익률은 '+mfmt(m,1)+'%로 참고 기준 10%보다 '+mfmt(10-m,1)+'%p 낮습니다'; p2.push(lead2+'.'); t2='mid'; }
     if(raw.bep!=null&&isFinite(raw.bep)){
       var sold=parseNum(state.aptsold); if(!isFinite(sold)) sold=100;
-      if(sold<raw.bep){ p2.push('가정 분양률 '+mfmt(sold,0)+'%는 손익분기 분양률 '+mfmt(raw.bep,1)+'%보다 낮습니다.'); t2='warn'; }
-      else p2.push('가정 분양률 '+mfmt(sold,0)+'%, 손익분기 분양률 '+mfmt(raw.bep,1)+'% · '+mfmt(sold-raw.bep,1)+'%p 여유.');
+      if(sold<raw.bep){ p2.push('가정 분양률은 '+mfmt(sold,0)+'%로 손익분기 분양률 '+mfmt(raw.bep,1)+'%보다 낮습니다.'); t2='warn'; }
+      else p2.push('가정 분양률은 '+mfmt(sold,0)+'%, 손익분기 분양률은 '+mfmt(raw.bep,1)+'%로 '+mfmt(sold-raw.bep,1)+'%p 여유가 있습니다.');
     } else { p2.push('분양률 100%에서도 손익분기에 도달하지 않습니다.'); t2='warn'; }
     if(raw.pfEnd!=null) p2.push(raw.pfEnd<0.5?'가정 분양률에서 PF를 전액 상환합니다.':('가정 분양률에서 PF 잔액이 '+meok(raw.pfEnd)+' 남습니다. 상환 재원을 확인하세요.'));
     if(raw.pfEnd>=0.5) t2='warn';
@@ -4636,7 +4636,7 @@ function dealVerdict(r){
   if(cur==='refi'&&r.rows){
     if(r.best){
       var bestRow=null; for(var i=0;i<r.rows.length;i++) if(r.rows[i].n===r.best) bestRow=r.rows[i];
-      var seg='<b>'+r.best+'안</b>은 기준을 충족한 안 중 전 기간 최소 DSCR가'+(bestRow&&bestRow.minDSCR!=null?(' '+fx(bestRow.minDSCR)+'로'):'')+' 가장 높습니다.';
+      var seg='<b>'+r.best+'안</b>은 기준을 충족한 안 중 전 기간 최소 DSCR이'+(bestRow&&bestRow.minDSCR!=null?(' '+fx(bestRow.minDSCR)+'로'):'')+' 가장 높습니다.';
       var netMsg='';
       if(bestRow&&isFinite(bestRow.net)) netMsg='수수료 반영 후 순조달액은 '+(bestRow.net>=0?'+':'−')+meok(Math.abs(bestRow.net))+'입니다.';
       var lead3=r.best+'안 · 최소 DSCR 우위'+(bestRow&&bestRow.minDSCR!=null?(' ('+fx(bestRow.minDSCR)+')'):'');
@@ -4747,9 +4747,9 @@ function renderSim(){
         return '<td'+(bad?' style="color:var(--red);font-weight:700"':'')+'>'+(yr.dscr!=null?mfmt(yr.dscr,2)+'x':'—')+'</td>';
       }).join('')+'</tr>';
     }
-    bd.innerHTML=(r.best?('<div class="sim-rec">최소 DSCR 우위: '+r.best+'안 · 기준을 충족한 안 중 가장 높음</div>'):'')+
+    bd.innerHTML=(r.best?('<div class="sim-rec">기준을 충족한 안 중 '+r.best+'안의 최소 DSCR이 가장 높습니다.</div>'):'')+
       '<table class="sens-tbl sim-tbl">'+th+body+'</table>'+
-      '<details class="sim-cf"><summary>연도별 DSCR 전개 ▾</summary><table class="sens-tbl sim-tbl">'+yh+yb+'</table><div class="scen-note">빨간 값 = DSCR 기준('+(isFinite(r.dmin)?mfmt(r.dmin,2)+'x':'—')+') 미달 연차</div></details>';
+      '<details class="sim-cf"><summary>연도별 DSCR 전개 ▾</summary><table class="sens-tbl sim-tbl">'+yh+yb+'</table><div class="scen-note">빨간 값은 입력한 DSCR 기준('+(isFinite(r.dmin)?mfmt(r.dmin,2)+'x':'—')+')에 미달한 연차입니다.</div></details>';
   } else {
     var bigs=r.kpis.filter(function(k){return k.big;});
     function skTile(k,mn){ var tw=k.tone==='warn'?'<span class="sr-only"> · 주의</span>':(k.tone==='good'?'<span class="sr-only"> · 양호</span>':''); return '<div class="sim-kpi'+(mn?' main':'')+(k.tone?(' '+k.tone):'')+'"><div class="sk-l">'+esc(k.l)+termHelp(k.l)+'</div><div class="sk-v">'+esc(k.v)+'</div>'+tw+'</div>'; }
@@ -5030,7 +5030,7 @@ function shareLink(readonly, src){
 }
 // 산출물 회수 링크 — 옵트인 체크박스(기본 켜짐). 산출물에 「이 모델 열기」 링크·QR을 넣을지.
 function recoverOn(){ try{ var c=document.getElementById('recoverChk'); return c?!!c.checked:true; }catch(e){ return true; } }
-// 회수 링크. 상태(#v=)가 너무 길면(렌트롤 다건 등) Excel 하이퍼링크(주소 한도 ≈2079자)가 조용히 잘려 깨지므로,
+// 회수 링크. 상태(#v=)가 너무 길면(렌트롤 다건 등) 엑셀 하이퍼링크(주소 한도 ≈2079자)가 조용히 잘려 깨지므로,
 // 1900자 초과 시 상태 없는 채널 링크(#src=)로 폴백 — 받은 사람이 클릭하면 항상 앱에 착지(딜은 미리 채워지지 않음). 깨진 링크보다 낫다.
 function recoverUrl(src){ if(!recoverOn()) return null; try{ var u=shareLink(true, src)||null; if(u&&u.length>1900){ var s=srcTag(src); return location.origin+location.pathname+(s?('#src='+s):''); } return u; }catch(e){ return null; } }
 function copyShare(url, label){
@@ -6219,7 +6219,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
           if(_any){
             lender='<div class="cov-lender"><div class="cl-h">대주 뷰 — 금리 × 공실 결합 스트레스 <span>최소 DSCR · 기준 '+_minReq.toFixed(2)+'x'+(isFinite(minD)?'':' (통상값)')+'</span></div>'
               +'<table class="sens-tbl cov-tbl cl-tbl"><tr><th>금리＼공실</th><th>+0%p</th><th>+5%p</th><th>+10%p</th></tr>'+_lrows+'</table>'
-              +'<div class="cov-refi">금리와 공실이 같이 나빠지면 최소 DSCR가 어디까지 밀리는지 본 표입니다. 가정 시트 기준(렌트롤 미반영)이고, 빨간 칸이 기준 미달·노란 칸이 여유 0.1x 이내입니다.</div></div>';
+              +'<div class="cov-refi">금리와 공실이 동시에 나빠질 때 최소 DSCR이 어디까지 낮아지는지 보여줍니다. 가정 시트 기준이라 렌트롤은 반영하지 않습니다. 빨간 칸은 기준 미달, 노란 칸은 여유가 0.1x 이내인 구간입니다.</div></div>';
           }
         }
       }catch(eLd){}
@@ -7785,7 +7785,7 @@ function buildIcPptx(){
       });
       var cw=[cm(5.2)]; m.gSteps.forEach(function(){ cw.push(cm(5.2)); });
       s.push(tbl(cm(0.9),cm(3.1),cw,[head].concat(rows),{rowH:cm(1.05),band:false}));
-      var note=isDev?'각 칸 = 해당 분양률×분양가 조정(상업시설 동시 조정)에서의 사업이익률 — 월별 엔진 재계산.':'각 칸 = 해당 Exit Cap×'+m.gLabel+'에서의 레버드 IRR — 모델 전체 재계산.';
+      var note=isDev?'각 칸은 해당 분양률과 분양가로 월별 엔진을 다시 계산한 사업이익률입니다. 상업시설 분양가도 함께 조정합니다.':'각 칸은 해당 Exit Cap과 '+m.gLabel+'로 모델 전체를 다시 계산한 레버드 IRR입니다.';
       s.push(box(cm(0.9),cm(3.1+1.05*(m.rows.length+1)+0.35),cm(31),cm(0.8),[{runs:[{t:note,sz:950,color:C.mut}]}]));
       // 시나리오 비교 표 — Base/보수/낙관 전 지표 (오피스·물류)
       if(!isDev&&typeof global.__mtScenario==='function'&&typeof global.__mtSensBase==='function'){
@@ -11262,7 +11262,7 @@ var qrcode = function() {
       var big=r.kpis.filter(function(k){return k.big;}).slice(0,2);
       h+='<div class="wiz-kpis">'+big.map(function(k){ return '<div class="wiz-kpi"><span>'+esc(String(k.l))+'</span><b>'+esc(String(k.v))+'</b></div>'; }).join('')+'</div>';
       try{ var vd=dealVerdict(r); if(vd) h+='<div class="wiz-note">'+(vd.tone==='warn'?'⚠ ':'✓ ')+String(vd.html).replace(/<[^>]+>/g,'')+'</div>'; }catch(eV){}
-    } else if(r&&r.type==='refi'){ h+='<div class="wiz-note">'+(r.best?('기준을 충족한 안 중 '+esc(String(r.best))+'안의 최소 DSCR가 가장 높습니다. 자세한 값은 결과 표에서 확인하세요.'):'세 안의 값을 결과 표에서 비교하세요.')+'</div>'; }
+    } else if(r&&r.type==='refi'){ h+='<div class="wiz-note">'+(r.best?('기준을 충족한 안 중 '+esc(String(r.best))+'안의 최소 DSCR이 가장 높습니다. 자세한 값은 결과 표에서 확인하세요.'):'세 안의 값을 결과 표에서 비교하세요.')+'</div>'; }
     else h+='<div class="wiz-note">결과를 계산하려면 입력 화면에서 남은 필수 항목을 채워 주세요.</div>';
     if(cur==='dev'&&typeof devResi==='function'&&devResi()) h+='<div class="wiz-note">평형별 세대수와 분양가는 입력 화면의 <b>분양 수입</b> 표에서 채워 주세요.</div>';
     return h+'<div class="wiz-nav"><button type="button" class="wiz-btn" data-w="prev">← 이전</button><button type="button" class="wiz-btn pri" data-w="done">결과 보기 ↓</button></div>';
