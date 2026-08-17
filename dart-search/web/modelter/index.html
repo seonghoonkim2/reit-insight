@@ -2001,7 +2001,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-18·299d94681d';
+window.MT_BUILD='2026-08-18·46629e3baf';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -5376,7 +5376,7 @@ function reviewMemo(){
     if(iv&&bal>0){
       var mL=parseNum(state['covltv']), lim=isFinite(mL)?mL/100:0.60;
       var cap=iv*lim, gap=cap-bal;
-      L.push('5) 만기 차환 — 잔액 '+meok(bal)+' vs 차환 가능액 '+meok(cap)+' ('+(isFinite(mL)?('기준 LTV '+Math.round(lim*100)+'%'):'통상 60% 가정')+') → '+(gap>=0?('여유 '+meok(gap)):('부족 '+meok(-gap)+' — 만기 전 대응 필요')));
+      L.push('5) 만기 차환 — 만기 잔액 '+meok(bal)+' · 차환 가능액 '+meok(cap)+' ('+(isFinite(mL)?('기준 LTV '+Math.round(lim*100)+'%'):'통상 60% 가정')+') → '+(gap>=0?('여유 '+meok(gap)):('부족 '+meok(-gap)+' · 만기 전에 대응 필요')));
     }
     try{
       if(window.__mtSensBase&&window.__mtSens2){
@@ -7069,13 +7069,13 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
                 _pv2({r:'F'+r,role:'da',s:'이 구조에서는 정의되지 않는 지표입니다'});
               }
             };
-            _pv2({r:'B17',role:'se',s:'자가 검증 — 생성 시점 웹 계산값 vs 이 파일의 수식 재계산'});
+            _pv2({r:'B17',role:'se',s:'자가 검증: 생성 시점 웹 계산값과 이 파일의 수식 재계산값 비교'});
             _pv2({r:'B18',role:'th',s:'지표'}); _pv2({r:'C18',role:'th',s:'웹 계산값(고정)'}); _pv2({r:'D18',role:'th',s:'엑셀 재계산'}); _pv2({r:'E18',role:'th',s:'판정'}); _pv2({r:'F18',role:'th',s:'허용 오차'});
             _row(19,'세전 IRR (총자기자본)',_rS.IRR,'pct2','09_Return_Summary!E5','0.0005','0.05%p');
             _row(20,'Equity Multiple (총자기자본)',_rS.EM,'mult','09_Return_Summary!E7','0.005','0.005x');
             _row(21,'최소 DSCR',_rS.minDSCR,'mult','09_Return_Summary!C13','0.005','0.005x');
             _row(22,'순매각가 (부대비 차감)',_rS.netSale,'num','06_Tax_Disposition!C15','0.5','0.5백만');
-            _pv2({r:'B23',role:'nw',s:'가정 셀을 수정하면 위 판정이 FAIL로 바뀝니다 — 원본(생성 시점)과 달라졌다는 표시입니다. 생성일 '+new Date().toISOString().slice(0,10)+(mtBuild()?(' · 빌드 '+mtBuild()+' (재현성: modelter.com/verification)'):'')+' · 렌트롤 반영 화면과는 다를 수 있음(이 표는 가정 시트 기준)'});
+            _pv2({r:'B23',role:'nw',s:'가정 셀을 수정하면 위 판정이 FAIL로 바뀝니다. 원본(생성 시점)과 달라졌다는 표시입니다. 생성일 '+new Date().toISOString().slice(0,10)+(mtBuild()?(' · 빌드 '+mtBuild()+' (재현성: modelter.com/verification)'):'')+' · 렌트롤 반영 화면과는 다를 수 있음(이 표는 가정 시트 기준)'});
           }
         }
       }catch(eSC){}

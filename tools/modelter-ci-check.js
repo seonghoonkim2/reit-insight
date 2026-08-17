@@ -614,7 +614,7 @@ ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfi
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
 ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
 // PASS/FAIL 수식은 _row() 헬퍼가 행 번호로 조립한다(무차입 등 정의되지 않는 지표는 '해당 없음'으로 우회).
-ok(html.includes('자가 검증 — 생성 시점 웹 계산값') && /IF\(ABS\(C'\+r\+'-D'\+r\+'\)<'\+cmp\+',"PASS","FAIL"\)/.test(html)
+ok(html.includes('자가 검증: 생성 시점 웹 계산값과 이 파일의 수식 재계산값 비교') && /IF\(ABS\(C'\+r\+'-D'\+r\+'\)<'\+cmp\+',"PASS","FAIL"\)/.test(html)
   && html.includes("_row(19,'세전 IRR"), '엑셀 자가 검증 스탬프(11시트 PASS/FAIL) 존재');
 ok(html.includes('isFinite(c.n)') && /\+_nv\+'<\/v><\/c>'/.test(html), '엑셀 숫자 셀 비유한값 가드(파일 손상 방지)');
 ok((html.match(/IFERROR\(04_Operating_ProForma!'\+c\+'18/g) || []).length >= 3, '엑셀 커버리지 지표 0 분모 가드(DSCR·ICR·DY)');
@@ -793,7 +793,7 @@ ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.in
 ok(html.includes("_gf=mnum('gfa')"), '매입 계산 연면적 필수 가드(임대료·NOI 직접입력 침묵 기본값 차단)');
 ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
 ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');
-ok(['시도해주세요','확인해주세요','입력해주세요','바꿔주세요'].every(s => !html.includes(s)) && html.includes('입력 화면에서 직접 입력해 주세요'), '문장 품질: 요청 표현 띄어쓰기·개발자 용어 정리');
+ok(['시도해주세요','확인해주세요','입력해주세요','바꿔주세요',' vs 차환 가능액','웹 계산값 vs 이 파일'].every(s => !html.includes(s)) && html.includes('입력 화면에서 직접 입력해 주세요'), '문장 품질: 요청 표현 띄어쓰기·개발자 용어 정리');
 {
   const guideCopy = ['guide.html', 'howto.html', 'im-checklist.html'].map(f => fs.readFileSync(path.join(DIR, f), 'utf8')).join('\n');
   ok(['계산해보기', '전개해보기', '열어보기', '대주 뷰'].every(s => !guideCopy.includes(s)) && guideCopy.includes('대주 관점으로'), '문장 품질: 가이드 CTA 띄어쓰기·대주 관점 표현');
