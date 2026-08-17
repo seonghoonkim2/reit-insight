@@ -4,15 +4,15 @@
  "endDate": "2026-08-17",
  "week": "2026-W34",
  "days": 30,
- "generatedAt": "2026-08-17T20:52:30.789Z",
+ "generatedAt": "2026-08-17T23:06:11.901Z",
  "funnel": {
-  "session": 875,
+  "session": 878,
   "activate": 103,
   "computed": 102,
   "output": 274
  },
  "events": {
-  "session": 875,
+  "session": 878,
   "deal_select": 455,
   "onboard": 175,
   "depth_change": 172,
@@ -58,7 +58,7 @@
   "handoff_open": 1
  },
  "deals": {
-  "office": 1737,
+  "office": 1740,
   "dev": 789,
   "logistics": 243,
   "refi": 173,
@@ -68,11 +68,11 @@
   "rental": 10
  },
  "device": {
-  "desktop": 2375,
-  "mobile": 653
+  "desktop": 2376,
+  "mobile": 655
  },
  "ref": {
-  "modelter.com": 1879,
+  "modelter.com": 1882,
   "www.google.com": 504,
   "blog.naver.com": 138,
   "www.bing.com": 132,
@@ -90,7 +90,7 @@
   "fee,hold,pref": 3,
   "dep,fee,vac,hold": 10,
   "hold,pref": 4,
-  "dep,fee,vac,pref": 1728,
+  "dep,fee,vac,pref": 1731,
   "dep,fee,vac,scen": 6,
   "fee,vac,pref": 1,
   "dep,fee,pref": 4,
@@ -106,7 +106,7 @@
   "dep,fee,bido,vac,pref": 12
  },
  "depth": {
-  "standard": 2437,
+  "standard": 2440,
   "deep": 527,
   "quick": 55
  },
@@ -126,7 +126,7 @@
     "output": 5
    },
    "(직접/미상)": {
-    "session": 829,
+    "session": 832,
     "activate": 101,
     "computed": 100,
     "output": 267
@@ -158,7 +158,7 @@
   },
   "byRef": {
    "modelter.com": {
-    "session": 662,
+    "session": 665,
     "activate": 60,
     "computed": 59,
     "output": 161
@@ -859,7 +859,7 @@
    "day": "2026-08-17",
    "first_number_5m": 3,
    "example_fill": 2,
-   "session": 15,
+   "session": 18,
    "landing": 3,
    "deal_want": 6,
    "activate": 3,
@@ -879,7 +879,7 @@
   "since": "2026-08-15",
   "decisionDate": "2026-08-29",
   "window": {
-   "session": 57,
+   "session": 60,
    "activate": 7
   },
   "handoff_open": {
@@ -904,7 +904,7 @@
  "sampleStartWindow": {
   "since": "2026-08-15T11:23:17+09:00",
   "until": "2026-08-29T11:23:17+09:00",
-  "session": 48,
+  "session": 51,
   "sample_start": 2,
   "activate": 6,
   "computed": 6
