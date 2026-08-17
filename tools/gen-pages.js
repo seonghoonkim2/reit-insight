@@ -157,6 +157,11 @@ const TERM_META = {
 };
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const unesc = s => String(s == null ? '' : s)
+  .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+  .replace(/&#([0-9]+);/g, (_, n) => String.fromCodePoint(parseInt(n, 10)))
+  .replace(/&(amp|lt|gt|quot|apos|nbsp);/g, (_, n) => ({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[n]));
+const plain = s => unesc(String(s == null ? '' : s).replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
 
 /* ── guide.html 에서 용어 정의 추출 (권위 원본) ── */
 function extractTerms() {
@@ -166,8 +171,8 @@ function extractTerms() {
   while ((m = re.exec(g))) {
     const h3 = m[2];
     const enM = h3.match(/<span class="en">([\s\S]*?)<\/span>/);
-    const ko = h3.replace(/<span class="en">[\s\S]*?<\/span>/, '').trim();
-    out[m[1]] = { slug: m[1], ko, en: enM ? enM[1].trim() : '', body: m[3].trim() };
+    const ko = unesc(h3.replace(/<span class="en">[\s\S]*?<\/span>/, '').trim());
+    out[m[1]] = { slug: m[1], ko, en: enM ? unesc(enM[1].trim()) : '', body: m[3].trim() };
   }
   return out;
 }
@@ -300,7 +305,7 @@ function termPage(slug, terms) {
   const rel = relatedTermChips(slug, terms, meta);
   const chips = rel.map(s => `<a href="/t/${s}">${esc(terms[s].ko)}</a>`).join('');
   const graph = [
-      { '@type': 'DefinedTerm', '@id': canonical + '#term', name: t.ko, alternateName: t.en, description: t.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300), inDefinedTermSet: `${BASE}/guide` },
+      { '@type': 'DefinedTerm', '@id': canonical + '#term', name: t.ko, alternateName: t.en, description: plain(t.body).slice(0, 300), inDefinedTermSet: `${BASE}/guide` },
       { '@type': 'BreadcrumbList', itemListElement: [
         { '@type': 'ListItem', position: 1, name: '모델터', item: BASE + '/' },
         { '@type': 'ListItem', position: 2, name: '용어사전', item: BASE + '/guide' },

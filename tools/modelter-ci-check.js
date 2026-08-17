@@ -368,7 +368,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     ok(sm.includes('/im-checklist<') && sm.includes('/t/irr<') && sm.includes('/calc/office<'), 'sitemap: IM 체크리스트·용어·계산기 URL 포함(무확장)');
   }
   // 링크 무결성 + canonical + JSON-LD + CTA (전 페이지)
-  let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0, checklistBad = 0;
+  let jsonBad = 0, canonBad = 0, ctaBad = 0, linkBad = 0, checklistBad = 0, entityBad = 0;
   const allPages = tFiles.map(f => 't/' + f).concat(cFiles.map(f => 'calc/' + f));
   const existsPage = p => fs.existsSync(path.join(DIR, p));
   for (const rp of allPages) {
@@ -379,6 +379,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
     // 앱 CTA + 검색 귀속. DSCR은 실제 활성화까지 분리 판독하므로 전용 src=dscr을 쓴다.
     if (!/href="\/#(t=(office|logistics|dev|refi)&)?src=(seo|dscr)"/.test(ph)) ctaBad++;
     if (!ph.includes('href="/im-checklist"')) checklistBad++;
+    if (ph.includes('&amp;amp;')) entityBad++;
     for (const mm of ph.matchAll(/href="\/(t|calc)\/([a-z0-9]+)"/g)) if (!existsPage(mm[1] + '/' + mm[2] + '.html')) linkBad++;
   }
   ok(jsonBad === 0, '검색 착지: 전 페이지 JSON-LD 유효 (' + jsonBad + ' 실패)');
@@ -386,6 +387,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   ok(ctaBad === 0, '검색 착지: 전 페이지 앱 CTA(#t=…&src=seo|dscr) (' + ctaBad + ' 누락)');
   ok(linkBad === 0, '검색 착지: 내부 링크 무결성 (' + linkBad + ' 깨짐)');
   ok(checklistBad === 0, '검색 착지: 전 페이지 → IM 체크리스트 내부 링크 (' + checklistBad + ' 누락)');
+  ok(entityBad === 0, '검색 착지: HTML 엔티티 이중 인코딩 0 (' + entityBad + '개 페이지)');
   const dscrPath = path.join(tDir, 'dscr.html');
   const dscr = fs.existsSync(dscrPath) ? fs.readFileSync(dscrPath, 'utf8') : '';
   ok(dscr.includes('<title>DSCR 뜻과 계산식 — 1.2x는 무슨 의미일까? | 모델터</title>') && dscr.includes('1.0x 미만') && dscr.includes('1.5x'), 'DSCR 검색 의도: 제목·배수별 판독표');
