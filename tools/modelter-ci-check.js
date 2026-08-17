@@ -607,6 +607,9 @@ ok(html.includes('필수값은 직접 확인 · 나머지 빈 항목은 기본 �
 ok(html.includes('function localExtract') && html.includes('MTIM.quick()'), 'IM 무키 로컬 자동 인식 존재');
 ok(html.includes('브라우저 안에서만 처리') && html.includes('외부로 전송하지 않습니다'), 'IM 무키 무전송 고지 존재');
 ok(html.includes('인 보수 시나리오에서는 IRR이 ') && html.includes('참고선 5%를 밑돕니다'), '판정 다운사이드 한 줄 존재');
+ok(html.includes('결과 카드와 엑셀은 입력한 세부 가정으로 다시 계산합니다') &&
+   !html.includes('정확한 값은 Claude가 계산합니다') && !html.includes('정밀 산정은 Claude가 수행합니다') && !html.includes('DSCR는'),
+  '즉시 점검·PPT 안내: 현재 계산 경로를 정확한 문장으로 설명');
 ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfirmOutput'), '예시값 잔존 추적 + 산출물 확인 존재');
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
 ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
