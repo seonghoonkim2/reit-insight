@@ -127,7 +127,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </div>
 
   <section>
-    <h2>파리티 결과 ${allOK ? '— 네 가지 딜 일치' : (anyRun ? '' : '(재계산 미실행)')}</h2>
+    <h2>파리티 결과${allOK ? ': 네 가지 딜이 일치합니다' : (anyRun ? '' : ' (재계산 미실행)')}</h2>
     <table class="res"><tr><th>딜 유형</th><th>판정</th><th>세부</th></tr>${rowsHtml}</table>
     <p>엑셀 자가검증 시트, IC PPT 표지, 요약 카드 PNG와 검토 메모에는 위 <b>빌드 식별자</b>가 들어갑니다. 같은 식별자로 산출물과 검증 결과를 연결해 어떤 빌드에서 나온 값인지 확인할 수 있습니다.${anyRun ? '' : ' (현재 생성 환경에 Python·formulas가 없어 재계산을 실행하지 못했습니다. 실제 결과는 배포 환경에서 다시 생성합니다.)'}</p>
   </section>

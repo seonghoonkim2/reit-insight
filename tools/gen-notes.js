@@ -73,7 +73,7 @@ function build() {
   const cards = [];
   const officeCap = ref('office', 'exitcap'), officeMid = midOf(officeCap.text);
   if (officeMid) cards.push({ deal: 'office', label: '서울 오피스 Exit Cap', text: officeCap.text, src: officeCap.src, asof: officeCap.asof,
-    override: { exitcap: String(officeMid) }, blurb: `이번 분기 서울 오피스 Exit Cap 참고 범위의 가운데값 ${officeMid}%를 강남 A타워 예시(매입가 1,200억·연면적 8,400평)에 적용했습니다. Cap을 0.5%p 올리고 내리면 IRR이 어떻게 움직이는지 민감도로 바로 보입니다.` });
+    override: { exitcap: String(officeMid) }, blurb: `이번 분기 서울 오피스 Exit Cap 참고 범위의 가운데값 ${officeMid}%를 강남 A타워 예시(매입가 1,200억·연면적 8,400평)에 적용했습니다. Cap을 0.5%p씩 바꿨을 때 IRR 변화를 민감도 표에서 볼 수 있습니다.` });
   const logiCap = ref('logistics', 'exitcap'), logiMid = midOf(logiCap.text);
   if (logiMid) cards.push({ deal: 'logistics', label: '수도권 물류 Exit Cap', text: logiCap.text, src: logiCap.src, asof: logiCap.asof,
     override: { exitcap: String(logiMid) }, blurb: `수도권 물류 Cap 참고 범위 가운데값 ${logiMid}%를 이천 물류센터 예시(매입가 2,100억·3.5만평)에 적용했습니다. 저온·상온과 책임임대차 여부에 따라 실제 Cap은 달라집니다.` });
