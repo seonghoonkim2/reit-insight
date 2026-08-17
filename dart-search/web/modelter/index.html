@@ -2001,7 +2001,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-18·7fd4537e1a';
+window.MT_BUILD='2026-08-18·299d94681d';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2869,19 +2869,19 @@ function mAcq(){
   if(isFinite(price)&&isFinite(gfa)&&gfa>0){ rows.push({l:'평당 매입가',v:mfmt(price*1e6/gfa/1e4,0)+'만원/평'}); }
   var mode=(state['noimode']||'').trim(); var rentBased=(mode===''||mode.indexOf('임대료')===0);
   var noi=NaN, est=false;
-  if(rentBased){ var rentpp=mnum('rentpp'), campp=mnum('campp'); if(isFinite(rentpp)&&isFinite(gfa)){ var cam=isFinite(campp)?campp:0; var egi=(rentpp+cam)*gfa*12/1e6; var opex=(cur==='office')?0.35:0.15; noi=egi*(1-opex); est=true; rows.push({l:'추정 NOI(1년차)',v:meok(noi),est:true,hint:'유효총수입에 통상 운영비율('+Math.round(opex*100)+'%)을 가정해 차감한 추정치. 정확한 값은 Claude가 계산합니다.'}); } }
+  if(rentBased){ var rentpp=mnum('rentpp'), campp=mnum('campp'); if(isFinite(rentpp)&&isFinite(gfa)){ var cam=isFinite(campp)?campp:0; var egi=(rentpp+cam)*gfa*12/1e6; var opex=(cur==='office')?0.35:0.15; noi=egi*(1-opex); est=true; rows.push({l:'추정 NOI(1년차)',v:meok(noi),est:true,hint:'유효총수입에서 통상 운영비율('+Math.round(opex*100)+'%)을 뺀 참고값입니다. 결과 카드와 엑셀은 입력한 세부 가정으로 다시 계산합니다.'}); } }
   else { noi=mnum('noi1'); if(isFinite(noi)) rows.push({l:'NOI(1년차)',v:meok(noi)}); }
   var entryCap=NaN;
   if(isFinite(noi)&&isFinite(price)&&price>0){ entryCap=noi/price*100; rows.push({l:(est?'추정 ':'')+'진입 Cap',v:mpct(entryCap,2),est:est}); }
   var exitcap=mnum('exitcap');
-  if(isFinite(exitcap)){ rows.push({l:'Exit Cap',v:mpct(exitcap,2)}); if(isFinite(entryCap)){ var sp=exitcap-entryCap; rows.push({l:'Cap 스프레드',v:(sp>=0?'+':'')+mfmt(sp,2)+'%p'}); if(sp<-0.001) warns.push('Exit Cap이 진입 Cap보다 낮습니다 — 매각가 상승을 전제한 공격적 가정입니다.'); } }
+  if(isFinite(exitcap)){ rows.push({l:'Exit Cap',v:mpct(exitcap,2)}); if(isFinite(entryCap)){ var sp=exitcap-entryCap; rows.push({l:'Cap 스프레드',v:(sp>=0?'+':'')+mfmt(sp,2)+'%p'}); if(sp<-0.001) warns.push('Exit Cap이 진입 Cap보다 낮습니다. 매각가 상승을 전제한 공격적인 가정입니다.'); } }
   if(isFinite(app)){
     var debt=0, anyDebt=false;
     ['senior','mezz'].forEach(function(id){ if(mOn(id)){ var l=mLtv(id); if(isFinite(l)){ debt+=l/100*app; anyDebt=true; } } });
     var pref=0; if(mOn('pref')){ var lp=mLtv('pref'); if(isFinite(lp)) pref=lp/100*app; }
     if(anyDebt){ var ltv=debt/app*100; rows.push({l:'대출액 (LTV '+mfmt(ltv,0)+'%)',v:meok(debt),hint:'대출 트랜치 비중 × 감정평가액'});
       if(isFinite(uses)){ var eq=uses-debt-pref; rows.push({l:'자기자본(추정)',v:meok(eq),est:true,hint:'총취득원가 − 대출 − 우선주 (plug)'}); if(eq<0) warns.push('대출+우선주가 총취득원가를 초과해 자기자본이 음수입니다. 비중을 확인하세요.'); }
-      if(ltv>70) warns.push('LTV '+mfmt(ltv,0)+'% — 대주 한도(통상 60% 내외)를 넘을 수 있습니다.');
+      if(ltv>70) warns.push('LTV는 '+mfmt(ltv,0)+'%입니다. 통상적인 대주 한도인 60% 내외를 넘을 수 있습니다.');
     }
   }
   return {rows:rows,warns:warns};
@@ -2902,7 +2902,7 @@ function mRefi(){
       if(isFinite(icr)&&isFinite(dmin)&&icr<dmin) warns.push('대안 '+n+'의 ICR은 '+mfmt(icr,2)+'x로 기준 '+mfmt(dmin,2)+'x보다 낮습니다. 원금 상환까지 포함하면 DSCR은 더 낮습니다.');
     }
   });
-  return {rows:rows,warns:warns,note:'ICR = NOI ÷ 연이자(만기일시 가정). 원리금 상환형 DSCR은 더 낮습니다. 정밀 산정은 Claude가 수행합니다.'};
+  return {rows:rows,warns:warns,note:'ICR은 NOI를 연이자로 나눈 값이며 만기일시 상환을 가정합니다. 원금을 나눠 갚는 구조에서는 DSCR이 더 낮을 수 있습니다.'};
 }
 
 function mDev(){
@@ -2923,8 +2923,8 @@ function mDev(){
     if(!isFinite(d1)) d1=10; if(!isFinite(m1)) m1=60; if(!isFinite(r1)) r1=30;
     var ps=d1+m1+r1;
     rows.push({l:'납부 비율(계약+중도+잔금)',v:mfmt(ps,0)+'%'});
-    if(Math.abs(ps-100)>0.01) warns.push('계약금+중도금+잔금 합계가 '+mfmt(ps,0)+'%입니다. 100%로 맞춰주세요.');
-    return {rows:rows,warns:warns,note:'분양수입은 평형/상업시설 그리드 합산 기준. 건설이자·필요 PF 한도는 결과 카드에서 월별로 계산됩니다.'};
+    if(Math.abs(ps-100)>0.01) warns.push('계약금, 중도금, 잔금의 합계는 '+mfmt(ps,0)+'%입니다. 100%로 맞춰 주세요.');
+    return {rows:rows,warns:warns,note:'분양수입은 평형과 상업시설 그리드를 합산했습니다. 건설이자와 필요 PF 한도는 결과 카드에서 월별로 계산합니다.'};
   }
   var rows=[], warns=[];
   var tpc=mnum('tpc'), land=mnum('landcost'), cons=mnum('conscost'), gfa=mnum('gfa');
@@ -3708,7 +3708,7 @@ function sensData(){
     if(!isFinite(noi1)||!isFinite(hold)||!isFinite(ec)) return null;
     var gg=isFinite(g)?g/100:0; var fwd=noi1*Math.pow(1+gg,hold);
     var steps=[-1,-0.5,0,0.5,1].map(function(dx){ var cap=ec+dx; var sale=cap>0?fwd/(cap/100):NaN; return {label:mfmt(cap,1)+'%', out:isFinite(sale)?mfmt(sale/100,0)+'억':'—', base:dx===0}; });
-    return {title:'Exit Cap 민감도', driver:'Exit Cap', outLabel:'추정 매각가', steps:steps, note:'매각가 = 보유 마지막해 forward NOI ÷ Exit Cap (입력값 기반 추정).'};
+    return {title:'Exit Cap 민감도', driver:'Exit Cap', outLabel:'추정 매각가', steps:steps, note:'보유 마지막 해의 다음 연도 NOI를 Exit Cap으로 나눈 추정 매각가입니다.'};
   }
   if(cur==='refi'){
     var noi=parseNum(state.noi),app=parseNum(state.appraisal),dmin=parseNum(state.dscrmin);
@@ -3716,7 +3716,7 @@ function sensData(){
     if(!isFinite(noi)||!isFinite(app)) return null;
     var loan=0.55*app;
     var steps=[-1,-0.5,0,0.5,1].map(function(dx){ var rt=baseRate+dx; var icr=rt>0?noi/(loan*rt/100):NaN; return {label:mfmt(rt,1)+'%', out:isFinite(icr)?mfmt(icr,2)+'x':'—', base:dx===0}; });
-    return {title:'금리 민감도 (LTV 55% 가정)', driver:'금리', outLabel:'ICR', steps:steps, note:'ICR=NOI÷연이자(만기일시). 기준선 '+(isFinite(dmin)?(mfmt(dmin,2)+'x'):'—')+' 대비 확인.'};
+    return {title:'금리 민감도 (LTV 55% 가정)', driver:'금리', outLabel:'ICR', steps:steps, note:'ICR은 NOI를 연이자로 나눈 값이며 만기일시 상환을 가정합니다. '+(isFinite(dmin)?('입력한 기준 '+mfmt(dmin,2)+'x와 비교하세요.'):'비교 기준을 입력하면 함께 확인할 수 있습니다.')};
   }
   return null;
 }
@@ -4383,11 +4383,11 @@ function simDevResi(){
   try{ bep=devSolveSold(I, function(x){ return x.profit>=0; }); }catch(e){}
   try{ pfc=devSolveSold(I, function(x){ return x.pfEnd<0.5; }); }catch(e){}
   var warns=[], paySum=I.dp+I.mp+I.rp;
-  if(Math.abs(paySum-100)>0.01) warns.push('⚠ 계약금+중도금+잔금 = '+mfmt(paySum,0)+'% — 100%가 되어야 분양수입이 전액 회수됩니다.');
-  if(I.E<=0) warns.push('⚠ 자기자본 0 — 전액 차입 조달로 계산합니다.');
-  if(R.pfEnd>0.5) warns.push('⚠ 사업 종료 시 차입 잔액 '+meok(R.pfEnd)+' 미상환 — 분양률·분양가·사업비를 점검하세요.');
-  if(I.soldT<100) warns.push('미분양 가정: 아파트 최종 분양률 '+mfmt(I.soldT,0)+'% 기준.');
-  if(bep!=null&&bep>0&&I.soldT<bep) warns.push('⚠ 현재 분양률 가정('+mfmt(I.soldT,0)+'%)이 손익분기('+mfmt(bep,1)+'%) 아래입니다.');
+  if(Math.abs(paySum-100)>0.01) warns.push('⚠ 계약금, 중도금, 잔금의 합계는 '+mfmt(paySum,0)+'%입니다. 분양수입을 모두 회수하려면 100%여야 합니다.');
+  if(I.E<=0) warns.push('⚠ 자기자본이 0이어서 전액 차입으로 계산합니다.');
+  if(R.pfEnd>0.5) warns.push('⚠ 사업 종료 시 차입 잔액 '+meok(R.pfEnd)+'이 남습니다. 분양률·분양가·사업비를 점검하세요.');
+  if(I.soldT<100) warns.push('아파트 최종 분양률을 '+mfmt(I.soldT,0)+'%로 가정했습니다.');
+  if(bep!=null&&bep>0&&I.soldT<bep) warns.push('⚠ 현재 분양률 가정('+mfmt(I.soldT,0)+'%)이 손익분기 분양률 '+mfmt(bep,1)+'%보다 낮습니다.');
   var kpis=[
     {l:'사업이익률(매출)', v:isFinite(R.margin)?mfmt(R.margin,1)+'%':'—', big:true, tone:isFinite(R.margin)?(R.margin>=12?'good':(R.margin<5?'warn':'')):''},
     {l:'연환산 IRR(자기자본)', v:R.irr!=null?mfmt(R.irr*100,1)+'%':'—', big:true},
@@ -7408,7 +7408,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
       DTA:meok(r.loan+(r.mezzAmt||0)), DTB:pct((r.loan+(r.mezzAmt||0))/r.uses,1)+' of Uses',
       DYLD:'Debt yield '+pct((noi0!=null&&(r.loan+(r.mezzAmt||0))>0)?noi0/(r.loan+(r.mezzAmt||0)):null,1),
       DN1:(r.mezzAmt>0)?'• 커버리지(DSCR)는 선순위+중순위 합산 기준':'• 중순위(메자닌) 미사용 — 선순위 단독 구조',
-      DN2:'• 금리·잔액·DSCR는 화면 부채 스케줄과 동일 값',
+      DN2:'• 금리·잔액·DSCR은 화면 부채 스케줄과 같은 값입니다.',
       EQ1A:prefOn?meok(r.prefAmt):MISS, EQ1B:prefOn?pct(r.prefCoc,1):MISS, EQ1C:prefOn?pct(r.prefIRR,1):MISS, EQ1D:prefOn?mult(r.prefEM):MISS,
       EQ2A:meok(r.common), EQ2B:pct(r.commonCoC,1), EQ2C:pct(r.commonIRR,1), EQ2D:mult(r.commonEM),
       EQ3A:meok(r.prefAmt+r.common), EQ3B:MISS, EQ3C:pct(r.IRR,1), EQ3D:mult(r.EM),
