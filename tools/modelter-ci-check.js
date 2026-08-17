@@ -640,7 +640,7 @@ ok(html.includes('function cmpTableText') && html.includes('data-cmp='), '딜 �
 ok(html.includes('function srcPop') && html.includes('var srcTags={}') && (html.match(/st:srcTags\}/g)||[]).length>=3, '가정 출처·기준일 기록(3경로 영속) 존재');
 ok(html.includes("name:'_Restore'") && html.includes('wsXlsxRestore') && html.includes('MTSNAP1:'), '엑셀 라운드트립(_Restore 시트+복원 입력) 존재');
 ok(html.includes('거치후 원리금균등') && html.includes("n('C80',0)"), '거치후 원리금균등 상환(엔진+엑셀 C80) 존재');
-ok(html.includes('cov-lender') && html.includes('금리 × 공실 결합 스트레스'), '매입 대주 뷰(금리×공실 스트레스) 존재');
+ok(html.includes('cov-lender') && html.includes('대주 관점 · 금리 × 공실 결합 스트레스'), '매입 대주 관점(금리×공실 스트레스) 존재');
 ok(html.includes('function renderCoach') && html.includes('mt_coach'), '첫 결과 코치마크(1회) 존재');
 ok(html.includes('function wsPipelineReport') && html.includes("WS_STATUSES=['검토중'"), '딜 상태 태그+파이프라인 보고 존재');
 ok(html.includes('function housePop') && html.includes("localStorage.getItem('mt_house')"), '하우스 기준(내 허들) 존재');
@@ -797,6 +797,7 @@ ok(['시도해주세요','확인해주세요','입력해주세요','바꿔주세
 {
   const guideCopy = ['guide.html', 'howto.html', 'im-checklist.html'].map(f => fs.readFileSync(path.join(DIR, f), 'utf8')).join('\n');
   ok(['계산해보기', '전개해보기', '열어보기', '대주 뷰'].every(s => !guideCopy.includes(s)) && guideCopy.includes('대주 관점으로'), '문장 품질: 가이드 CTA 띄어쓰기·대주 관점 표현');
+  ok(!html.includes('대주 뷰') && !html.includes('브라우저 공통 허들') && html.includes('저장한 판정 기준을 판정·차환·대주 관점에 반영'), '문장 품질: 앱의 대주 관점·판정 기준 표현 통일');
 }
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'parity', 'gen-xlsx.js')) && fs.existsSync(path.join(__dirname, 'parity', 'check.py')), '파리티 하네스(tools/parity) 존재');
