@@ -1,7 +1,7 @@
 {
   "name": "모델터 — CRE 딜 첫 계산",
   "short_name": "모델터",
-  "description": "IM이나 티저를 받으면 첫 IRR·DSCR과 하방을 확인하고 같은 숫자로 Excel을 만드는 도구",
+  "description": "IM이나 티저를 받으면 첫 IRR·DSCR과 하방을 확인하고 같은 숫자로 엑셀을 만드는 도구",
   "lang": "ko",
   "start_url": "/?src=pwa",
   "scope": "/",

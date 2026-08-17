@@ -53,8 +53,8 @@ ok(gzKB < 300, '성능 예산: gzip 전송량 ' + gzKB + 'KB < 300KB (초과 시
       '소셜 미리보기 1200×630');
   }
   const ogSvg = fs.existsSync(ogSource) ? fs.readFileSync(ogSource, 'utf8') : '';
-  ok(ogSvg.includes('딜 받았으면,') && ogSvg.includes('모델터부터.') && ogSvg.includes('팀에 1차 검토 공유'),
-    '소셜 미리보기: 첫 딜 순간·팀 전달 메시지');
+  ok(ogSvg.includes('딜 받았으면,') && ogSvg.includes('모델터부터.') && ogSvg.includes('팀에 1차 검토 공유') && ogSvg.includes('같은 숫자로 엑셀 · PPT'),
+    '소셜 미리보기: 첫 딜 순간·팀 전달·자연스러운 엑셀 표기');
   ok(html.includes('og:image" content="https://modelter.com/' + ogName + '"') &&
      html.includes('twitter:image" content="https://modelter.com/' + ogName + '"'),
     '홈 OG·Twitter 이미지가 새 첫 딜 카드 사용');
@@ -260,9 +260,10 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   ok([...docEvents, 'zz_fake_event'].filter(e => !codeEvents.includes(e)).length > 0, '계측 사전: 비교기 네거티브 자기 검사(가짜 이벤트 감지)');
   // 산출물 정의 단일 진실 — labels.js OUTPUT_EVENTS 전부가 문서 표에 존재
   try {
-    const { OUTPUT_EVENTS } = require(path.join(__dirname, 'modelter-labels'));
+    const { OUTPUT_EVENTS, EV_LABEL } = require(path.join(__dirname, 'modelter-labels'));
     const outMissing = OUTPUT_EVENTS.filter(e => !docEvents.includes(e));
     ok(outMissing.length === 0, '계측 사전: OUTPUT_EVENTS(산출물 12종) 전부 문서화 (누락: ' + (outMissing.join(',') || '없음') + ')');
+    ok(EV_LABEL.src_tag === '가정 출처 기록' && md.includes('| `src_tag` | 가정 출처·기준일 모달에서 값을 처음 바꿈'), '계측 사전: src_tag 실제 발화 의미와 라벨 일치');
   } catch (e) { ok(false, '계측 사전: modelter-labels 로드 (' + e.message + ')'); }
   ok(md.includes('blob10') && md.includes('봇 제외'), '계측 사전: 분모 규칙(봇 제외·blob10) 명시');
   const aeSrc3 = fs.readFileSync(path.join(__dirname, 'modelter-ae.js'), 'utf8');
@@ -605,7 +606,7 @@ ok(html.includes('MTIM.checklist()') && html.includes('IM에서 찾을 숫자'),
 ok(html.includes('필수값은 직접 확인 · 나머지 빈 항목은 기본 가정 적용') && !html.includes('못 찾은 항목은 표준가정으로 계산'), 'IM 체크리스트 복사문: 필수값·기본 가정 구분');
 ok(html.includes('function localExtract') && html.includes('MTIM.quick()'), 'IM 무키 로컬 자동 인식 존재');
 ok(html.includes('브라우저 안에서만 처리') && html.includes('외부로 전송하지 않습니다'), 'IM 무키 무전송 고지 존재');
-ok(html.includes('보수 시나리오(Exit ') && html.includes('참고선 5%보다 낮습니다'), '판정 다운사이드 한 줄 존재');
+ok(html.includes('인 보수 시나리오에서는 IRR이 ') && html.includes('참고선 5%를 밑돕니다'), '판정 다운사이드 한 줄 존재');
 ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfirmOutput'), '예시값 잔존 추적 + 산출물 확인 존재');
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
 ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
@@ -649,8 +650,8 @@ ok(html.includes('function imgToB64') && html.includes("id=\"imxImg\""), '사진
   const manifestPath = path.join(DIR, 'manifest.webmanifest');
   const manifest = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : '';
   ok(html.includes('rel="manifest"') && html.includes("navigator.serviceWorker.register('/sw.js')"), 'PWA(manifest+SW 등록) 존재');
-  ok(manifest.includes('모델터 — CRE 딜 첫 계산') && manifest.includes('첫 IRR·DSCR과 하방'),
-    'PWA 설치 이름·설명이 첫 딜 순간과 정합');
+  ok(manifest.includes('모델터 — CRE 딜 첫 계산') && manifest.includes('첫 IRR·DSCR과 하방') && manifest.includes('같은 숫자로 엑셀을 만드는 도구'),
+    'PWA 설치 이름·설명이 첫 딜 순간·엑셀 표기와 정합');
 }
 ok(html.includes('Kazuhiko Arase') && html.includes('function qrPop'), 'QR 이어가기(MIT 인코더 내장) 존재');
 ok(html.includes('결과부터 보이게') || html.includes('입력 폼이 아니라 결과부터'), '읽기 전용 모바일 결과 우선 착지 존재');
@@ -980,7 +981,7 @@ const driver = `;(function(){
   var atR = simModel();
   var atK = atR.kpis.filter(function(k){return k.l.indexOf("세후")>=0;});
   if (atK.length !== 1) throw new Error("비도관 세후 IRR KPI 누락");
-  if (atK[0].v === preR.kpis[0].v) throw new Error("비도관 세후 IRR가 세전과 동일(세금 미반영)");
+  if (atK[0].v === preR.kpis[0].v) throw new Error("비도관 세후 IRR이 세전과 동일(세금 미반영)");
   state["taxmode"] = ""; state["taxrate"] = "";
   // 딜 비교 뷰: 순수계산 래퍼가 전역을 반드시 복원 + renderCompare 무예외
   if (typeof computeForSnapshot === "function" && typeof renderCompare === "function") {

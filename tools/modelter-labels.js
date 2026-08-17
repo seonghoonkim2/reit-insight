@@ -31,7 +31,7 @@ const EV_LABEL = {
   deal_select: '딜 선택', deal_want: '준비중 딜 수요', depth_change: '깊이 변경', onboard: '온보딩',
   dev_view: '대주/시행 뷰', sens_axis: '민감도 축', solver: '손익분기 솔버', method: '방법론 열람',
   fsub_open: '세부 접기 펼침', nudge_save: '저장 넛지', tip_next: '다음 단계 팁', term_help: '용어 도움말',
-  landing: '채널 착지', src_tag: '공유 뷰 열람', recover_cta: '회수 CTA', wizard: '모바일 위저드',
+  landing: '채널 착지', src_tag: '가정 출처 기록', recover_cta: '회수 CTA', wizard: '모바일 위저드',
   example_fill: '예시 채우기', fill_std: '표준값 채우기', sample_deal: '예시 딜 선택', ex_ack: '예시값 확인',
   adj_open: '조정 바', compare: '딜 비교', cmp_copy: '비교표 복사', check_open: '점검표',
   im_quick_open: 'IM자동 열기', im_extract: 'IM-AI 완료', im_checklist_open: '체크리스트 열기', im_checklist: '체크리스트 복사',
