@@ -70,7 +70,14 @@ ok(fs.existsSync(path.join(DIR, 'sitemap.xml')), 'sitemap.xml 존재');
   const searchOps = fs.existsSync(searchOpsPath) ? fs.readFileSync(searchOpsPath, 'utf8') : '';
   ok(!!liveSearchSrc, '배포 뒤 검색 표면 실검사 존재');
   ok(liveSearchSrc.includes("redirect: 'manual'") && liveSearchSrc.includes('canonical(text)') && liveSearchSrc.includes('hasNoindex(text)'), '검색 실검사: redirect·canonical·noindex 확인');
+  ok(liveSearchSrc.includes("http://modelter.com/search-redirect-probe?source=live-search") &&
+     liveSearchSrc.includes("https://modelter.com/search-redirect-probe?source=live-search") &&
+     liveSearchSrc.includes('[301, 308].includes(httpsRedirect.response.status)') &&
+     liveSearchSrc.includes("httpsRedirect.response.headers.get('location') === httpsProbeUrl"),
+     '검색 실검사: HTTP→HTTPS·경로·쿼리 보존 확인');
   ok(searchOps.includes('node tools/qa/live-search.mjs'), '검색 운영 문서: 라이브 실검사 절차');
+  ok(searchOps.includes('2026-08-17 완료 상태') && searchOps.includes('발견된 페이지 44') && searchOps.includes('Always Use HTTPS'),
+    '검색 운영 문서: 제출·HTTPS 운영 상태 기록');
 }
 if (fs.existsSync(path.join(DIR, 'robots.txt'))) {
   const robots = fs.readFileSync(path.join(DIR, 'robots.txt'), 'utf8');

@@ -43,6 +43,16 @@ const robots = await get(origin + '/robots.txt');
 assert(robots.response.status === 200, `라이브 robots.txt HTTP ${robots.response.status}`);
 assert(robots.text.includes('Sitemap: https://modelter.com/sitemap.xml'), 'robots.txt의 정식 Sitemap 행이 없습니다');
 
+// Cloudflare 존의 Always Use HTTPS가 꺼지면 같은 콘텐츠가 HTTP와 HTTPS 양쪽에서 열려
+// 검색엔진에 중복 URL이 생긴다. 존재하지 않는 경로를 써서 앱·분석 이벤트 없이
+// 엣지 리디렉션 자체와 경로·쿼리 보존만 확인한다.
+const httpProbeUrl = 'http://modelter.com/search-redirect-probe?source=live-search';
+const httpsProbeUrl = 'https://modelter.com/search-redirect-probe?source=live-search';
+const httpsRedirect = await get(httpProbeUrl);
+assert([301, 308].includes(httpsRedirect.response.status), `HTTP→HTTPS 리디렉션 상태 ${httpsRedirect.response.status}`);
+assert(httpsRedirect.response.headers.get('location') === httpsProbeUrl,
+  `HTTP→HTTPS 경로·쿼리 보존 실패: ${httpsRedirect.response.headers.get('location') || 'Location 없음'}`);
+
 const results = [];
 for (let i = 0; i < liveUrls.length; i += 8) {
   results.push(...await Promise.all(liveUrls.slice(i, i + 8).map(async url => {
@@ -69,4 +79,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`LIVE SEARCH OK — sitemap·robots + canonical ${results.length}개, redirect·noindex 0`);
+console.log(`LIVE SEARCH OK — HTTP→HTTPS + sitemap·robots + canonical ${results.length}개, redirect·noindex 0`);
