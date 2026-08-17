@@ -794,6 +794,10 @@ ok(html.includes("_gf=mnum('gfa')"), '매입 계산 연면적 필수 가드(임�
 ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
 ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');
 ok(['시도해주세요','확인해주세요','입력해주세요','바꿔주세요'].every(s => !html.includes(s)) && html.includes('입력 화면에서 직접 입력해 주세요'), '문장 품질: 요청 표현 띄어쓰기·개발자 용어 정리');
+{
+  const guideCopy = ['guide.html', 'howto.html', 'im-checklist.html'].map(f => fs.readFileSync(path.join(DIR, f), 'utf8')).join('\n');
+  ok(['계산해보기', '전개해보기', '열어보기', '대주 뷰'].every(s => !guideCopy.includes(s)) && guideCopy.includes('대주 관점으로'), '문장 품질: 가이드 CTA 띄어쓰기·대주 관점 표현');
+}
 ok(fs.existsSync(path.join(__dirname, 'modelter-funnel.js')), '계기판 조회 스크립트(로그 파싱) 존재');
 ok(fs.existsSync(path.join(__dirname, 'parity', 'gen-xlsx.js')) && fs.existsSync(path.join(__dirname, 'parity', 'check.py')), '파리티 하네스(tools/parity) 존재');
 const parityGen = fs.readFileSync(path.join(__dirname, 'parity', 'gen-xlsx.js'), 'utf8');
