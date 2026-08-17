@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>2026년 2분기 상업용 부동산 시장 노트 — 참고치로 바로 모델 돌려보기 | 모델터</title>
-<meta name="description" content="2026년 2분기 오피스·물류 Cap Rate, PF 금리 참고치와 그 가정이 채워진 라이브 재무모델. 클릭 한 번으로 IRR·DSCR을 확인하세요." />
+<title>2026년 2분기 상업용 부동산 참고치로 모델 돌려보기 | 모델터</title>
+<meta name="description" content="2026년 2분기 오피스·물류 Cap Rate와 PF 금리 참고치를 예시 모델에 넣어 IRR·DSCR 변화를 확인합니다." />
 <link rel="canonical" href="https://modelter.com/notes/2026q2" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="2026년 2분기 상업용 부동산 시장 노트 — 참고치로 바로 모델 돌려보기 | 모델터" />
-<meta property="og:description" content="2026년 2분기 오피스·물류 Cap Rate, PF 금리 참고치와 그 가정이 채워진 라이브 재무모델. 클릭 한 번으로 IRR·DSCR을 확인하세요." />
+<meta property="og:title" content="2026년 2분기 상업용 부동산 참고치로 모델 돌려보기 | 모델터" />
+<meta property="og:description" content="2026년 2분기 오피스·물류 Cap Rate와 PF 금리 참고치를 예시 모델에 넣어 IRR·DSCR 변화를 확인합니다." />
 <meta property="og:url" content="https://modelter.com/notes/2026q2" />
 <meta property="og:image" content="https://modelter.com/og-first-deal-v1.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Article","headline":"2026년 2분기 상업용 부동산 시장 노트","datePublished":"2026.2Q","author":{"@type":"Person","name":"김성훈 (Seonghoon Kim)"},"publisher":{"@type":"Organization","name":"모델터"},"description":"2026년 2분기 오피스·물류 Cap Rate, PF 금리 참고치와 그 가정이 채워진 라이브 재무모델. 클릭 한 번으로 IRR·DSCR을 확인하세요.","url":"https://modelter.com/notes/2026q2","isAccessibleForFree":true}
+{"@context":"https://schema.org","@type":"Article","headline":"2026년 2분기 상업용 부동산 시장 노트","datePublished":"2026.2Q","author":{"@type":"Person","name":"김성훈 (Seonghoon Kim)"},"publisher":{"@type":"Organization","name":"모델터"},"description":"2026년 2분기 오피스·물류 Cap Rate와 PF 금리 참고치를 예시 모델에 넣어 IRR·DSCR 변화를 확인합니다.","url":"https://modelter.com/notes/2026q2","isAccessibleForFree":true}
 </script>
 <style>
 :root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -56,34 +56,34 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 <body>
 <header><div class="wrap">
   <a class="logo" href="/"><span class="m"></span>모델터</a>
-  <a class="back" href="/">← 모델 만들러</a>
+  <a class="back" href="/">← 모델 만들기</a>
 </div></header>
 <main class="wrap">
   <nav class="crumb"><a href="/">모델터</a> › 시장 노트 › 2026년 2분기</nav>
   <div class="hero">
     <div class="eyebrow">분기 시장 노트 · 2026.2Q</div>
-    <h1>2026년 2분기 참고치,<br>클릭 한 번으로 모델에 넣어 보기</h1>
-    <p class="lead">이번 분기 오피스·물류 Cap Rate와 분양 PF 금리 참고치입니다. 각 수치는 그 가정이 <b>미리 채워진 라이브 재무모델</b>로 이어집니다 — 링크를 누르면 예시 딜이 그대로 열려, 숫자만 바꾸며 IRR·DSCR을 30초 만에 확인할 수 있습니다.</p>
+    <h1>2026년 2분기 참고치를<br>예시 모델에 넣어 봤습니다</h1>
+    <p class="lead">오피스·물류 Exit Cap과 분양 PF 금리 참고치를 정리했습니다. 항목별 링크를 누르면 해당 가정이 들어간 예시 딜이 열립니다. 숫자를 바꾸면 IRR·DSCR이 어떻게 달라지는지 확인할 수 있습니다.</p>
   </div>
   <section class="note-card">
     <h2>서울 오피스 Exit Cap</h2>
     <p class="figure">서울 오피스 4.0~5.5% (코어 낮음·외곽 높음) <span class="src" title="출처: 서울 오피스 매매 관행 · 2026.2Q 기준 · 참고치이며 개별 자산별로 다릅니다">2026.2Q · 서울 오피스 매매 관행</span></p>
     <p>이번 분기 서울 오피스 Exit Cap 참고 범위의 가운데값 4.75%를 강남 A타워 예시(매입가 1,200억·연면적 8,400평)에 적용했습니다. Cap을 0.5%p 올리고 내리면 IRR이 어떻게 움직이는지 민감도로 바로 보입니다.</p>
-    <a class="cta" href="https://modelter.com/#v=AAACKAewIgYwIgOgIgbwZgZgaQYwZQIgLAIgZBAwIgcwdAYQbgZAYQchDxDQcxAxAAYQcwcwZQdBEA6gsAlQ6wggqAIAQQ7QgwgA7AmwjBDAIgZwZgYREAOALANAMAMBMgcAchCRCxBAMQMgMALBOxPBDQYQYwcREweBEANALgNhMhSgcQZgZRQQIgMQLgNRUwcBPgYQaQcwYQbBEBQwMwLANROxMgbgbwaQbQbwZBWA7AnghA6wjAgA6wowjAwgtw6gtBeApgrA6wuRdQoQnAIA7AggsA7AtgnBMgcgZQbgdBXhEANgMhRhahDQYwYQbRlBBAMgMRmBSBDgZQcAbQdQbBIhQgMhaxbQMREBrQaQZxEAMgLhowdhShFAYweREBXBDRcQcBHgcwdQbRWA6wsAmA7AmAgRMgbwcBVhWAMALgNBMhCAeAYwbxEhEBowaAbwbBDxBBvgIgZQeAaQdBmwcBTwLgNx4hYgbAZR0BZQLgOAIgfRDQaxHBERkQaQbwcgXwbwbhAwdAcgdQZRGh-x_QXxqQdhvR7SCB_gcgYQdBWBUBrBDRxQegeh_yAQOhNQbBIBDRPh8CGyAiBCBgIiIgZiCgdCDBBAMxoyKQXx2BAhBANhthMh2AbRbwbiJAOiAyBRmgbyOiACKyLRWR4iOSOyMgbyNBWRrB9gIgchHAfQfQ&src=notes">이 가정으로 지금 모델 돌려보기 →<span class="sub">예시 딜이 채워진 채 열립니다 · 숫자만 바꾸면 결과가 바로 · 가입·설치 없음</span></a>
+    <a class="cta" href="https://modelter.com/#v=AAACKAewIgYwIgOgIgbwZgZgaQYwZQIgLAIgZBAwIgcwdAYQbgZAYQchDxDQcxAxAAYQcwcwZQdBEA6gsAlQ6wggqAIAQQ7QgwgA7AmwjBDAIgZwZgYREAOALANAMAMBMgcAchCRCxBAMQMgMALBOxPBDQYQYwcREweBEANALgNhMhSgcQZgZRQQIgMQLgNRUwcBPgYQaQcwYQbBEBQwMwLANROxMgbgbwaQbQbwZBWA7AnghA6wjAgA6wowjAwgtw6gtBeApgrA6wuRdQoQnAIA7AggsA7AtgnBMgcgZQbgdBXhEANgMhRhahDQYwYQbRlBBAMgMRmBSBDgZQcAbQdQbBIhQgMhaxbQMREBrQaQZxEAMgLhowdhShFAYweREBXBDRcQcBHgcwdQbRWA6wsAmA7AmAgRMgbwcBVhWAMALgNBMhCAeAYwbxEhEBowaAbwbBDxBBvgIgZQeAaQdBmwcBTwLgNx4hYgbAZR0BZQLgOAIgfRDQaxHBERkQaQbwcgXwbwbhAwdAcgdQZRGh-x_QXxqQdhvR7SCB_gcgYQdBWBUBrBDRxQegeh_yAQOhNQbBIBDRPh8CGyAiBCBgIiIgZiCgdCDBBAMxoyKQXx2BAhBANhthMh2AbRbwbiJAOiAyBRmgbyOiACKyLRWR4iOSOyMgbyNBWRrB9gIgchHAfQfQ&src=notes">오피스 예시 모델 열기 →<span class="sub">예시값이 들어 있습니다 · 숫자를 바꾸면 결과가 다시 계산됩니다</span></a>
   </section>
   <section class="note-card">
     <h2>수도권 물류 Exit Cap</h2>
     <p class="figure">수도권 물류 5~7% (저온 높음) <span class="src" title="출처: 수도권 물류 매매 관행 · 2026.2Q 기준 · 참고치이며 개별 자산별로 다릅니다">2026.2Q · 수도권 물류 매매 관행</span></p>
     <p>수도권 물류 Cap 참고 범위 가운데값 6%를 이천 물류센터 예시(매입가 2,100억·3.5만평)에 적용했습니다. 저온·상온과 책임임대차 여부에 따라 실제 Cap은 달라집니다.</p>
-    <a class="cta" href="https://modelter.com/#v=AAACLQewIgYwIgOgIgbAbwZwaQcwdAaQYwcwIgLAIgZBAwIhCgYQbgZAYQchEhEBDgOhAAYQcwcwZQdBEw7AnQtA7AsgnAIA6wrAvA6wpQmA7AhAvA7QhAsBDwIgZwZgYREwMwNQLAMBQhOQcAchDAZREwMgMQMBQRQxEAYQYwcQdAYQeBEwNALgNhORUAcQZgZRSBBAMQLgNRWgcBRQYRCQYQbBSQMRQBQgMBOQbgbwaQbQbwZBXwIg7AnghA6wjAgA6wowjAwgtw6gtBfgpgrA6wuRewoRKw7AggsA7AtgnBOQcgZQbgdBZRPgMxTRbxEAYwYQbRmRYALANxThEQZQcAbQdQbBJBYAMhcBcgMRExsAaQZxSRYhOQdhUBFgYweRExYxEBdgcBIAcwdQbRdw6wsBMgmAgROQbwcBXRdwMALgNBOQZgaQeAYwbxChExnQIgaAbwbBEhBBwAIgZQeAaQdBnwcBExWRHBaQZR0RExYQOAIgfREAaxAxABIgbgaQbwcgXwbwbhAwdAcgdQZRHBlh_iABrAdhvx5R_CCwXwcgYQdBdxVx5RxwegeiASAwOhPAbBIhEBRR8SHSBCBiCAIiJAZgXyDRPh3iKwXx2hAhBANgLh3h2gbRdAbiJgOiBSBxngbyOiAiLQdCDhYB5SOSOyMgbyNAIgMQMx9hEAch-gfQfQ&src=notes">이 가정으로 지금 모델 돌려보기 →<span class="sub">예시 딜이 채워진 채 열립니다 · 숫자만 바꾸면 결과가 바로 · 가입·설치 없음</span></a>
+    <a class="cta" href="https://modelter.com/#v=AAACLQewIgYwIgOgIgbAbwZwaQcwdAaQYwcwIgLAIgZBAwIhCgYQbgZAYQchEhEBDgOhAAYQcwcwZQdBEw7AnQtA7AsgnAIA6wrAvA6wpQmA7AhAvA7QhAsBDwIgZwZgYREwMwNQLAMBQhOQcAchDAZREwMgMQMBQRQxEAYQYwcQdAYQeBEwNALgNhORUAcQZgZRSBBAMQLgNRWgcBRQYRCQYQbBSQMRQBQgMBOQbgbwaQbQbwZBXwIg7AnghA6wjAgA6wowjAwgtw6gtBfgpgrA6wuRewoRKw7AggsA7AtgnBOQcgZQbgdBZRPgMxTRbxEAYwYQbRmRYALANxThEQZQcAbQdQbBJBYAMhcBcgMRExsAaQZxSRYhOQdhUBFgYweRExYxEBdgcBIAcwdQbRdw6wsBMgmAgROQbwcBXRdwMALgNBOQZgaQeAYwbxChExnQIgaAbwbBEhBBwAIgZQeAaQdBnwcBExWRHBaQZR0RExYQOAIgfREAaxAxABIgbgaQbwcgXwbwbhAwdAcgdQZRHBlh_iABrAdhvx5R_CCwXwcgYQdBdxVx5RxwegeiASAwOhPAbBIhEBRR8SHSBCBiCAIiJAZgXyDRPh3iKwXx2hAhBANgLh3h2gbRdAbiJgOiBSBxngbyOiAiLQdCDhYB5SOSOyMgbyNAIgMQMx9hEAch-gfQfQ&src=notes">물류 예시 모델 열기 →<span class="sub">예시값이 들어 있습니다 · 숫자를 바꾸면 결과가 다시 계산됩니다</span></a>
   </section>
   <section class="note-card">
     <h2>분양 본PF 금리</h2>
     <p class="figure">5.5~8%/년 <span class="src" title="출처: PF 여신금리 관행(한국은행 기준금리 연동) · 2026.2Q 기준 · 참고치이며 개별 자산별로 다릅니다">2026.2Q · PF 여신금리 관행(한국은행 기준금리 연동)</span></p>
     <p>본PF 금리 참고 범위 가운데값 6.75%를 판교 A지구 분양 예시에 적용했습니다. 금리와 선행기간(브릿지)이 손익분기 분양률(BEP)을 얼마나 끌어올리는지 확인해 보세요.</p>
-    <a class="cta" href="https://modelter.com/#v=AAAEYgewIgYwIgOgIgZAZQdgIgLBBRAwIgcwdAYQbgZAYQcgZBCRDRAxAAYQcwcwZQdBDA7QjAkA6gtQkAIAQQ7ApwgBIwrAIA6gswtQ6wjwmQ7AowvA7QgwnRFhBgdgdAeQcAZRDBLhMBMhNBNhOAIA6wtghA7AlgkRFgbBEBFRBAOQLANQMAMBFgZwZgYRDANQMgLBVxWBChUBEQYwbxDhDAMQOAMBYBVxFhZgbgcxZhaBBAMgORbBYRbwbxcQYwdQcgdhQBBAUwLQ7AuwpA6wuAjAKAMgMALwNhjRjAKRFgbwdAaAZQchcxHhBAMRXxeRCgcAcgZRPwcgaQbxUgIgOBTxUQZAcBaRYgIhZBrAYQeRDAMhehcRoxpRpwMxthCgcwYQbAZQbxPwbhDAMxFgYQYgcwbwcgYhaRqRCgYQcAdBywbBpwMRbh0R0waQbgaRmgIhjxOgcAYx3x2BFgbR4x3x4RCgbRZgdQbh6hFgch6RxhrxDweB9BBANALgNhFgZQbgZx-QIh-xrwcgcwdiAgMwLhrxvxwQcyCSCxFgaAdSAR5BDAMALgNB5waQZAZhoRgQIg6wsAmA7AmAgSGwZAcgYQdCIANQLgNR_gcQdR3htBBBjxbRrwYiKiLBDAOSERnyHiKyIANgLgNyMCQAZgZSIAMSPwIgdB4xxhjCOBFiDRohpAYyIA7QjwiQ6wiwuQIAMQLANhVg6wpwjB_geB3gbRpiIBSRSxTQIA7AmQhA6woyZxCgZSaQdAYx0hXSLxyB0wcgbwdwcxDAWwewXCTiiQOiiQNQOQQSiQLCiQYSiyiQMgNSkSiQbilQIhagMCmQIgcCnAOAMynwIgfQLCiCihAyiQOANCkBCSkynAMwNCoCmyrAIhvCpikioSnCYRnCpiqCqgdCvgMStSsQIilCuANAMytioyuyiSoiuCYQNANywQXR8hHSgihChiwynCXQqBKAgA6wggtCcQgwgQ6gsAgCoCyijB4BVyoC0i7wMxVS8SyAcynC1iiQfS2CqAIgaxGBDR_xpQcgXxexAwdAcgdQZRvjBBzAXwbAdBCCNiDDDzBiOyLQLgMR5wZQegejBxxQOjCjDB7DHjIDEjFCnSRwIgbTJwXzGRDAOCfxnxoQZjIRAxWwbBHBChZgbSawbjODIzCzDRAQbzPxezETExtTLDPjQAXxZhAhmyMC_wchGAfQfQ&src=notes">이 가정으로 지금 모델 돌려보기 →<span class="sub">예시 딜이 채워진 채 열립니다 · 숫자만 바꾸면 결과가 바로 · 가입·설치 없음</span></a>
+    <a class="cta" href="https://modelter.com/#v=AAAEYgewIgYwIgOgIgZAZQdgIgLBBRAwIgcwdAYQbgZAYQcgZBCRDRAxAAYQcwcwZQdBDA7QjAkA6gtQkAIAQQ7ApwgBIwrAIA6gswtQ6wjwmQ7AowvA7QgwnRFhBgdgdAeQcAZRDBLhMBMhNBNhOAIA6wtghA7AlgkRFgbBEBFRBAOQLANQMAMBFgZwZgYRDANQMgLBVxWBChUBEQYwbxDhDAMQOAMBYBVxFhZgbgcxZhaBBAMgORbBYRbwbxcQYwdQcgdhQBBAUwLQ7AuwpA6wuAjAKAMgMALwNhjRjAKRFgbwdAaAZQchcxHhBAMRXxeRCgcAcgZRPwcgaQbxUgIgOBTxUQZAcBaRYgIhZBrAYQeRDAMhehcRoxpRpwMxthCgcwYQbAZQbxPwbhDAMxFgYQYgcwbwcgYhaRqRCgYQcAdBywbBpwMRbh0R0waQbgaRmgIhjxOgcAYx3x2BFgbR4x3x4RCgbRZgdQbh6hFgch6RxhrxDweB9BBANALgNhFgZQbgZx-QIh-xrwcgcwdiAgMwLhrxvxwQcyCSCxFgaAdSAR5BDAMALgNB5waQZAZhoRgQIg6wsAmA7AmAgSGwZAcgYQdCIANQLgNR_gcQdR3htBBBjxbRrwYiKiLBDAOSERnyHiKyIANgLgNyMCQAZgZSIAMSPwIgdB4xxhjCOBFiDRohpAYyIA7QjwiQ6wiwuQIAMQLANhVg6wpwjB_geB3gbRpiIBSRSxTQIA7AmQhA6woyZxCgZSaQdAYx0hXSLxyB0wcgbwdwcxDAWwewXCTiiQOiiQNQOQQSiQLCiQYSiyiQMgNSkSiQbilQIhagMCmQIgcCnAOAMynwIgfQLCiCihAyiQOANCkBCSkynAMwNCoCmyrAIhvCpikioSnCYRnCpiqCqgdCvgMStSsQIilCuANAMytioyuyiSoiuCYQNANywQXR8hHSgihChiwynCXQqBKAgA6wggtCcQgwgQ6gsAgCoCyijB4BVyoC0i7wMxVS8SyAcynC1iiQfS2CqAIgaxGBDR_xpQcgXxexAwdAcgdQZRvjBBzAXwbAdBCCNiDDDzBiOyLQLgMR5wZQegejBxxQOjCjDB7DHjIDEjFCnSRwIgbTJwXzGRDAOCfxnxoQZjIRAxWwbBHBChZgbSawbjODIzCzDRAQbzPxezETExtTLDPjQAXxZhAhmyMC_wchGAfQfQ&src=notes">분양 예시 모델 열기 →<span class="sub">예시값이 들어 있습니다 · 숫자를 바꾸면 결과가 다시 계산됩니다</span></a>
   </section>
-  <div class="disc">공개 기준·업계 관행 참고치입니다. 개별 자산·입지·시점별로 다르며, 시세·감정평가액을 대체하지 않습니다. 위 수치는 공개 기준·업계 관행을 정리한 <b>참고치</b>이며 특정 자산의 시세·감정평가액이 아닙니다. 개별 자산·입지·시점별로 다르며, <b>투자 권유가 아닌 정보 제공 목적</b>입니다.</div>
+  <div class="disc">공개 기준·업계 관행 참고치입니다. 개별 자산·입지·시점별로 다르며, 시세·감정평가액을 대체하지 않습니다. <b>투자 권유가 아닌 정보 제공 목적</b>입니다.</div>
 </main>
 <footer><div class="wrap">
   모델터 — 한국 상업용 부동산 재무모델 빌더 · <a href="/">홈</a> · <a href="/guide">용어사전</a> · <a href="/trust">보안·개인정보</a> · <a href="/verification">파리티 검증</a><br>
