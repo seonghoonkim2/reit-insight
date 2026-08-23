@@ -1,141 +1,156 @@
 {
  "schema": 2,
  "botExcluded": true,
- "endDate": "2026-08-17",
+ "endDate": "2026-08-20",
  "week": "2026-W34",
  "days": 30,
- "generatedAt": "2026-08-17T23:06:11.901Z",
+ "generatedAt": "2026-08-20T23:05:56.481Z",
  "funnel": {
-  "session": 878,
-  "activate": 103,
-  "computed": 102,
-  "output": 274
+  "session": 890,
+  "activate": 97,
+  "computed": 97,
+  "output": 262
  },
  "events": {
-  "session": 878,
-  "deal_select": 455,
-  "onboard": 175,
-  "depth_change": 172,
-  "xlsx_download": 125,
-  "fsub_open": 104,
-  "activate": 103,
-  "computed": 102,
-  "dev_view": 96,
-  "nudge_save": 95,
-  "deal_want": 77,
-  "tip_next": 64,
-  "solver": 59,
-  "landing": 43,
-  "sens_axis": 42,
-  "slot_save": 40,
+  "session": 890,
+  "deal_select": 456,
+  "depth_change": 161,
+  "onboard": 149,
+  "xlsx_download": 115,
+  "fsub_open": 97,
+  "computed": 97,
+  "activate": 97,
+  "nudge_save": 91,
+  "dev_view": 86,
+  "deal_want": 72,
+  "landing": 63,
+  "tip_next": 57,
+  "sens_axis": 40,
+  "slot_save": 39,
+  "term_help": 38,
   "prompt_copy": 38,
-  "fill_std": 37,
-  "term_help": 37,
   "ex_ack": 35,
-  "example_fill": 32,
+  "fill_std": 30,
+  "solver": 30,
   "ws_open": 30,
-  "ws_save": 27,
+  "example_fill": 30,
+  "ws_save": 29,
   "ic_ppt": 23,
-  "method": 21,
-  "teaser": 19,
-  "adj_open": 12,
-  "sample_download": 11,
-  "share_link": 11,
+  "method": 22,
+  "first_number_5m": 17,
+  "teaser": 17,
+  "adj_open": 15,
+  "share_link": 12,
   "im_quick_open": 10,
+  "pdf_export": 10,
   "im_checklist_open": 8,
-  "im_open": 8,
-  "first_number_5m": 7,
-  "pdf_export": 7,
+  "im_open": 7,
+  "sample_download": 7,
+  "sample_start": 6,
   "wizard": 5,
-  "mydef_save": 4,
+  "coach_ok": 5,
   "sample_deal": 4,
-  "coach_ok": 4,
   "im_checklist": 4,
+  "handoff_open": 3,
+  "mydef_save": 3,
   "im_quick": 2,
-  "sample_start": 2,
-  "slot_delete": 1,
+  "first_number_15m": 2,
+  "first_number_30m": 1,
   "src_tag": 1,
-  "handoff_open": 1
+  "slot_delete": 1,
+  "qr_open": 1,
+  "png_card": 1
  },
  "deals": {
-  "office": 1740,
-  "dev": 789,
-  "logistics": 243,
-  "refi": 173,
-  "hotel": 37,
-  "retail": 17,
+  "office": 1662,
+  "dev": 808,
+  "logistics": 230,
+  "refi": 176,
+  "hotel": 34,
+  "retail": 14,
   "datacenter": 13,
-  "rental": 10
+  "rental": 11
  },
  "device": {
-  "desktop": 2376,
-  "mobile": 655
+  "desktop": 2296,
+  "mobile": 661
  },
  "ref": {
-  "modelter.com": 1882,
-  "www.google.com": 504,
-  "blog.naver.com": 138,
-  "www.bing.com": 132,
-  "search.naver.com": 93,
-  "ntp.msn.com": 67,
-  "teams.public.onecdn.static.microsoft": 63,
-  "www.linkedin.com": 56
+  "modelter.com": 1870,
+  "www.google.com": 434,
+  "blog.naver.com": 144,
+  "www.bing.com": 115,
+  "search.naver.com": 102,
+  "ntp.msn.com": 83,
+  "www.linkedin.com": 57,
+  "teams.public.onecdn.static.microsoft": 39
  },
  "feats": {
   "scen": 16,
   "fee,pref": 29,
-  "pref": 31,
+  "pref": 38,
   "resi": 694,
   "bido": 3,
   "fee,hold,pref": 3,
-  "dep,fee,vac,hold": 10,
+  "dep,fee,vac,hold": 2,
   "hold,pref": 4,
-  "dep,fee,vac,pref": 1731,
+  "dep,fee,vac,pref": 1656,
   "dep,fee,vac,scen": 6,
   "fee,vac,pref": 1,
-  "dep,fee,pref": 4,
+  "dep,fee,pref": 5,
   "resi,scen": 7,
   "pref,scen": 4,
-  "dep,fee,vac": 50,
+  "dep,fee,vac": 44,
   "fee,vac,pref,scen": 24,
-  "dep,fee,vac,pref,scen": 41,
-  "rr,dep,fee,vac,hold,pref": 2,
+  "dep,fee,vac,pref,scen": 32,
   "rr,dep,fee,vac,pref": 15,
-  "dep,fee,pref,scen": 1,
-  "dep,fee,vac,hold,pref": 87,
+  "dep,fee,vac,hold,pref": 95,
   "dep,fee,bido,vac,pref": 12
  },
  "depth": {
-  "standard": 2440,
-  "deep": 527,
-  "quick": 55
+  "standard": 2464,
+  "deep": 445,
+  "quick": 39
  },
  "src": {
-  "seo": 86,
+  "seo": 108,
   "pwa": 27,
+  "sns": 24,
+  "imcheck": 23,
   "share": 21,
-  "xlsx": 5,
-  "sns": 2
+  "xlsx": 5
  },
  "attribution": {
   "bySrc": {
    "seo": {
-    "session": 24,
-    "activate": 2,
-    "computed": 2,
+    "session": 30,
+    "activate": 3,
+    "computed": 3,
     "output": 5
    },
    "(직접/미상)": {
-    "session": 832,
-    "activate": 101,
-    "computed": 100,
-    "output": 267
+    "session": 821,
+    "activate": 92,
+    "computed": 92,
+    "output": 252
    },
    "share": {
     "session": 9,
     "activate": 0,
     "computed": 0,
     "output": 1
+   },
+   "sns": {
+    "session": 10,
+    "activate": 1,
+    "computed": 1,
+    "output": 0
+   },
+   "imcheck": {
+    "session": 8,
+    "activate": 1,
+    "computed": 1,
+    "output": 3
    },
    "pwa": {
     "session": 10,
@@ -148,94 +163,88 @@
     "activate": 0,
     "computed": 0,
     "output": 1
-   },
-   "sns": {
-    "session": 1,
-    "activate": 0,
-    "computed": 0,
-    "output": 0
    }
   },
   "byRef": {
    "modelter.com": {
-    "session": 665,
+    "session": 670,
     "activate": 60,
-    "computed": 59,
-    "output": 161
+    "computed": 60,
+    "output": 157
    },
    "com.linkedin.android": {
-    "session": 13,
-    "activate": 1,
-    "computed": 1,
+    "session": 6,
+    "activate": 0,
+    "computed": 0,
     "output": 0
    },
    "blog.naver.com": {
-    "session": 19,
+    "session": 22,
     "activate": 4,
     "computed": 4,
-    "output": 10
+    "output": 12
    },
    "www.linkedin.com": {
-    "session": 12,
+    "session": 11,
     "activate": 2,
     "computed": 2,
     "output": 11
    },
+   "keep.google.com": {
+    "session": 3,
+    "activate": 1,
+    "computed": 1,
+    "output": 4
+   },
    "teams.public.onecdn.static.microsoft": {
     "session": 11,
-    "activate": 2,
-    "computed": 2,
-    "output": 6
+    "activate": 1,
+    "computed": 1,
+    "output": 2
    },
    "search.naver.com": {
-    "session": 17,
+    "session": 21,
     "activate": 3,
     "computed": 3,
     "output": 7
    },
    "www.google.com": {
-    "session": 99,
-    "activate": 19,
-    "computed": 19,
-    "output": 51
+    "session": 95,
+    "activate": 13,
+    "computed": 13,
+    "output": 43
+   },
+   "m.blog.naver.com": {
+    "session": 10,
+    "activate": 1,
+    "computed": 1,
+    "output": 0
    },
    "m.search.naver.com": {
-    "session": 6,
-    "activate": 0,
-    "computed": 0,
-    "output": 2
-   },
-   "www.bing.com": {
-    "session": 19,
-    "activate": 8,
-    "computed": 8,
-    "output": 10
-   },
-   "keep.google.com": {
-    "session": 1,
+    "session": 8,
     "activate": 0,
     "computed": 0,
     "output": 1
    },
+   "www.bing.com": {
+    "session": 17,
+    "activate": 6,
+    "computed": 6,
+    "output": 10
+   },
    "br.nate.com": {
-    "session": 2,
+    "session": 1,
     "activate": 1,
     "computed": 1,
     "output": 7
    },
    "ntp.msn.com": {
-    "session": 10,
-    "activate": 3,
-    "computed": 3,
+    "session": 12,
+    "activate": 5,
+    "computed": 5,
     "output": 8
    },
    "safe.menlosecurity.com": {
-    "session": 1,
-    "activate": 0,
-    "computed": 0,
-    "output": 0
-   },
-   "m.blog.naver.com": {
     "session": 1,
     "activate": 0,
     "computed": 0,
@@ -257,73 +266,9 @@
  },
  "daily": [
   {
-   "day": "2026-07-19",
-   "onboard": 4,
-   "prompt_copy": 2,
-   "activate": 4,
-   "fsub_open": 4,
-   "term_help": 1,
-   "xlsx_download": 3,
-   "mydef_save": 1,
-   "fill_std": 3,
-   "sample_download": 2,
-   "session": 18,
-   "solver": 10,
-   "tip_next": 1,
-   "deal_select": 5,
-   "ex_ack": 1,
-   "nudge_save": 3,
-   "dev_view": 1,
-   "depth_change": 4,
-   "adj_open": 1,
-   "computed": 3
-  },
-  {
-   "day": "2026-07-20",
-   "depth_change": 13,
-   "example_fill": 2,
-   "computed": 10,
-   "dev_view": 5,
-   "nudge_save": 10,
-   "ic_ppt": 1,
-   "solver": 19,
-   "deal_select": 18,
-   "ex_ack": 4,
-   "tip_next": 8,
-   "xlsx_download": 12,
-   "session": 40,
-   "sample_download": 1,
-   "term_help": 2,
-   "fill_std": 5,
-   "slot_save": 1,
-   "fsub_open": 6,
-   "deal_want": 4,
-   "method": 2,
-   "activate": 10,
-   "onboard": 14,
-   "teaser": 4,
-   "im_open": 1
-  },
-  {
    "day": "2026-07-21",
-   "nudge_save": 3,
-   "ic_ppt": 1,
-   "deal_select": 10,
-   "ex_ack": 1,
-   "tip_next": 1,
-   "sens_axis": 2,
-   "computed": 5,
-   "depth_change": 1,
-   "dev_view": 4,
-   "fsub_open": 4,
-   "deal_want": 7,
-   "activate": 5,
-   "teaser": 1,
-   "onboard": 10,
-   "sample_download": 1,
-   "session": 29,
-   "xlsx_download": 1,
-   "slot_save": 2
+   "onboard": 2,
+   "session": 4
   },
   {
    "day": "2026-07-22",
@@ -859,62 +804,133 @@
    "day": "2026-08-17",
    "first_number_5m": 3,
    "example_fill": 2,
-   "session": 18,
+   "session": 19,
    "landing": 3,
    "deal_want": 6,
    "activate": 3,
    "sample_start": 1,
    "computed": 3,
-   "deal_select": 6,
+   "deal_select": 8,
    "nudge_save": 3
+  },
+  {
+   "day": "2026-08-18",
+   "first_number_5m": 1,
+   "first_number_15m": 1,
+   "landing": 4,
+   "session": 27,
+   "teaser": 1,
+   "prompt_copy": 2,
+   "activate": 2,
+   "sample_start": 1,
+   "deal_want": 1,
+   "xlsx_download": 3,
+   "adj_open": 2,
+   "pdf_export": 1,
+   "computed": 2,
+   "tip_next": 1,
+   "ex_ack": 3,
+   "deal_select": 4,
+   "nudge_save": 2,
+   "ic_ppt": 1
+  },
+  {
+   "day": "2026-08-19",
+   "xlsx_download": 3,
+   "ic_ppt": 1,
+   "nudge_save": 5,
+   "tip_next": 2,
+   "deal_select": 12,
+   "ex_ack": 3,
+   "handoff_open": 2,
+   "computed": 5,
+   "adj_open": 1,
+   "pdf_export": 2,
+   "first_number_5m": 3,
+   "depth_change": 6,
+   "deal_want": 4,
+   "method": 1,
+   "activate": 5,
+   "fsub_open": 6,
+   "ws_save": 2,
+   "first_number_15m": 1,
+   "teaser": 2,
+   "qr_open": 1,
+   "session": 36,
+   "landing": 8,
+   "png_card": 1,
+   "share_link": 1,
+   "fill_std": 1,
+   "slot_save": 2,
+   "sample_start": 2,
+   "first_number_30m": 1,
+   "term_help": 2
+  },
+  {
+   "day": "2026-08-20",
+   "sample_start": 1,
+   "adj_open": 1,
+   "coach_ok": 1,
+   "computed": 6,
+   "deal_select": 16,
+   "first_number_5m": 6,
+   "depth_change": 1,
+   "nudge_save": 5,
+   "term_help": 2,
+   "landing": 8,
+   "session": 31,
+   "fsub_open": 1,
+   "activate": 6,
+   "method": 2,
+   "deal_want": 1
   }
  ],
  "outputsByAct": {
-  "act": 125,
-  "nonact": 83,
-  "unknown": 66,
+  "act": 137,
+  "nonact": 91,
+  "unknown": 34,
   "since": "2026-07-26"
  },
  "teamHandoffByAct": {
   "since": "2026-08-15",
   "decisionDate": "2026-08-29",
   "window": {
-   "session": 60,
-   "activate": 7
+   "session": 155,
+   "activate": 20
   },
   "handoff_open": {
-   "act": 1,
-   "nonact": 0,
+   "act": 2,
+   "nonact": 1,
    "unknown": 0
   },
   "share_link": {
    "act": 1,
-   "nonact": 0,
+   "nonact": 1,
    "unknown": 0
   },
   "firstNumber": {
    "since": "2026-08-15T10:18:30+09:00",
    "until": "2026-08-29T10:18:30+09:00",
-   "first_number_5m": 7,
-   "first_number_15m": 0,
-   "first_number_30m": 0,
+   "first_number_5m": 17,
+   "first_number_15m": 2,
+   "first_number_30m": 1,
    "first_number_slow": 0
   }
  },
  "sampleStartWindow": {
   "since": "2026-08-15T11:23:17+09:00",
   "until": "2026-08-29T11:23:17+09:00",
-  "session": 51,
-  "sample_start": 2,
-  "activate": 6,
-  "computed": 6
+  "session": 146,
+  "sample_start": 6,
+  "activate": 19,
+  "computed": 19
  },
  "dealWantGate": {
   "since": "2026-07-14",
   "target": 50,
-  "hotel": 46,
-  "retail": 21,
-  "rental": 16,
-  "datacenter": 15
+  "hotel": 48,
+  "retail": 22,
+  "rental": 18,
+  "datacenter": 16
  }
 }
