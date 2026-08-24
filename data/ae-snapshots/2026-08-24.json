@@ -4,7 +4,7 @@
  "endDate": "2026-08-24",
  "week": "2026-W35",
  "days": 30,
- "generatedAt": "2026-08-24T20:57:36.814Z",
+ "generatedAt": "2026-08-24T23:06:18.677Z",
  "funnel": {
   "session": 819,
   "activate": 97,
@@ -206,11 +206,11 @@
     "computed": 12,
     "output": 44
    },
-   "link.naver.com": {
-    "session": 8,
-    "activate": 3,
-    "computed": 3,
-    "output": 5
+   "keep.google.com": {
+    "session": 3,
+    "activate": 1,
+    "computed": 1,
+    "output": 4
    },
    "teams.public.onecdn.static.microsoft": {
     "session": 10,
@@ -218,11 +218,11 @@
     "computed": 1,
     "output": 2
    },
-   "keep.google.com": {
-    "session": 3,
-    "activate": 1,
-    "computed": 1,
-    "output": 4
+   "link.naver.com": {
+    "session": 8,
+    "activate": 3,
+    "computed": 3,
+    "output": 5
    },
    "search.naver.com": {
     "session": 25,
