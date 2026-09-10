@@ -438,6 +438,50 @@ async function closeOverlays(page) {
     ok(gz < 300 * 1024, 'gzip 전송량 ' + Math.round(gz / 1024) + 'KB (<300KB 예산)');
   }
 
+  // ── 검토본: 서로 다른 비율 기준과 모바일 입력/결과 왕복 ──
+  {
+    console.log('\n[검토본] 입력 해석과 모바일 이동');
+    const { ctx, page } = await fresh(browser, { viewport: { width: 390, height: 844 } });
+    await page.goto(URL0); await page.waitForTimeout(700); await closeOverlays(page);
+    await page.evaluate(() => { cur='office'; fillExample(); });
+    const before = await page.locator('#simKpis').innerText();
+    await page.locator('#f_asset').fill('검토용 자산');
+    const progress = await page.locator('#ipTxt').innerText();
+    ok(await page.locator('#simKpis').innerText() === before && /가정 확인 필요|예시값 확인 필요/.test(progress) && !/입력 완료/.test(progress), '자산명만 바꾸면 계산 완료로 오인시키지 않고 예시 가정 확인을 유지');
+    const basis = await page.evaluate(() => ({
+      senior: document.querySelector('[data-sk="senior_ltv"]').getAttribute('aria-label'),
+      pref: document.querySelector('[data-sk="pref_ltv"]').getAttribute('aria-label'),
+      common: !!document.querySelector('[data-sk="common_ltv"]'),
+      sumVisible: document.getElementById('stackSum').getBoundingClientRect().height > 0
+    }));
+    ok(/감정가/.test(basis.senior) && /취득원가/.test(basis.pref) && !basis.common && !basis.sumVisible, '매입: LTV/우선주 분모 구분, 잔여 보통주 자동, 단순 비중 합계 숨김');
+    for(const d of ['office','logistics','dev','refi']){
+      const labels = await page.evaluate(deal => {
+        cur=deal; fillExample();
+        const values=[];
+        for(const dep of ['quick','standard','deep']){
+          depth=dep; renderForm(); restoreInputs(); update();
+          values.push(document.getElementById('pvDownload').textContent);
+        }
+        return values;
+      },d);
+      const expected=d==='dev'?'6시트':(d==='refi'?'4시트':'13시트');
+      ok(labels.every(x=>x.includes(expected)) && new Set(labels).size===1, d+': AI 깊이를 바꿔도 실제 엑셀 시트 안내 유지');
+    }
+    await page.evaluate(() => { cur='office'; fillExample(); document.getElementById('simCard').scrollIntoView({block:'start'}); updateJumpFab(); });
+    await page.waitForTimeout(250);
+    ok(await page.locator('#jumpFab').innerText() === '내 값 입력', '모바일 결과에서 입력 이동 버튼 표시');
+    await page.locator('#jumpFab').click(); await page.waitForTimeout(750);
+    const inputJump = await page.evaluate(() => ({ top: document.getElementById('inpProg').getBoundingClientRect().top, target: document.getElementById('jumpFab').textContent.trim() }));
+    ok(Math.abs(inputJump.top)<120 && inputJump.target==='결과 보기', '모바일 입력으로 이동한 뒤 결과 복귀 버튼 표시');
+    await page.locator('#jumpFab').click(); await page.waitForTimeout(750);
+    const resultJump = await page.evaluate(() => ({ top: document.getElementById('simCard').getBoundingClientRect().top, width: document.documentElement.scrollWidth }));
+    ok(Math.abs(resultJump.top)<120 && resultJump.width<=392, '모바일 버튼이 실제 계산 결과로 복귀하고 가로 넘침 없음');
+    await page.evaluate(() => { enterReadonly(); updateJumpFab(); }); await page.waitForTimeout(350);
+    ok(!(await page.locator('#jumpFab').isVisible()) || !(await page.locator('#jumpFab').getAttribute('class')).includes('show'), '읽기 전용 결과에는 편집 이동 버튼 숨김');
+    await ctx.close();
+  }
+
   await browser.close(); server.close();
   console.log('\n결과: ' + pass + ' 통과, ' + fail + ' 실패' + (fail ? '\n' + failures.map(f => ' - ' + f).join('\n') : ''));
   process.exit(fail ? 1 : 0);

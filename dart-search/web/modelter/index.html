@@ -436,7 +436,7 @@ footer{border-top:1px solid var(--line-soft); padding:30px 0 44px; margin-top:36
 
 .toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--panel); font-size:14.5px; font-weight:600; padding:11px 20px; border-radius:11px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.3s; z-index:100}
 
-/* mobile floating jump-to-prompt button */
+/* mobile floating input/result navigation */
 .jump-fab{display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); align-items:center; gap:7px; border:none; cursor:pointer; font-family:var(--font); font-size:15px; font-weight:600; color:var(--on-accent); background:var(--accent-solid); padding:12px 20px; border-radius:999px; box-shadow:0 10px 28px rgba(169,121,43,.4); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:90}
 .jump-fab svg{width:16px; height:16px; fill:currentColor}
 .jump-fab.show{opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0)}
@@ -1290,6 +1290,11 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
 .f-range+.f-ref{margin-top:1px}
 .f-conv{display:block;font-size:11.5px;font-weight:700;color:var(--accent-deep);margin-top:3px;line-height:1.3}
 .f-conv+.f-ref{margin-top:1px}
+/* 입력 기준과 산출물 안내 — 기존 중립 색상 사용 */
+.stack-sum[hidden]{display:none}
+.stack-auto{display:block;padding:9px 0;font-size:13px;color:var(--ink-2)}
+.model-state{margin:0 0 14px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:12px;color:var(--ink-2);line-height:1.6}
+.pv-download{margin:0;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;line-height:1.6;color:var(--ink-2)}
 /* 예시값 잔존 칩 + 필드 강조 */
 .ex-chip{border:1px solid rgba(179,71,47,.4); background:rgba(179,71,47,.08); color:var(--red); font-family:var(--font); font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:999px; cursor:pointer; white-space:nowrap}
 .ex-chip:hover{background:rgba(179,71,47,.14)}
@@ -1555,7 +1560,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       <!-- 도구 · 저장 — 자주 쓰지 않는 것들을 입력 아래 한 곳에 접어 둔다(기본 닫힘).
            30일 사용량 기준: IM 가져오기 3.6% · 딜 저장 44 · 내 기본값 4 · 공유 10 — 입력칸 위를 차지할 이유가 없다. -->
       <details class="tools-fold" id="toolsFold">
-        <summary><span class="tf-ic">⚙</span> 도구 · 저장 · 모델 깊이 <span class="tf-now" id="tfNow"></span><span class="chev">▾</span></summary>
+        <summary><span class="tf-ic">⚙</span> 도구 · 저장 · AI 모델 깊이 <span class="tf-now" id="tfNow"></span><span class="chev">▾</span></summary>
         <div class="tf-body">
           <div id="toolsDyn"></div>
           <div class="slots-bar">
@@ -1582,6 +1587,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       <div class="metrics" id="simCard" hidden>
         <div class="mx-head"><span class="mx-t">1차 검토 결과 <span class="mx-sub">실시간</span></span><span class="mx-flag prt-flag" id="simFlag" style="display:none"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span class="prt-lab">화면 = 다운로드 엑셀</span><span class="help sm prt-q" tabindex="0">?<span class="tip prt-tip">화면의 IRR·EM·CoC·DSCR·우선주/보통주 수익은 내려받는 13시트 엑셀과 <b>같은 계산식</b>으로 산출됩니다. 엑셀 수식 엔진으로 재계산해 도관·비도관, 보유 3~10년 모든 구간에서 <b>0.1%p 이내 일치</b>를 검증했습니다.</span></span></span></div>
         <div class="coach" id="coachMark" hidden><b>결과는 이 순서로 보세요</b><ol><li><b>① 주요 지표</b>: IRR(연 수익률), EM(원금 대비 회수액), 배당률</li><li><b>② 판정</b>: 각 지표가 기준을 넘는지 확인</li><li><b>③ 민감도·시나리오</b>: 가정이 나빠졌을 때 결과 확인</li></ol><button type="button" class="sl-btn" id="coachOk">다시 보지 않기</button></div>
+        <p class="model-state" id="modelState" role="status"></p>
         <div class="sim-kpis" id="simKpis"></div>
         <div class="sim-verdict" id="simVerdict" role="status" aria-live="polite" hidden></div>
         <details class="adj-d" id="adjBar" hidden><summary>🎛 즉석 조정 <span class="adj-sub">미팅 중 핵심 가정만 바꾸면 입력 폼에도 바로 반영됩니다</span></summary><div id="adjBody"></div></details>
@@ -1627,9 +1633,10 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       </div>
       <div class="preview-card">
         <div class="pv-head">
-          <div class="pv-t">생성될 시트 구조 <span class="pv-count" id="pvCount">—</span></div>
+          <div class="pv-t">AI용 시트 설계 <span class="pv-count" id="pvCount">—</span></div>
           <div class="pv-depth" id="pvDepth">표준</div>
         </div>
+        <p class="pv-download" id="pvDownload"></p>
         <div class="pv-body" id="pvBody"></div>
         <div class="pv-foot" id="pvFoot">가정을 바꾸면 결과가 따라 움직이도록, 모든 시트가 셀 참조로 연결됩니다.</div>
       </div>
@@ -1717,9 +1724,9 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
   </div>
 </footer>
 
-<button class="jump-fab" id="jumpFab" aria-label="AI 지시문으로 이동">
+<button class="jump-fab" id="jumpFab" aria-label="계산 결과로 이동">
   <svg viewBox="0 0 24 24"><path d="M12 16l-6-6 1.4-1.4L12 13.2l4.6-4.6L18 10z"/></svg>
-  <span>지시문 보기</span>
+  <span>결과 보기</span>
 </button>
 
 <div id="printSummary" aria-hidden="true"></div>
@@ -2001,7 +2008,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-08-18·ea312b9d5f';
+window.MT_BUILD='2026-09-10·e7a75818f7';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2034,6 +2041,8 @@ function exLabels(){ return exRemaining().map(function(k){ var f=exFieldDef(k); 
 function renderExChip(){
   var el=(typeof document!=='undefined')?document.getElementById('exChip'):null; if(!el) return;
   try{
+    var status=document.getElementById('modelState');
+    if(status) status.textContent=(exampleKeys.size>0&&!exUserEdited)?'예시 모델 · 실제 거래의 수치가 아닙니다':(exMixed()?'일부 수정 · 남아 있는 예시 가정을 확인해 주세요':'입력된 가정 기준 · 가정의 적정성은 별도 확인이 필요합니다');
     var start=document.getElementById('sampleStart');
     if(start) start.hidden=!(exampleKeys.size>0&&!exUserEdited);
     var rem=exMixed()?exRemaining():[];
@@ -2202,11 +2211,15 @@ function stackHtml(mode,gl){
   const title = mode==="dev" ? "자금 구조 (PF · 트랜치)" : "자본구조 (Capital Stack)";
   const hint = mode==="dev"
     ? "PF 선순위에 더해 중순위(브릿지)·우선주를 켜면 시트와 분배 구조가 추가됩니다. 비중은 총사업비 대비 %."
-    : "기본은 선순위+보통주. 메자닌·우선주를 켜면 Capital_Stack·Waterfall 시트와 트랜치별 지시문이 추가됩니다. 비중은 총 취득원가 대비 %.";
+    : "선순위·중순위 대출은 감정가 대비 LTV, 우선주는 총 취득원가 대비 비중입니다. 보통주는 대출·우선주·승계 보증금을 뺀 잔액으로 자동 계산합니다. 결과표의 구성비는 모두 총 취득원가 기준입니다.";
   const rows=TRANCHES.map(t=>{
     const on=stackState[t.id]!==undefined?stackState[t.id]:t.on;
     const v=k=>{ const s=stackState[t.id+"_"+k]; return s!==undefined?s:(t[k]||""); };
     const extra = t.extra ? `<div class="f"><label>${t.extra.label}</label><select data-sk="${t.id}_extra" aria-label="${t.name} ${t.extra.label}">${t.extra.opts.map(o=>`<option>${o}</option>`).join("")}</select></div>${t.id==="senior"?`<div class="f"><label>거치 <span class="unit">년</span></label><input data-sk="senior_grace" inputmode="numeric" aria-label="선순위 거치 년" placeholder="0" title="상환방식이 거치후 원리금균등일 때만 사용 — 거치기간엔 이자만 냅니다" /></div>`:""}` : (t.equity?`<div class="f"><label>비고</label><input data-sk="${t.id}_extra" aria-label="${t.name} 비고" placeholder="잔여 지분" /></div>`:"");
+    const ratioLabel=mode==='dev'?'비중(총사업비)':(t.id==='pref'?'비중(취득원가)':'LTV(감정가)');
+    const ratioField=mode!=='dev'&&t.equity
+      ? '<div class="f"><label>보통주 금액</label><span class="stack-auto">잔여 자기자본 자동 계산</span></div>'
+      : `<div class="f"><label>${ratioLabel} <span class="unit">%</span></label><input data-sk="${t.id}_ltv" inputmode="decimal" aria-label="${t.name} ${ratioLabel} %" placeholder="${v('ltv')}" /></div>`;
     const rateField = t.equity
       ? `<div class="f"><label>목표 IRR <span class="unit">%</span></label><input data-sk="${t.id}_coc" inputmode="decimal" aria-label="${t.name} 목표 IRR %" placeholder="${t.rate||'12'}" /></div>`
       : `<div class="f"><label>${t.rateLabel||'금리'} <span class="unit">%</span></label><input data-sk="${t.id}_${t.id==='pref'?'coc':'rate'}" inputmode="decimal" aria-label="${t.name} ${t.rateLabel||'금리'} %" placeholder="${t.rate}" /></div>`;
@@ -2216,7 +2229,7 @@ function stackHtml(mode,gl){
         <label class="tg"><input type="checkbox" data-sk="${t.id}_on" ${on?'checked':''} aria-label="${t.name} 포함"/><span class="track"></span></label>
       </div>
       <div class="tranche-fields">
-        <div class="f"><label>${mode==='dev'?'비중(총사업비)':'비중(취득원가)'} <span class="unit">%</span></label><input data-sk="${t.id}_ltv" inputmode="decimal" aria-label="${t.name} ${mode==='dev'?'비중(총사업비)':'비중(취득원가)'} %" placeholder="${v('ltv')}" /></div>
+        ${ratioField}
         ${rateField}
         ${extra}
       </div>
@@ -2242,9 +2255,9 @@ function refiHtml(gl){
 
 function depthHtml(){
   const depthBtns=Object.entries(DEPTHS).map(([k,v])=>`<button type="button" class="depth-opt ${k===depth?'on':''}" data-depth="${k}"><b>${v.label}</b><span>${v.range}</span></button>`).join("");
-  return `<div class="depth-pick"><div class="dp-head">모델 깊이 <span class="help" tabindex="0">?<span class="tip">시트 수가 많다고 더 좋은 모델은 아닙니다. 빠른 검토에는 핵심 구성을, 위원회 보고나 상세 검토에는 심층 구성을 선택하세요. 엑셀과 AI 지시문의 구성도 함께 바뀝니다.</span></span></div>
+  return `<div class="depth-pick"><div class="dp-head">AI용 모델 깊이 <span class="help" tabindex="0">?<span class="tip">AI 지시문으로 새로 만들거나 확장할 모델의 시트 구성을 선택합니다. 이 선택은 바로 내려받는 엑셀의 시트 수를 바꾸지 않습니다.</span></span></div>
    <div class="depth-seg" id="depthSeg">${depthBtns}</div>
-   <div class="depth-desc" id="depthDesc">${DEPTHS[depth].desc}${(function(){ try{ var n=(typeof sheetListFor==='function')?sheetListFor().length:0; return n?` <b>지금 ${n}시트</b> — 깊이는 <b>내려받는 엑셀·AI 지시문의 시트 구성</b>을 정합니다(화면 입력 항목은 동일).`:''; }catch(e){ return ''; } })()}</div>
+   <div class="depth-desc" id="depthDesc">${DEPTHS[depth].desc}${(function(){ try{ var n=(typeof sheetListFor==='function')?sheetListFor().length:0; return n?` <b>AI 설계 ${n}시트</b> — 바로 받는 엑셀은 아래 결과 영역에서 별도로 안내합니다.`:''; }catch(e){ return ''; } })()}</div>
   </div>`;
 }
 
@@ -2264,7 +2277,7 @@ function renderTools(rrEligible){
 function toolsSummary(){
   const now=document.getElementById('tfNow'); if(!now) return;
   let n=0; try{ n=(typeof sheetListFor==='function')?sheetListFor().length:0; }catch(e){}
-  now.textContent=(DEPTHS[depth]?DEPTHS[depth].label:'')+(n?(' · '+n+'시트'):'');
+  now.textContent='AI '+(DEPTHS[depth]?DEPTHS[depth].label:'')+(n?(' · '+n+'시트'):'');
 }
 
 function commonHtml(gl){
@@ -2573,11 +2586,11 @@ function stackBlock(mode){
     if(ltv) sum+=parseFloat(ltv)||0;
     let desc;
     if(t.equity){
-      desc=`${t.name}: 비중 ${ltv||'[?]'}%` + (rate?`, 목표 IRR ${rate}%`:"") + (extra?`, ${extra}`:"");
+      desc=(mode==="dev"?`${t.name}: 비중 ${ltv||'[?]'}%`:`${t.name}: 잔여 자기자본 자동 계산`) + (rate?`, 목표 IRR ${rate}%`:"") + (extra?`, ${extra}`:"");
     }else if(t.id==="pref"){
-      desc=`${t.name}: 비중 ${ltv||'[?]'}%, 요구 CoC ${rate||'[?]'}%` + (extra?`, ${extra}`:"");
+      desc=`${t.name}: ${mode==="dev"?"총사업비":"취득원가"} 대비 ${ltv||'[?]'}%, 요구 CoC ${rate||'[?]'}%` + (extra?`, ${extra}`:"");
     }else{
-      desc=`${t.name}: 비중 ${ltv||'[?]'}%, 금리 ${rate||'[?]'}%` + (extra?`, ${extra}`:"");
+      desc=`${t.name}: ${mode==="dev"?"총사업비 대비 비중":"감정가 대비 LTV"} ${ltv||'[?]'}%, 금리 ${rate||'[?]'}%` + (extra?`, ${extra}`:"");
     }
     lines.push("- "+desc);
   });
@@ -2599,7 +2612,7 @@ function stackBlock(mode){
   }
   basis += mode==="dev"
     ? "\n- 보통주 자기자본은 총사업비에서 대출·우선주 합계를 뺀 잔액(plug)으로 산출하고, 입력한 비중과 어긋나면 잔액을 우선한다."
-    : "\n- 총 사용액(Uses) = 매입가 + 취득세 + 기타 취득부대비. 보통주 자기자본 = 총 사용액 − 대출 트랜치 합계 − 우선주(있으면)로 산출하는 plug 값이다(입력 비중과 어긋나면 잔액을 우선).";
+    : "\n- 총 사용액(Uses) = 매입가 + 취득세 + 기타 취득부대비 + 선순위 취급수수료. 우선주 금액 = 총 사용액 × 우선주 비중. 보통주 자기자본 = 총 사용액 − 대출 트랜치 합계 − 우선주 − 승계 보증금으로 자동 산출한다. 보증금을 승계하지 않으면 해당 차감액은 0이다.";
   const balanceTarget = mode==='dev' ? '총사업비' : '총 사용액(Uses)';
   return title+"\n"+lines.join("\n")+basis+extra+`\n- 조달(Sources) 합계 = ${balanceTarget}가 되도록 Sources_Uses에서 맞추고, 차이가 0인지 Validation_Checks에서 점검한다.`;
 }
@@ -2783,6 +2796,8 @@ function highlight(t){ let h=esc(t); h=h.replace(/^(\[[^\]]+\])/gm,'<span class=
 
 function updateStackSum(){
   const el=$("stackSum"); if(!el) return;
+  // 매입은 대출 LTV와 우선주 비중의 분모가 달라 단순 합계 100% 검사를 하지 않는다.
+  el.hidden=DEALS[cur].stackMode!=='dev'; if(el.hidden) return;
   let sum=0;
   TRANCHES.forEach(t=>{ const on=stackState[t.id+"_on"]!==undefined?stackState[t.id+"_on"]:t.on; if(on){ const ltv=parseFloat((stackState[t.id+"_ltv"]||t.ltv||"").toString())||0; sum+=ltv; } });
   $("stackSumV").textContent=sum?sum.toFixed(0)+"%":"—";
@@ -2809,19 +2824,21 @@ function update(){
   try{ if(typeof renderAdjBar==='function') renderAdjBar(); }catch(e){}
   try{ if(typeof renderCoach==='function') renderCoach(); }catch(e){}
   saveLocal();
+  if(typeof updateJumpFab==='function') updateJumpFab();
 }
-/* 핵심 입력 진행률 — 딜별 필수 필드가 얼마나 채워졌는지(완성도 안심 지표) */
+/* 핵심 입력 채움 상태 — 가정의 실무 검토 완료와 구분 */
 function renderInpProg(){
   var box=$('inpProg'), fill=$('ipFill'), txt=$('ipTxt'); if(!box||!fill||!txt) return;
   var keys=(typeof quickFieldKeys==='function')?quickFieldKeys(cur):((typeof QUICK_FIELDS!=='undefined'&&QUICK_FIELDS[cur])?QUICK_FIELDS[cur].slice():[]);
   if(cur==='dev'&&typeof devResi==='function'&&devResi()){
     // 분양은 그리드가 핵심 — 평형 1행 이상 채워졌는지 포함
     var hasApt=false; try{ var ar=devRows('aptrows',[]); hasApt=ar.some(function(r){ return parseNum(String(r.p||''))>0 && parseNum(String(r.n||''))>0; }); }catch(e){}
-    keys=['asset','landcost','conscost','equity','pfrate'];
+    keys=['landcost','conscost','equity','pfrate'];
     var tot=keys.length+1, fl=0;
     keys.forEach(function(k){ if(((state[k]||'')+'').trim()!=='') fl++; }); if(hasApt) fl++;
     return _paintProg(box,fill,txt,fl,tot);
   }
+  keys=keys.filter(function(k){ return k!=='asset'; });
   if(!keys.length){ box.hidden=true; return; }
   var total=keys.length, filled=0;
   keys.forEach(function(k){ if(((state[k]||'')+'').trim()!=='') filled++; });
@@ -2833,8 +2850,8 @@ function _paintProg(box,fill,txt,filled,total){
   fill.style.width=pct+'%';
   var done=(filled>=total);
   var sampleOnly=(exampleKeys.size>0&&!exUserEdited);
-  box.classList.toggle('done',done&&!sampleOnly);
-  txt.textContent=sampleOnly?('예시값 '+filled+'/'+total+' · 실제 값으로 바꿔 주세요'):(done?('필수 입력 완료 · 결과 계산됨'):('필수 입력 '+filled+'/'+total));
+  box.classList.toggle('done',done&&!sampleOnly&&!exMixed());
+  txt.textContent=sampleOnly?('예시값으로 '+filled+'/'+total+'칸 채움 · 내 딜 가정 확인 필요'):('핵심 숫자 '+filled+'/'+total+'칸 채움 · '+(exMixed()?'남은 예시값 확인 필요':'가정 확인 필요'));
 }
 /* 그룹별 입력 진행 표시 (n/m) — 어디까지 채웠는지 부담을 줄여줌 */
 function updateGroupCounts(){
@@ -3647,7 +3664,7 @@ function buildPrintSummary(){
     '<div class="ps-cols"><div class="ps-col"><h2>즉시 점검</h2><table class="ps-tbl">'+rowsHtml+'</table>'+warnHtml+stackHtml+rrHtml+'</div>'+
     '<div class="ps-col"><h2>핵심 가정</h2><table class="ps-tbl">'+asRows+'</table></div></div>'+
     sensHtml+
-    '<h2>생성될 시트 구조</h2><p class="ps-sheets">'+esc(sheetHtml)+'</p>'+
+    '<h2>AI용 시트 설계 (다운로드 엑셀과 별도)</h2><p class="ps-sheets">'+esc(sheetHtml)+'</p>'+
     recHtml+
     '<div class="ps-foot">modelter.com · 코람코자산신탁 상장리츠팀 김성훈 · 본 요약은 입력값 기반 직접계산·추정치이며 투자 권유가 아닙니다.</div>';
 }
@@ -4796,13 +4813,14 @@ function renderPreview(){
     html+=`<div class="pv-layer"><div class="pv-layer-name">${layer}</div><div class="pv-chips">${chips}</div></div>`;
   });
   body.innerHTML=html;
-  // 깊이별 안내 문구
-  const foot=$("pvFoot");
-  if(foot){
-    if(depth==="quick") foot.textContent="빠른 검토: 의사결정에 필요한 최소 시트만. 가정·핵심계산·결과 중심입니다.";
-    else if(depth==="deep") foot.textContent="심층: 세부 분해·민감도·검증까지 포함. 모든 시트가 셀 참조로 연결됩니다.";
-    else foot.textContent="표준: 가정을 바꾸면 결과가 따라 움직이도록, 모든 시트가 셀 참조로 연결됩니다.";
+  const dl=$("pvDownload");
+  if(dl){
+    const desc=cur==='refi'?'리파이낸싱 비교 4시트':(cur==='dev'&&typeof devResi==='function'&&devResi()?'공동주택 분양 6시트':'기본 13시트 · 렌트롤 적용 시 추가');
+    dl.textContent='바로 받는 엑셀: '+desc+'. 아래는 AI에 요청할 별도 설계입니다.';
   }
+  // AI 설계는 실제 생성 파일의 검증 결과와 구분한다.
+  const foot=$("pvFoot");
+  if(foot) foot.textContent='AI가 작성한 모델은 가정과 수식이 달라질 수 있습니다. 내려받은 엑셀과 대조한 뒤 사용하세요.';
 }
 
 /* ---------- 예시 ---------- */
@@ -4932,28 +4950,34 @@ var _fs=$("fillStd"); if(_fs) _fs.addEventListener("click",fillStandard);
 const clearB=$("clearBtn"); if(clearB) clearB.addEventListener("click",clearAll);
 const fbBtn=$("fbSend"); if(fbBtn) fbBtn.addEventListener("click",sendFeedback);
 
-/* 모바일 플로팅 버튼: 입력 보는 중엔 표시, 결과 보이면 숨김 */
+/* 모바일 플로팅 버튼 — 현재 보는 영역에 따라 입력/실제 결과로 이동 */
 const fab=$("jumpFab");
+function updateJumpFab(){
+  const fab=document.getElementById("jumpFab"); if(!fab) return;
+  const panel=$("formBody"), result=$("simCard");
+  if(window.innerWidth>920||!panel||!result){ fab.classList.remove('show'); return; }
+  const visible=el=>{ const r=el.getBoundingClientRect(); return r.top<window.innerHeight*0.7&&r.bottom>140; };
+  const formVisible=visible(panel), resultVisible=!result.hidden&&visible(result);
+  const readonly=!!window.__mtReadonly;
+  const toInput=resultVisible&&!formVisible&&!readonly;
+  fab.dataset.target=toInput?'input':'result';
+  fab.querySelector('span').textContent=toInput?'내 값 입력':'결과 보기';
+  fab.setAttribute('aria-label',toInput?'핵심 숫자 입력으로 이동':'계산 결과로 이동');
+  fab.classList.toggle('show',toInput||(formVisible&&!resultVisible&&!result.hidden));
+}
 if(fab){
-  fab.addEventListener("click",()=>{
-    const pv=$("pvBody") && document.querySelector(".preview-card");
-    const target=pv || $("outText");
-    if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+  fab.addEventListener('click',()=>{
+    const toInput=fab.dataset.target==='input'&&!window.__mtReadonly;
+    const target=toInput?($('inpProg')||$('formBody')):$('simCard');
+    if(target){
+      target.scrollIntoView({behavior:'smooth',block:'start'});
+      // 입력 이동만으로 키보드를 열지 않는다.
+      target.setAttribute('tabindex','-1'); target.focus({preventScroll:true});
+    }
   });
-  const fabObserver=()=>{
-    if(window.innerWidth>920){ fab.classList.remove("show"); return; }
-    const panel=$("formBody"); const out=document.querySelector(".preview-card")||$("outText");
-    if(!panel||!out) return;
-    const pr=panel.getBoundingClientRect();
-    const or=out.getBoundingClientRect();
-    // 입력 폼이 화면에 어느 정도 보이고, 출력(미리보기)이 아직 화면 위로 올라오지 않았을 때만 표시
-    const formVisible = pr.top < window.innerHeight*0.6 && pr.bottom > 120;
-    const outAbove = or.top > window.innerHeight*0.85;
-    fab.classList.toggle("show", formVisible && outAbove);
-  };
-  window.addEventListener("scroll",fabObserver,{passive:true});
-  window.addEventListener("resize",fabObserver);
-  setTimeout(fabObserver,800);
+  window.addEventListener('scroll',updateJumpFab,{passive:true});
+  window.addEventListener('resize',updateJumpFab);
+  setTimeout(updateJumpFab,800);
 }
 
 /* ---------- 입력값 URL 공유 (v2: LZW 압축 + 읽기 전용) ---------- */
