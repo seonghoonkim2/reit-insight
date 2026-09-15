@@ -1,54 +1,54 @@
 {
  "schema": 2,
  "botExcluded": true,
- "endDate": "2026-09-07",
+ "endDate": "2026-09-09",
  "week": "2026-W37",
  "days": 30,
- "generatedAt": "2026-09-07T23:06:40.129Z",
+ "generatedAt": "2026-09-09T23:06:24.943Z",
  "funnel": {
-  "session": 718,
-  "activate": 83,
-  "computed": 83,
-  "output": 135
+  "session": 742,
+  "activate": 84,
+  "computed": 84,
+  "output": 141
  },
  "events": {
-  "session": 718,
-  "deal_select": 338,
-  "activate": 83,
-  "computed": 83,
-  "landing": 80,
+  "session": 742,
+  "deal_select": 371,
+  "landing": 87,
+  "activate": 84,
+  "computed": 84,
+  "deal_want": 78,
   "nudge_save": 75,
-  "deal_want": 70,
-  "xlsx_download": 61,
-  "first_number_5m": 55,
-  "fsub_open": 42,
-  "ex_ack": 39,
-  "dev_view": 37,
-  "tip_next": 36,
-  "term_help": 28,
-  "depth_change": 27,
-  "sample_start": 22,
-  "sens_axis": 22,
-  "example_fill": 21,
-  "ic_ppt": 20,
-  "fill_std": 18,
+  "xlsx_download": 66,
+  "first_number_5m": 58,
+  "fsub_open": 51,
+  "ex_ack": 40,
+  "dev_view": 36,
+  "tip_next": 35,
+  "term_help": 33,
+  "sens_axis": 30,
+  "sample_start": 25,
+  "depth_change": 24,
+  "ic_ppt": 24,
+  "example_fill": 22,
+  "fill_std": 20,
+  "solver": 19,
   "teaser": 17,
-  "prompt_copy": 15,
-  "method": 14,
-  "onboard": 11,
-  "solver": 11,
-  "handoff_open": 10,
+  "method": 15,
+  "prompt_copy": 13,
+  "handoff_open": 12,
   "share_link": 8,
   "adj_open": 8,
+  "first_number_slow": 8,
   "pdf_export": 6,
+  "wizard": 5,
   "first_number_15m": 5,
-  "first_number_slow": 5,
-  "wizard": 4,
+  "onboard": 4,
   "check_open": 3,
   "png_card": 3,
   "im_quick_open": 3,
-  "slot_save": 3,
   "coach_ok": 3,
+  "slot_save": 2,
   "sample_download": 2,
   "ws_save": 2,
   "im_open": 2,
@@ -59,78 +59,81 @@
   "im_checklist_open": 1
  },
  "deals": {
-  "office": 1157,
-  "dev": 399,
-  "logistics": 202,
-  "refi": 170,
-  "hotel": 32,
-  "retail": 16,
-  "rental": 11,
-  "datacenter": 11
+  "office": 1223,
+  "dev": 411,
+  "logistics": 229,
+  "refi": 172,
+  "hotel": 33,
+  "retail": 18,
+  "rental": 14,
+  "datacenter": 13
  },
  "device": {
-  "desktop": 1545,
-  "mobile": 470
+  "desktop": 1664,
+  "mobile": 466
  },
  "ref": {
-  "modelter.com": 1189,
-  "www.google.com": 243,
-  "search.naver.com": 219,
+  "modelter.com": 1157,
+  "www.google.com": 298,
+  "search.naver.com": 238,
+  "teams.public.onecdn.static.microsoft": 74,
+  "blog.naver.com": 69,
   "ntp.msn.com": 63,
-  "link.naver.com": 62,
-  "www.bing.com": 48,
-  "teams.public.onecdn.static.microsoft": 40,
-  "blog.naver.com": 40
+  "link.naver.com": 61,
+  "www.bing.com": 48
  },
  "feats": {
+  "vac,hold": 3,
   "dep,pref": 1,
-  "pref": 40,
-  "resi": 321,
+  "pref": 38,
+  "resi": 333,
   "bido": 1,
-  "dep,fee,vac,pref": 1201,
+  "vac,hold,pref": 1,
+  "dep,fee,vac,pref": 1291,
   "dep,fee,vac,scen": 1,
   "dep,fee,pref": 19,
-  "dep,fee,vac": 26,
+  "dep,fee,vac": 25,
+  "vac,hold,scen": 10,
   "dep,fee,vac,pref,scen": 1,
   "rr,dep,fee,vac,pref": 1,
   "dep,bido,hold,pref": 7,
-  "dep,fee,vac,hold,pref": 128,
+  "dep,fee,vac,hold,pref": 130,
   "dep,fee,bido,vac,pref": 11
  },
  "depth": {
-  "standard": 1890,
-  "deep": 81,
+  "standard": 2014,
+  "deep": 72,
   "quick": 27
  },
  "src": {
-  "seo": 156,
-  "imcheck": 63,
-  "sns": 31,
+  "seo": 182,
+  "imcheck": 76,
+  "sns": 48,
   "pwa": 19,
+  "howto": 17,
   "dscr": 11,
-  "howto": 6,
   "share": 4,
   "xlsx": 3
  },
  "attribution": {
   "bySrc": {
    "seo": {
-    "session": 38,
+    "session": 42,
     "activate": 5,
     "computed": 5,
-    "output": 15
+    "output": 16
    },
    "(직접/미상)": {
-    "session": 632,
-    "activate": 74,
-    "computed": 74,
-    "output": 116
+    "session": 645,
+    "activate": 73,
+    "computed": 73,
+    "output": 111
    },
    "sns": {
-    "session": 11,
+    "session": 12,
     "activate": 2,
     "computed": 2,
-    "output": 0
+    "output": 10
    },
    "share": {
     "session": 2,
@@ -145,15 +148,15 @@
     "output": 0
    },
    "howto": {
-    "session": 3,
-    "activate": 0,
-    "computed": 0,
+    "session": 6,
+    "activate": 1,
+    "computed": 1,
     "output": 0
    },
    "imcheck": {
-    "session": 23,
-    "activate": 1,
-    "computed": 1,
+    "session": 26,
+    "activate": 2,
+    "computed": 2,
     "output": 3
    },
    "pwa": {
@@ -172,27 +175,33 @@
   "byRef": {
    "modelter.com": {
     "session": 502,
-    "activate": 43,
-    "computed": 43,
-    "output": 69
+    "activate": 39,
+    "computed": 39,
+    "output": 62
    },
-   "com.linkedin.android": {
-    "session": 2,
-    "activate": 0,
-    "computed": 0,
-    "output": 0
+   "teams.public.onecdn.static.microsoft": {
+    "session": 10,
+    "activate": 4,
+    "computed": 4,
+    "output": 3
+   },
+   "search.naver.com": {
+    "session": 57,
+    "activate": 10,
+    "computed": 10,
+    "output": 21
    },
    "www.linkedin.com": {
-    "session": 7,
+    "session": 8,
     "activate": 1,
     "computed": 1,
     "output": 0
    },
    "www.google.com": {
-    "session": 64,
-    "activate": 9,
-    "computed": 9,
-    "output": 21
+    "session": 78,
+    "activate": 11,
+    "computed": 11,
+    "output": 23
    },
    "chatgpt.com": {
     "session": 4,
@@ -201,16 +210,10 @@
     "output": 1
    },
    "link.naver.com": {
-    "session": 11,
+    "session": 10,
     "activate": 5,
     "computed": 5,
     "output": 11
-   },
-   "teams.public.onecdn.static.microsoft": {
-    "session": 7,
-    "activate": 3,
-    "computed": 3,
-    "output": 3
    },
    "keep.google.com": {
     "session": 2,
@@ -218,29 +221,29 @@
     "computed": 1,
     "output": 3
    },
-   "search.naver.com": {
-    "session": 57,
-    "activate": 9,
-    "computed": 9,
-    "output": 21
-   },
    "m.blog.naver.com": {
-    "session": 12,
+    "session": 11,
     "activate": 1,
     "computed": 1,
     "output": 0
    },
    "m.search.naver.com": {
-    "session": 12,
+    "session": 16,
     "activate": 1,
     "computed": 1,
-    "output": 1
+    "output": 2
    },
    "www.bing.com": {
     "session": 7,
     "activate": 3,
     "computed": 3,
     "output": 2
+   },
+   "blog.naver.com": {
+    "session": 18,
+    "activate": 3,
+    "computed": 3,
+    "output": 13
    },
    "l.instagram.com": {
     "session": 1,
@@ -260,13 +263,13 @@
     "computed": 1,
     "output": 0
    },
-   "blog.naver.com": {
-    "session": 14,
-    "activate": 2,
-    "computed": 2,
-    "output": 3
-   },
    "m.facebook.com": {
+    "session": 2,
+    "activate": 0,
+    "computed": 0,
+    "output": 0
+   },
+   "com.linkedin.android": {
     "session": 2,
     "activate": 0,
     "computed": 0,
@@ -275,43 +278,6 @@
   }
  },
  "daily": [
-  {
-   "day": "2026-08-08",
-   "session": 1,
-   "onboard": 1
-  },
-  {
-   "day": "2026-08-09",
-   "deal_want": 3,
-   "activate": 1,
-   "nudge_save": 1,
-   "computed": 1,
-   "session": 14,
-   "teaser": 2,
-   "onboard": 2,
-   "xlsx_download": 1,
-   "depth_change": 1,
-   "tip_next": 1,
-   "dev_view": 2,
-   "deal_select": 7,
-   "prompt_copy": 3,
-   "slot_save": 1
-  },
-  {
-   "day": "2026-08-10",
-   "nudge_save": 4,
-   "activate": 4,
-   "xlsx_download": 1,
-   "deal_want": 1,
-   "depth_change": 2,
-   "session": 26,
-   "computed": 4,
-   "onboard": 4,
-   "ex_ack": 1,
-   "deal_select": 2,
-   "tip_next": 1,
-   "dev_view": 1
-  },
   {
    "day": "2026-08-11",
    "computed": 4,
@@ -329,8 +295,8 @@
    "dev_view": 2,
    "fill_std": 1,
    "deal_select": 12,
-   "prompt_copy": 1,
    "ex_ack": 1,
+   "prompt_copy": 1,
    "xlsx_download": 4,
    "example_fill": 2,
    "onboard": 4,
@@ -437,8 +403,8 @@
    "deal_select": 8,
    "deal_want": 6,
    "activate": 3,
-   "nudge_save": 3,
    "sample_start": 1,
+   "nudge_save": 3,
    "computed": 3,
    "session": 19,
    "landing": 3
@@ -804,7 +770,7 @@
   },
   {
    "day": "2026-09-07",
-   "session": 15,
+   "session": 16,
    "computed": 3,
    "method": 1,
    "activate": 3,
@@ -820,11 +786,54 @@
    "deal_select": 9,
    "fill_std": 1,
    "xlsx_download": 4
+  },
+  {
+   "day": "2026-09-08",
+   "landing": 7,
+   "first_number_5m": 3,
+   "session": 26,
+   "computed": 3,
+   "ic_ppt": 4,
+   "activate": 3,
+   "method": 1,
+   "deal_want": 2,
+   "nudge_save": 2,
+   "xlsx_download": 5,
+   "sens_axis": 8,
+   "fsub_open": 7,
+   "wizard": 1,
+   "tip_next": 1,
+   "ex_ack": 1,
+   "handoff_open": 2,
+   "deal_select": 26,
+   "fill_std": 2,
+   "term_help": 3,
+   "teaser": 2,
+   "sample_start": 2
+  },
+  {
+   "day": "2026-09-09",
+   "deal_select": 16,
+   "ex_ack": 1,
+   "prompt_copy": 1,
+   "dev_view": 2,
+   "solver": 8,
+   "sample_start": 1,
+   "term_help": 2,
+   "first_number_slow": 3,
+   "computed": 3,
+   "example_fill": 1,
+   "session": 38,
+   "fsub_open": 2,
+   "xlsx_download": 2,
+   "nudge_save": 3,
+   "deal_want": 10,
+   "activate": 3
   }
  ],
  "outputsByAct": {
-  "act": 59,
-  "nonact": 76,
+  "act": 58,
+  "nonact": 83,
   "unknown": 0,
   "since": "2026-07-26"
  },
@@ -865,9 +874,9 @@
  "dealWantGate": {
   "since": "2026-07-14",
   "target": 50,
-  "hotel": 66,
-  "retail": 32,
-  "rental": 24,
-  "datacenter": 21
+  "hotel": 69,
+  "retail": 35,
+  "rental": 27,
+  "datacenter": 24
  }
 }
