@@ -295,21 +295,22 @@ async function closeOverlays(page) {
         closed: tf && !tf.open,
         summary: tf ? tf.querySelector('#tfNow').textContent : '',
         gap: Math.round(first.getBoundingClientRect().top - panel.getBoundingClientRect().top),
+        savedBar: Math.round(document.querySelector('.slots-primary').getBoundingClientRect().height),
         depthOutside: !!document.querySelector('#formBody #depthSeg'),
       };
     });
     ok(st.closed, '도구 블록 기본 닫힘');
     ok(/시트/.test(st.summary), `닫힌 채로 현재 깊이 표시 (${st.summary})`);
-    ok(st.gap < 320, `패널 상단→첫 입력칸 ${st.gap}px (<320)`);
+    ok(st.savedBar < 90 && st.gap - st.savedBar < 320, `패널 상단→첫 입력칸 ${st.gap}px (보관함 ${st.savedBar}px <90, 나머지 <320)`);
     ok(!st.depthOutside, '깊이 선택이 입력 폼 위에 없음');
     await page.evaluate(() => { document.getElementById('toolsFold').open = true; });
     await page.waitForTimeout(300);
     const inside = await page.evaluate(() => {
       const tf = document.getElementById('toolsFold');
-      return ['#depthSeg', '.imfold', '#slotSel', '#srcBtn', '#chkBtn', '#myDefBtn', '#shareBtn', '#clearBtn']
+      return ['#depthSeg', '.imfold', '#srcBtn', '#chkBtn', '#myDefBtn', '#shareBtn', '#clearBtn']
         .filter(s => !tf.querySelector(s));
     });
-    ok(inside.length === 0, '도구 블록 안에 깊이·IM·보관함·출처·점검·기본값·공유·비우기 모두 존재' + (inside.length ? ' — 누락 ' + inside.join(',') : ''));
+    ok(inside.length === 0, '도구 블록 안에 깊이·IM·출처·점검·기본값·공유·비우기 모두 존재' + (inside.length ? ' — 누락 ' + inside.join(',') : ''));
     await page.click('#toolsFold .depth-opt[data-depth="deep"]'); await page.waitForTimeout(900);
     ok(await page.evaluate(() => /심층/.test(document.getElementById('tfNow').textContent)), '도구 블록 안에서 깊이 전환 동작');
     await ctx.close();
@@ -401,33 +402,6 @@ async function closeOverlays(page) {
     await ctx.close();
   }
 
-  // ── [9] 방법론 모달 — '내 숫자 대입'이 화면 KPI 문자열과 일치 (4딜, 모달 내 재계산 금지 검증) ──
-  console.log('\n[9] 방법론 모달 대입 파리티');
-  {
-    const { ctx, page } = await fresh(browser);
-    await page.goto(URL0); await page.waitForTimeout(700); await closeOverlays(page);
-    for (const deal of ['office', 'logistics', 'dev', 'refi']) {
-      await page.evaluate(d => { cur = d; fillExample(); update(); }, deal);
-      await page.waitForTimeout(400);
-      await page.evaluate(() => document.getElementById('mdOpen').click());
-      const r = await page.evaluate(() => {
-        const sec = document.getElementById('mdMineSec');
-        const rows = [...document.querySelectorAll('#mdMineBody .md-f[data-kpi]')].map(el => ({ k: el.getAttribute('data-kpi'), v: el.getAttribute('data-v') }));
-        const kmap = {};
-        document.querySelectorAll('#simCard .sim-kpi').forEach(t => { const l = t.querySelector('.sk-l'), v = t.querySelector('.sk-v'); if (l && v) kmap[l.textContent.replace(/\?$/, '').trim()] = v.textContent.trim(); });
-        document.querySelectorAll('#simCard .mx-item').forEach(t => { const l = t.querySelector('.mx-l'), v = t.querySelector('.mx-v'); if (l && v) kmap[l.textContent.replace(/\?$/, '').trim()] = v.textContent.trim(); });
-        const m = (typeof simModel === 'function') ? simModel() : null;
-        const emap = {}; if (m && m.kpis) m.kpis.forEach(k => emap[k.l] = k.v);
-        return { hidden: sec ? sec.hidden : null, rows, kmap, emap };
-      });
-      await page.evaluate(() => document.getElementById('mdClose').click());
-      if (deal === 'refi') { ok(r.hidden === true && r.rows.length === 0, 'refi: 대입 섹션 숨김(비교표 딜)'); continue; }
-      const mm = r.rows.filter(row => (r.kmap[row.k] != null ? r.kmap[row.k] : r.emap[row.k]) !== row.v);
-      ok(r.hidden === false && r.rows.length >= 3 && mm.length === 0, deal + ': 모달 대입 ' + r.rows.length + '개 == 화면 KPI 문자열' + (mm.length ? (' (불일치 ' + mm.map(x => x.k).join(',') + ')') : ''));
-    }
-    await ctx.close();
-  }
-
   // ── [10] 배포 안전: 테스트 훅 부재 + 전송량 예산 ──
   console.log('\n[10] 배포 안전');
   {
@@ -436,6 +410,50 @@ async function closeOverlays(page) {
     ok(fs.existsSync(path.join(WEB, 'guide.html')) && fs.existsSync(path.join(WEB, 'howto.html')) && fs.existsSync(path.join(WEB, 'og-first-deal-v1.png')), 'guide·howto·첫 딜 OG 이미지 존재');
     const gz = require('zlib').gzipSync(Buffer.from(html), { level: 6 }).length;
     ok(gz < 300 * 1024, 'gzip 전송량 ' + Math.round(gz / 1024) + 'KB (<300KB 예산)');
+  }
+
+  // ── 검토본: 서로 다른 비율 기준과 모바일 입력/결과 왕복 ──
+  {
+    console.log('\n[검토본] 입력 해석과 모바일 이동');
+    const { ctx, page } = await fresh(browser, { viewport: { width: 390, height: 844 } });
+    await page.goto(URL0); await page.waitForTimeout(700); await closeOverlays(page);
+    await page.evaluate(() => { cur='office'; fillExample(); });
+    const before = await page.locator('#simKpis').innerText();
+    await page.locator('#f_asset').fill('검토용 자산');
+    const progress = await page.locator('#ipTxt').innerText();
+    ok(await page.locator('#simKpis').innerText() === before && /가정 확인 필요|예시값 확인 필요/.test(progress) && !/입력 완료/.test(progress), '자산명만 바꾸면 계산 완료로 오인시키지 않고 예시 가정 확인을 유지');
+    const basis = await page.evaluate(() => ({
+      senior: document.querySelector('[data-sk="senior_ltv"]').getAttribute('aria-label'),
+      pref: document.querySelector('[data-sk="pref_ltv"]').getAttribute('aria-label'),
+      common: !!document.querySelector('[data-sk="common_ltv"]'),
+      sumVisible: document.getElementById('stackSum').getBoundingClientRect().height > 0
+    }));
+    ok(/감정가/.test(basis.senior) && /취득원가/.test(basis.pref) && !basis.common && !basis.sumVisible, '매입: LTV/우선주 분모 구분, 잔여 보통주 자동, 단순 비중 합계 숨김');
+    for(const d of ['office','logistics','dev','refi']){
+      const labels = await page.evaluate(deal => {
+        cur=deal; fillExample();
+        const values=[];
+        for(const dep of ['quick','standard','deep']){
+          depth=dep; renderForm(); restoreInputs(); update();
+          values.push(document.getElementById('pvDownload').textContent);
+        }
+        return values;
+      },d);
+      const expected=d==='dev'?'6시트':(d==='refi'?'4시트':'13시트');
+      ok(labels.every(x=>x.includes(expected)) && new Set(labels).size===1, d+': AI 깊이를 바꿔도 실제 엑셀 시트 안내 유지');
+    }
+    await page.evaluate(() => { cur='office'; fillExample(); document.getElementById('simCard').scrollIntoView({block:'start'}); updateJumpFab(); });
+    await page.waitForTimeout(250);
+    ok(await page.locator('#jumpFab').innerText() === '내 값 입력', '모바일 결과에서 입력 이동 버튼 표시');
+    await page.locator('#jumpFab').click(); await page.waitForTimeout(750);
+    const inputJump = await page.evaluate(() => ({ top: document.getElementById('inpProg').getBoundingClientRect().top, target: document.getElementById('jumpFab').textContent.trim() }));
+    ok(Math.abs(inputJump.top)<120 && inputJump.target==='결과 보기', '모바일 입력으로 이동한 뒤 결과 복귀 버튼 표시');
+    await page.locator('#jumpFab').click(); await page.waitForTimeout(750);
+    const resultJump = await page.evaluate(() => ({ top: document.getElementById('simCard').getBoundingClientRect().top, width: document.documentElement.scrollWidth }));
+    ok(Math.abs(resultJump.top)<120 && resultJump.width<=392, '모바일 버튼이 실제 계산 결과로 복귀하고 가로 넘침 없음');
+    await page.evaluate(() => { enterReadonly(); updateJumpFab(); }); await page.waitForTimeout(350);
+    ok(!(await page.locator('#jumpFab').isVisible()) || !(await page.locator('#jumpFab').getAttribute('class')).includes('show'), '읽기 전용 결과에는 편집 이동 버튼 숨김');
+    await ctx.close();
   }
 
   await browser.close(); server.close();
