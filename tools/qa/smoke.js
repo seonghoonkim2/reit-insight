@@ -295,21 +295,22 @@ async function closeOverlays(page) {
         closed: tf && !tf.open,
         summary: tf ? tf.querySelector('#tfNow').textContent : '',
         gap: Math.round(first.getBoundingClientRect().top - panel.getBoundingClientRect().top),
+        savedBar: Math.round(document.querySelector('.slots-primary').getBoundingClientRect().height),
         depthOutside: !!document.querySelector('#formBody #depthSeg'),
       };
     });
     ok(st.closed, '도구 블록 기본 닫힘');
     ok(/시트/.test(st.summary), `닫힌 채로 현재 깊이 표시 (${st.summary})`);
-    ok(st.gap < 320, `패널 상단→첫 입력칸 ${st.gap}px (<320)`);
+    ok(st.savedBar < 90 && st.gap - st.savedBar < 320, `패널 상단→첫 입력칸 ${st.gap}px (보관함 ${st.savedBar}px <90, 나머지 <320)`);
     ok(!st.depthOutside, '깊이 선택이 입력 폼 위에 없음');
     await page.evaluate(() => { document.getElementById('toolsFold').open = true; });
     await page.waitForTimeout(300);
     const inside = await page.evaluate(() => {
       const tf = document.getElementById('toolsFold');
-      return ['#depthSeg', '.imfold', '#slotSel', '#srcBtn', '#chkBtn', '#myDefBtn', '#shareBtn', '#clearBtn']
+      return ['#depthSeg', '.imfold', '#srcBtn', '#chkBtn', '#myDefBtn', '#shareBtn', '#clearBtn']
         .filter(s => !tf.querySelector(s));
     });
-    ok(inside.length === 0, '도구 블록 안에 깊이·IM·보관함·출처·점검·기본값·공유·비우기 모두 존재' + (inside.length ? ' — 누락 ' + inside.join(',') : ''));
+    ok(inside.length === 0, '도구 블록 안에 깊이·IM·출처·점검·기본값·공유·비우기 모두 존재' + (inside.length ? ' — 누락 ' + inside.join(',') : ''));
     await page.click('#toolsFold .depth-opt[data-depth="deep"]'); await page.waitForTimeout(900);
     ok(await page.evaluate(() => /심층/.test(document.getElementById('tfNow').textContent)), '도구 블록 안에서 깊이 전환 동작');
     await ctx.close();
@@ -398,33 +399,6 @@ async function closeOverlays(page) {
     await page.goto(URL0.slice(0, -1) + href.substring(href.indexOf('#'))); await page.waitForTimeout(700);
     const applied = await page.evaluate(() => ({ deal: cur, exitcap: state.exitcap, hasResult: !!(document.getElementById('simKpis') || {}).textContent }));
     ok(applied.deal === 'office' && parseFloat(applied.exitcap) > 0 && applied.hasResult, '분기 노트(' + note + ') 사전 입력 링크 → 가정 적용 + 결과');
-    await ctx.close();
-  }
-
-  // ── [9] 방법론 모달 — '내 숫자 대입'이 화면 KPI 문자열과 일치 (4딜, 모달 내 재계산 금지 검증) ──
-  console.log('\n[9] 방법론 모달 대입 파리티');
-  {
-    const { ctx, page } = await fresh(browser);
-    await page.goto(URL0); await page.waitForTimeout(700); await closeOverlays(page);
-    for (const deal of ['office', 'logistics', 'dev', 'refi']) {
-      await page.evaluate(d => { cur = d; fillExample(); update(); }, deal);
-      await page.waitForTimeout(400);
-      await page.evaluate(() => document.getElementById('mdOpen').click());
-      const r = await page.evaluate(() => {
-        const sec = document.getElementById('mdMineSec');
-        const rows = [...document.querySelectorAll('#mdMineBody .md-f[data-kpi]')].map(el => ({ k: el.getAttribute('data-kpi'), v: el.getAttribute('data-v') }));
-        const kmap = {};
-        document.querySelectorAll('#simCard .sim-kpi').forEach(t => { const l = t.querySelector('.sk-l'), v = t.querySelector('.sk-v'); if (l && v) kmap[l.textContent.replace(/\?$/, '').trim()] = v.textContent.trim(); });
-        document.querySelectorAll('#simCard .mx-item').forEach(t => { const l = t.querySelector('.mx-l'), v = t.querySelector('.mx-v'); if (l && v) kmap[l.textContent.replace(/\?$/, '').trim()] = v.textContent.trim(); });
-        const m = (typeof simModel === 'function') ? simModel() : null;
-        const emap = {}; if (m && m.kpis) m.kpis.forEach(k => emap[k.l] = k.v);
-        return { hidden: sec ? sec.hidden : null, rows, kmap, emap };
-      });
-      await page.evaluate(() => document.getElementById('mdClose').click());
-      if (deal === 'refi') { ok(r.hidden === true && r.rows.length === 0, 'refi: 대입 섹션 숨김(비교표 딜)'); continue; }
-      const mm = r.rows.filter(row => (r.kmap[row.k] != null ? r.kmap[row.k] : r.emap[row.k]) !== row.v);
-      ok(r.hidden === false && r.rows.length >= 3 && mm.length === 0, deal + ': 모달 대입 ' + r.rows.length + '개 == 화면 KPI 문자열' + (mm.length ? (' (불일치 ' + mm.map(x => x.k).join(',') + ')') : ''));
-    }
     await ctx.close();
   }
 

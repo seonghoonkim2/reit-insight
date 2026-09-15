@@ -29,7 +29,7 @@
 
 | AE | 필드 | 내용 |
 |---|---|---|
-| blob1 (index) | ev | 아래 이벤트 사전 65개 + 운영 점검 `ci_probe_live`만 허용. 그 외 값은 이벤트 전체 폐기 |
+| blob1 (index) | ev | 아래 이벤트 사전 64개 + 운영 점검 `ci_probe_live`만 허용. 그 외 값은 이벤트 전체 폐기 |
 | blob2 | deal | 8개 유한 목록(office·logistics·dev·refi·hotel·retail·rental·datacenter). 뒤 4개는 deal_want 투표값. ⚠ `reit`는 2026-07-06 제거된 옛 탭의 과거 데이터에만 남으며 이후 Worker가 받지 않음 |
 | blob3 | depth | 3개 유한 목록(quick·standard·deep) |
 | blob4 | dev | 기기(desktop·mobile) |
@@ -95,7 +95,6 @@
 | `term_help` | KPI 라벨 옆 용어 도움말(?) 클릭 → /guide 앵커 이동 | |
 | `sens_axis` | 민감도 축 전환(axis=growth·rate) | |
 | `solver` | 손익분기 솔버 실행 | |
-| `method` | 방법론(산식) 모달 열기 | |
 | `dev_view` | 시행↔대주 관점 토글(v) | |
 | `compare` | 딜 비교 열기 | |
 | `cmp_copy` | 비교표 복사 | |

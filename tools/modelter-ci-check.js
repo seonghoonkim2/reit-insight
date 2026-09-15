@@ -58,7 +58,7 @@ ok(gzKB < 300, '성능 예산: gzip 전송량 ' + gzKB + 'KB < 300KB (초과 시
   ok(html.includes('og:image" content="https://modelter.com/' + ogName + '"') &&
      html.includes('twitter:image" content="https://modelter.com/' + ogName + '"'),
     '홈 OG·Twitter 이미지가 새 첫 딜 카드 사용');
-  ok(html.includes('og:title" content="딜 받았으면, 모델터부터. | CRE 첫 계산"'),
+  ok(html.includes('og:title" content="딜 받았으면, 모델터부터. | 부동산 투자 검토"'),
     '홈 소셜 제목이 북극성 순간을 명시');
 }
 ok(fs.existsSync(path.join(DIR, 'robots.txt')), 'robots.txt 존재 (크롤 안내)');
@@ -255,7 +255,7 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const workerEventBlock = (workerSrc4.match(/const EVENT_NAMES = new Set\(\[([^\]]+)\]\);/) || [])[1] || '';
   const workerEvents = [...workerEventBlock.matchAll(/"([a-z_0-9]+)"/g)].map(m => m[1]).sort();
   const expectedWorkerEvents = [...codeEvents, 'ci_probe_live'].sort();
-  ok(JSON.stringify(workerEvents) === JSON.stringify(expectedWorkerEvents), '계측 사전: worker 이벤트 허용 목록 = 앱 65개 + 운영 점검 1개');
+  ok(JSON.stringify(workerEvents) === JSON.stringify(expectedWorkerEvents), '계측 사전: worker 이벤트 허용 목록 = 앱 64개 + 운영 점검 1개');
   // 네거티브 자기 검사 — 이 비교기가 가짜 이벤트를 실제로 잡는지(잡지 못하면 게이트 자체가 무의미)
   ok([...docEvents, 'zz_fake_event'].filter(e => !codeEvents.includes(e)).length > 0, '계측 사전: 비교기 네거티브 자기 검사(가짜 이벤트 감지)');
   // 산출물 정의 단일 진실 — labels.js OUTPUT_EVENTS 전부가 문서 표에 존재
@@ -545,7 +545,7 @@ ok((html.match(/trn-pref/g) || []).length >= 1, '우선주·보통주 트랜치 
 ok(/window\.mtTrack\s*=\s*track/.test(html), '익명 사용 이벤트 트래킹 스니펫 존재');
 ok((html.match(/IRRat:IRRat/g) || []).length >= 2, '세후 IRR 계산(calcModel·leaseModelV2) 존재');
 ok(html.includes('Levered IRR (세후)'), '비도관 세후 IRR KPI 존재');
-ok(html.includes('id="mdOverlay"'), '방법론(가정·계산식) 모달 존재');
+ok(!html.includes('id="mdOverlay"') && !html.includes('id="mdOpen"'), '사용자 요청: 방법론 버튼·모달 제거');
 ok((html.match(/k:"prepayfee"/g) || []).length >= 2 && (html.match(/k:"dispfee"/g) || []).length >= 2, '중도상환수수료·매각성과보수 입력(오피스·물류) 존재');
 ok(html.includes('06_Tax_Disposition!C19-06_Tax_Disposition!C20'), '엑셀 워터폴에서 매각 부대비 차감(엑셀 파리티)');
 ok((html.match(/perfR/g) || []).length >= 2, '화면 매각 부대비 계산(calcModel·leaseModelV2) 존재');
@@ -583,7 +583,7 @@ ok(html.includes("c+'7-'+A+'$C$78'"), 'holdTemplate 과세소득에 운용보수
 ok(html.includes('01_Assumptions!$C$75*POWER(1+01_Assumptions!$C$27,01_Assumptions!$C$79)'), '엑셀 기본템플릿 보증금 성장 정산(P0-3 완결)');
 ok(html.includes('prt-flag'), '파리티 배지(화면=엑셀) 존재');
 ok(html.includes('화면 = 다운로드 엑셀'), '파리티 배지 라벨');
-ok(html.includes('<h4>화면 = 다운로드 엑셀</h4>'), '방법론 모달 화면=엑셀 일치 섹션 존재');
+ok(html.includes('id="simFlag"') && html.includes('같은 계산식'), '결과 영역의 화면·엑셀 계산 기준 안내 유지');
 ok(html.includes('function validateLeases'), '렌트롤 행 단위 검증(validateLeases) 존재');
 ok(html.includes('id="rrWarns"'), '렌트롤 검증 경고 영역 존재');
 ok(html.includes('rr-maptbl'), '렌트롤 매핑 확인 표 존재');
@@ -709,7 +709,7 @@ ok(html.includes('function devSolveSold'), '손익분기·PF상환한계 분양�
 ok(html.includes('function devStructHtml'), '분양수지 시각화(타임라인·사업비·차트) 존재');
 ok(html.includes('k:"preperiod"') && html.includes('k:"brate"'), '브릿지(선행기간·금리) 입력 존재');
 ok(html.includes('k:"conscurve"') && html.includes('k:"landdp"') && html.includes('k:"landpay"'), 'v3: 기성 곡선·토지 분할 입력 존재');
-ok(html.includes('토지비는 0개월차 계약금과 지정한 시점의 잔금으로 나눕니다') && html.includes('선택한 기성 곡선(균등 또는 S-커브)') && !html.includes('토지비+취득 제세(착수 일괄)'), '개발 현금흐름 설명: 토지 분할·선택 기성 곡선과 엔진 일치');
+ok(html.includes('토지비는 계약금·잔금 일정, 공사비는 선택한 기성 곡선으로 계산합니다.') && !html.includes('토지비+취득 제세(착수 일괄)'), '개발 결과 안내: 토지 분할·선택 기성 곡선 설명 유지');
 ok(html.includes('window.__setDevView'), '시행↔대주 관점 토글 존재');
 ok(html.includes('function devLenderHtml'), '대주 뷰(스트레스 표) 존재');
 ok(html.includes('var mtLZ=') && html.includes('function decompress'), '공유 링크 압축(mtLZ) 존재');
@@ -734,9 +734,9 @@ ok(!/let html=depthHtml\(\)/.test(html) && /dyn\.innerHTML=h/.test(html),
 ok(html.includes('function renderInpProg') && html.includes('id="inpProg"'), '핵심 입력 진행률 표시 존재');
 ok(html.includes('id="sampleStart"') && html.includes('function startOwnDeal') && html.includes("mtTrack('sample_start')") && html.includes("office:'price',logistics:'price',dev:'landcost',refi:'noi'"), '첫 입력 전환: 예시 상태 공개·딜별 첫 핵심 숫자 포커스·의도 계측');
 ok(html.includes('function quickFieldKeys') && html.includes('data-core-noi=') && html.includes('NOI로 입력'), '매입 첫 입력: IM 수입 형식에 맞춘 평당 임대료↔NOI 직접 전환');
-ok(html.includes('href="/guide"'), '홈→가이드 내부 링크(SEO·무확장 정식 URL) 존재');
+ok(html.includes('href="/howto"') && !/자주 찾는 용어:/.test(html), '하단 사용 안내 링크 유지·용어 링크 나열 제거');
 ok(html.includes('href="/howto"'), '홈→실무 활용 가이드 링크 존재');
-ok(html.includes('href="/im-checklist"') && html.includes('modelter.com/im-checklist'), '홈·앱 IM 체크리스트 → 검색 착지 연결');
+ok(html.includes('modelter.com/im-checklist') && html.includes('MTIM.checklist()'), '앱 IM 체크리스트 기능·검색 착지 연결 유지');
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'DSCR 우위'"), '미니 KPI 전 탭(분양·리파이) 확장');
@@ -744,9 +744,9 @@ ok(html.includes('mt_nudge') && html.includes('nudge_save') &&
   /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 공유하세요/.test(html) &&
   /exRemaining\(\)\.length>0[\s\S]{0,350}남은 예시값/.test(html),
   '저장·팀 전달 넛지: 세션 1회·기존 공유 중복 억제·예시 상태별 문구');
-ok(html.includes('엑셀에서 검증 결과 확인'), "What's new v3 내용 현행화");
-ok(html.includes('내 값이 계산에 들어가는 방식') && html.includes('출처와 기준일을 엑셀에 기록'), "What's new v3 내용 4차 현행화(산식 대입·출처 엑셀)");
-ok(html.includes('입력값을 더 꼼꼼히 확인합니다'), "What's new v3 내용 4차 현행화(점검·경고)");
+ok(html.includes('딜 보관함 위치 변경'), "What's new v3: 저장 위치 변경 안내");
+ok(html.includes('PPT 다운로드 메뉴 정리'), "What's new v3: 산출물 메뉴 변경 안내");
+ok(html.includes('안내 문구와 하단 링크 정리'), "What's new v3: 하단·문구 변경 안내");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('const FIELD_REF_DEAL=') && html.includes('function fieldRef'), '시장 참고치 v2(딜 유형별) 존재');
 ok(html.includes('수도권 물류 5~7%') && html.includes('도심·강남 9~13만원'), '참고치 자산 유형별 분화(오피스≠물류)');
@@ -760,13 +760,13 @@ ok(html.includes('[#&][evdth]='), '딥링크 시 온보딩 스킵 가드(#h= 포
 ok(html.includes('ps-verdict'), 'IC 원페이저 자동 판정 라인 존재');
 ok(html.includes('function termHelp') && html.includes('class="k-help"'), '결과 용어 → 가이드 앵커 링크 존재');
 ok(html.includes('function mtNextTip') && html.includes('mt_tip_next'), '산출물 다음 단계 팁(1회) 존재');
-ok(html.includes('function oneLineReport') && html.includes('한 줄 보고 복사'), '한 줄 보고(카톡용 요약+링크) 존재');
+ok(html.includes('function oneLineReport') && html.includes('검토 요약 복사'), '한 줄 보고(카톡용 요약+링크) 존재');
 ok(html.includes('전부 예시값 · 실제 시세 아님') && html.includes('현재 입력은 모두 예시값이며 실제 시세가 아닙니다'), '팀 전달: 전부 샘플도 확인·한 줄 보고에 실제 시세 아님 고지');
-ok(html.includes('딜 받았으면, <em>모델터부터.</em>') && html.includes('내 값으로 계산하기'), '북극성: 딜 검토 첫 계산 메시지 존재');
-ok(html.includes('id="handoffBtn"') && html.includes('1차 검토에 쓸 숫자가 나왔습니다.'), '북극성: 결과 직후 팀 1차 검토 전달 동선 존재');
+ok(html.includes('<h1>상업용 부동산 <em>수익성 검토</em></h1>') && html.includes('계산 시작'), '북극성: 딜 검토 첫 계산 메시지 존재');
+ok(html.includes('id="handoffBtn"') && html.includes('결과 공유'), '북극성: 결과 직후 팀 1차 검토 전달 동선 존재');
 ok(html.includes("if(!_hoDone) track('handoff_open');") && html.includes("sessionStorage.getItem('mt_handoff_open')"), '북극성: 공유 메뉴 열기 세션 dedupe 계측');
 ok(!html.includes("if(t.closest('#shareBtn')){ track('share_link')"), '북극성: share_link는 메뉴 열기가 아닌 실제 산출물만 집계');
-ok(html.includes('어떤 순간에 열었나요?') && html.includes('쓰지 않았다면 이유'), '북극성 질적 검증: 비유도형 사용 순간 질문');
+ok(html.includes('사용 중 불편한 점을 알려주세요') && html.includes('어떤 기능을 사용했는지'), '의견·문의: 사용 기능과 불편사항 접수');
 ok(html.includes('실제 딜명·자산명·수치·임차인명·회사명은 적지 마세요.'), '북극성 질적 검증: 피드백 민감정보 입력 금지');
 ok(html.includes('function feedbackLooksSensitive') && html.includes('지우지 않고 전송할까요?') && html.includes('Web3Forms(api.web3forms.com)'), '북극성 질적 검증: 선택 전송 목적지 공개·민감정보 사전 경고');
 {
