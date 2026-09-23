@@ -54,6 +54,8 @@ jobs:
         run: node tools/modelter-ci-check.js
       - name: 엔진 불변식 (경제적 단조성 17건)
         run: node tools/qa/invariants.js
+      - name: 다운로드 엑셀 표시 (4개 딜·보유기간·렌트롤)
+        run: node tools/qa/excel-format.js
       - name: 테스트 훅 유출 확인
         run: test "$(grep -c '__mtCalc' dart-search/web/modelter/index.html)" -eq 0
 
