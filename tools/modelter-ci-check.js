@@ -321,7 +321,7 @@ ok(html.includes('function shareLink(readonly, src)') && html.includes('var SRC_
 ok(html.includes('function recoverUrl(src)') && html.includes("function recoverOn()"), '회수: 옵트인(recoverOn)·회수 URL 생성기');
 ok(html.includes('id="recoverChk"') && html.includes('id="recoverOpt"'), '회수: 산출물 링크 옵트인 체크박스(기본 켜짐)');
 ok(html.includes('if(c.link){ links.push') && html.includes('officeDocument/2006/relationships/hyperlink') && html.includes('TargetMode="External"'), '회수: XLSXGEN 하이퍼링크(시트 rels·External) 지원');
-ok(html.includes("recoverUrl('xlsx')") && html.includes('modelter.com에서 이 모델 열기'), '회수: 엑셀 표지 「이 모델 열기」 하이퍼링크 셀(&src=xlsx)');
+ok(html.includes("recoverUrl('xlsx')") && html.includes('modelter.com에서 다운로드 시점 가정 열기'), '회수: 엑셀 표지 다운로드 시점 가정 하이퍼링크 셀(&src=xlsx)');
 ok(html.includes("recoverUrl('png')") && html.includes('스캔 → 이 모델 열기'), '회수: PNG 요약 카드 QR(&src=png)');
 ok(html.includes("shareLink(false,'qr')"), '회수: QR 이어가기 링크 &src=qr');
 ok(html.includes('id="roCta"') && html.includes('id="roCtaBtn"') && html.includes('이 가정으로 새 모델 만들기'), '회수: 읽기전용 착지 하단 CTA 바');
@@ -556,7 +556,7 @@ ok(/leasearea:\[/.test(html) && /netarea:\[/.test(html), '렌트롤 전용/임�
 ok(html.includes("rentable=gfa*n('leaseRatio'"), '렌트롤 공실 = 임대가능면적(GFA×비율) 기준');
 ok((html.match(/임대면적\(평\)/g) || []).length >= 2, '렌트롤 임대면적 컬럼(샘플·엑셀)');
 ok((html.match(/depSrc/g) || []).length >= 2, '보증금 승계 계산(calcModel·leaseModelV2) 존재');
-ok(html.includes('보증금 승계 (1=반영)'), '엑셀 보증금 승계 셀(C74)');
+ok(html.includes('"r":"C74","role":"vi"') && html.includes('보증금 승계·매각 시 반환 반영 · 0: 미반영'), '엑셀 보증금 승계 입력 셀(C74)과 0·1 안내');
 ok((html.match(/k:"depassume"/g) || []).length >= 2, '보증금 승계 입력(오피스·물류) 존재');
 ok((html.match(/feeY/g) || []).length >= 2, '운용보수·고정비 계산(calcModel·leaseModelV2) 존재');
 ok(html.includes('운용보수율(취득가)'), '엑셀 운용보수 셀(C76/C78)');
@@ -616,8 +616,8 @@ ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfi
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
 ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
 // PASS/FAIL 수식은 _row() 헬퍼가 행 번호로 조립한다(무차입 등 정의되지 않는 지표는 '해당 없음'으로 우회).
-ok(html.includes('자가 검증: 생성 시점 웹 계산값과 이 파일의 수식 재계산값 비교') && /IF\(ABS\(C'\+r\+'-D'\+r\+'\)<'\+cmp\+',"PASS","FAIL"\)/.test(html)
-  && html.includes("_row(19,'세전 IRR"), '엑셀 자가 검증 스탬프(11시트 PASS/FAIL) 존재');
+ok(html.includes('다운로드 시점 결과와 비교') && /IF\(ABS\(C'\+r\+'-D'\+r\+'\)<'\+cmp\+',"PASS","FAIL"\)/.test(html)
+  && html.includes("_row(19,'세전 IRR"), '엑셀 다운로드 시점 비교(11시트 PASS/FAIL) 존재');
 ok(html.includes('isFinite(c.n)') && /\+_nv\+'<\/v><\/c>'/.test(html), '엑셀 숫자 셀 비유한값 가드(파일 손상 방지)');
 ok((html.match(/IFERROR\(04_Operating_ProForma!'\+c\+'18/g) || []).length >= 3, '엑셀 커버리지 지표 0 분모 가드(DSCR·ICR·DY)');
 // IRR은 현금흐름이 부호를 바꾸지 않으면 #NUM! 을 낸다 — 표지까지 새지 않도록 전부 IFERROR로 감싼다.

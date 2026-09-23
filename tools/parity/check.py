@@ -6,6 +6,7 @@
 #         + 자본구조 변형: office_nopref|office_nonpass|office_hold7
 # 준비물: pip install formulas
 import json
+import math
 import os
 import sys
 
@@ -152,6 +153,23 @@ extra = [
     ('숫자 셀에 비유한값 없음', not _nf, '위반=%s' % (_nf or '없음',)),
     ('엑셀 오류 토큰 0', not _ec, '검출=%s' % (_ec[:6] or '없음',)),
 ]
+
+# 보통주 누적 CF는 최초 출자부터 해당 연도까지의 실제 CF 합계여야 한다.
+# 직전 누적 셀/생성기 수식을 재현하지 않고 row 6 원자료를 독립적으로 합산한다.
+# Y1 누락이 이후 연도에 계속 전파되던 회귀와 보유기간 변형을 함께 검사한다.
+# 공실 100%도 현금흐름의 누적합은 정의되므로 퇴화 변형을 제외하지 않는다.
+if base in ('office', 'logistics'):
+    hold = int(cell('01_Assumptions', 'C79'))
+    common_cf = []
+    for year in range(hold + 1):
+        col = chr(ord('C') + year)
+        common_cf.append(cell('08_Equity_Cashflow', col + '6'))
+        want = math.fsum(common_cf)
+        got = cell('08_Equity_Cashflow', col + '9')
+        tol = max(1e-6, abs(want) * 1e-10)
+        okc = math.isfinite(got) and math.isfinite(want) and abs(got - want) <= tol
+        extra.append(('보통주 누적 CF Y%d' % year, okc,
+                      '%s9=%.6f CF합계=%.6f (D%.2e)' % (col, got, want, abs(got - want))))
 
 # 파일이 스스로를 FAIL 이라 말하면 안 된다 — 검증 시트의 종합 판정은 항상 PASS 여야 한다.
 # (2026-08-10: 조달 합계에서 승계 보증금이 빠져 모든 오피스·물류 다운로드가 'Uses=Sources FAIL'
