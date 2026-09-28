@@ -257,7 +257,7 @@ function styleChecks(wb, config, expected) {
   check(Number((assumptions.rows.get(7) || {}).ht) >= 23, config.name + ': 본문 행 높이');
   check(width(assumptions, 'F') >= 47 && width(validation, 'F') >= 47, config.name + ': 가정·검증 비고 너비');
   check(fontSize(cellStyle(wb, assumptions, 'F11')) === 9, config.name + ': 가정 비고 9pt');
-  for (const row of [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
+  for (const row of [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 27, 28, 29, 30]) {
     const verdict = validation.cells.get('E' + row), note = validation.cells.get('F' + row);
     if (verdict && verdict.formula) {
       const style = cellStyle(wb, validation, verdict.r);
@@ -272,11 +272,9 @@ function styleChecks(wb, config, expected) {
   const notes = [
     ['00_Cover', 'B40'], ['00_Cover', 'B41'], ['00_Cover', 'B42'],
     ['01_Assumptions', 'B87'], ['10_Sensitivity', 'B19'],
-    ['11_Validation_Checks', 'B17'], ['11_Validation_Checks', 'B23'],
+    ['11_Validation_Checks', 'B17'], ['11_Validation_Checks', 'B23'], ['11_Validation_Checks', 'B25'],
   ];
   for (const [name, ref] of notes) {
-    // 5년 외 기간은 별도 민감도 표를 생성하며 이 안내 행을 갖지 않는다.
-    if (name === '10_Sensitivity' && config.hold !== 5) continue;
     const sheet = showSheet(wb, name), merge = sheet.merges.find(m => m.startsWith(ref + ':'));
     check(Boolean(merge), config.name + '/' + name + '/' + ref + ': 긴 안내 병합');
     const style = cellStyle(wb, sheet, ref);

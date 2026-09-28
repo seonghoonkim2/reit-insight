@@ -37,3 +37,25 @@ node tools/qa/smoke.js               # 2) 실제 브라우저 스모크 (이 폴
 # 계산·엑셀 로직을 바꿨다면:
 node tools/parity/gen-xlsx.js dev && python3 tools/parity/check.py dev   # 3) 파리티
 ```
+
+## 작업용 엑셀 계산 회귀 검사
+
+화면과 엑셀이 같은 오류를 공유하는 경우는 파리티만으로 잡히지 않습니다.
+아래 검사는 실제 생성한 오피스 엑셀의 가정을 메모리에서 바꿔 재계산하고,
+상환 완료·현금 보존·우선주 미사용 시 보통주와 총자기자본 일치 여부를 확인합니다.
+민감도 표는 해당 임대료와 Exit Cap을 본 모델에 직접 입력한 결과와 대조합니다.
+검증 시트에는 잘못된 잔액·배분을 메모리에서 주입해 개별 검사와 종합 판정이
+실제로 FAIL로 바뀌는지도 확인합니다. 원본 파일은 저장하거나 수정하지 않습니다.
+
+```bash
+node tools/qa/financial-engine.js
+node tools/parity/gen-xlsx.js office
+python3 tools/parity/financial-calculations.py
+# 다른 검토 파일/JSON 증거 저장이 필요한 경우:
+python3 tools/parity/financial-calculations.py --xlsx /path/to/office.xlsx --report /tmp/financial-checks.json
+```
+
+준비물은 기존 파리티와 같은 `formulas`, `openpyxl`입니다. CI의 파리티 작업에서
+11조합 검사 뒤에 실행하며, 계산식 오류뿐 아니라 경제적 항등식 위반도 실패합니다.
+`financial-engine.js`는 별도 의존성 없이 가정 기반·렌트롤 기반 엔진을 모두 확인합니다.
+매입가 1,000·대출 300·NOI 70인 단순 예시의 현금흐름을 독립적인 금액과 대조합니다.

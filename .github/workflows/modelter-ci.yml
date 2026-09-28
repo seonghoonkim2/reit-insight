@@ -54,6 +54,8 @@ jobs:
         run: node tools/modelter-ci-check.js
       - name: 엔진 불변식 (경제적 단조성 17건)
         run: node tools/qa/invariants.js
+      - name: 엔진 현금흐름 (독립 금액 예시·대출 상환·적자 분배)
+        run: node tools/qa/financial-engine.js
       - name: 다운로드 엑셀 표시 (4개 딜·보유기간·렌트롤)
         run: node tools/qa/excel-format.js
       - name: 테스트 훅 유출 확인
@@ -84,6 +86,8 @@ jobs:
             node tools/parity/gen-xlsx.js "$d"
             python3 tools/parity/check.py "$d"
           done
+      - name: 가정 수정 후 경제적 타당성 (상환·분배·민감도·세후 표시)
+        run: python3 tools/parity/financial-calculations.py
 
   smoke:
     name: 브라우저 스모크 49건

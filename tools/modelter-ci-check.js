@@ -660,7 +660,7 @@ ok(html.includes('function imgToB64') && html.includes("id=\"imxImg\""), '사진
 }
 ok(html.includes('Kazuhiko Arase') && html.includes('function qrPop'), 'QR 이어가기(MIT 인코더 내장) 존재');
 ok(html.includes('결과부터 보이게') || html.includes('입력 폼이 아니라 결과부터'), '읽기 전용 모바일 결과 우선 착지 존재');
-ok((html.match(/prefEM:\(prefAmt>0/g)||[]).length>=2, '우선주 EM 노출(2엔진)');
+ok((html.match(/prefEM:_multiple\(prefAmt,prefCF\)/g)||[]).length>=2, '우선주 EM 노출(2엔진·총투입 기준)');
 ok(html.includes('function mtBisect'), '역산 솔버(mtBisect) 존재');
 ok(html.includes('function solveBidPrice'), '목표 IRR 매입가 역산 존재');
 ok(!html.includes('mtQuality') && !html.includes('renderCases'), '가정 신뢰도·케이스 카드 제거 확인');
