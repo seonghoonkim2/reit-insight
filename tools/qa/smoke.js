@@ -430,18 +430,85 @@ async function closeOverlays(page) {
     }));
     ok(/감정가/.test(basis.senior) && /취득원가/.test(basis.pref) && !basis.common && !basis.sumVisible, '매입: LTV/우선주 분모 구분, 잔여 보통주 자동, 단순 비중 합계 숨김');
     for(const d of ['office','logistics','dev','refi']){
-      const labels = await page.evaluate(deal => {
+      const downloadUi = await page.evaluate(deal => {
         cur=deal; fillExample();
-        const values=[];
+        const values=[], runtime=[];
         for(const dep of ['quick','standard','deep']){
           depth=dep; renderForm(); restoreInputs(); update();
           values.push(document.getElementById('pvDownload').textContent);
+          const button=document.getElementById('xlDownload');
+          runtime.push({button:button.textContent,title:button.title,tip:(document.querySelector('#simFlag .prt-tip')||{}).textContent||''});
         }
-        return values;
+        return {values,runtime};
       },d);
-      const expected=d==='dev'?'6시트':(d==='refi'?'4시트':'13시트');
-      ok(labels.every(x=>x.includes(expected)) && new Set(labels).size===1, d+': AI 깊이를 바꿔도 실제 엑셀 시트 안내 유지');
+      const labels=downloadUi.values;
+      const correctCount = d==='dev' ? x=>x.includes('6시트') : d==='refi' ? x=>x.includes('4시트') : x=>/작업 시트 6개/.test(x) && /렌트롤 적용 시 7개/.test(x) && !/13시트/.test(x);
+      ok(labels.every(correctCount) && new Set(labels).size===1, d+': AI 깊이를 바꿔도 실제 엑셀 시트 안내 유지');
+      if(d==='office'||d==='logistics'){
+        ok(downloadUi.runtime.every(x=>/6\s*시트|시트\s*6개/.test(x.button)&&!/13\s*시트/.test(x.button+' '+x.title+' '+x.tip)),d+': 실제 다운로드 버튼·제목·파리티 설명에 옛 13시트 안내 없음');
+      }
     }
+    // The descriptive panel alone did not catch updateXlsxBtn overwriting the
+    // actual button with 13 sheets. Click that button and inspect the exported
+    // workbook plus the completion toast in both plain and lease modes.
+    await page.evaluate(()=>sessionStorage.removeItem('mt_ex_ack'));
+    for(const withLeases of [false,true]){
+      await page.evaluate(on=>{
+        cur='office';window.rrState=null;window.rrModel=null;fillExample();
+        if(on){
+          const leases=[{name:'스모크 가상 임차인',area:3000,netArea:2500,rentPP:80000,camPP:24000,deposit:2000000000,yrsToExp:2.01,rentFreeRemain:1,stepUp:null}];
+          window.rrState={leases};window.rrModel={on:true,leases,mkt:{marketPP:90000,marketCamPP:26000,mtm:0,newRentFree:2,absorbMonths:18,stabVac:0.05,renewP:0.65,downtime:3,mktStepUp:0,camG:0.02,repay:'만기일시(이자만)',grace:0}};
+        }
+        update();
+      },withLeases);
+      const count=withLeases?7:6;
+      const beforeDownload=await page.locator('#xlDownload').innerText();
+      // The first-download tip can replace the toast after 2.2 seconds. Record
+      // the actual DOM updates so slow CI file reads cannot miss completion.
+      await page.evaluate(()=>{
+        window.__smokeDownloadToasts=[];
+        window.__smokeDownloadToastObserver=new MutationObserver(()=>window.__smokeDownloadToasts.push(document.getElementById('toast').textContent));
+        window.__smokeDownloadToastObserver.observe(document.getElementById('toast'),{childList:true,subtree:true,characterData:true});
+      });
+      // Playwright dismisses unhandled confirm dialogs. The example-value
+      // warning is part of the real download flow, so accept that known prompt
+      // instead of bypassing exConfirmOutput or pre-setting its session flag.
+      const dialogs=[];
+      const confirmExample=async dialog=>{
+        const expected=dialog.type()==='confirm'&&/예시값/.test(dialog.message())&&/엑셀 모델/.test(dialog.message());
+        dialogs.push({expected,message:dialog.message()});
+        if(expected) await dialog.accept(); else await dialog.dismiss();
+      };
+      page.on('dialog',confirmExample);
+      let download;
+      try{
+        [download]=await Promise.all([page.waitForEvent('download'),page.locator('#xlDownload').click()]);
+      }finally{
+        page.off('dialog',confirmExample);
+      }
+      ok(withLeases?dialogs.length===0:dialogs.length===1&&dialogs[0].expected,withLeases?'같은 세션의 두 번째 다운로드는 예시값 확인을 다시 요구하지 않음':'실제 기본 다운로드는 예시값 확인 후 진행');
+      const completions=await page.evaluate(()=>{
+        const messages=window.__smokeDownloadToasts;
+        window.__smokeDownloadToastObserver.disconnect();
+        delete window.__smokeDownloadToastObserver;delete window.__smokeDownloadToasts;
+        return messages;
+      });
+      const file=await download.path();
+      const parsed=require('./excel-format').workbook(fs.readFileSync(file));
+      const visible=parsed.sheets.filter(s=>s.state!=='hidden').length;
+      const completion=completions.find(message=>/^엑셀 모델 받기 완료/.test(message))||completions.join(' | ');
+      ok(visible===count&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(beforeDownload),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 버튼의 '+count+'시트 안내 = 파일 표시 시트 수');
+      ok(/완료/.test(completion)&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(completion)&&!/13\s*시트/.test(completion),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 완료 토스트도 파일 시트 수와 일치 ('+completion+')');
+      if(withLeases){
+        const zeroAxes=await page.evaluate(()=>{
+          const oldRate=stackState.senior_rate;stackState.senior_rate='0';
+          const axis=window.__mtSensBase();stackState.senior_rate=oldRate;return axis;
+        });
+        ok(zeroAxes&&zeroAxes.g===0&&zeroAxes.rate===0,'렌트롤 민감도 축은 시장성장률 0%와 금리 0%를 기본값으로 대체하지 않음');
+      }
+      await download.delete();
+    }
+    await page.evaluate(()=>{window.rrState=null;window.rrModel=null;});
     await page.evaluate(() => { cur='office'; fillExample(); document.getElementById('simCard').scrollIntoView({block:'start'}); updateJumpFab(); });
     await page.waitForTimeout(250);
     ok(await page.locator('#jumpFab').innerText() === '내 값 입력', '모바일 결과에서 입력 이동 버튼 표시');

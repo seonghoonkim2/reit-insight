@@ -49,7 +49,7 @@ const cases = [
   { name: 'office_hold10', deal: 'office', hold: 10 },
   { name: 'office_rentroll', deal: 'office', hold: 5, rentroll: 'source' },
   { name: 'office_lease_hold10', deal: 'office', hold: 10, rentroll: 'model' },
-  { name: 'office_tenant222', deal: 'office', hold: 5, rentroll: 'model', leases: [{ ...LEASES[0], name: TENANT_222 }, LEASES[1]], clipped: true },
+  { name: 'office_tenant222', deal: 'office', hold: 5, rentroll: 'model', leases: [{ ...LEASES[0], name: TENANT_222 }, LEASES[1]], clipped: true, compactClipped: false },
   { name: 'office_asset285', deal: 'office', hold: 5, asset: ASSET_285, clipped: true },
   { name: 'office_very_long_text', deal: 'office', hold: 5, asset: VERY_LONG_ASSET, rentroll: 'model', leases: [{ ...LEASES[0], name: VERY_LONG_TENANT }, LEASES[1]], clipped: true },
   { name: 'office_long_restore_link', deal: 'office', hold: 5, asset: LONG_LINK_ASSET, clipped: true, longLink: true },
@@ -109,22 +109,26 @@ function generate(config) {
   const leases = config.leases || LEASES;
   const patch = config.rentroll ? `
     window.rrState = { leases: ${JSON.stringify(leases)} };
-    ${config.rentroll === 'model' ? `window.rrModel = {on: true, leases: ${JSON.stringify(leases)}, mkt: ${JSON.stringify(MARKET)}};` : ''}
+    ${config.rentroll === 'model' ? `window.rrModel = {on: true, leases: ${JSON.stringify(leases)}, mkt: ${JSON.stringify(config.market || MARKET)}};` : ''}
   ` : '';
   const driver = `
     cur = ${JSON.stringify(config.deal)}; window.rrState = null; window.rrModel = null; fillExample();
     ${config.hold ? `state.hold = '${config.hold}';` : ''}
     ${config.asset !== undefined ? `state.asset = ${JSON.stringify(config.asset)};` : ''}
+    ${config.state ? `Object.assign(state, ${JSON.stringify(config.state)});` : ''}
+    ${config.stack ? `Object.assign(stackState, ${JSON.stringify(config.stack)});` : ''}
     ${patch}
     window.engineRaw = (simModel() || {}).raw;
+    window.sensitivityBase = typeof window.__mtSensBase === 'function' ? window.__mtSensBase() : null;
     window.expectedSnapshot = encodeState();
     window.fullRestoreUrl = shareLink(true, 'xlsx');
-    window.__downloadXlsx();
+    ${config.download === false ? '' : 'window.__downloadXlsx();'}
   `;
   vm.runInContext(main + '\n' + xlsx + '\n' + driver, sandbox, { timeout: 15000 });
-  if (!sandbox.lastBlob || !sandbox.lastBlob.parts[0]) throw new Error('다운로드 파일이 생성되지 않았습니다');
+  if (config.download !== false && (!sandbox.lastBlob || !sandbox.lastBlob.parts[0])) throw new Error('다운로드 파일이 생성되지 않았습니다');
   return {
-    bytes: Buffer.from(sandbox.lastBlob.parts[0]), expected: sandbox.engineRaw,
+    bytes: config.download === false ? null : Buffer.from(sandbox.lastBlob.parts[0]), expected: sandbox.engineRaw,
+    sensitivityBase: sandbox.sensitivityBase,
     snapshot: sandbox.expectedSnapshot, fullRestoreUrl: sandbox.fullRestoreUrl,
     decodeSnapshot: code => JSON.parse(vm.runInContext('mtLZ.decompress(' + JSON.stringify(code) + ')', sandbox)),
   };
@@ -202,6 +206,7 @@ function fontSize(style) { return style ? Number((tags(style.font.content, 'sz')
 function width(sheet, col) { const i = column(col), c = sheet.cols.find(c => Number(c.min) <= i && Number(c.max) >= i); return c ? Number(c.width) : 0; }
 function showSheet(wb, name) { const sheet = wb.sheets.find(s => s.name === name); if (!sheet) throw new Error('시트 없음: ' + name); return sheet; }
 function styleChecks(wb, config, expected, generated) {
+  const compact = wb.sheets.some(s => s.name === 'A&R');
   const restore = showSheet(wb, '_Restore');
   check(restore.state === 'hidden', config.name + ': 복원 시트 숨김');
   const restoreMatch = /^MTSNAP1:(.+):PANSTM$/.exec((restore.cells.get('B3') || {}).value);
@@ -217,8 +222,13 @@ function styleChecks(wb, config, expected, generated) {
   }
   const visible = wb.sheets.filter(s => s.state !== 'hidden');
   const sheetNames = new Set(wb.sheets.map(s => s.name));
-  const count = config.deal === 'dev' ? 6 : config.deal === 'refi' ? 4 : 12 + (config.rentroll === 'source' ? 1 : config.rentroll === 'model' ? 4 : 0);
+  const count = config.deal === 'dev' ? 6 : config.deal === 'refi' ? 4 : (compact ? 6 + (config.rentroll ? 1 : 0) : 12 + (config.rentroll === 'source' ? 1 : config.rentroll === 'model' ? 4 : 0));
   check(visible.length === count, config.name + ': 표시 시트 수 (' + visible.length + '/' + count + ')');
+  if (compact) {
+    check(visible[0].name === 'A&R', config.name + ': 가정·결과 시트가 첫 탭');
+    for (const name of ['A&R', '운영수지', '대출', '세무·매각', '지분 현금흐름', '검증']) check(sheetNames.has(name), config.name + ': 통합 시트 ' + name + ' 존재');
+    check(![...sheetNames].some(name => /^(00_Cover|01_Assumptions|02_Sources_Uses|03_Capital_Stack|07_Equity_Waterfall|09_Return_Summary|10_Sensitivity)$/.test(name)), config.name + ': 통합 전 중복 탭 없음');
+  }
   for (const sheet of wb.sheets) {
     const label = config.name + '/' + sheet.name;
     check([...sheet.rows.values()].every(row => !row.ht || (Number.isFinite(Number(row.ht)) && Number(row.ht) > 0 && Number(row.ht) <= 409)), label + ': 모든 행 높이는 409pt 이하');
@@ -268,7 +278,7 @@ function styleChecks(wb, config, expected, generated) {
   const downloadSupportsLink = config.deal !== 'dev' && config.deal !== 'refi';
   if (downloadSupportsLink) {
     if (config.recover !== false && fullLinkFits) {
-      check(externalLinks.length === 2, config.name + ': 정상 복원 링크는 표지·가정표에 표시');
+      check(externalLinks.length === (compact ? 1 : 2), config.name + ': 정상 복원 링크는 ' + (compact ? 'A&R에 한 번' : '표지·가정표에') + ' 표시');
       check(externalLinks.every(link => link.Target === generated.fullRestoreUrl && /#v=.+&src=xlsx$/.test(link.Target)), config.name + ': 정상 링크는 가정을 포함한 URL 유지');
       check(externalLinks.every(link => {
         const code = /#v=([^&]+)/.exec(link.Target);
@@ -282,29 +292,31 @@ function styleChecks(wb, config, expected, generated) {
     if (config.longLink) check(generated.fullRestoreUrl.length > 1900, config.name + ': 실제 복원 URL 1900자 초과 조건 재현');
     const missingLinkNote = '가정이 많아 복원 링크를 넣지 않았습니다.';
     if (config.recover !== false && !fullLinkFits) {
-      for (const name of ['00_Cover', '01_Assumptions']) check([...showSheet(wb, name).cells.values()].some(c => c.value.includes(missingLinkNote)), config.name + '/' + name + ': 긴 링크의 복원 불가 안내');
+      for (const name of compact ? ['A&R'] : ['00_Cover', '01_Assumptions']) check([...showSheet(wb, name).cells.values()].some(c => c.value.includes(missingLinkNote)), config.name + '/' + name + ': 긴 링크의 복원 불가 안내');
     } else check(!visibleText.includes(missingLinkNote), config.name + ': 정상 링크·옵트아웃에 불필요한 복원 불가 안내 없음');
   }
-  const clippingNote = '원문은 보존되며 셀을 선택해 수식 입력줄에서 전체 내용을 확인할 수 있습니다.';
-  check(visibleText.includes(clippingNote) === Boolean(config.clipped), config.name + ': 긴 텍스트가 한도를 넘은 경우에만 전체 내용 확인 방법 안내');
-  if (config.clipped) check(visible.some(sheet => [...sheet.rows.values()].some(row => Number(row.ht) === 409)), config.name + ': 긴 텍스트 행을 409pt로 제한');
+  const clippingNote = compact ? '원문은 보존됩니다. 셀을 선택해 수식 입력줄에서 전체 내용을 확인하세요.' : '원문은 보존되며 셀을 선택해 수식 입력줄에서 전체 내용을 확인할 수 있습니다.';
+  const clipped = compact && config.compactClipped !== undefined ? config.compactClipped : Boolean(config.clipped);
+  check(visibleText.includes(clippingNote) === clipped, config.name + ': 긴 텍스트가 한도를 넘은 경우에만 전체 내용 확인 방법 안내');
+  if (clipped) check(visible.some(sheet => [...sheet.rows.values()].some(row => Number(row.ht) === 409)), config.name + ': 긴 텍스트 행을 409pt로 제한');
   for (const sheet of visible) {
     const limited = [...sheet.rows.values()].some(row => Number(row.ht) === 409);
     const note = [...sheet.cells.values()].find(c => c.value.includes(clippingNote));
     check(Boolean(note) === limited, config.name + '/' + sheet.name + ': 표시 한도에 걸린 시트마다 원문 확인 안내');
     if (note) check(/긴 텍스트 확인 \([A-Z]+\d+/.test(note.value), config.name + '/' + sheet.name + ': 안내에 해당 셀 주소 표시');
   }
-  if (config.asset !== undefined && downloadSupportsLink) check((showSheet(wb, '01_Assumptions').cells.get('C6') || {}).value === config.asset, config.name + ': 가정표의 긴 자산명 원문 보존');
+  if (config.asset !== undefined && downloadSupportsLink) check((showSheet(wb, compact ? 'A&R' : '01_Assumptions').cells.get('C6') || {}).value === config.asset, config.name + ': 가정표의 긴 자산명 원문 보존');
   if (config.leases) {
-    check((showSheet(wb, '01_Rent_Roll').cells.get('B5') || {}).value === config.leases[0].name, config.name + ': 렌트롤의 긴 임차인명 원문 보존');
-    if (config.rentroll === 'model') check((showSheet(wb, 'Lease_Risk').cells.get('B5') || {}).value === config.leases[0].name, config.name + ': 리스크 표의 긴 임차인명 원문 보존');
+    check((showSheet(wb, compact ? 'Rent Roll' : '01_Rent_Roll').cells.get('B5') || {}).value === config.leases[0].name, config.name + ': 렌트롤의 긴 임차인명 원문 보존');
+    if (config.rentroll === 'model' && !compact) check((showSheet(wb, 'Lease_Risk').cells.get('B5') || {}).value === config.leases[0].name, config.name + ': 리스크 표의 긴 임차인명 원문 보존');
   }
   if (config.deal === 'dev' || config.deal === 'refi') return;
   check(showSheet(wb, '_Calc').state === 'hidden', config.name + ': 계산 보조 시트 숨김');
-  const assumptions = showSheet(wb, '01_Assumptions'), validation = showSheet(wb, '11_Validation_Checks');
+  const assumptions = showSheet(wb, compact ? 'A&R' : '01_Assumptions'), validation = showSheet(wb, compact ? '검증' : '11_Validation_Checks');
   const pane = tags(assumptions.xml, 'pane')[0];
-  check(pane && pane.topLeftCell === 'C5', config.name + ': 가정표 C5 틀 고정');
-  check(((assumptions.cells.get('C57') || {}).formula || '').replace(/\$/g, '') === 'C79', config.name + ': 보유기간 표시는 생성 기준 기간 참조');
+  const topHeight = Array.from({ length: 9 }, (_, i) => Number((assumptions.rows.get(i + 1) || {}).ht || 0)).reduce((a, b) => a + b, 0);
+  check(pane && pane.topLeftCell === (compact && topHeight <= 330 ? 'C10' : 'C5'), config.name + ': 가정표·핵심 결과 틀 고정, 긴 자산명은 고정 높이 축소');
+  check(/^(?:'A&R'!)?C79$/.test(((assumptions.cells.get('C57') || {}).formula || '').replace(/\$/g, '')), config.name + ': 보유기간 표시는 생성 기준 기간 참조');
   check(Number((assumptions.cells.get('C79') || {}).value) === config.hold, config.name + ': 생성 기준 보유기간 값');
   const validations = tags(assumptions.xml, 'dataValidation');
   function ruleFor(ref) { return validations.find(rule => rule.sqref.split(/\s+/).includes(ref)); }
@@ -328,8 +340,8 @@ function styleChecks(wb, config, expected, generated) {
   check(fontSize(cellStyle(wb, assumptions, 'B7')) === 10, config.name + ': 가정 항목 10pt');
   check(fontSize(cellStyle(wb, assumptions, 'C7')) === 10, config.name + ': 입력 숫자 10pt');
   check(Number((assumptions.rows.get(7) || {}).ht) >= 23, config.name + ': 본문 행 높이');
-  check(width(assumptions, 'F') >= 47 && width(validation, 'F') >= 47, config.name + ': 가정·검증 비고 너비');
-  check(fontSize(cellStyle(wb, assumptions, 'F11')) === 9, config.name + ': 가정 비고 9pt');
+  check(width(assumptions, compact ? 'E' : 'F') >= (compact ? 36 : 47) && width(validation, 'F') >= 47, config.name + ': 가정·검증 비고 너비');
+  check(fontSize(cellStyle(wb, assumptions, compact ? 'E11' : 'F11')) === 9, config.name + ': 가정 비고 9pt');
   for (const row of [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 27, 28, 29, 30]) {
     const verdict = validation.cells.get('E' + row), note = validation.cells.get('F' + row);
     if (verdict && verdict.formula) {
@@ -342,23 +354,26 @@ function styleChecks(wb, config, expected, generated) {
       check(fontSize(style) === 9 && style.alignment.horizontal === 'left' && style.alignment.wrapText === '1', config.name + '/' + note.r + ': 비고 9pt·왼쪽·줄바꿈');
     }
   }
-  const notes = [
+  const notes = compact ? [
+    ['A&R', 'G65'], ['검증', 'B17'], ['검증', 'B23'], ['검증', 'B25'],
+  ] : [
     ['10_Sensitivity', 'B19'],
     ['11_Validation_Checks', 'B17'], ['11_Validation_Checks', 'B23'], ['11_Validation_Checks', 'B25'],
   ];
-  if (config.recover !== false) notes.push(['00_Cover', 'B40'], ['00_Cover', 'B41'], ['00_Cover', 'B42'], ['01_Assumptions', 'B87']);
+  if (config.recover !== false) notes.push(...(compact ? [['A&R', 'B87']] : [['00_Cover', 'B40'], ['00_Cover', 'B41'], ['00_Cover', 'B42'], ['01_Assumptions', 'B87']]));
   for (const [name, ref] of notes) {
     const sheet = showSheet(wb, name), merge = sheet.merges.find(m => m.startsWith(ref + ':'));
     check(Boolean(merge), config.name + '/' + name + '/' + ref + ': 긴 안내 병합');
     const style = cellStyle(wb, sheet, ref);
     check(style && style.alignment.wrapText === '1', config.name + '/' + name + '/' + ref + ': 안내 줄바꿈');
   }
-  const operating = showSheet(wb, '04_Operating_ProForma'), equity = showSheet(wb, '08_Equity_Cashflow');
-  const cover = showSheet(wb, '00_Cover');
+  const operating = showSheet(wb, compact ? '운영수지' : '04_Operating_ProForma'), equity = showSheet(wb, compact ? '지분 현금흐름' : '08_Equity_Cashflow');
   const end = colName(config.hold + 3);
   check((operating.cells.get(end + '4') || {}).value.includes('Y' + (config.hold + 1)), config.name + ': 마지막 운영수지 헤더는 매각 다음 연도');
   check((equity.cells.get(end + '4') || {}).value.includes('Y' + config.hold), config.name + ': 마지막 자기자본 헤더는 매각 연도');
   check(width(operating, end) >= 14 && width(equity, end) >= 14, config.name + ': 동적 마지막 연도 너비');
+  if (!compact) {
+  const cover = showSheet(wb, '00_Cover');
   check(width(cover, end) >= 14, config.name + ': 표지 마지막 NOI 수치 열 너비');
   const coverYears = [...cover.cells.values()].filter(c => /^[C-Z]+21$/.test(c.r) && c.value);
   check(coverYears.length === config.hold + 1, config.name + ': 표지 NOI 연도 수는 보유기간+1');
@@ -370,15 +385,47 @@ function styleChecks(wb, config, expected, generated) {
   if (config.hold >= 7) {
     check(cover.merges.filter(m => /^B4[012]:/.test(m)).every(m => column(m.split(':')[1]) >= config.hold + 3), config.name + ': 표지 안내 병합도 기간에 맞게 확장');
   }
-  if (config.rentroll) check(showSheet(wb, '01_Rent_Roll').cells.has('B5'), config.name + ': 렌트롤 첫 계약 보존');
-  if (config.rentroll === 'model') {
+  const term = ruleFor('C48'), grace = ruleFor('C80');
+  check(term && term.type === 'whole' && term.operator === 'greaterThanOrEqual' && (tags(term.content, 'formula1')[0] || {}).content === '1', config.name + ': 상환기간은 양의 정수 입력');
+  check(grace && grace.type === 'whole' && (tags(grace.content, 'formula2')[0] || {}).content === 'MAX(0,ROUND(C48,0)-1)', config.name + ': 거치기간 입력 제한이 실제 상환기간 셀 참조');
+  } else {
+    for (const ref of ['H5', 'J5', 'J6', 'J7', 'H13', 'H28', 'H38', 'H53', 'J61']) check(Boolean((assumptions.cells.get(ref) || {}).formula), config.name + '/A&R!' + ref + ': 결과·자금조달·민감도가 실제 수식');
+    check(!(assumptions.cells.get('H6') || {}).formula && !(assumptions.cells.get('I6') || {}).formula, config.name + ': 미구현 종류별 세후 수익률은 공란');
+    check((equity.cells.get(end + '17') || {}).value.includes('Y' + config.hold), config.name + ': 통합 워터폴의 마지막 연도');
+    for (let year = 1; year <= config.hold; year++) {
+      const col = colName(year + 3);
+      check(Boolean((equity.cells.get(col + '21') || {}).formula), config.name + '/지분 현금흐름!' + col + '21: 연도별 우선주 배분 수식 보존');
+    }
+  }
+  if (config.rentroll) check(showSheet(wb, compact ? 'Rent Roll' : '01_Rent_Roll').cells.has('B5'), config.name + ': 렌트롤 첫 계약 보존');
+  if (config.rentroll === 'model' && !compact) {
     const buildup = showSheet(wb, 'Lease_NOI_Buildup');
     check(buildup.cells.has(end + '5'), config.name + ': 임차인별 수입의 동적 마지막 연도 보존');
     check(width(buildup, end) >= 14, config.name + ': 임차인별 수입의 동적 열 너비');
     check(showSheet(wb, 'Lease_Risk').cells.has('C5'), config.name + ': 임대차 리스크 계산 보존');
   }
+  if (config.rentroll === 'model' && compact) {
+    const rentroll = showSheet(wb, 'Rent Roll');
+    for (const title of ['공실·신규 임대 가정', '임대차 리스크']) check([...rentroll.cells.values()].some(c => c.value === title), config.name + ': 통합 임대차 시트의 ' + title + ' 표 보존');
+    const firstTenant = (config.leases || LEASES)[0].name;
+    const riskHeading = [...rentroll.cells.values()].find(c => c.value === '임대차 리스크');
+    const riskFirstRow = riskHeading ? Number(riskHeading.r.match(/\d+/)[0]) + 4 : 0;
+    const riskName = rentroll.cells.get('B' + riskFirstRow);
+    const riskNameSource = showSheet(wb, '_Calc').cells.get('W74');
+    check((rentroll.cells.get('B5') || {}).value === firstTenant && riskName && /_Calc'?!\$?W\$?74/.test(riskName.formula || '') && riskNameSource && /\bB\$?5\b/.test(riskNameSource.formula || ''), config.name + ': 임대차 리스크의 임차인명도 원본 계약 입력에 연결');
+    check([...operating.cells.values()].some(c => c.r.startsWith(end) && Number(c.r.match(/\d+/)[0]) > 24 && c.formula), config.name + ': 운영수지 아래 임차인별 마지막 연도 수입 수식 유지');
+    for (let year = 0; year <= config.hold; year++) {
+      for (const row of [5, 6]) {
+        const ref = colName(year + 3) + row;
+        check(Boolean((operating.cells.get(ref) || {}).formula), config.name + '/' + ref + ': 임대료·관리비 수입은 편집에 반응하는 수식');
+      }
+    }
+    for (const ref of ['C23', 'C24', 'C25', 'C27', 'C28', 'C75']) check(Boolean((assumptions.cells.get(ref) || {}).formula), config.name + '/A&R!' + ref + ': 렌트롤 도출 가정은 원본 입력을 참조');
+    check(!visibleText.includes('이 표의 값 수정은 임대수입에 반영되지 않습니다'), config.name + ': 옛 스냅샷 제한 안내 제거');
+  }
 }
 
+if (require.main === module) {
 for (const config of cases) {
   const before = fail;
   try {
@@ -390,3 +437,5 @@ for (const config of cases) {
 }
 console.log('\n엑셀 표시 검사: ' + pass + ' 통과, ' + fail + ' 실패 / ' + cases.length + '개 다운로드 조건');
 process.exitCode = fail ? 1 : 0;
+}
+module.exports = { generate, workbook, cases, LEASES, MARKET };

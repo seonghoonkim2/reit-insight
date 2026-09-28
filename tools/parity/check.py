@@ -11,6 +11,8 @@ import os
 import sys
 
 import formulas
+import openpyxl
+from workbook_layout import WorkbookLayout
 
 # 변형 → 기준 딜. 검증 셀 좌표는 기준 딜과 동일하고, 변형별 추가 확인만 얹는다.
 VARIANTS = {
@@ -42,10 +44,15 @@ if not (os.path.exists(xlsx) and os.path.exists(expf)):
     sys.exit(1)
 
 exp = json.load(open(expf))
+with open(xlsx, 'rb') as handle:
+    workbook = openpyxl.load_workbook(handle, read_only=True)
+    layout = WorkbookLayout(workbook.sheetnames)
+    workbook.close()
 sol = formulas.ExcelModel().loads(xlsx).finish().calculate()
 
 
 def cell(sheet, ref):
+    sheet, ref = layout.resolve(sheet, ref)
     tail = "]%s'!%s" % (sheet.upper(), ref.upper())
     for k, v in sol.items():
         if k.upper().endswith(tail):
@@ -55,6 +62,7 @@ def cell(sheet, ref):
 
 def cell_raw(sheet, ref):
     # float 강제 없이 원시값 반환 — 빈 값·엑셀 오류(#NUM! 등) 검사용. 미존재 셀은 None
+    sheet, ref = layout.resolve(sheet, ref)
     tail = "]%s'!%s" % (sheet.upper(), ref.upper())
     for k, v in sol.items():
         if k.upper().endswith(tail):

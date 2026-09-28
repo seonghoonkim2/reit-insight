@@ -18,6 +18,7 @@ import sys
 
 import formulas
 import openpyxl
+from workbook_layout import WorkbookLayout
 
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -28,6 +29,9 @@ args = parser.parse_args()
 if not args.xlsx.is_file():
     parser.error("Generate office_parity.xlsx first: node tools/parity/gen-xlsx.js office")
 
+workbook = openpyxl.load_workbook(args.xlsx, read_only=True, data_only=False)
+layout = WorkbookLayout(workbook.sheetnames)
+workbook.close()
 model = formulas.ExcelModel().loads(str(args.xlsx.resolve())).finish()
 base = model.calculate()
 keys = {}
@@ -42,7 +46,7 @@ ERRORS = ("#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#N/A", "#NULL!")
 
 
 def raw(sol, sheet, ref):
-    key = keys.get(sheet.upper() + "!" + ref.upper())
+    key = keys.get(layout.key(sheet, ref))
     return sol[key].value[0][0] if key in sol else None
 
 
@@ -67,8 +71,10 @@ def close(name, actual, expected, tolerance=1e-7):
 
 def calculate(name, overrides):
     # Every call receives only its own changes. No preceding scenario carries over.
-    sol = model.calculate(inputs={keys[(ref if "!" in ref else "01_ASSUMPTIONS!" + ref).upper()]: value
-                                  for ref, value in overrides.items()})
+    def input_key(ref):
+        sheet, cell = ref.split("!", 1) if "!" in ref else ("01_Assumptions", ref)
+        return keys[layout.key(sheet, cell)]
+    sol = model.calculate(inputs={input_key(ref): value for ref, value in overrides.items()})
     scenarios.append({"name": name, "inputs": overrides})
     errors = []
     for key, value in sol.items():
@@ -191,9 +197,12 @@ for passthrough in (0, 1):
         check(name + " / total-equity corporate tax has an effect", aftertax < pretax - 0.001)
 
 workbook = openpyxl.load_workbook(args.xlsx, read_only=True, data_only=False)
-assumptions = workbook["01_Assumptions"]
+assumptions = workbook["A&R" if layout.compact else "01_Assumptions"]
 check("unused payout percentage is replaced with distribution policy", assumptions["C67"].value == "전액 분배")
-check("distribution policy is identified as calculation basis", assumptions["E67"].value == "계산 기준")
+if layout.compact:
+    check("distribution policy explains distribution and common funding", all(text in str(assumptions["E67"].value) for text in ("분배", "보통주")))
+else:
+    check("distribution policy is identified as calculation basis", assumptions["E67"].value == "계산 기준")
 check("distribution policy is no longer styled as an input", assumptions["C67"].font.color != assumptions["C65"].font.color)
 workbook.close()
 

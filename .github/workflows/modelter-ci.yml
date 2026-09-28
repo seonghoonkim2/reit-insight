@@ -88,6 +88,10 @@ jobs:
           done
       - name: 가정 수정 후 경제적 타당성 (상환·분배·민감도·세후 표시)
         run: python3 tools/parity/financial-calculations.py
+      - name: 렌트롤 수정 후 재계산 (계약·시장 가정·만기·공실)
+        run: |
+          node tools/parity/gen-lease-live.js
+          python3 tools/parity/lease-live.py
 
   smoke:
     name: 브라우저 스모크 49건
