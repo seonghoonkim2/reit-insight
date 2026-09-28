@@ -25,6 +25,16 @@ const LEASES = [
   { name: '검사 임차인 B', area: 2500, netArea: 2000, rentPP: 88000, camPP: 32000, deposit: 1800000000, yrsToExp: 4, rentFreeRemain: 0, stepUp: 0.02 },
 ];
 const MARKET = { marketPP: 90000, marketCamPP: 32000, mtm: 0, newRentFree: 2, absorbMonths: 9, stabVac: 0.05, renewP: 0.65, downtime: 3, mktStepUp: 0.03, camG: 0.03, repay: '만기일시(이자만)', grace: 0 };
+// 실제 이름 대신 길이 경계와 XML 특수문자만 재현한다.
+const TENANT_222 = '장'.repeat(222);
+const ASSET_285 = '자'.repeat(285);
+const VERY_LONG_TENANT = '긴임차인'.repeat(1024) + ' & <끝> ';
+const VERY_LONG_ASSET = '긴자산'.repeat(1365) + ' & <끝> ';
+let textSeed = 73129;
+const LONG_LINK_ASSET = Array.from({ length: 2500 }, () => {
+  textSeed = (Math.imul(textSeed, 1664525) + 1013904223) >>> 0;
+  return String.fromCharCode(33 + ((textSeed >>> 16) % 90));
+}).join('');
 const cases = [
   { name: 'office', deal: 'office', hold: 5 },
   { name: 'logistics', deal: 'logistics', hold: 5 },
@@ -39,6 +49,13 @@ const cases = [
   { name: 'office_hold10', deal: 'office', hold: 10 },
   { name: 'office_rentroll', deal: 'office', hold: 5, rentroll: 'source' },
   { name: 'office_lease_hold10', deal: 'office', hold: 10, rentroll: 'model' },
+  { name: 'office_tenant222', deal: 'office', hold: 5, rentroll: 'model', leases: [{ ...LEASES[0], name: TENANT_222 }, LEASES[1]], clipped: true },
+  { name: 'office_asset285', deal: 'office', hold: 5, asset: ASSET_285, clipped: true },
+  { name: 'office_very_long_text', deal: 'office', hold: 5, asset: VERY_LONG_ASSET, rentroll: 'model', leases: [{ ...LEASES[0], name: VERY_LONG_TENANT }, LEASES[1]], clipped: true },
+  { name: 'office_long_restore_link', deal: 'office', hold: 5, asset: LONG_LINK_ASSET, clipped: true, longLink: true },
+  { name: 'office_multiline_asset', deal: 'office', hold: 5, asset: Array.from({ length: 40 }, (_, i) => '자산 ' + (i + 1)).join('\n'), clipped: true },
+  { name: 'office_restore_optout', deal: 'office', hold: 5, recover: false },
+  { name: 'office_long_link_optout', deal: 'office', hold: 5, asset: LONG_LINK_ASSET, recover: false, clipped: true, longLink: true },
 ];
 
 function stub() {
@@ -87,22 +104,30 @@ function generate(config) {
   };
   sandbox.window = sandbox;
   sandbox.Blob = function (parts) { this.parts = parts; sandbox.lastBlob = this; };
-  sandbox.document.getElementById('recoverChk').checked = true;
+  sandbox.document.getElementById('recoverChk').checked = config.recover !== false;
   vm.createContext(sandbox);
+  const leases = config.leases || LEASES;
   const patch = config.rentroll ? `
-    window.rrState = { leases: ${JSON.stringify(LEASES)} };
-    ${config.rentroll === 'model' ? `window.rrModel = {on: true, leases: ${JSON.stringify(LEASES)}, mkt: ${JSON.stringify(MARKET)}};` : ''}
+    window.rrState = { leases: ${JSON.stringify(leases)} };
+    ${config.rentroll === 'model' ? `window.rrModel = {on: true, leases: ${JSON.stringify(leases)}, mkt: ${JSON.stringify(MARKET)}};` : ''}
   ` : '';
   const driver = `
     cur = ${JSON.stringify(config.deal)}; window.rrState = null; window.rrModel = null; fillExample();
     ${config.hold ? `state.hold = '${config.hold}';` : ''}
+    ${config.asset !== undefined ? `state.asset = ${JSON.stringify(config.asset)};` : ''}
     ${patch}
     window.engineRaw = (simModel() || {}).raw;
+    window.expectedSnapshot = encodeState();
+    window.fullRestoreUrl = shareLink(true, 'xlsx');
     window.__downloadXlsx();
   `;
   vm.runInContext(main + '\n' + xlsx + '\n' + driver, sandbox, { timeout: 15000 });
   if (!sandbox.lastBlob || !sandbox.lastBlob.parts[0]) throw new Error('다운로드 파일이 생성되지 않았습니다');
-  return { bytes: Buffer.from(sandbox.lastBlob.parts[0]), expected: sandbox.engineRaw };
+  return {
+    bytes: Buffer.from(sandbox.lastBlob.parts[0]), expected: sandbox.engineRaw,
+    snapshot: sandbox.expectedSnapshot, fullRestoreUrl: sandbox.fullRestoreUrl,
+    decodeSnapshot: code => JSON.parse(vm.runInContext('mtLZ.decompress(' + JSON.stringify(code) + ')', sandbox)),
+  };
 }
 
 function unzip(bytes) {
@@ -176,16 +201,27 @@ function cellStyle(wb, sheet, ref) { const c = sheet.cells.get(ref); return c ? 
 function fontSize(style) { return style ? Number((tags(style.font.content, 'sz')[0] || {}).val) : NaN; }
 function width(sheet, col) { const i = column(col), c = sheet.cols.find(c => Number(c.min) <= i && Number(c.max) >= i); return c ? Number(c.width) : 0; }
 function showSheet(wb, name) { const sheet = wb.sheets.find(s => s.name === name); if (!sheet) throw new Error('시트 없음: ' + name); return sheet; }
-function styleChecks(wb, config, expected) {
+function styleChecks(wb, config, expected, generated) {
   const restore = showSheet(wb, '_Restore');
   check(restore.state === 'hidden', config.name + ': 복원 시트 숨김');
-  check(/^MTSNAP1:.+:PANSTM$/.test((restore.cells.get('B3') || {}).value), config.name + ': 복원 데이터 보존');
+  const restoreMatch = /^MTSNAP1:(.+):PANSTM$/.exec((restore.cells.get('B3') || {}).value);
+  check(Boolean(restoreMatch), config.name + ': 복원 데이터 보존');
+  check(restoreMatch && restoreMatch[1] === generated.snapshot, config.name + ': 링크 길이·옵트아웃과 무관하게 원본 복원 코드 보존');
+  const snapshot = restoreMatch ? generated.decodeSnapshot(restoreMatch[1]) : null;
+  if (config.asset !== undefined) check(snapshot && snapshot.s.asset === config.asset, config.name + ': 복원 데이터에 자산명 원문 보존');
+  if (config.rentroll === 'model') {
+    const leases = config.leases || LEASES;
+    check(snapshot && snapshot.rr && snapshot.rr.leases.length === leases.length, config.name + ': 복원 데이터에 계약 수 보존');
+    check(snapshot && snapshot.rr && snapshot.rr.leases.every((lease, i) => lease.name !== leases[i].name && lease.name.startsWith('임차인')), config.name + ': 복원 데이터 임차인명 마스킹');
+    check(snapshot && snapshot.rr && snapshot.rr.leases.every((lease, i) => Object.keys(leases[i]).filter(k => k !== 'name').every(k => lease[k] === leases[i][k])), config.name + ': 이름 외 원본 임대조건 보존');
+  }
   const visible = wb.sheets.filter(s => s.state !== 'hidden');
   const sheetNames = new Set(wb.sheets.map(s => s.name));
   const count = config.deal === 'dev' ? 6 : config.deal === 'refi' ? 4 : 12 + (config.rentroll === 'source' ? 1 : config.rentroll === 'model' ? 4 : 0);
   check(visible.length === count, config.name + ': 표시 시트 수 (' + visible.length + '/' + count + ')');
   for (const sheet of wb.sheets) {
     const label = config.name + '/' + sheet.name;
+    check([...sheet.rows.values()].every(row => !row.ht || (Number.isFinite(Number(row.ht)) && Number(row.ht) > 0 && Number(row.ht) <= 409)), label + ': 모든 행 높이는 409pt 이하');
     check(!/<c\b[^>]*\bt="e"/.test(sheet.xml), label + ': 엑셀 오류 셀 없음');
     check([...sheet.cells.values()].every(c => c.t || !c.value || Number.isFinite(Number(c.value))), label + ': 유한 숫자 값');
     const invalidRefs = [];
@@ -225,6 +261,43 @@ function styleChecks(wb, config, expected) {
       const hiddenData = [...sheet.cells.values()].filter(c => c.r !== first && column(c.r) >= column(first) && column(c.r) <= column(last) && Number(c.r.match(/\d+/)[0]) >= top && Number(c.r.match(/\d+/)[0]) <= bottom && (c.formula || c.value !== ''));
       check(hiddenData.length === 0, label + '/' + range + ': 병합에 값·수식이 가려지지 않음');
     }
+  }
+  const externalLinks = [...wb.files].filter(([name]) => /^xl\/worksheets\/_rels\/.+\.rels$/.test(name)).flatMap(([, xml]) => tags(xml, 'Relationship').filter(rel => rel.TargetMode === 'External'));
+  const visibleText = visible.flatMap(sheet => [...sheet.cells.values()].filter(c => !c.formula).map(c => c.value)).join('\n');
+  const fullLinkFits = generated.fullRestoreUrl && generated.fullRestoreUrl.length <= 1900;
+  const downloadSupportsLink = config.deal !== 'dev' && config.deal !== 'refi';
+  if (downloadSupportsLink) {
+    if (config.recover !== false && fullLinkFits) {
+      check(externalLinks.length === 2, config.name + ': 정상 복원 링크는 표지·가정표에 표시');
+      check(externalLinks.every(link => link.Target === generated.fullRestoreUrl && /#v=.+&src=xlsx$/.test(link.Target)), config.name + ': 정상 링크는 가정을 포함한 URL 유지');
+      check(externalLinks.every(link => {
+        const code = /#v=([^&]+)/.exec(link.Target);
+        return code && code[1] === generated.snapshot;
+      }), config.name + ': 링크와 파일의 복원 데이터 일치');
+    } else {
+      check(externalLinks.length === 0, config.name + ': 복원 불가·옵트아웃 시 외부 링크 제외');
+      check(!visibleText.includes('modelter.com에서 다운로드 시점 가정 열기'), config.name + ': 복원되지 않는 가정 열기 안내 없음');
+    }
+    check(externalLinks.every(link => !/#src=xlsx$/.test(link.Target)), config.name + ': 가정 없는 채널 링크로 대체하지 않음');
+    if (config.longLink) check(generated.fullRestoreUrl.length > 1900, config.name + ': 실제 복원 URL 1900자 초과 조건 재현');
+    const missingLinkNote = '가정이 많아 복원 링크를 넣지 않았습니다.';
+    if (config.recover !== false && !fullLinkFits) {
+      for (const name of ['00_Cover', '01_Assumptions']) check([...showSheet(wb, name).cells.values()].some(c => c.value.includes(missingLinkNote)), config.name + '/' + name + ': 긴 링크의 복원 불가 안내');
+    } else check(!visibleText.includes(missingLinkNote), config.name + ': 정상 링크·옵트아웃에 불필요한 복원 불가 안내 없음');
+  }
+  const clippingNote = '원문은 보존되며 셀을 선택해 수식 입력줄에서 전체 내용을 확인할 수 있습니다.';
+  check(visibleText.includes(clippingNote) === Boolean(config.clipped), config.name + ': 긴 텍스트가 한도를 넘은 경우에만 전체 내용 확인 방법 안내');
+  if (config.clipped) check(visible.some(sheet => [...sheet.rows.values()].some(row => Number(row.ht) === 409)), config.name + ': 긴 텍스트 행을 409pt로 제한');
+  for (const sheet of visible) {
+    const limited = [...sheet.rows.values()].some(row => Number(row.ht) === 409);
+    const note = [...sheet.cells.values()].find(c => c.value.includes(clippingNote));
+    check(Boolean(note) === limited, config.name + '/' + sheet.name + ': 표시 한도에 걸린 시트마다 원문 확인 안내');
+    if (note) check(/긴 텍스트 확인 \([A-Z]+\d+/.test(note.value), config.name + '/' + sheet.name + ': 안내에 해당 셀 주소 표시');
+  }
+  if (config.asset !== undefined && downloadSupportsLink) check((showSheet(wb, '01_Assumptions').cells.get('C6') || {}).value === config.asset, config.name + ': 가정표의 긴 자산명 원문 보존');
+  if (config.leases) {
+    check((showSheet(wb, '01_Rent_Roll').cells.get('B5') || {}).value === config.leases[0].name, config.name + ': 렌트롤의 긴 임차인명 원문 보존');
+    if (config.rentroll === 'model') check((showSheet(wb, 'Lease_Risk').cells.get('B5') || {}).value === config.leases[0].name, config.name + ': 리스크 표의 긴 임차인명 원문 보존');
   }
   if (config.deal === 'dev' || config.deal === 'refi') return;
   check(showSheet(wb, '_Calc').state === 'hidden', config.name + ': 계산 보조 시트 숨김');
@@ -270,10 +343,10 @@ function styleChecks(wb, config, expected) {
     }
   }
   const notes = [
-    ['00_Cover', 'B40'], ['00_Cover', 'B41'], ['00_Cover', 'B42'],
-    ['01_Assumptions', 'B87'], ['10_Sensitivity', 'B19'],
+    ['10_Sensitivity', 'B19'],
     ['11_Validation_Checks', 'B17'], ['11_Validation_Checks', 'B23'], ['11_Validation_Checks', 'B25'],
   ];
+  if (config.recover !== false) notes.push(['00_Cover', 'B40'], ['00_Cover', 'B41'], ['00_Cover', 'B42'], ['01_Assumptions', 'B87']);
   for (const [name, ref] of notes) {
     const sheet = showSheet(wb, name), merge = sheet.merges.find(m => m.startsWith(ref + ':'));
     check(Boolean(merge), config.name + '/' + name + '/' + ref + ': 긴 안내 병합');
@@ -309,9 +382,9 @@ function styleChecks(wb, config, expected) {
 for (const config of cases) {
   const before = fail;
   try {
-    const { bytes, expected } = generate(config);
+    const generated = generate(config), { bytes, expected } = generated;
     if (output) fs.writeFileSync(path.join(output, config.name + '.xlsx'), bytes);
-    styleChecks(workbook(bytes), config, expected);
+    styleChecks(workbook(bytes), config, expected, generated);
     console.log((fail === before ? 'PASS ' : 'FAIL ') + config.name + ' (' + bytes.length + ' bytes)');
   } catch (error) { fail++; console.error('FAIL ' + config.name + ': ' + error.message); }
 }

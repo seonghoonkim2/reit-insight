@@ -1939,7 +1939,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-09-28·b2f61507da';
+window.MT_BUILD='2026-09-28·b76c44151b';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -3442,7 +3442,7 @@ function renderWsPanel(){
   // 백업
   html+='<div class="ws-sec-h">백업 · 가져오기</div>'+
     '<div class="ws-backup"><label class="sl-btn ws-import">딜 가져오기 (.modelter)<input type="file" id="wsImport" accept=".modelter,application/json" hidden></label>'+
-    '<label class="sl-btn ws-import">엑셀에서 복원 (.xlsx)<input type="file" id="wsXlsxRestore" accept=".xlsx" hidden></label>'+
+    '<label class="sl-btn ws-import" title="수정·재저장 전 다운로드 원본 파일의 가정을 불러옵니다. 엑셀에서 수정한 값은 반영되지 않습니다.">다운로드 원본에서 복원 (.xlsx)<input type="file" id="wsXlsxRestore" accept=".xlsx" hidden></label>'+
     '<span class="ws-note">.modelter 파일에는 입력값·렌트롤 요약이 포함됩니다(원본 파일·임차인 실명은 저장되지 않음). 저장 데이터는 이 브라우저 로컬에만 보관됩니다.</span></div>';
   body.innerHTML=html;
 }
@@ -3496,7 +3496,7 @@ function renderWsPanel(){
       try{
         var txt=new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(fr.result));
         var m=txt.match(/MTSNAP1:([A-Za-z0-9_-]+):PANSTM/);
-        if(!m){ toast('복원 코드를 찾지 못했습니다 — 모델터에서 생성한 .xlsx인지 확인하세요 (2026-07 이후 생성분부터 지원)'); t.value=''; return; }
+        if(!m){ toast('복원 코드를 찾지 못했습니다. 수정·재저장 전 모델터 다운로드 원본 파일을 선택하세요.'); t.value=''; return; }
         var p=JSON.parse(mtLZ.decompress(m[1]));
         applySharedPayload(p);
         var ovl=document.getElementById('wsOverlay'); if(ovl){ ovl.hidden=true; document.body.style.overflow=''; }
@@ -4987,9 +4987,16 @@ function shareLink(readonly, src){
 }
 // 산출물 회수 링크 — 옵트인 체크박스(기본 켜짐). 산출물에 「이 모델 열기」 링크·QR을 넣을지.
 function recoverOn(){ try{ var c=document.getElementById('recoverChk'); return c?!!c.checked:true; }catch(e){ return true; } }
-// 회수 링크. 상태(#v=)가 너무 길면(렌트롤 다건 등) 엑셀 하이퍼링크(주소 한도 ≈2079자)가 조용히 잘려 깨지므로,
-// 1900자 초과 시 상태 없는 채널 링크(#src=)로 폴백 — 받은 사람이 클릭하면 항상 앱에 착지(딜은 미리 채워지지 않음). 깨진 링크보다 낫다.
-function recoverUrl(src){ if(!recoverOn()) return null; try{ var u=shareLink(true, src)||null; if(u&&u.length>1900){ var s=srcTag(src); return location.origin+location.pathname+(s?('#src='+s):''); } return u; }catch(e){ return null; } }
+// 가정이 빠진 일반 사이트 링크를 복원 링크로 내보내지 않는다.
+function recoverLinkInfo(src){
+  if(!recoverOn())return {url:null,reason:'disabled'};
+  try{
+    var u=shareLink(true,src)||null;
+    if(u&&u.length>1900)return {url:null,reason:'too_long'};
+    return {url:u,reason:u?'':'unavailable'};
+  }catch(e){return {url:null,reason:'unavailable'};}
+}
+function recoverUrl(src){return recoverLinkInfo(src).url;}
 function copyShare(url, label){
   var done=function(){ toast(label+" 링크가 복사되었습니다"+(url&&url.length>2000?" — 링크가 깁니다("+url.length+"자). 일부 메신저에서 잘릴 수 있으니 안 열리면 QR이나 엑셀 파일로 전달하세요":"")); };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(function(){ prompt("이 링크를 복사하세요:",url); }); }
@@ -5818,15 +5825,26 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       // Subtotals have a restrained rule; original numeric formats remain intact.
       var totals={};sh.cells.forEach(function(c){if(c.role==='lbb'&&sh.name!=='00_Cover')totals[splitRef(c.r).row]=true;});
       sh.cells.forEach(function(c){if(totals[splitRef(c.r).row]&&!/^(ti|se|th)$/.test(c.role)){c.fill=6;c.border=2;c.bold=true;}});
+      var overflowRefs=[];
       sh.cells.forEach(function(c){
         if(!c.s)return;
         var r=splitRef(c.r),width=w[r.col]||16;
         var merged=sh.merges.filter(function(m){return m.split(':')[0]===c.r;})[0];
         if(merged){var end=splitRef(merged.split(':')[1]);if(end.row!==r.row)return;width=0;for(var col=r.ci;col<=end.ci;col++)width+=w[colLet(col)]||16;}
-        var length=String(c.s).split('').reduce(function(n,ch){return n+(ch.charCodeAt(0)>255?1.9:1);},0);
-        var lines=Math.max(1,Math.ceil(length/Math.max(8,width-2)));
-        if(lines>1)sh.rowHeights[r.row]=Math.max(sh.rowHeights[r.row]||23,lines*13+10);
+        var lines=String(c.s).split(/\r\n|\r|\n/).reduce(function(n,line){
+          var length=line.split('').reduce(function(total,ch){return total+(ch.charCodeAt(0)>255?1.9:1);},0);
+          return n+Math.max(1,Math.ceil(length/Math.max(8,width-2)));
+        },0);
+        var height=lines*13+10;
+        if(height>409)overflowRefs.push(c.r);
+        if(lines>1)sh.rowHeights[r.row]=Math.min(409,Math.max(sh.rowHeights[r.row]||23,height));
       });
+      if(overflowRefs.length){
+        var noteRow=sh.cells.reduce(function(n,c){return Math.max(n,splitRef(c.r).row);},0)+2;
+        var refs=overflowRefs.slice(0,8).join(', ')+(overflowRefs.length>8?' 외 '+(overflowRefs.length-8)+'개':'');
+        sh.cells.push({r:'B'+noteRow,role:'nw',s:'긴 텍스트 확인 ('+refs+'): 셀 안에 모두 표시되지 않을 수 있습니다. 원문은 보존되며 셀을 선택해 수식 입력줄에서 전체 내용을 확인할 수 있습니다.'});
+        merge('B'+noteRow,colLet(max)+noteRow);sh.rowHeights[noteRow]=52;
+      }
     });
   }
 
@@ -5858,7 +5876,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         else { rowx+='<c r="'+c.r+'"'+sAttr+' t="inlineStr"><is><t xml:space="preserve">'+xmlesc(c.s||'')+'</t></is></c>'; }
         if(c.link){ links.push({ref:c.r, target:String(c.link)}); }   // 외부 하이퍼링크(회수 링크) — 시트 rels로 연결
       });
-      var ht=(sheet.rowHeights&&sheet.rowHeights[rn])||(imp>=3?34:(imp>=2?28:23));
+      var ht=Math.min(409,(sheet.rowHeights&&sheet.rowHeights[rn])||(imp>=3?34:(imp>=2?28:23)));
       body+='<row r="'+rn+'"'+(ht?' ht="'+ht+'" customHeight="1"':'')+'>'+rowx+'</row>';
     });
     var lastRow=rowNums.length?rowNums[rowNums.length-1]:1;
@@ -7251,21 +7269,23 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       }catch(e3b){}
       // 산출물 회수 링크 — 표지에 「이 모델 열기」 하이퍼링크(옵트인·마스킹·&src=xlsx). 받은 사람이 클릭 한 번으로 라이브 모델에 착지.
       try{
-        var _rl=recoverUrl('xlsx');
-        if(_rl){
+        var _recovery=recoverLinkInfo('xlsx'),_rl=_recovery.url;
+        if(_recovery.reason!=='disabled'){
+          var _restoreNote='modelter.com의 내 딜에서 다운로드 원본 파일로 복원하세요. 수정·재저장 전 파일만 지원하며, 엑셀에서 수정한 값은 반영되지 않습니다.';
+          var _missingLink=_recovery.reason==='too_long'?'가정이 많아 복원 링크를 넣지 않았습니다.':'복원 링크를 만들지 못했습니다.';
           var _cov=null,_cvi; for(_cvi=0;_cvi<_TPL.sheets.length;_cvi++) if(_TPL.sheets[_cvi].name==='00_Cover'){_cov=_TPL.sheets[_cvi];break;}
           if(_cov){
             var _mr=0; _cov.cells.forEach(function(c){ var mm=/^[A-Z]+(\d+)$/.exec(c.r); if(mm){ var rn=+mm[1]; if(rn>_mr)_mr=rn; } });
             var _lr=_mr+2;
-            _cov.cells.push({r:'B'+_lr, role:'se', s:'다운로드 시점 모델 열기'});
-            _cov.cells.push({r:'B'+(_lr+1), role:'lbb', s:'modelter.com에서 다운로드 시점 가정 열기', link:_rl});
-            _cov.cells.push({r:'B'+(_lr+2), role:'da', s:'다운로드 당시 가정이 열립니다. 엑셀에서 수정한 값은 반영되지 않습니다. 임차인명은 가려집니다.'});
+            _cov.cells.push({r:'B'+_lr, role:'se', s:_rl?'다운로드 시점 모델 열기':'다운로드 원본으로 복원'});
+            _cov.cells.push(_rl?{r:'B'+(_lr+1), role:'lbb', s:'modelter.com에서 다운로드 시점 가정 열기', link:_rl}:{r:'B'+(_lr+1), role:'nw', s:_missingLink});
+            _cov.cells.push({r:'B'+(_lr+2), role:_rl?'da':'nw', s:_rl?'다운로드 당시 가정이 열립니다. 엑셀에서 수정한 값은 반영되지 않습니다. 임차인명은 가려집니다.':_restoreNote});
           }
           // 가정 시트에도 같은 링크 — 파일 받은 사람이 실제로 여는 시트는 표지가 아니라 01_Assumptions (회수 착지 30일 2건의 가시성 대응)
           var _asx=null,_ai; for(_ai=0;_ai<_TPL.sheets.length;_ai++) if(_TPL.sheets[_ai].name==='01_Assumptions'){_asx=_TPL.sheets[_ai];break;}
           if(_asx){
             var _amr=0; _asx.cells.forEach(function(c){ var am=/^[A-Z]+(\d+)$/.exec(c.r); if(am){ var an=+am[1]; if(an>_amr)_amr=an; } });
-            _asx.cells.push({r:'B'+(_amr+2), role:'lbb', s:'다운로드 시점 가정 열기 · 엑셀 수정값 제외', link:_rl});
+            _asx.cells.push(_rl?{r:'B'+(_amr+2), role:'lbb', s:'다운로드 시점 가정 열기 · 엑셀 수정값 제외', link:_rl}:{r:'B'+(_amr+2), role:'nw', s:_missingLink+' '+_restoreNote});
           }
         }
       }catch(eRL){}
@@ -7994,9 +8014,8 @@ function buildIcPptx(){
         // 회수 링크(옵트인) — 클릭 시 이 가정 그대로 라이브 모델(읽기 전용·임차인명 마스킹), 채널 src=ppt
         var _rec=(typeof recoverUrl==='function')?recoverUrl('ppt'):null;
         if(_rec) slides.__hl={idx:slides.length, url:_rec};   // 이 슬라이드는 아직 push 전 → 현재 length가 곧 이 슬라이드의 인덱스
-        return {runs:[{t:'▶ 같은 가정으로 모델터 열기: ',sz:1000,b:1,color:C.acc},
-          {t:_rec?'modelter.com에서 열기':'modelter.com',sz:1000,b:1,color:C.acc2,link:_rec?'rIdHL':null},
-          {t:'  ·  휴대폰에서는 요약 카드(PNG)의 QR을 스캔하세요. 엑셀 표지에도 「이 모델 열기」 링크가 있습니다.',sz:1000,color:C.mut}],spcB:300};
+        return {runs:(_rec?[{t:'같은 가정으로 모델터 열기: ',sz:1000,b:1,color:C.acc}]:[]).concat([
+          {t:_rec?'modelter.com에서 열기':'modelter.com',sz:1000,b:1,color:C.acc2,link:_rec?'rIdHL':null}]),spcB:300};
       })()
     ],{fill:C.bg,line:C.line,rounded:true}));
     slides.push(slideXml(s));

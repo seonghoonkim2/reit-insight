@@ -321,12 +321,12 @@ ok(html.includes('function shareLink(readonly, src)') && html.includes('var SRC_
 ok(html.includes('function recoverUrl(src)') && html.includes("function recoverOn()"), '회수: 옵트인(recoverOn)·회수 URL 생성기');
 ok(html.includes('id="recoverChk"') && html.includes('id="recoverOpt"'), '회수: 산출물 링크 옵트인 체크박스(기본 켜짐)');
 ok(html.includes('if(c.link){ links.push') && html.includes('officeDocument/2006/relationships/hyperlink') && html.includes('TargetMode="External"'), '회수: XLSXGEN 하이퍼링크(시트 rels·External) 지원');
-ok(html.includes("recoverUrl('xlsx')") && html.includes('modelter.com에서 다운로드 시점 가정 열기'), '회수: 엑셀 표지 다운로드 시점 가정 하이퍼링크 셀(&src=xlsx)');
+ok(html.includes("recoverLinkInfo('xlsx')") && html.includes('modelter.com에서 다운로드 시점 가정 열기') && html.includes('가정이 많아 복원 링크를 넣지 않았습니다.'), '회수: 엑셀 가정 복원 링크와 링크를 넣지 못한 경우의 안내');
 ok(html.includes("recoverUrl('png')") && html.includes('스캔 → 이 모델 열기'), '회수: PNG 요약 카드 QR(&src=png)');
 ok(html.includes("shareLink(false,'qr')"), '회수: QR 이어가기 링크 &src=qr');
 ok(html.includes('id="roCta"') && html.includes('id="roCtaBtn"') && html.includes('이 가정으로 새 모델 만들기'), '회수: 읽기전용 착지 하단 CTA 바');
 ok(html.includes("mtTrack('recover_cta'"), '회수: recover_cta 이벤트(착지→편집 전환)');
-ok(html.includes('같은 가정으로 모델터 열기:') && html.includes('요약 카드(PNG)의 QR'), '회수: IC PPT 마지막 장 회수 안내(라이브·QR 경로)');
+ok(html.includes("recoverUrl('ppt')") && html.includes("runs:(_rec?[{t:'같은 가정으로 모델터 열기: '") && html.includes("link:_rec?'rIdHL':null"), '회수: IC PPT 마지막 장의 복원 안내는 링크가 있을 때만 표시');
 
 /* ── 1e) 팀 기준 배포 링크(E4) — #h= 내보내기·미리보기·적용·표기 ── */
 ok(html.includes('function houseShareLink()') && html.includes("location.pathname+'#h='+enc"), '팀 기준: #h= 배포 링크 생성(회사 표준 파라미터만)');
