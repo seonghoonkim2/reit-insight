@@ -1939,7 +1939,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-09-29·054721a677';
+window.MT_BUILD='2026-09-29·0ca2ea29e6';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -6407,7 +6407,9 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     if(n('prepayfee')!=null) o['C71']={n:n('prepayfee')/100};
     if(n('dispfee')!=null) o['C72']={n:n('dispfee')/100};
     var sl=sk('senior','ltv'), sr=sk('senior','rate');
-    if(sl!=null) o['C45']={n:sl/100};
+    // 포함을 끄면 계산용 LTV만 0으로 둔다. 입력값은 다시 켤 때 복원하고, 구버전의 누락된 플래그는 기본 포함으로 읽는다.
+    if(k['senior_on']===false) o['C45']={n:0};
+    else if(sl!=null) o['C45']={n:sl/100};
     if(sr!=null) o['C46']={n:sr/100};
     var mat=n('maturity'); if(mat!=null) o['C48']={n:mat};
     var rep=(k['senior_extra']||'만기일시');

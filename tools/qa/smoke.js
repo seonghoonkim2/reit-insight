@@ -523,6 +523,102 @@ async function closeOverlays(page) {
     await ctx.close();
   }
 
+  // The UI hides the saved LTV when senior debt is OFF. That saved value must
+  // remain available for ON again, without leaking into either calculation
+  // path or the actual downloaded workbook while OFF.
+  console.log('\n[선순위 토글] 실제 OFF/ON · 저장 LTV · 다운로드');
+  {
+    const { ctx, page } = await fresh(browser);
+    await page.goto(URL0); await closeOverlays(page);
+    const cases = [{ deal: 'office', leases: false }, { deal: 'logistics', leases: false }, { deal: 'office', leases: true }];
+    async function readDebt() {
+      return page.evaluate(() => {
+        const raw = simModel().raw;
+        const dscr = [...document.querySelectorAll('#simBody .mx-item')].find(el => /최소 DSCR/.test(el.textContent));
+        return { loan: raw.loan, fee: raw.finFeeAmt, DS: raw.DS, INT: raw.INT, balances: raw.endBal,
+          irr: raw.IRR, equity: raw.equity, dscrDefined: Number.isFinite(raw.minDSCR),
+          dscrText: dscr ? dscr.querySelector('.mx-v').textContent.trim() : null,
+          storedLtv: stackState.senior_ltv, inputLtv: document.querySelector('[data-sk="senior_ltv"]').value,
+          enabled: document.querySelector('[data-sk="senior_on"]').checked,
+          mezzAmt: raw.mezzAmt, mezzPayments: raw.MPAY };
+      });
+    }
+    async function downloadWorkbook() {
+      const acceptExample = async dialog => {
+        if (dialog.type() === 'confirm' && /예시값/.test(dialog.message())) await dialog.accept();
+        else await dialog.dismiss();
+      };
+      page.on('dialog', acceptExample);
+      try {
+        const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#xlDownload').click()]);
+        const parsed = require('./excel-format').workbook(fs.readFileSync(await download.path()));
+        await download.delete();
+        return parsed;
+      } finally { page.off('dialog', acceptExample); }
+    }
+    for (const config of cases) {
+      const label = config.deal + (config.leases ? ' 렌트롤' : ' 기본');
+      await page.evaluate(c => {
+        cur = c.deal; window.rrState = null; window.rrModel = null; fillExample();
+        if (c.leases) {
+          const leases = [{ name: '토글 검사 가상 임차인', area: 5000, netArea: 4000, rentPP: 80000, camPP: 25000,
+            deposit: 2000000000, yrsToExp: null, rentFreeRemain: 0, stepUp: 0 }];
+          window.rrState = { leases };
+          window.rrModel = { on: true, leases, mkt: { marketPP: 90000, marketCamPP: 26000, mtm: 0,
+            newRentFree: 2, absorbMonths: 18, stabVac: 0.05, renewP: 0.65, downtime: 3,
+            mktStepUp: 0.02, camG: 0.02, repay: '만기일시(이자만)', grace: 0 } };
+        }
+        renderForm(); restoreInputs(); update();
+      }, config);
+      await page.locator('[data-sk="senior_ltv"]').fill('63');
+      const before = await readDebt();
+      ok(before.enabled && before.loan > 0 && before.storedLtv === '63', label + ': 실제 입력한 LTV 63%의 대출 활성화');
+      await page.locator('[data-sk="senior_on"] + .track').click();
+      const off = await readDebt();
+      ok(!off.enabled && off.loan === 0 && off.fee === 0 && off.DS.every(x => x === 0) &&
+        off.INT.every(x => x === 0) && off.balances.every(x => x === 0), label + ': OFF는 전 기간 선순위 대출·이자·원리금·잔액 0');
+      ok(!off.dscrDefined && off.dscrText === '—' && off.storedLtv === '63' && off.inputLtv === '63',
+        label + ': OFF는 화면 DSCR 비적용, 저장된 LTV 유지');
+      // Legacy snapshots can still contain an inactive rate. Altering it must
+      // not change any economics while the actual checkbox remains OFF.
+      const rateInvariant = await page.evaluate(() => {
+        const original = stackState.senior_rate, before = simModel().raw;
+        stackState.senior_rate = '99'; update(); const after = simModel().raw;
+        stackState.senior_rate = original; update();
+        return after.loan === 0 && after.IRR === before.IRR && after.equity === before.equity && after.DS.every(x => x === 0);
+      });
+      ok(rateInvariant, label + ': OFF에서 남아 있는 금리는 결과에 영향 없음');
+      const wb = await downloadWorkbook(), ar = wb.sheets.find(s => s.name === 'A&R'), debt = wb.sheets.find(s => s.name === '대출');
+      const number = (sheet, ref) => { const cell = sheet.cells.get(ref); return cell && cell.value !== '' ? Number(cell.value) : NaN; };
+      const debtValues = [...debt.cells.values()].filter(c => /^[C-Z]+(?:5|6|7|8|9)$/.test(c.r) && c.formula);
+      ok(number(ar, 'C45') === 0 && number(ar, 'C49') === 0 && number(ar, 'C20') === 0 &&
+        debtValues.length === 25 && debtValues.every(c => c.value !== '' && Number(c.value) === 0) &&
+        ar.cells.get('H13').t === 'str' && ar.cells.get('H13').value === '', label + ': 실제 다운로드에도 대출·원리금 0, DSCR 공란');
+      const restoreCode = /^MTSNAP1:(.+):PANSTM$/.exec(wb.sheets.find(s => s.name === '_Restore').cells.get('B3').value)[1];
+      const restored = await page.evaluate(code => JSON.parse(mtLZ.decompress(code)).k, restoreCode);
+      ok(restored.senior_on === false && restored.senior_ltv === '63', label + ': 파일 복원 데이터는 OFF와 기존 LTV를 함께 보존');
+      if (config.deal === 'office' && !config.leases) {
+        await page.locator('[data-sk="mezz_on"] + .track').click();
+        await page.locator('[data-sk="mezz_ltv"]').fill('10');
+        await page.locator('[data-sk="mezz_rate"]').fill('8.5');
+        const mezz = await readDebt();
+        ok(mezz.loan === 0 && mezz.mezzAmt > 0 && mezz.mezzPayments.every(x => x > 0) &&
+          mezz.DS.every((x, i) => x === mezz.mezzPayments[i]), '선순위 OFF·중순위 ON은 중순위 원리금만 유지');
+        await page.locator('[data-sk="mezz_on"] + .track').click();
+      }
+      await page.locator('[data-sk="senior_on"] + .track').click();
+      const on = await readDebt();
+      ok(on.enabled && on.storedLtv === '63' && on.loan === before.loan && on.dscrDefined &&
+        on.DS.every((x, i) => x === before.DS[i]), label + ': 다시 ON이면 기존 LTV와 대출·원리금 복원');
+      const legacy = await page.evaluate(() => {
+        const before = simModel().raw; delete stackState.senior_on; update(); const after = simModel().raw;
+        return mOn('senior') && after.loan === before.loan && after.DS.every((x, i) => x === before.DS[i]);
+      });
+      ok(legacy, label + ': 과거 저장본의 senior_on 누락은 기존 기본값 ON 유지');
+    }
+    await ctx.close();
+  }
+
   await browser.close(); server.close();
   console.log('\n결과: ' + pass + ' 통과, ' + fail + ' 실패' + (fail ? '\n' + failures.map(f => ' - ' + f).join('\n') : ''));
   process.exit(fail ? 1 : 0);
