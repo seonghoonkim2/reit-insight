@@ -1941,7 +1941,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-09-29·f93b3d35f7';
+window.MT_BUILD='2026-09-29·9fca730541';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -4237,7 +4237,7 @@ function devResiCompute(I){
   var costAll=landAll+I.cons+indirect+salesTot+mnapTot+intTot+feeAmt;
   var profit=rev-costAll, margin=rev>0?profit/rev*100:NaN;
   var pfEnd=bal, eqEnd=cash-pfEnd-feeAmt;
-  var em=I.E>0?eqEnd/I.E:null, yrs=T/12;
+  var em=I.E>0?Math.max(0,eqEnd)/I.E:null, yrs=T/12;
   var irr=(I.E>0&&eqEnd>0&&yrs>0)?(Math.pow(eqEnd/I.E,1/yrs)-1):null;
   return {T:T, K:K, open:open, comp:comp, rev:rev, aptRev:aptRev, retNet:retNet,
     landAll:landAll, consDir:I.cons, indirect:indirect, indirCons:indirCons, hugAmt:hugAmt, salesTot:salesTot, mnapTot:mnapTot,
@@ -4343,6 +4343,7 @@ function simDevResi(){
   if(I.E<=0) warns.push('⚠ 자기자본이 0이어서 전액 차입으로 계산합니다.');
   if(I.landpay>I.T) warns.push('토지 잔금 시점이 사업기간 이후여서 종료월('+I.T+'개월차)에 지급하는 것으로 계산했습니다. 실제 지급 일정을 확인하세요.');
   if(R.pfEnd>0.5) warns.push('⚠ 사업 종료 시 차입 잔액 '+meok(R.pfEnd)+'이 남습니다. 분양률·분양가·사업비를 점검하세요.');
+  if(R.eqEnd<0) warns.push('⚠ 기말 자금부족 '+meok(-R.eqEnd)+'입니다. 기말 차입 잔액과 정산 수수료에서 남은 현금을 차감한 금액입니다.');
   if(I.soldT<100) warns.push('아파트 최종 분양률을 '+mfmt(I.soldT,0)+'%로 가정했습니다.');
   if(bep!=null&&bep>0&&I.soldT<bep) warns.push('⚠ 현재 분양률 가정('+mfmt(I.soldT,0)+'%)이 손익분기 분양률 '+mfmt(bep,1)+'%보다 낮습니다.');
   var kpis=[
@@ -7544,9 +7545,10 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       {r:'B24',s:'자기자본',role:'lb'},{r:'C24',f:A+'C24',role:'vf',z:'num'},{r:'E24',s:'백만원',role:'un'},
       {r:'B25',s:'기말 현금',role:'lb'},{r:'C25',f:C3+'Q'+le,role:'vf',z:'num'},{r:'E25',s:'백만원',role:'un'},
       {r:'B26',s:'기말 차입 잔액',role:'lb'},{r:'C26',f:C3+'P'+le,role:'vf',z:'num'},{r:'E26',s:'백만원',role:'un'},{r:'F26',f:'IF('+C3+'P'+le+'<0.5,"OK — 전액 상환","미상환 — 분양률·사업비 점검")',role:'no'},
-      {r:'B27',s:'자기자본 회수액',role:'lb'},{r:'C27',f:'C25-C26-C17',role:'vf',z:'num'},{r:'E27',s:'백만원',role:'un'},
-      {r:'B28',s:'Equity Multiple',role:'lbb'},{r:'C28',f:'IFERROR(C27/C24,"")',role:'vf',z:'mult'},
+      {r:'B27',s:'자기자본 순회수액',role:'lb'},{r:'C27',f:'C25-C26-C17',role:'vf',z:'num'},{r:'E27',s:'백만원',role:'un'},{r:'F27',s:'음수이면 기말 자금부족입니다.',role:'no'},
+      {r:'B28',s:'Equity Multiple',role:'lbb'},{r:'C28',f:'IFERROR(MAX(0,C27)/C24,"")',role:'vf',z:'mult'},{r:'F28',s:'분배 가능액 ÷ 초기 출자. 기말 자금부족 시 0x.',role:'no'},
       {r:'B29',s:'연환산 IRR(자기자본)',role:'lbb'},{r:'C29',f:'IFERROR(IF(C28>0,C28^(12/(COUNT('+C3+'B5:B'+le+')-1))-1,""),"")',role:'vf',z:'pct1'},
+      {r:'B30',s:'기말 자금부족',role:'lbb'},{r:'C30',f:'MAX(0,-C27)',role:'vf',z:'num'},{r:'E30',s:'백만원',role:'un'},
       {r:'B31',f:'IF('+valid+',"가정 변경 시 재계산됩니다. PF 수수료는 종료 시 정산하며 실행 시 지급하는 금융비는 별도 검토하세요.","'+invalidNote+'")',role:'no'}
     ]};
     pf.cells.forEach(function(c){if(c.f&&c.r!=='B31')c.f='IF('+valid+','+c.f+',"")';});
