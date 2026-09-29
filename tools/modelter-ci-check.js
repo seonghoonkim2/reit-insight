@@ -744,9 +744,9 @@ ok(html.includes('mt_nudge') && html.includes('nudge_save') &&
   /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 공유하세요/.test(html) &&
   /exRemaining\(\)\.length>0[\s\S]{0,350}남은 예시값/.test(html),
   '저장·팀 전달 넛지: 세션 1회·기존 공유 중복 억제·예시 상태별 문구');
-ok(html.includes('딜 보관함 위치 변경'), "What's new v3: 저장 위치 변경 안내");
-ok(html.includes('PPT 다운로드 메뉴 정리'), "What's new v3: 산출물 메뉴 변경 안내");
-ok(html.includes('안내 문구와 하단 링크 정리'), "What's new v3: 하단·문구 변경 안내");
+ok(html.includes('매입 모델의 NOI·보증금'), "What's new v3: 매입 모델 계산 변경 안내");
+ok(html.includes('개발 모델의 중도금'), "What's new v3: 중도금 횟수 수정 안내");
+ok(html.includes('리파이낸싱 상환표'), "What's new v3: 리파이낸싱 계산 수정 안내");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('const FIELD_REF_DEAL=') && html.includes('function fieldRef'), '시장 참고치 v2(딜 유형별) 존재');
 ok(html.includes('수도권 물류 5~7%') && html.includes('도심·강남 9~13만원'), '참고치 자산 유형별 분화(오피스≠물류)');
