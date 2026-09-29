@@ -222,6 +222,16 @@ elif deal == 'office_nopref':
         v = cell_raw('09_Return_Summary', ref)
         extra.append(('우선주 %s(%s) 비어있음' % (nm, ref), pref_unused(v), '값=%s' % (v,)))
 elif deal == 'office_nodebt':
+    extra.append(('실제 OFF 토글·저장 LTV 유지', exp.get('seniorOn') is False and float(exp.get('savedSeniorLtv', 0)) > 0,
+                  'senior_on=%r 저장 LTV=%r' % (exp.get('seniorOn'), exp.get('savedSeniorLtv'))))
+    extra.append(('OFF 상태 화면 대출 0', exp.get('loan') == 0, '대출=%r' % exp.get('loan')))
+    for ref in ('C45', 'C49', 'C20'):
+        value = cell('01_Assumptions', ref)
+        extra.append(('OFF 상태 적용 LTV·대출·취급수수료 0 ' + ref, value == 0, '값=%r' % value))
+    hold = int(cell('01_Assumptions', 'C79'))
+    no_debt = [cell('05_Debt_Schedule', chr(ord('C') + year) + str(row))
+               for year in range(hold) for row in (5, 6, 7, 8, 9)]
+    extra.append(('OFF 상태 전 기간 선순위 잔액·이자·원금·원리금 0', all(v == 0 for v in no_debt), '검사 셀=%d' % len(no_debt)))
     # 무차입에서는 커버리지 지표가 정의되지 않는다. 파일 손상·오류 토큰은 위 공통 검사가 잡고,
     # 여기서는 "0 으로 오독되지 않고 공란인가"만 추가로 본다.
     for ref, nm in (('C13', '최소 DSCR'),):

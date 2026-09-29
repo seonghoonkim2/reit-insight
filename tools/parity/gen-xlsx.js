@@ -23,9 +23,9 @@ const VARIANTS = {
   // 직접 NOI는 임대료 산출 예시와 다른 값으로 두어 화면·엑셀 양쪽의 모드 전환이 실제 숫자를 바꾸게 한다.
   office_nonpass: { base: 'office', patch: "state['taxmode']='비도관(법인세 적용)'; state['noimode']='NOI 직접 입력'; state['noi1']='6000';" },
   office_hold7:   { base: 'office', patch: "state['hold']='7';" },
-  // 무차입(LTV 0) — 커버리지 지표(DSCR·ICR·Debt Yield)의 분모가 0이 되는 경계.
+  // 실제 토글 OFF: 저장된 LTV는 55% 그대로 두고 적용되는 대출만 0이 된다.
   // 가드가 빠지면 #DIV/0! 이 표지까지 전파되고, 비유한값이 숫자 셀에 들어가 엑셀이 파일을 거부한다.
-  office_nodebt:  { base: 'office', patch: "stackState['senior_ltv']='0'; stackState['pref_ltv']='0';" },
+  office_nodebt:  { base: 'office', patch: "stackState['senior_on']=false; stackState['pref_ltv']='0';" },
   // 공실 100% — 수입 0 경계. 엔진이 IRR·NOI·DSCR을 null로 돌려주는데도 다운로드는 그대로 실행된다.
   // degenerate: 수치 대조는 성립하지 않고, "파일이 열리는가 · 오류가 노출되지 않는가"만 검사한다.
   office_vac100:  { base: 'office', patch: "state['vacancy']='100';", degenerate: true },
@@ -104,7 +104,8 @@ function dcfDriver(engineDeal, patch, degenerate) {
     window.__downloadXlsx();
     var blob = globalThis.__lastBlob;
     if (!blob || !blob.parts || !blob.parts[0] || !blob.parts[0].length) throw new Error("blob 미캡처");
-    globalThis.__OUT = { bytes: blob.parts[0], raw: { IRR: r.raw.IRR, IRRat: r.raw.IRRat, EM: r.raw.EM, coc: r.raw.coc, minDSCR: r.raw.minDSCR, unlev: r.raw.unlev, equity: r.raw.equity } };
+    globalThis.__OUT = { bytes: blob.parts[0], raw: { IRR: r.raw.IRR, IRRat: r.raw.IRRat, EM: r.raw.EM, coc: r.raw.coc, minDSCR: r.raw.minDSCR, unlev: r.raw.unlev, equity: r.raw.equity,
+      loan: r.raw.loan, seniorOn: stackState.senior_on, savedSeniorLtv: stackState.senior_ltv } };
   })();`;
 }
 const DRIVERS = {
