@@ -200,7 +200,8 @@ workbook = openpyxl.load_workbook(args.xlsx, read_only=True, data_only=False)
 assumptions = workbook["A&R" if layout.compact else "01_Assumptions"]
 check("unused payout percentage is replaced with distribution policy", assumptions["C67"].value == "전액 분배")
 if layout.compact:
-    check("distribution policy explains distribution and common funding", all(text in str(assumptions["E67"].value) for text in ("분배", "보통주")))
+    policy = " ".join(str(assumptions[ref].value) for ref in ("C67", "E67"))
+    check("distribution policy explains distribution and common funding", all(text in policy for text in ("전액 분배", "보통주", "추가출자")))
 else:
     check("distribution policy is identified as calculation basis", assumptions["E67"].value == "계산 기준")
 check("distribution policy is no longer styled as an input", assumptions["C67"].font.color != assumptions["C65"].font.color)

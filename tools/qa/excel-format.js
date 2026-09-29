@@ -35,6 +35,18 @@ const LONG_LINK_ASSET = Array.from({ length: 2500 }, () => {
   textSeed = (Math.imul(textSeed, 1664525) + 1013904223) >>> 0;
   return String.fromCharCode(33 + ((textSeed >>> 16) % 90));
 }).join('');
+const SOURCE_ROWS = { asset: 6, gfa: 7, price: 12, appraisal: 14, acqtax: 15, acqfee: 16,
+  rentpp: 23, campp: 24, vacancy: 25, depmult: 26, noig: 27, exitcap: 58, salefee: 59,
+  prepayfee: 71, dispfee: 72, opfee: 76, fixcost: 77, hold: 79 };
+const PROVENANCE = {
+  sourceTags: Object.fromEntries(Object.keys(SOURCE_ROWS).map((key, i) => [key, {
+    s: ['IM 기재', '감정평가', '실사', '추정', '회사 표준'][i % 5],
+    d: '2026-09-' + String(i + 1).padStart(2, '0'),
+  }])),
+  context: { dealId: 'qa-deal', dealName: '가상 검토 딜 & A', versionId: 'qa-version',
+    label: 'v3', vname: '실사 반영', dirty: false, explicit: true },
+  house: { team: '가상 검토팀', ver: 'v2', at: '2026-09-20', irr: 8, dscr: 1.3 },
+};
 const cases = [
   { name: 'office', deal: 'office', hold: 5 },
   { name: 'logistics', deal: 'logistics', hold: 5 },
@@ -50,12 +62,16 @@ const cases = [
   { name: 'office_rentroll', deal: 'office', hold: 5, rentroll: 'source' },
   { name: 'office_lease_hold10', deal: 'office', hold: 10, rentroll: 'model' },
   { name: 'office_tenant222', deal: 'office', hold: 5, rentroll: 'model', leases: [{ ...LEASES[0], name: TENANT_222 }, LEASES[1]], clipped: true, compactClipped: false },
-  { name: 'office_asset285', deal: 'office', hold: 5, asset: ASSET_285, clipped: true },
+  // Approved A&R input width is now 21 (was 17): 285 characters fit below
+  // Excel's 409pt row limit. The much longer fixture still checks clipping.
+  { name: 'office_asset285', deal: 'office', hold: 5, asset: ASSET_285, clipped: true, compactClipped: false },
   { name: 'office_very_long_text', deal: 'office', hold: 5, asset: VERY_LONG_ASSET, rentroll: 'model', leases: [{ ...LEASES[0], name: VERY_LONG_TENANT }, LEASES[1]], clipped: true },
   { name: 'office_long_restore_link', deal: 'office', hold: 5, asset: LONG_LINK_ASSET, clipped: true, longLink: true },
   { name: 'office_multiline_asset', deal: 'office', hold: 5, asset: Array.from({ length: 40 }, (_, i) => '자산 ' + (i + 1)).join('\n'), clipped: true },
   { name: 'office_restore_optout', deal: 'office', hold: 5, recover: false },
   { name: 'office_long_link_optout', deal: 'office', hold: 5, asset: LONG_LINK_ASSET, recover: false, clipped: true, longLink: true },
+  { name: 'office_provenance', deal: 'office', hold: 5, ...PROVENANCE },
+  { name: 'office_lease_provenance', deal: 'office', hold: 5, rentroll: 'model', ...PROVENANCE },
 ];
 
 function stub() {
@@ -94,7 +110,7 @@ function generate(config) {
       addEventListener() {}, body: stub(), documentElement: stub(), readyState: 'complete', fonts: { ready: Promise.resolve() },
     },
     location: { hash: '', origin: 'https://modelter.com', pathname: '/', href: 'https://modelter.com/' },
-    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    localStorage: { getItem: key => key === 'mt_house' && config.house ? JSON.stringify(config.house) : null, setItem() {}, removeItem() {} },
     sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
     URL: { createObjectURL: () => 'blob:qa', revokeObjectURL() {} },
     navigator: {},
@@ -117,12 +133,14 @@ function generate(config) {
     ${config.asset !== undefined ? `state.asset = ${JSON.stringify(config.asset)};` : ''}
     ${config.state ? `Object.assign(state, ${JSON.stringify(config.state)});` : ''}
     ${config.stack ? `Object.assign(stackState, ${JSON.stringify(config.stack)});` : ''}
+    ${config.sourceTags ? `Object.assign(srcTags, ${JSON.stringify(config.sourceTags)});` : ''}
     ${patch}
     window.engineRaw = (simModel() || {}).raw;
     window.sensitivityBase = typeof window.__mtSensBase === 'function' ? window.__mtSensBase() : null;
     window.expectedSnapshot = encodeState();
     window.fullRestoreUrl = shareLink(true, 'xlsx');
-    ${config.download === false ? '' : 'window.__downloadXlsx();'}
+    window.generatedDate = new Date().toISOString().slice(0, 10);
+    ${config.download === false ? '' : 'window.__downloadXlsx(' + (config.context ? JSON.stringify(config.context) : '') + ');'}
   `;
   vm.runInContext(main + '\n' + xlsx + '\n' + driver, sandbox, { timeout: 15000 });
   if (config.download !== false && (!sandbox.lastBlob || !sandbox.lastBlob.parts[0])) throw new Error('다운로드 파일이 생성되지 않았습니다');
@@ -130,6 +148,7 @@ function generate(config) {
     bytes: config.download === false ? null : Buffer.from(sandbox.lastBlob.parts[0]), expected: sandbox.engineRaw,
     sensitivityBase: sandbox.sensitivityBase,
     snapshot: sandbox.expectedSnapshot, fullRestoreUrl: sandbox.fullRestoreUrl,
+    generatedDate: sandbox.generatedDate,
     decodeSnapshot: code => JSON.parse(vm.runInContext('mtLZ.decompress(' + JSON.stringify(code) + ')', sandbox)),
   };
 }
@@ -203,6 +222,8 @@ let pass = 0, fail = 0;
 function check(condition, message) { if (condition) pass++; else { fail++; console.error('  FAIL: ' + message); } }
 function cellStyle(wb, sheet, ref) { const c = sheet.cells.get(ref); return c ? wb.styles[Number(c.s || 0)] : null; }
 function fontSize(style) { return style ? Number((tags(style.font.content, 'sz')[0] || {}).val) : NaN; }
+function fontColor(style) { return style ? String((tags(style.font.content, 'color')[0] || {}).rgb || '').slice(-6).toUpperCase() : ''; }
+function fillColor(style) { return style ? String((tags(style.fill.content, 'fgColor')[0] || {}).rgb || '').slice(-6).toUpperCase() : ''; }
 function width(sheet, col) { const i = column(col), c = sheet.cols.find(c => Number(c.min) <= i && Number(c.max) >= i); return c ? Number(c.width) : 0; }
 function showSheet(wb, name) { const sheet = wb.sheets.find(s => s.name === name); if (!sheet) throw new Error('시트 없음: ' + name); return sheet; }
 function styleChecks(wb, config, expected, generated) {
@@ -252,9 +273,20 @@ function styleChecks(wb, config, expected, generated) {
     const pane = tags(sheet.xml, 'pane')[0];
     if (sheet.name === '00_Cover') check(!pane, label + ': 표지에 불필요한 틀 고정 없음');
     else check(pane && pane.state === 'frozen' && Number(pane.xSplit) === 2 && Number(pane.ySplit) >= 4, label + ': 제목·항목 열 틀 고정');
-    check(width(sheet, 'B') >= 30, label + ': 항목 열 너비');
+    check(compact && sheet.name === 'A&R' ? width(sheet, 'B') === 29 : width(sheet, 'B') >= 30, label + ': 승인 디자인의 항목 열 너비');
     const title = sheet.cells.get('B1') || sheet.cells.get('B2');
     if (title) check(fontSize(cellStyle(wb, sheet, title.r)) >= 14, label + ': 제목 글자 크기');
+    if (compact && title) {
+      const style = cellStyle(wb, sheet, title.r);
+      check(fontColor(style) === '1F3864' && fillColor(style) === 'FFFFFF', label + ': 승인한 남색 제목·흰 배경');
+      const header = cellStyle(wb, sheet, 'B4');
+      check(fontColor(header) === 'FFFFFF' && fillColor(header) === '1F3864', label + ': 표 머리글 남색·흰 글씨');
+    }
+    const darkHeaders = [...sheet.cells.values()].filter(c => (c.value !== '' || c.formula) &&
+      ['1F3864', '2F5496'].includes(fillColor(cellStyle(wb, sheet, c.r))));
+    const unreadableHeaders = darkHeaders.filter(c => fontColor(cellStyle(wb, sheet, c.r)) !== 'FFFFFF');
+    check(unreadableHeaders.length === 0, label + ': 모든 남색·파랑 머리글은 흰 글씨' +
+      (unreadableHeaders.length ? ' (' + unreadableHeaders.map(c => c.r).join(', ') + ')' : ''));
     check(sheet.cells.size === sheet.cellCount, label + ': 셀 주소 중복 없음');
     const overlaps = [];
     for (let i = 0; i < sheet.merges.length; i++) {
@@ -313,9 +345,26 @@ function styleChecks(wb, config, expected, generated) {
   if (config.deal === 'dev' || config.deal === 'refi') return;
   check(showSheet(wb, '_Calc').state === 'hidden', config.name + ': 계산 보조 시트 숨김');
   const assumptions = showSheet(wb, compact ? 'A&R' : '01_Assumptions'), validation = showSheet(wb, compact ? '검증' : '11_Validation_Checks');
+  if (config.sourceTags) {
+    for (const [key, tag] of Object.entries(config.sourceTags)) {
+      const ref = (compact ? 'E' : 'F') + SOURCE_ROWS[key], cell = assumptions.cells.get(ref);
+      const prefix = '[' + tag.s + ' · ' + tag.d + ']';
+      check(cell && cell.value.startsWith(prefix), config.name + '/' + ref + ': 사용자가 기록한 출처·날짜 보존');
+    }
+  }
+  if (config.context || config.house) {
+    const metadata = compact ? (assumptions.cells.get('G67') || {}).value :
+      (showSheet(wb, '00_Cover').cells.get('B2') || {}).value;
+    const ctx = config.context, house = config.house;
+    if (ctx) {
+      check(metadata && metadata.includes('Deal: ' + ctx.dealName), config.name + ': 사용자 딜명 보존');
+      check(metadata && metadata.includes(ctx.label + '·' + ctx.vname), config.name + ': 저장한 버전명 보존');
+      check(metadata && metadata.includes('생성 ' + generated.generatedDate), config.name + ': 실제 다운로드 생성일 보존');
+    }
+    if (house) check(metadata && metadata.includes(house.team + ' ' + house.ver + ' 기준 적용 · ' + house.at), config.name + ': 팀 기준명·버전·기준일 보존');
+  }
   const pane = tags(assumptions.xml, 'pane')[0];
-  const topHeight = Array.from({ length: 9 }, (_, i) => Number((assumptions.rows.get(i + 1) || {}).ht || 0)).reduce((a, b) => a + b, 0);
-  check(pane && pane.topLeftCell === (compact && topHeight <= 330 ? 'C10' : 'C5'), config.name + ': 가정표·핵심 결과 틀 고정, 긴 자산명은 고정 높이 축소');
+  check(pane && pane.topLeftCell === 'C5', config.name + ': 가정표 머리글만 고정하여 작업 영역 확보');
   check(/^(?:'A&R'!)?C79$/.test(((assumptions.cells.get('C57') || {}).formula || '').replace(/\$/g, '')), config.name + ': 보유기간 표시는 생성 기준 기간 참조');
   check(Number((assumptions.cells.get('C79') || {}).value) === config.hold, config.name + ': 생성 기준 보유기간 값');
   const validations = tags(assumptions.xml, 'dataValidation');
@@ -340,8 +389,16 @@ function styleChecks(wb, config, expected, generated) {
   check(fontSize(cellStyle(wb, assumptions, 'B7')) === 10, config.name + ': 가정 항목 10pt');
   check(fontSize(cellStyle(wb, assumptions, 'C7')) === 10, config.name + ': 입력 숫자 10pt');
   check(Number((assumptions.rows.get(7) || {}).ht) >= 23, config.name + ': 본문 행 높이');
-  check(width(assumptions, compact ? 'E' : 'F') >= (compact ? 36 : 47) && width(validation, 'F') >= 47, config.name + ': 가정·검증 비고 너비');
-  check(fontSize(cellStyle(wb, assumptions, compact ? 'E11' : 'F11')) === 9, config.name + ': 가정 비고 9pt');
+  check(compact ? width(assumptions, 'E') === 32 && width(validation, 'F') === 43 : width(assumptions, 'F') >= 47 && width(validation, 'F') >= 47, config.name + ': 승인 디자인의 가정·검증 비고 너비');
+  check(fontSize(cellStyle(wb, assumptions, compact ? 'E11' : 'F11')) === (compact ? 10 : 9), config.name + ': 가정 비고 글자 크기');
+  if (compact) {
+    const section = cellStyle(wb, assumptions, 'B5');
+    check(fillColor(section) === '2F5496' && fontColor(section) === 'FFFFFF', config.name + ': 구역 제목 파랑·흰 글씨');
+    check(fontColor(cellStyle(wb, assumptions, 'C7')) === '0000FF', config.name + ': 입력값 파랑');
+    check(fontColor(cellStyle(wb, assumptions, 'H5')) === '008000', config.name + ': 다른 시트 참조 초록');
+    check(fontColor(cellStyle(wb, assumptions, 'E11')) === '808080', config.name + ': 비고 회색');
+    check(fontSize(cellStyle(wb, assumptions, 'H5')) === 13 && fontSize(cellStyle(wb, assumptions, 'J5')) === 13, config.name + ': 보통주·총자기자본 IRR 강조');
+  }
   for (const row of [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 27, 28, 29, 30]) {
     const verdict = validation.cells.get('E' + row), note = validation.cells.get('F' + row);
     if (verdict && verdict.formula) {
@@ -351,7 +408,7 @@ function styleChecks(wb, config, expected, generated) {
     }
     if (note && note.value) {
       const style = cellStyle(wb, validation, note.r);
-      check(fontSize(style) === 9 && style.alignment.horizontal === 'left' && style.alignment.wrapText === '1', config.name + '/' + note.r + ': 비고 9pt·왼쪽·줄바꿈');
+      check(fontSize(style) === (compact ? 10 : 9) && style.alignment.horizontal === 'left' && style.alignment.wrapText === '1', config.name + '/' + note.r + ': 비고 글자 크기·왼쪽·줄바꿈');
     }
   }
   const notes = compact ? [
@@ -406,9 +463,9 @@ function styleChecks(wb, config, expected, generated) {
   }
   if (config.rentroll === 'model' && compact) {
     const rentroll = showSheet(wb, 'Rent Roll');
-    for (const title of ['공실·신규 임대 가정', '임대차 리스크']) check([...rentroll.cells.values()].some(c => c.value === title), config.name + ': 통합 임대차 시트의 ' + title + ' 표 보존');
+    for (const title of ['시장 가정', '임차인 집중도 및 만기']) check([...rentroll.cells.values()].some(c => c.value === title), config.name + ': 통합 임대차 시트의 ' + title + ' 표 보존');
     const firstTenant = (config.leases || LEASES)[0].name;
-    const riskHeading = [...rentroll.cells.values()].find(c => c.value === '임대차 리스크');
+    const riskHeading = [...rentroll.cells.values()].find(c => c.value === '임차인 집중도 및 만기');
     const riskFirstRow = riskHeading ? Number(riskHeading.r.match(/\d+/)[0]) + 4 : 0;
     const riskName = rentroll.cells.get('B' + riskFirstRow);
     const riskNameSource = showSheet(wb, '_Calc').cells.get('W74');

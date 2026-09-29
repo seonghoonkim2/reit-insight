@@ -46,10 +46,16 @@ const cases = [
   { name: 'absorption_hold9', hold: 9, leases, market: { ...market, absorbMonths: 36, newRentFree: 6 } },
   { name: 'twenty_hold10', hold: 10, leases: many(20), market },
   { name: 'hundred_hold3', hold: 3, leases: many(100), market },
+  // Exact duplicate names combine; a case-only spelling difference does not.
+  // Plain contractual-rent amounts give an independent concentration oracle.
+  { name: 'duplicate_names_hold5', hold: 5, market, manual: 'case_sensitive_names', leases:
+    ['가상 Alpha', '가상 alpha', '가상 Alpha', '가상 Beta', '가상 Gamma'].map((name, i) => ({
+      ...full[0], name, area: [500, 700, 1200, 1000, 1600][i], rentPP: 100000,
+    })) },
 ];
-const marketLabels = { marketPP: '시장 평당임대료(원)', marketCamPP: '시장 평당관리비(원)',
-  mtm: 'MTM(시장격차)', newRentFree: '신규 렌트프리(개월)', absorbMonths: '공실 흡수기간(개월)',
-  stabVac: '안정화 공실률', renewP: '재계약률', downtime: '다운타임(개월)',
+const marketLabels = { marketPP: '시장 임대료 (원/평·월)', marketCamPP: '시장 관리비 (원/평·월)',
+  mtm: '만기 후 시장임대료 조정률', newRentFree: '신규 렌트프리 (개월)', absorbMonths: '공실 해소기간 (개월)',
+  stabVac: '안정화 공실률', renewP: '재계약률', downtime: '재임대 공백 (개월)',
   mktStepUp: '시장 임대료 상승률', camG: '관리비 성장률' };
 const manifest = { description: 'Screen-engine scenarios are generated through the live application path; original exported formulas are independently recalculated after edits.', cases: [] };
 for (const c of cases) {

@@ -14,6 +14,7 @@ import time
 
 import formulas
 import openpyxl
+from workbook_cache import lease_group_inputs, verify_formula_caches
 
 ROOT = Path(__file__).resolve().parent
 ERRORS = {'#REF!', '#VALUE!', '#DIV/0!', '#NAME?', '#NUM!', '#N/A', '#NULL!'}
@@ -79,6 +80,22 @@ for case in manifest['cases']:
 
     model = formulas.ExcelModel().loads(str(file.resolve())).finish()
     baseline = model.calculate()
+    # EXACT(array) is not faithfully broadcast by the Python engine. Read the
+    # original contract inputs into an independent case-sensitive rent ledger,
+    # then let the engine recalculate MAX/LARGE and all downstream formulas.
+    group_inputs = lease_group_inputs(file, baseline)
+    cache_solution = model.calculate(inputs=group_inputs) if group_inputs else baseline
+    caches = verify_formula_caches(file, cache_solution)
+    check('every formula cache matches independent recalculation', not caches['errors'],
+          {'count': caches['count'], 'types': caches['types'], 'independent_group_cells': len(group_inputs),
+           'errors': caches['errors'][:12]})
+    if case['manual'] == 'case_sensitive_names':
+        # 5,000 occupied pyeong at 100,000 KRW/month gives 6,000 million
+        # annual rent. Alpha's two contracts combine, alpha remains separate.
+        grouped = list(group_inputs.values())
+        check('case-sensitive independent duplicate-name ledger', grouped == [2040, 840, 0, 1200, 1920], grouped)
+        check('concentration fixture distinguishes case folding',
+              max(grouped) / 6000 == 0.34 and sum(sorted(grouped, reverse=True)[:3]) / 6000 == 0.86)
     keys = {}
     for key in baseline:
         match = re.search(r"\]([^']+)'!([A-Z]+\d+)$", key)

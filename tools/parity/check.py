@@ -13,6 +13,7 @@ import sys
 import formulas
 import openpyxl
 from workbook_layout import WorkbookLayout
+from workbook_cache import verify_formula_caches, verify_negative_controls
 
 # 변형 → 기준 딜. 검증 셀 좌표는 기준 딜과 동일하고, 변형별 추가 확인만 얹는다.
 VARIANTS = {
@@ -161,6 +162,15 @@ extra = [
     ('숫자 셀에 비유한값 없음', not _nf, '위반=%s' % (_nf or '없음',)),
     ('엑셀 오류 토큰 0', not _ec, '검출=%s' % (_ec[:6] or '없음',)),
 ]
+
+# Every preview value must exist and match a separate formula implementation.
+# Covers hidden calculation sheets and blank/string verdicts as well as numbers.
+_cache = verify_formula_caches(xlsx, sol)
+extra.append(('수식 캐시 전수 독립 재계산 일치', not _cache['errors'],
+              '%d개 types=%s 오류=%s' % (_cache['count'], _cache['types'], _cache['errors'][:8] or '없음')))
+if deal == 'office' and not _cache['errors']:
+    for name, detected in verify_negative_controls(xlsx, sol):
+        extra.append(('캐시 변조 검출: ' + name, detected, '잘못된 캐시가 통과하지 않음'))
 
 # 보통주 누적 CF는 최초 출자부터 해당 연도까지의 실제 CF 합계여야 한다.
 # 직전 누적 셀/생성기 수식을 재현하지 않고 row 6 원자료를 독립적으로 합산한다.

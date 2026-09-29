@@ -1939,7 +1939,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-09-28·17ae37cc52';
+window.MT_BUILD='2026-09-29·054721a677';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -5685,40 +5685,46 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
 
   // 숫자서식 (VPLEX)
   var NUMFMTS=[
-    [164,'#,##0;(#,##0)'],[165,'#,##0.0'],[166,'0.0%'],[167,'0.00%'],[168,'0.00&quot;x&quot;'],[169,'0'],[170,'@'],[171,'0.000000']
+    [164,'#,##0;(#,##0)'],[165,'#,##0.0'],[166,'0.0%'],[167,'0.00%'],[168,'0.00&quot;x&quot;'],[169,'0'],[170,'@'],[171,'0.000000'],
+    [172,'#,##0.0;(#,##0.0);&quot;—&quot;'],[173,'#,##0;(#,##0);&quot;—&quot;'],[174,'[=1]&quot;해당&quot;;[=0]&quot;—&quot;;General']
   ];
-  var NF={num:164,num1:165,pct1:166,pct2:167,mult:168,int:169,text:170,num6:171};
+  var NF={num:164,num1:165,pct1:166,pct2:167,mult:168,int:169,text:170,num6:171,amount:172,count:173,flag:174};
   // Shared workbook styles: editing inputs, formulas and references stay distinguishable.
   var FONTS=[
-    [10,'24364B',false],[10,'24364B',true],[10,'1A1A1A',false],
-    [10,'1755A0',false],[10,'008050',false],[10,'FFFFFF',true],
-    [14,'FFFFFF',true],[9,'65768A',false],[9,'65768A',false],
-    [9,'1755A0',false],[9,'008050',false]
+    [10,'1A1A1A',false],[10,'1A1A1A',true],[10,'1A1A1A',false],
+    [10,'0000FF',false],[10,'008000',false],[10,'FFFFFF',true],
+    [16,'1F3864',true],[10,'808080',false],[10,'808080',false],
+    [10,'0000FF',false],[10,'008000',false],[10,'008000',true],
+    [10,'0000FF',true],[13,'1A1A1A',true],[13,'008000',true],
+    [12,'1A1A1A',true],[12,'008000',true]
   ].map(function(f){return '<font>'+(f[2]?'<b/>':'')+'<sz val="'+f[0]+'"/><color rgb="FF'+f[1]+'"/><name val="맑은 고딕"/></font>';});
   var FILLS=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>'].concat(
-    ['19334D','E5EDF5','DCE6F0','EDF4FC','F2F5F8'].map(function(c){return '<fill><patternFill patternType="solid"><fgColor rgb="FF'+c+'"/><bgColor indexed="64"/></patternFill></fill>';}));
+    ['1F3864','2F5496','2F5496','FFFFFF','FFFFFF'].map(function(c){return '<fill><patternFill patternType="solid"><fgColor rgb="FF'+c+'"/><bgColor indexed="64"/></patternFill></fill>';}));
   var BORDERS=[
     '<border><left/><right/><top/><bottom/><diagonal/></border>',
-    '<border><left/><right/><top/><bottom style="hair"><color rgb="FFE2E8EE"/></bottom><diagonal/></border>',
-    '<border><left/><right/><top style="thin"><color rgb="FFB5C3D1"/></top><bottom/><diagonal/></border>'
+    '<border><left/><right/><top/><bottom style="thin"><color rgb="FFBFBFBF"/></bottom><diagonal/></border>',
+    '<border><left/><right/><top style="thin"><color rgb="FFBFBFBF"/></top><bottom/><diagonal/></border>',
+    '<border><left/><right/><top/><bottom style="medium"><color rgb="FF1F3864"/></bottom><diagonal/></border>',
+    '<border><left style="medium"><color rgb="FF1F3864"/></left><right style="medium"><color rgb="FF1F3864"/></right><top style="medium"><color rgb="FF1F3864"/></top><bottom style="medium"><color rgb="FF1F3864"/></bottom><diagonal/></border>',
+    '<border><left style="medium"><color rgb="FFBFBFBF"/></left><right/><top/><bottom/><diagonal/></border>'
   ];
   function cellStyle(role,z,s,c){
-    var nf=NF[z]||0,fo=0,fi=0,bo=1,al='l',wr=1;
+    var nf=NF[z]||0,fo=0,fi=0,bo=0,al='l',wr=1;
     switch(role){
-      case 'ti': fo=6;fi=2;bo=0;break;
+      case 'ti': fo=6;fi=5;bo=3;break;
       case 'st': case 'nw': fo=8;bo=0;break;
-      case 'se': fo=1;fi=4;bo=0;break;
-      case 'th': fo=1;fi=3;al='c';break;
+      case 'se': fo=5;fi=3;bo=1;break;
+      case 'th': fo=5;fi=2;al='c';bo=1;break;
       case 'lbb': fo=1;break;
       case 'un': fo=8;al='c';break;
       case 'no': fo=7;break;
       case 'ki': fo=s&&s.indexOf('입력')>=0?9:(s&&s.indexOf('참조')>=0?10:7);al='c';break;
-      case 'vi': case 'vt': fo=3;fi=5;al=role==='vt'?'l':'r';nf=role==='vt'?NF.text:nf;break;
+      case 'vi': case 'vt': fo=3;al=role==='vt'?'l':'r';nf=role==='vt'?NF.text:nf;break;
       case 'vr': fo=4;al='r';break;
       case 'vf': case 'vn': fo=2;al='r';break;
       case 'check': fo=0;al='c';break;
     }
-    if(c){if(c.align)al=c.align;if(c.fill!==undefined)fi=c.fill;if(c.border!==undefined)bo=c.border;if(c.bold&&fo<3)fo=1;}
+    if(c){if(c.align)al=c.align;if(c.fill!==undefined)fi=c.fill;if(c.border!==undefined)bo=c.border;if(c.bold){if(fo<3)fo=1;else if(fo===3)fo=12;else if(fo===4)fo=11;}if(c.font!==undefined)fo=c.font;}
     return {nf:nf,fo:fo,fi:fi,bo:bo,al:al,wr:wr};
   }
   var ALIGN={l:'left',c:'center',r:'right'};
@@ -5848,6 +5854,93 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     });
   }
 
+  // Approved CRE working-file design. This pass changes labels and presentation only;
+  // year columns and lease blocks follow the generated model, never a sample deal.
+  function designHoldingWorkbook(dest,original,marketOffset,riskOffset,leaseOffset){
+    var ar=dest['A&R'],rr=dest['Rent Roll'];
+    function get(sh,ref){return sh.cells.filter(function(c){return c.r===ref;})[0];}
+    function cell(sh,ref){var c=get(sh,ref);if(!c){c={r:ref,s:'',role:'da'};sh.cells.push(c);}return c;}
+    function label(sh,ref,value){var c=cell(sh,ref);if(c.f!==undefined||c.n!==undefined)throw new Error('엑셀 디자인이 계산 셀을 덮을 수 없습니다: '+sh.name+'!'+ref);var source=sh===ar&&/^E\d+$/.test(ref)&&String(c.s||'').match(/^\[[^\]]*\]\s*/);c.s=(source?source[0].trim()+' ':'')+value;}
+    function labels(sh,map){Object.keys(map).forEach(function(ref){label(sh,ref,map[ref]);});}
+    function range(sh,a,b,fn){var start=splitRef(a),end=splitRef(b);for(var r=start.row;r<=end.row;r++)for(var k=start.ci;k<=end.ci;k++)fn(cell(sh,colLet(k)+r));}
+    function band(sh,r,from,to,section){range(sh,from+r,to+r,function(c){c.font=5;c.fill=section?3:2;c.border=1;});}
+    function total(sh,r,from,to){range(sh,from+r,to+r,function(c){c.bold=true;c.border=2;});}
+    function number(sh,a,b,z){range(sh,a,b,function(c){c.z=z;});}
+    function row(sh,r,h){sh.rowHeights[r]=h;cell(sh,'A'+r);}
+    function merge(sh,a,b){sh.merges=sh.merges.filter(function(m){return m.split(':')[0]!==a;});if(a!==b)sh.merges.push(a+':'+b);}
+    function note(sh,ref,end,text){label(sh,ref,text);cell(sh,ref).role='no';merge(sh,ref,end);}
+    var holding=get(ar,'C79'),H=holding&&Number(holding.n)||5,opEnd=colLet(H+3),yearEnd=colLet(H+2),eqEnd=colLet(H+3);
+    Object.keys(dest).forEach(function(name){var sh=dest[name];if(sh.hidden||name==='_Restore')return;
+      sh.freeze='C5';sh.rowHeights={};sh.widths.A=3;
+      sh.cells.forEach(function(c){delete c.fill;delete c.border;delete c.bold;delete c.font;sh.rowHeights[splitRef(c.r).row]=24;});
+      row(sh,1,34);row(sh,2,28);row(sh,3,8);row(sh,4,36);
+      if(name!=='A&R')for(var k=3;k<=sh.maxcol;k++)sh.widths[colLet(k)]=17;
+    });
+    ar.widths={A:3,B:29,C:21,D:11,E:32,F:3,G:30,H:14,I:14,J:15,K:14,L:23};
+    labels(ar,{B1:'A&R  가정 및 수익률',G1:'투자수익률',B2:'파랑: 입력  /  검정: 계산  /  초록: 다른 시트 참조',G2:'금액: 백만원   개별 단위는 해당 항목에 표시',E4:'산정 기준·비고',B5:'자산 개요',B6:'자산명',E6:'검토 대상 자산',E7:'연면적 기준',E8:'임대가능면적 / 연면적',G7:'투자배수 (EM)',G8:'보통주 평균 배당률 (CoC)',G9:'연평균 분배액 기준 회수연수',K5:'출자·회수 현금흐름 기준',K6:'총자기자본만 산정\n법인세 가정 C65·C66 적용',K7:'누적 회수액 / 총출자액',K8:'보통주 운영분배 / 출자액\n매각연도 제외',K9:'매각대금 포함 평균 분배액 기준\n실제 원금 회수시점과 다름',B10:'취득',E11:'매입가 = 평당 매입가 × 연면적',G11:'자산·차입 지표',G12:'자산 IRR (차입 전)',K12:'차입이 없는 경우의 자산 수익률',K13:'보유기간 중 최저값',K14:'1년차 NOI / 매입가',K15:'보유기간 다음 연도 NOI에 적용',K16:'매각 기준 NOI / Exit Cap',K17:'1년차 순영업이익',G18:'총투자비',G21:'계산·입력 점검',I21:'기준 충족 항목 / 전체 항목',B21:'총투자비 (Uses)',B22:'임대수입',G24:'자금조달 및 사용',G25:'단위: 백만원   비중: 총투자비 대비',G27:'투자비 (Uses)',G32:'총투자비',B30:'기타 수입',B33:'운영비',B34:'PM 수수료',E34:'부동산 관리 / 연면적 기준',B35:'FM 수수료',E35:'시설 관리 / 연면적 기준',G34:'자금조달 (Sources)',K34:'금리·배당률',G36:'중순위 대출',G37:'임차인 보증금',L35:'감정가 기준 LTV',L36:'선순위 후순위',L37:'승계 후 매각 시 반환',L38:'누적배당 여부: C73',L39:'우선주 배분 후 잔여액',G40:'총조달액',B39:'제세공과율',E39:'매입가 대비 연간 비용',B40:'보험료율',E40:'매입가 대비 연간 비용',B42:'자본적지출',E43:'연면적 기준 / NOI 차감 후 적립',B44:'선순위 대출',E46:'수수료 제외 연 이자율',E47:'거치기간은 C80 적용',E48:'분할상환 시 적용\n만기일시는 매각 시 상환',B50:'자기자본',B51:'우선주 비중 (총투자비)',E52:'누적배당 여부: C73',B54:'보통주 출자액',B56:'매각',E57:'기간 변경은 웹에서 다시 다운로드',E58:'보유기간 다음 연도 NOI 적용',G48:'보유 '+H+'년   기준: 현재 가정',G50:'Exit Cap별 매각가·수익률',G53:'총자기자본 세전 IRR',G54:'투자배수 (EM)',G57:'임대료·Exit Cap별 총자기자본 세전 IRR',G58:'임대료 배율 / Exit Cap',B60:'세무',E61:'매입가 중 건물 비중 / 토지 제외',E65:'도관과세 미적용 시 사용',E66:'1: 법인세 0 / 0: C65 세율 적용',E67:'부족액은 보통주 추가출자',G67:rr?'기간 변경과 임차인 추가·삭제는 웹에서 다시 다운로드':'기간 변경은 웹에서 다시 다운로드',B68:'추가 가정 및 지표',B73:'우선주 누적배당',E73:'1: 미지급 누적 / 0: 이월 없음',E74:'1: 승계·매각 시 반환 / 0: 미반영',B76:'AM 수수료율 (매입가)',B77:'기타 고정비 (연)',D71:'%',D72:'%',D73:'',D74:'',D75:'백만원',D76:'%',D77:'백만원',D78:'백만원',D79:'년',D80:'년',B78:'연간 AM 수수료·고정비',B79:'파일 기준 보유기간',E79:'연도 수는 다운로드 시 고정',B80:'거치기간',E80:'거치 후 원리금균등 상환 시 적용\n분할상환 기간보다 짧게 설정',B81:'중순위 대출',E82:'감정가 기준 / 0이면 미사용',E83:'중순위 대출의 연 이자율',E84:'현금 지급 또는 이자 누적 (PIK)'});
+    if(get(ar,'B87')&&get(ar,'B87').link)label(ar,'B87','다운로드 당시 가정으로 웹 열기 (엑셀 수정값 제외)');
+    if(get(ar,'G67').exportMeta)get(ar,'G67').s+=' · '+get(ar,'G67').exportMeta;
+    if(rr)labels(ar,{E23:'Rent Roll 계약표에서 수정',E24:'계약 임대면적 가중평균',E25:'계약 임대면적 / 임대가능면적',E26:'운용수익 산정용\n실제 승계 보증금과 별도',E27:'Rent Roll 시장 임대료 상승률',E28:'Rent Roll 시장 관리비 상승률',E75:'Rent Roll 계약 보증금 합계',G65:'연간 임대료를 일괄 조정합니다. 계약 보증금은 고정합니다.'});
+    range(ar,'E6','E85',function(c){if(c.s)c.font=8;});range(ar,'D6','D85',function(c){c.align='c';if(c.s)c.font=8;});
+    [5,10,22,30,33,42,44,50,56,60,68,81].forEach(function(r){band(ar,r,'B','E',true);row(ar,r,27);});
+    [11,24,47,50,57].forEach(function(r){band(ar,r,'G','L',true);row(ar,r,r===57?34:28);});
+    [4,27,34,51,58].forEach(function(r){band(ar,r,r===4?'B':'G',r===4?'E':'L',false);});band(ar,4,'G','L',false);
+    [6,8,9,26,35,37,38,39,48,80].forEach(function(r){row(ar,r,34);});
+    [7,13,17,18,19,32,40].forEach(function(r){total(ar,r,'G','J');});
+    [12,21,49,53,54,55,69,78,85].forEach(function(r){total(ar,r,'B','D');});
+    ['H5','J5'].forEach(function(ref){cell(ar,ref).font=get(ar,ref).role==='vr'?14:13;});['H7','J7','H13'].forEach(function(ref){cell(ar,ref).font=get(ar,ref).role==='vr'?16:15;});
+    ['C6','C12','C55'].forEach(function(ref){cell(ar,ref).bold=true;});range(ar,'G39','I39',function(c){c.bold=true;});
+    Object.assign(cell(ar,'H21'),{font:1,fill:5,border:0});
+    [12,14,18,19,20,21,49,53,54,55,63,64,69,75,77,78,85].forEach(function(r){cell(ar,'C'+r).z='amount';});number(ar,'H28','H40','amount');number(ar,'H16','H19','amount');number(ar,'H52','L52','amount');
+    ['J51','J58','G61','J61'].forEach(function(ref){var c=cell(ar,ref);c.bold=true;c.border=4;if(ref==='J51'||ref==='J58'){c.font=5;c.fill=3;}});
+    [48,65,67,69].forEach(function(r){cell(ar,'G'+r).font=8;if(r!==48)row(ar,r,28);});row(ar,58,34);row(ar,69,32);row(ar,86,8);row(ar,87,28);
+    if(get(ar,'B87'))get(ar,'B87').font=3;
+    if(rr){
+      rr.widths={A:3,B:36,C:19,D:21,E:19,F:19,G:22,H:20,I:17,J:19};
+      labels(rr,{B1:'Rent Roll  임대차 현황',B2:'만기 빈칸: 미정  /  계약 상승률 빈칸: 시장 상승률 적용  /  전용면적: 참고값',C4:'전용면적\n(평·참고)',D4:'임대면적\n(평)',E4:'임대료\n(원/평·월)',F4:'관리비\n(원/평·월)',G4:'보증금\n(원)',H4:'잔여 렌트프리\n(개월)',I4:'잔여만기\n(년)',J4:'계약 임대료\n상승률'});
+      var marketLabels={1:'시장 가정',2:'공실 해소·계약 만기 후 임대에 적용하는 조건',5:'시장 임대료 (원/평·월)',6:'시장 관리비 (원/평·월)',7:'만기 후 시장임대료 조정률',8:'신규 렌트프리 (개월)',9:'공실 해소기간 (개월)',12:'재임대 공백 (개월)',14:'연면적 (평)',15:'임대가능면적 (평)',16:'계약 임대면적 합계 (평)',17:'최초 공실면적 (평)'};
+      Object.keys(marketLabels).forEach(function(r){label(rr,'B'+(marketOffset+Number(r)),marketLabels[r]);});
+      band(rr,4,'B','J',false);row(rr,4,40);row(rr,2,30);band(rr,marketOffset+1,'B','F',true);band(rr,marketOffset+4,'B','C',false);
+      [marketOffset-2,marketOffset-1,marketOffset,marketOffset+3,riskOffset-2,riskOffset-1,riskOffset,riskOffset+3].forEach(function(r){row(rr,r,8);});
+      cell(rr,'B'+(marketOffset+2)).font=8;range(rr,'B'+(marketOffset+14),'C'+(marketOffset+14),function(c){c.border=2;});
+      if(original.Lease_Risk){
+        var count=original['01_Rent_Roll'].cells.filter(function(c){return /^B\d+$/.test(c.r)&&c.role==='vt'&&splitRef(c.r).row>=5;}).length;
+        var riskBase=riskOffset+count+6,schedule=riskBase+11;
+        label(rr,'B'+(riskOffset+1),'임차인 집중도 및 만기');label(rr,'B'+(riskOffset+2),'동일 임차인명은 합산합니다. 만기 미정 계약은 WALE·만기표에서 제외합니다.');
+        ['임차인','임대면적\n(평)','연간 임대료\n(백만원)','잔여만기\n(년)','만기 입력','12개월 내','36개월 내'].forEach(function(value,i){label(rr,colLet(i+2)+(riskOffset+4),value);});
+        var riskLabels={1:'계약 연환산 임대료 (백만원)',3:'WALE (면적 가중, 년)',4:'WALE (임대료 가중, 년)',7:'최대 임차인 비중 (임대료)',8:'상위 3개 임차인 비중 (임대료)'};
+        Object.keys(riskLabels).forEach(function(r){label(rr,'B'+(riskBase+Number(r)),riskLabels[r]);});
+        label(rr,'B'+schedule,'연도별 계약 만기');label(rr,'D'+(schedule+1),'만기 임대료\n(백만원/년)');
+        band(rr,riskOffset+1,'B','H',true);band(rr,riskOffset+4,'B','H',false);band(rr,schedule,'B','H',true);band(rr,schedule+1,'B','D',false);
+        row(rr,riskOffset+2,30);row(rr,riskOffset+4,38);row(rr,schedule+1,38);row(rr,riskBase-1,8);row(rr,schedule-1,8);cell(rr,'B'+(riskOffset+2)).font=8;
+        [0,3,7,9].forEach(function(r){total(rr,riskBase+r,'B','C');});
+        number(rr,'D'+(riskOffset+5),'D'+(riskOffset+4+count),'amount');number(rr,'F'+(riskOffset+5),'H'+(riskOffset+4+count),'flag');range(rr,'F'+(riskOffset+5),'H'+(riskOffset+4+count),function(c){c.align='c';});
+        cell(rr,'C'+(riskBase+1)).z='amount';cell(rr,'C'+(riskBase+9)).z='amount';number(rr,'C'+(schedule+2),'C'+(schedule+H+3),'count');number(rr,'D'+(schedule+2),'D'+(schedule+H+3),'amount');
+      }
+    }
+    var op=dest['운영수지'];op.maxcol=H+3;op.widths.B=38;
+    labels(op,{B2:'단위: 백만원   보유기간: Y1–Y'+H+'   매각 기준: Y'+(H+1)+' NOI',B10:'PM 수수료',B11:'FM 수수료',B18:'순영업이익 (NOI)',B19:'NOI 마진',B21:'운영현금흐름 (NOI − CapEx)'});label(op,opEnd+'4','Y'+(H+1)+'\n매각 기준');
+    number(op,'C5',opEnd+'21','amount');number(op,'C19',opEnd+'19','pct1');range(op,opEnd+'4',opEnd+'21',function(c){c.border=5;});[9,17,18,21].forEach(function(r){total(op,r,'B',opEnd);});
+    note(op,'B23',opEnd+'23','NOI는 대출이자·AM 수수료 차감 전입니다. 지분 현금흐름에서 별도 반영합니다.');row(op,22,8);row(op,23,28);
+    if(original.Lease_NOI_Buildup){
+      label(op,'B'+(leaseOffset+2),'계약 유지·공실 해소·만기 후 임대료로 구분');label(op,'B'+(leaseOffset+6),'공실 해소 임대료');label(op,'B'+(leaseOffset+7),'만기 후 임대료');label(op,opEnd+(leaseOffset+4),'Y'+(H+1)+'\n매각 기준');
+      note(op,'B'+(leaseOffset+11),opEnd+(leaseOffset+11),'계약·시장 가정은 Rent Roll에서 수정합니다. 임차인 추가·삭제는 웹에서 다시 다운로드합니다.');
+      band(op,leaseOffset+1,'B',opEnd,true);band(op,leaseOffset+4,'B',opEnd,false);cell(op,'B'+(leaseOffset+2)).font=8;number(op,'C'+(leaseOffset+5),opEnd+(leaseOffset+9),'amount');[8,9].forEach(function(r){total(op,leaseOffset+r,'B',opEnd);});[0,3,10].forEach(function(r){row(op,leaseOffset+r,8);});row(op,leaseOffset+4,36);row(op,leaseOffset+11,32);
+    }
+    var debt=dest['대출'];debt.maxcol=H+2;debt.widths.B=39;
+    labels(debt,{B1:'대출 상환계획',B2:'단위: 백만원   차입 지표는 선·중순위 합산 기준',B9:'총 원리금 (현금 지급)',B10:'DSCR (NOI / 현금 원리금)',B12:'Debt Yield (NOI / 기말잔액)',B13:'내재 LTV',B15:'중순위 대출',B17:'중순위 발생이자',B18:'중순위 현금이자',B19:'중순위 누적이자 (PIK)',B22:'선순위 DSCR (참고)'});label(debt,yearEnd+'4','Y'+H+'\n매각연도');
+    number(debt,'C5',yearEnd+'9','amount');number(debt,'C16',yearEnd+'20','amount');[8,9,10,20].forEach(function(r){total(debt,r,'B',yearEnd);});band(debt,15,'B',yearEnd,true);[14,21,23].forEach(function(r){row(debt,r,8);});note(debt,'B24',yearEnd+'24','기말잔액은 매각 상환 전 금액입니다.\n내재 LTV = 총 기말잔액 / (다음 연도 NOI / Exit Cap)');row(debt,24,38);
+    var tax=dest['세무·매각'];tax.maxcol=H+2;tax.widths.B=39;
+    labels(tax,{B1:'세무 및 매각 정산',B2:'단위: 백만원   법인세율·도관과세 여부: A&R C65·C66',B10:'누적 감가상각',B12:'매각 정산 (보유 '+H+'년차 말)',B13:'매각가 (Y'+(H+1)+' NOI / Exit Cap)',B15:'순매각가 (매각비용 차감)',B16:'세무상 장부가',B19:'중도상환수수료',B20:'매각성과보수'});label(tax,yearEnd+'4','Y'+H+'\n매각연도');number(tax,'C5',yearEnd+'10','amount');number(tax,'C13','C20','amount');[8,9].forEach(function(r){total(tax,r,'B',yearEnd);});total(tax,15,'B','C');band(tax,12,'B',yearEnd,true);row(tax,11,10);row(tax,12,30);
+    var eq=dest['지분 현금흐름'];eq.maxcol=H+3;eq.widths.B=38;
+    labels(eq,{B2:'단위: 백만원   음수는 출자, 양수는 회수',C4:'Y0\n최초 출자',B5:'우선주 현금흐름',B6:'보통주 현금흐름',B7:'총자기자본 현금흐름 (세전)',B8:'총자기자본 현금흐름 (세후)',B15:'매각연도에는 매각대금·대출·보증금 정산 반영. 현금 부족은 보통주 추가출자.',B18:'지분 배분 전 현금흐름',B20:'우선주 원금 반환',B22:'보통주 잔여 분배',B23:'미지급 우선배당 (기말)'});label(eq,eqEnd+'4','Y'+H+'\n매각연도');label(eq,eqEnd+'17','Y'+H+'\n매각연도');number(eq,'C5',eqEnd+'9','amount');number(eq,'D18',eqEnd+'23','amount');[7,8,9,18,21,22].forEach(function(r){total(eq,r,'B',eqEnd);});[10,11,12,13,16].forEach(function(r){row(eq,r,8);});band(eq,14,'B',eqEnd,true);band(eq,17,'B',eqEnd,false);row(eq,17,36);row(eq,15,34);cell(eq,'B15').font=8;
+    var check=dest['검증'];check.widths={A:3,B:40,C:19,D:19,E:17,F:43};
+    labels(check,{B1:'계산·입력 점검',B2:'PASS는 각 행의 기준 충족을 뜻합니다. 투자 적정성 판단과는 별개입니다.',B5:'총투자비 = 총조달액',B6:'자기자본 = 우선주 + 보통주',B7:'1년차 NOI 연결',B8:'매각가 = 다음 연도 NOI / Cap',B13:'우선주 ≥ 0, 총투자비 이하',B15:'충족 항목 / 전체 항목',F15:'아래 상환·배분·입력 점검 포함\n다운로드 결과 비교 제외',B17:'다운로드 당시 결과와 비교',E18:'일치 여부',B20:'투자배수 (총자기자본)',B23:'가정을 수정하면 이 표의 비교 결과가 FAIL일 수 있습니다. 여기서 FAIL은 다운로드 당시 값과의 차이를 뜻합니다.',F23:'',D26:'차이·위반 금액',F30:'상환방식·기간·0/1 입력값 확인'});
+    [5,6,7,8,10,13].forEach(function(r){number(check,'C'+r,'D'+r,'amount');});[4,18,26].forEach(function(r){band(check,r,'B','F',false);});[17,25].forEach(function(r){band(check,r,'B','F',true);});[6,8,10,11,13,14,15,19,20,21,22,27,28,29,30].forEach(function(r){row(check,r,32);});total(check,15,'B','F');range(check,'F5','F30',function(c){if(c.s&&[18,26].indexOf(splitRef(c.r).row)<0)c.font=8;});range(check,'E19','E22',function(c){c.font=8;});row(check,16,10);row(check,24,10);row(check,23,40);cell(check,'B23').font=8;
+    Object.keys(dest).forEach(function(name){var sh=dest[name];if(sh.hidden||name==='_Restore')return;var end=colLet(sh.maxcol);if(name!=='A&R')band(sh,4,'B',end,false);range(sh,'B1',end+'1',function(c){c.border=3;c.fill=5;});});
+    range(ar,'F1','F87',function(c){c.border=0;c.fill=0;});
+  }
+
   // Holding models share one assumptions/results workspace. Move existing cells only;
   // rewrite references after every destination is known, without changing calculations.
   function compactWorkbook(t){
@@ -5967,6 +6060,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
       if(original['Lease_Risk'])text(rr,'B'+(riskOffset+1),'임대차 리스크','se');
       rr.widths={A:3,B:36,C:16,D:20,E:20,F:18,G:20,H:20,I:16,J:16};rr.maxcol=Math.max(rr.maxcol,10);
     }
+    designHoldingWorkbook(dest,original,marketOffset,riskOffset,leaseOffset);
     // Fit text again because consolidation changes widths. Empty merged cells are
     // harmless, while any nonempty cell inside a merge would hide model content.
     Object.keys(dest).forEach(function(n){var sh=dest[n];if(sh.hidden)return;
@@ -5988,6 +6082,150 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     t.sheets=order.filter(function(n){return dest[n];}).map(function(n){return dest[n];}).concat(t.sheets.filter(function(sh){return sh.hidden;}).map(function(sh){return dest[sh.name]||sh;}));
   }
 
+  // Excel 재계산을 하지 않는 미리보기도 읽을 수 있도록 출고 수식의 결과를 저장한다.
+  // 수식 자체를 평가하므로 화면 엔진의 재무 규칙을 별도로 복제하지 않는다.
+  // 지원하지 않는 구문/함수는 다운로드를 중단하며, 임의의 0으로 대체하지 않는다.
+  function cacheWorkbookFormulas(t){
+    var sheets=Object.create(null), values=Object.create(null), active=Object.create(null), trees=Object.create(null);
+    t.sheets.forEach(function(sh){var cells=Object.create(null);sh.cells.forEach(function(c){cells[c.r.toUpperCase()]=c;});sheets[sh.name]=cells;});
+    function fail(message){throw new Error('Excel 미리보기 계산: '+message);}
+    function xl(code){var e=new Error(code);e.xlsxError=true;throw e;}
+    function finite(n){if(!Number.isFinite(n))xl('#NUM!');return n;}
+    function scalar(v){if(Array.isArray(v)){if(v.length===1&&v[0].length===1)return v[0][0];xl('#VALUE!');}return v;}
+    function num(v){v=scalar(v);if(v==null||v==='')return 0;if(typeof v==='number')return finite(v);if(typeof v==='boolean')return v?1:0;var n=Number(v);if(!Number.isFinite(n))xl('#VALUE!');return n;}
+    function bool(v){v=scalar(v);if(v==null||v==='')return false;if(typeof v==='string'){if(/^true$/i.test(v))return true;if(/^false$/i.test(v))return false;xl('#VALUE!');}return !!v;}
+    function str(v){v=scalar(v);return v==null?'':typeof v==='boolean'?(v?'TRUE':'FALSE'):String(v);}
+    function flatten(v){return Array.isArray(v)?[].concat.apply([],v):[v];}
+    function arrayOp(a,b,fn){
+      if(!Array.isArray(a)&&!Array.isArray(b))return fn(a,b);
+      var aa=Array.isArray(a),bb=Array.isArray(b),base=aa?a:b;
+      if(aa&&bb&&(a.length!==b.length||a[0].length!==b[0].length))xl('#VALUE!');
+      return base.map(function(row,i){return row.map(function(_,j){return fn(aa?a[i][j]:a,bb?b[i][j]:b);});});
+    }
+    function compare(a,b){
+      a=scalar(a);b=scalar(b);
+      if(a==null)a=typeof b==='string'?'':typeof b==='boolean'?false:0;
+      if(b==null)b=typeof a==='string'?'':typeof a==='boolean'?false:0;
+      if(typeof a===typeof b){if(typeof a==='string'){a=a.toUpperCase();b=b.toUpperCase();}return a===b?0:a<b?-1:1;}
+      var rank={number:0,string:1,boolean:2};return rank[typeof a]<rank[typeof b]?-1:1;
+    }
+    function parse(source){
+      var f=String(source).replace(/^=/,''),at=0,tokens=[];
+      while(at<f.length){
+        var rest=f.slice(at),m;
+        if((m=/^\s+/.exec(rest))){at+=m[0].length;continue;}
+        if((m=/^"(?:[^"]|"")*"/.exec(rest))){tokens.push({type:'literal',value:m[0].slice(1,-1).replace(/""/g,'"')});}
+        else if((m=/^'(?:[^']|'')*'/.exec(rest))){tokens.push({type:'sheet',value:m[0].slice(1,-1).replace(/''/g,"'")});}
+        else if((m=/^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/.exec(rest))){tokens.push({type:'literal',value:Number(m[0])});}
+        else if((m=/^\$?[A-Za-z_][A-Za-z0-9_.$]*/.exec(rest))){tokens.push({type:'name',value:m[0]});}
+        else if((m=/^(?:<=|>=|<>|[+\-*/^&=<>(),:!%])/.exec(rest))){tokens.push({type:m[0]});}
+        else fail('지원하지 않는 수식 구문 '+rest.slice(0,40));
+        at+=m[0].length;
+      }
+      var p=0;
+      function peek(k){return tokens[p]&&tokens[p].type===k;}
+      function take(k){if(!peek(k))fail('수식 구문 '+f);return tokens[p++];}
+      function ref(token,sheet){if(!/^\$?[A-Za-z]{1,3}\$?[1-9][0-9]*$/.test(token.value))fail('지원하지 않는 참조 '+token.value);return {type:'ref',sheet:sheet,ref:token.value.replace(/\$/g,'').toUpperCase()};}
+      function primary(){
+        var token=tokens[p++],node;if(!token)fail('불완전한 수식 '+f);
+        if(token.type==='literal')node={type:'literal',value:token.value};
+        else if(token.type==='('){node=expr(0);take(')');}
+        else if(token.type==='+'||token.type==='-')node={type:'unary',op:token.type,arg:expr(6)};
+        else if(token.type==='name'||token.type==='sheet'){
+          if(peek('!')){p++;node=ref(take('name'),token.value);}
+          else if(token.type==='name'&&peek('(')){
+            p++;var args=[];if(!peek(')')){do{args.push(expr(0));if(!peek(','))break;p++;}while(true);}take(')');node={type:'call',name:token.value.toUpperCase(),args:args};
+          }else if(/^(TRUE|FALSE)$/i.test(token.value))node={type:'literal',value:token.value.toUpperCase()==='TRUE'};
+          else node=ref(token,null);
+        }else fail('지원하지 않는 수식 토큰 '+token.type);
+        if(peek(':')){p++;var end=tokens[p++],endRef;if(!end)fail('불완전한 범위 '+f);if(peek('!')){p++;endRef=ref(take('name'),end.value);}else endRef=ref(end,node.sheet);if(node.type!=='ref'||endRef.sheet!==node.sheet)fail('지원하지 않는 범위 '+f);node={type:'range',start:node,end:endRef};}
+        while(peek('%')){p++;node={type:'unary',op:'%',arg:node};}return node;
+      }
+      var prec={'=':1,'<>':1,'<':1,'>':1,'<=':1,'>=':1,'&':2,'+':3,'-':3,'*':4,'/':4,'^':5};
+      function expr(min){var node=primary();while(tokens[p]&&prec[tokens[p].type]>=min){var op=tokens[p++].type;node={type:'binary',op:op,left:node,right:expr(prec[op]+1)};}return node;}
+      var ast=expr(0);if(p!==tokens.length)fail('지원하지 않는 수식 끝 '+f);return ast;
+    }
+    function get(sheet,ref){
+      var key=sheet+'!'+ref;if(Object.prototype.hasOwnProperty.call(values,key))return values[key];
+      if(!sheets[sheet])fail('없는 시트 '+sheet);var c=sheets[sheet][ref];if(!c)return null;
+      if(active[key])fail('순환 참조 '+key);active[key]=true;
+      try{var result='f' in c?evaluate(trees[c.f]||(trees[c.f]=parse(c.f)),sheet):'n' in c?(c.n==null?null:finite(Number(c.n))):c.s==null?'':String(c.s);result=scalar(result);if(typeof result==='number')finite(result);values[key]=result;return result;}
+      catch(e){if(!e.xlsxError&&!e.xlsxCell){e.message+=' ('+key+')';e.xlsxCell=key;}throw e;}
+      finally{delete active[key];}
+    }
+    function range(node,sheet){
+      var a=splitRef(node.start.ref),b=splitRef(node.end.ref),rows=[];
+      if(a.row>b.row||a.ci>b.ci||b.row>1048576||b.ci>16384||(b.row-a.row+1)*(b.ci-a.ci+1)>1000000)fail('범위 한도 초과');
+      for(var r=a.row;r<=b.row;r++){var row=[];for(var c=a.ci;c<=b.ci;c++)row.push(get(node.start.sheet||sheet,colLet(c)+r));rows.push(row);}return rows;
+    }
+    function matches(value,criterion){
+      criterion=scalar(criterion);if(typeof criterion!=='string')return compare(value,criterion)==0;
+      var m=/^(<=|>=|<>|=|<|>)(.*)$/.exec(criterion),op=m?m[1]:'=',target=m?m[2]:criterion;
+      if(target!==''&&Number.isFinite(Number(target))){target=Number(target);if(typeof value==='string'&&value!==''&&Number.isFinite(Number(value)))value=Number(value);}
+      else if((op==='='||op==='<>')&&/[?*~]/.test(target)){
+        var pattern='';for(var i=0;i<target.length;i++){var ch=target[i];if(ch==='~'&&i+1<target.length){ch=target[++i];pattern+=ch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}else pattern+=ch==='*'?'.*':ch==='?'?'.':ch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+        var hit=new RegExp('^'+pattern+'$','i').test(str(value));return op==='='?hit:!hit;
+      }
+      var cmp=compare(value,target);return op==='='?cmp===0:op==='<>'?cmp!==0:op==='<'?cmp<0:op==='>'?cmp>0:op==='<='?cmp<=0:cmp>=0;
+    }
+    function irr(values,guess){
+      var cash=flatten(values).filter(function(v){return typeof v==='number';}),scale=Math.max.apply(null,cash.map(Math.abs));
+      if(!cash.some(function(v){return v<0;})||!cash.some(function(v){return v>0;})||!scale)xl('#NUM!');cash=cash.map(function(v){return v/scale;});
+      function calc(rate){var value=0,derivative=0,denom=1,base=1+rate;for(var i=0;i<cash.length;i++){value+=cash[i]/denom;if(i)derivative-=i*cash[i]/denom/base;denom*=base;}return [value,derivative];}
+      var r=guess==null?0.1:num(guess);if(r<=-1)xl('#NUM!');
+      // 극소 출자액은 정규화된 NPV가 작아도 금리가 아직 수렴하지 않았을 수 있다.
+      for(var i=0;i<100;i++){var pair=calc(r);if(pair[0]===0)return finite(r);var next=r-pair[0]/pair[1];if(!Number.isFinite(next)||next<=-1)break;if(Math.abs(next-r)<=1e-12*Math.max(1,Math.abs(next))&&Math.abs(calc(next)[0])<1e-12)return finite(next);r=next;}
+      // Newton이 수렴하지 않으면 -100% 경계 안에서 부호가 바뀌는 구간만 탐색한다.
+      var lo=-0.999999999,hi=1,fl=calc(lo)[0],fh=calc(hi)[0];for(i=0;i<30&&fl*fh>0;i++){hi=hi*2+1;fh=calc(hi)[0];}if(!Number.isFinite(fl)||fl*fh>0)xl('#NUM!');
+      for(i=0;i<180;i++){var mid=(lo+hi)/2,fm=calc(mid)[0];if(fm===0||hi-lo<=1e-12*Math.max(1,Math.abs(mid)))return finite(mid);if(fl*fm<=0)hi=mid;else{lo=mid;fl=fm;}}xl('#NUM!');
+    }
+    function evaluate(node,sheet){
+      if(node.type==='literal')return node.value;
+      if(node.type==='ref')return get(node.sheet||sheet,node.ref);
+      if(node.type==='range')return range(node,sheet);
+      if(node.type==='unary')return arrayOp(evaluate(node.arg,sheet),0,function(v){var n=num(v);return node.op==='-'?-n:node.op==='%'?n/100:n;});
+      if(node.type==='binary')return arrayOp(evaluate(node.left,sheet),evaluate(node.right,sheet),function(a,b){
+        var op=node.op;if(op==='&')return str(a)+str(b);
+        if(['=','<>','<','>','<=','>='].indexOf(op)>=0){var c=compare(a,b);return op==='='?c===0:op==='<>'?c!==0:op==='<'?c<0:op==='>'?c>0:op==='<='?c<=0:c>=0;}
+        a=num(a);b=num(b);if(op==='/'&&b===0)xl('#DIV/0!');return finite(op==='+'?a+b:op==='-'?a-b:op==='*'?a*b:op==='/'?a/b:Math.pow(a,b));
+      });
+      var name=node.name,args=node.args;
+      function arg(i){if(i>=args.length)xl('#VALUE!');return evaluate(args[i],sheet);}
+      if(name==='IF')return bool(arg(0))?arg(1):args.length>2?arg(2):false;
+      if(name==='IFERROR'){try{return arg(0);}catch(e){if(!e.xlsxError)throw e;return arg(1);}}
+      if(name==='ISNUMBER'){try{return typeof scalar(arg(0))==='number';}catch(e){if(!e.xlsxError)throw e;return false;}}
+      var a=args.map(function(n){return evaluate(n,sheet);}),flat=[].concat.apply([],a.map(flatten)),nums=flat.filter(function(v){return typeof v==='number';});
+      if(name==='SUM')return finite(nums.reduce(function(s,v){return s+v;},0));
+      if(name==='COUNT')return nums.length;
+      if(name==='MIN')return nums.length?Math.min.apply(null,nums):0;
+      if(name==='MAX')return nums.length?Math.max.apply(null,nums):0;
+      if(name==='AVERAGE'){if(!nums.length)xl('#DIV/0!');return finite(nums.reduce(function(s,v){return s+v;},0)/nums.length);}
+      if(name==='AND'||name==='OR'){var bs=flat.filter(function(v){return typeof v==='number'||typeof v==='boolean';}).map(bool);if(!bs.length)xl('#VALUE!');return name==='AND'?bs.every(Boolean):bs.some(Boolean);}
+      if(name==='NOT')return !bool(a[0]);
+      if(name==='ABS')return Math.abs(num(a[0]));
+      if(name==='POWER')return finite(Math.pow(num(a[0]),num(a[1])));
+      if(name==='ROUND'||name==='ROUNDUP'){var n=num(a[0]),d=num(a[1]),factor=Math.pow(10,Math.trunc(d)),scaled=Math.abs(n)*factor;return finite(Math.sign(n)*(name==='ROUNDUP'?Math.ceil(scaled):Math.floor(scaled+0.5))/factor);}
+      if(name==='EXACT')return arrayOp(a[0],a[1],function(v,w){return str(v)===str(w);});
+      if(name==='SUMPRODUCT'){
+        var base=Array.isArray(a[0])?a[0]:[[a[0]]],total=0;
+        a.forEach(function(v){if(Array.isArray(v)&&(v.length!==base.length||v[0].length!==base[0].length))xl('#VALUE!');});
+        base.forEach(function(row,i){row.forEach(function(_,j){var product=1;a.forEach(function(v){var x=Array.isArray(v)?v[i][j]:v;product*=typeof x==='number'?x:0;});total+=product;});});return finite(total);
+      }
+      if(name==='COUNTIF'||name==='SUMIF'||name==='SUMIFS'){
+        var ranges=[],criteria=[],sumValues=null;if(name==='SUMIFS'){sumValues=flatten(a[0]);for(var z=1;z<a.length;z+=2){ranges.push(flatten(a[z]));criteria.push(a[z+1]);}}
+        else{ranges=[flatten(a[0])];criteria=[a[1]];if(name==='SUMIF')sumValues=flatten(a.length>2?a[2]:a[0]);}
+        var length=ranges[0].length,result=0;if(ranges.some(function(v){return v.length!==length;})||(sumValues&&sumValues.length!==length))xl('#VALUE!');
+        for(var k=0;k<length;k++)if(ranges.every(function(v,j){return matches(v[k],criteria[j]);}))result+=sumValues?(typeof sumValues[k]==='number'?sumValues[k]:0):1;return finite(result);
+      }
+      if(name==='INDEX'){var matrix=Array.isArray(a[0])?a[0]:[[a[0]]],row=Math.trunc(num(a[1])),col=a.length>2?Math.trunc(num(a[2])):1;if(row<1||row>matrix.length||col<1||col>matrix[0].length)xl('#REF!');return matrix[row-1][col-1];}
+      if(name==='LARGE'){var sorted=flatten(a[0]).filter(function(v){return typeof v==='number';}).sort(function(v,w){return w-v;}),position=Math.ceil(num(a[1]));if(position<1||position>sorted.length)xl('#NUM!');return sorted[position-1];}
+      if(name==='IRR')return irr(a[0],a[1]);
+      if(name==='PMT'){var rate=num(a[0]),periods=num(a[1]),pv=num(a[2]),fv=a.length>3?num(a[3]):0,type=a.length>4?num(a[4]):0;if(periods===0)xl('#DIV/0!');if(rate===0)return finite(-(pv+fv)/periods);var growth=Math.pow(1+rate,periods);if(growth===1||1+rate*type===0)xl('#DIV/0!');return finite(-(pv*growth+fv)*rate/((1+rate*type)*(growth-1)));}
+      fail('지원하지 않는 함수 '+name);
+    }
+    t.sheets.forEach(function(sh){sh.cells.forEach(function(c){if('f' in c){try{c.cv=get(sh.name,c.r.toUpperCase());if(c.cv==null)c.cv=0;}catch(e){fail(sh.name+'!'+c.r+' '+e.message);}}});});
+  }
+
   function buildSheetXml(sheet, xfMap, xfList){
     var rows={}, links=[];
     sheet.cells.forEach(function(c){ var sr=splitRef(c.r); (rows[sr.row]=rows[sr.row]||[]).push(c); });
@@ -6004,7 +6242,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         var key=st.nf+'|'+st.fo+'|'+st.fi+'|'+st.bo+'|'+st.al+'|'+st.wr;
         var sidx=xfMap[key]; if(!sidx){ xfList.push(st); sidx=xfList.length; xfMap[key]=sidx; }
         var sAttr=' s="'+sidx+'"';
-        if('f' in c){ rowx+='<c r="'+c.r+'"'+sAttr+'><f>'+fixFormula(c.f)+'</f></c>'; }
+        if('f' in c){var cv=c.cv,ct=typeof cv==='string'?' t="str"':typeof cv==='boolean'?' t="b"':'';rowx+='<c r="'+c.r+'"'+sAttr+ct+'><f>'+fixFormula(c.f)+'</f><v>'+xmlesc(typeof cv==='boolean'?(cv?'1':'0'):String(cv))+'</v></c>';}
         // 숫자 셀은 유한값일 때만 <v>로 쓴다. null·undefined·NaN·Infinity 가 그대로 들어가면
         // <v>null</v> 같은 잘못된 XML이 되어 엑셀이 "손상된 파일"로 거부한다(무차입 딜의 최소 DSCR 등).
         // 비유한값은 빈 텍스트 셀로 대체 — 파일은 항상 열리고, 해당 지표만 공란으로 남는다.
@@ -6065,7 +6303,8 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     if(sheetOv){ Object.keys(sheetOv).forEach(function(snm){ var sh=null,q; for(q=0;q<t.sheets.length;q++) if(t.sheets[q].name===snm){sh=t.sheets[q];break;} if(!sh) return;
       var byRef={}; sh.cells.forEach(function(c){byRef[c.r]=c;});
       Object.keys(sheetOv[snm]).forEach(function(ref){ var ov2=sheetOv[snm][ref], c=byRef[ref]; if(!c){ c={r:ref,role:'vn'}; sh.cells.push(c); byRef[ref]=c; }
-        delete c.f; delete c.n; delete c.s; if('n' in ov2)c.n=ov2.n; else if('f' in ov2)c.f=ov2.f; else if('s' in ov2)c.s=ov2.s; if(ov2.role)c.role=ov2.role;if(ov2.z)c.z=ov2.z; }); }); }
+        var source=snm==='01_Assumptions'&&/^F\d+$/.test(ref)&&String(c.s||'').match(/^\[[^\]]*\]\s*/);
+        delete c.f; delete c.n; delete c.s; if('n' in ov2)c.n=ov2.n; else if('f' in ov2)c.f=ov2.f; else if('s' in ov2)c.s=(source?source[0].trim()+' ':'')+ov2.s; if(ov2.role)c.role=ov2.role;if(ov2.z)c.z=ov2.z; }); }); }
     // 라운드트립: 마스킹된 딜 스냅샷(공유 링크와 동일 페이로드)을 숨김 시트에 심음 → 이 파일을 드롭하면 딜 복원
     try{
       if(t.sheets.length>1&&typeof window!=='undefined'&&typeof window.__mtSnapForXlsx==='function'){
@@ -6081,6 +6320,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
     }catch(eRS){}
     formatWorkbook(t);
     compactWorkbook(t);
+    cacheWorkbookFormulas(t);
     var xfList=[], xfMap={};
     var sheetsMeta=t.sheets.map(function(s){return buildSheetXml(s, xfMap, xfList);});
     var sheetsXml=sheetsMeta.map(function(m){return m.xml;});
@@ -7449,7 +7689,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         if(ctx){ var _cv2=null,_b22=null,i3;
           for(i3=0;i3<_TPL.sheets.length;i3++) if(_TPL.sheets[i3].name==='00_Cover'){ _cv2=_TPL.sheets[i3]; break; }
           if(_cv2) for(i3=0;i3<_cv2.cells.length;i3++) if(_cv2.cells[i3].r==='B2'){ _b22=_cv2.cells[i3]; break; }
-          if(_b22&&_b22.s) _b22.s+=' · Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')))+' · 생성 '+new Date().toISOString().slice(0,10);
+          if(_b22&&_b22.s){_b22.exportMeta='Deal: '+ctx.dealName+(ctx.dirty?' (저장 안 된 변경 반영)':(' '+ctx.label+(ctx.vname?('·'+ctx.vname):'')))+' · 생성 '+new Date().toISOString().slice(0,10);_b22.s+=' · '+_b22.exportMeta;}
         }
       }catch(e3){}
       // 팀 기준 표기 — 하우스 기준이 설정돼 있으면 표지에 "OO팀 기준 v2 적용" 자동 표기
@@ -7457,7 +7697,7 @@ const XLTMPL={"sheets":[{"name":"00_Cover","hidden":false,"cells":[{"r":"B1","ro
         var _ht=(typeof houseTag==='function')?houseTag():'';
         if(_ht){ var _cvh=null,i4; for(i4=0;i4<_TPL.sheets.length;i4++) if(_TPL.sheets[i4].name==='00_Cover'){ _cvh=_TPL.sheets[i4]; break; }
           if(_cvh){ var _b2h=null,i5; for(i5=0;i5<_cvh.cells.length;i5++) if(_cvh.cells[i5].r==='B2'){ _b2h=_cvh.cells[i5]; break; }
-            if(_b2h&&_b2h.s) _b2h.s+=' · '+_ht; }
+            if(_b2h&&_b2h.s){_b2h.s+=' · '+_ht;_b2h.exportMeta=(_b2h.exportMeta?_b2h.exportMeta+' · ':'')+_ht;} }
         }
       }catch(e3b){}
       // 산출물 회수 링크 — 표지에 「이 모델 열기」 하이퍼링크(옵트인·마스킹·&src=xlsx). 받은 사람이 클릭 한 번으로 라이브 모델에 착지.
