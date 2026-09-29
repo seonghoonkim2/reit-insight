@@ -417,7 +417,7 @@ function styleChecks(wb, config, expected, generated) {
     ['10_Sensitivity', 'B19'],
     ['11_Validation_Checks', 'B17'], ['11_Validation_Checks', 'B23'], ['11_Validation_Checks', 'B25'],
   ];
-  if (config.recover !== false) notes.push(...(compact ? [['A&R', 'B87']] : [['00_Cover', 'B40'], ['00_Cover', 'B41'], ['00_Cover', 'B42'], ['01_Assumptions', 'B87']]));
+  if (config.recover !== false) notes.push(...(compact ? [['A&R', 'B95']] : [['00_Cover', 'B40'], ['00_Cover', 'B41'], ['00_Cover', 'B42'], ['01_Assumptions', 'B95']]));
   for (const [name, ref] of notes) {
     const sheet = showSheet(wb, name), merge = sheet.merges.find(m => m.startsWith(ref + ':'));
     check(Boolean(merge), config.name + '/' + name + '/' + ref + ': 긴 안내 병합');

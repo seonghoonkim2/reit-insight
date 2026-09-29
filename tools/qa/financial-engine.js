@@ -77,4 +77,22 @@ for (const p of paths) {
   array(loss.prefCF,[0,0,0,0,0],p.name+' no preferred payment in total loss');
   array(loss.commonCF,loss.dist,p.name+' common funds total loss');
 }
+// IRR must be invariant to amount units and cover losses close to -100%.
+// These one-payment examples have a closed-form answer, independent of NPV code.
+const irrPaths = [
+  {name:'legacy',code:section(html,'function npv(', 'function simDcf('),nameOfFunction:'irr'},
+  {name:'assumption',code:irr,nameOfFunction:'_irr'},
+  {name:'rentroll',code:section(html.slice(html.indexOf('// ── 임차인별 NOI 엔진')),'function npv(', '// lease별'),nameOfFunction:'irr'}
+];
+for(const path of irrPaths){
+  const solve=new Function(path.code+';return '+path.nameOfFunction+';')();
+  for(const scale of [1e-6,1,1e6]){
+    near(solve([-scale,100*scale]),99,path.name+' small-capital IRR scale '+scale);
+    near(solve([-100*scale,scale]),-.99,path.name+' near-total loss scale '+scale);
+    near(solve([-100*scale,0,0,0,0,161.051*scale]),.1,path.name+' five-year IRR scale '+scale);
+  }
+  for(const cash of [[0,0],[1,2],[-1,-2],[-1,NaN],[-1,Infinity]]){
+    assert.equal(solve(cash),null,path.name+' undefined or invalid cash flow');checks++;
+  }
+}
 console.log('FINANCIAL ENGINE OK - '+checks+' independent checks, assumption and rentroll paths');

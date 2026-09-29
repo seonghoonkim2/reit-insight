@@ -58,6 +58,16 @@ jobs:
         run: node tools/qa/xlsx-cache.js
       - name: 엔진 현금흐름 (독립 금액 예시·대출 상환·적자 분배)
         run: node tools/qa/financial-engine.js
+      - name: NOI 직접 입력과 보증금 원장
+        run: |
+          node tools/qa/noi-direct.js --out tools/parity/out/noi-direct
+          python3 tools/parity/noi-direct.py
+      - name: 리파이낸싱 상환 및 입력 변경
+        run: node tools/qa/refi-model.js
+      - name: 개발 중도금 횟수 및 일정 변경
+        run: |
+          node tools/qa/dev-model.js
+          python3 tools/parity/dev-model.py
       - name: 다운로드 엑셀 표시 (4개 딜·보유기간·렌트롤)
         run: node tools/qa/excel-format.js
       - name: 테스트 훅 유출 확인
