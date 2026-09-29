@@ -19,7 +19,7 @@ const OUT = path.join(DIR, 'verification.html');
 const BASE = 'https://modelter.com';
 const PYTHON = process.env.PYTHON_BIN || (process.platform === 'win32' ? 'python' : 'python3');
 const CHILD_ENV = Object.assign({}, process.env, { PYTHONUTF8: '1' });
-const DEALS = [{ k: 'office', n: '오피스 매입 (13시트)' }, { k: 'logistics', n: '물류센터 매입 (13시트)' }, { k: 'dev', n: '공동주택 분양 사업수지 (6시트)' }, { k: 'refi', n: '리파이낸싱 비교 (4시트)' }];
+const DEALS = [{ k: 'office', n: '오피스 매입 (기본 6시트)' }, { k: 'logistics', n: '물류센터 매입 (기본 6시트)' }, { k: 'dev', n: '공동주택 분양 사업수지 (6시트)' }, { k: 'refi', n: '리파이낸싱 비교 (4시트)' }];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function runParity(deal) {

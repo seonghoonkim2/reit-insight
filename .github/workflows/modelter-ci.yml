@@ -54,6 +54,12 @@ jobs:
         run: node tools/modelter-ci-check.js
       - name: 엔진 불변식 (경제적 단조성 17건)
         run: node tools/qa/invariants.js
+      - name: 다운로드 수식 캐시 (값 유형·빈 값·오류 차단)
+        run: node tools/qa/xlsx-cache.js
+      - name: 엔진 현금흐름 (독립 금액 예시·대출 상환·적자 분배)
+        run: node tools/qa/financial-engine.js
+      - name: 다운로드 엑셀 표시 (4개 딜·보유기간·렌트롤)
+        run: node tools/qa/excel-format.js
       - name: 테스트 훅 유출 확인
         run: test "$(grep -c '__mtCalc' dart-search/web/modelter/index.html)" -eq 0
 
@@ -71,7 +77,7 @@ jobs:
           python-version: "3.11"
       - name: formulas 설치 (엑셀 수식 독립 재계산)
         run: pip install --quiet formulas openpyxl
-      - name: 파리티 전수 11조합
+      - name: 파리티 전수 11조합 및 수식 캐시 독립 재계산
         run: |
           # 경계 변형은 상시 게이트다.
           #  office_nodebt : 무차입 — 커버리지 분모 0(파일 손상·#DIV/0! 회귀 차단)
@@ -82,6 +88,12 @@ jobs:
             node tools/parity/gen-xlsx.js "$d"
             python3 tools/parity/check.py "$d"
           done
+      - name: 가정 수정 후 경제적 타당성 (상환·분배·민감도·세후 표시)
+        run: python3 tools/parity/financial-calculations.py
+      - name: 렌트롤 재계산 및 캐시 (계약·시장 가정·만기·공실·동일 임차인)
+        run: |
+          node tools/parity/gen-lease-live.js
+          python3 tools/parity/lease-live.py
 
   smoke:
     name: 브라우저 스모크 49건
