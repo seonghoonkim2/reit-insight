@@ -12,6 +12,14 @@ assert.ok(Math.abs(bridge.intBr-2.5)<1e-10,'one month of bridge interest = 250 Ã
 const late=generate({deal:'dev',state:{...state,landpay:'100'}}),lateBook=workbook(late.bytes),lateProfit=lateBook.sheets.find(s=>s.name==='04_Profitability');
 assert.ok(Math.abs(Number(lateProfit.cells.get('C27').value)-(100+late.expected.profit))<1e-8,'late land payment is not omitted from equity recovery');checks++;
 fs.writeFileSync(path.join(out,'land-late.xlsx'),late.bytes);
+const loss=generate({deal:'dev',state:{...state,aptsold:'65',conscost:'700'}}),lossBook=workbook(loss.bytes),lossProfit=lossBook.sheets.find(s=>s.name==='04_Profitability');
+const lv=ref=>Number(lossProfit.cells.get(ref).value);
+assert.equal(loss.expected.EM,0,'loss scenario has no distributable proceeds and a zero equity multiple');checks++;
+assert.equal(lv('C28'),0,'Excel equity multiple does not present funding shortfall as negative distributions');checks++;
+assert.ok(lv('C30')>0&&Math.abs(lv('C30')-(lv('C26')+lv('C17')-lv('C25')))<1e-8,'funding shortfall reconciles debt plus settlement fee less cash');checks++;
+assert.equal(loss.expected.IRR,null,'negative recovery has no IRR');checks++;
+assert.equal(lossProfit.cells.get('C29').value,'','Excel negative recovery IRR is blank');checks++;
+fs.writeFileSync(path.join(out,'loss65.xlsx'),loss.bytes);
 for(const count of [1,4,6,8,12]){
   const name='count'+count,generated=generate({deal:'dev',state:{...state,mcount:String(count)}}),wb=workbook(generated.bytes);
   const a=wb.sheets.find(s=>s.name==='01_Assumptions'),m=wb.sheets.find(s=>s.name==='03_Monthly_CF'),p=wb.sheets.find(s=>s.name==='04_Profitability');
