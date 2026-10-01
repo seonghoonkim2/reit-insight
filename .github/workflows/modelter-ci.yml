@@ -56,6 +56,8 @@ jobs:
         run: node tools/qa/invariants.js
       - name: 다운로드 수식 캐시 (값 유형·빈 값·오류 차단)
         run: node tools/qa/xlsx-cache.js
+      - name: 엑셀 기본 템플릿 무손실 복원
+        run: node tools/qa/template-compaction.js
       - name: 엔진 현금흐름 (독립 금액 예시·대출 상환·적자 분배)
         run: node tools/qa/financial-engine.js
       - name: NOI 직접 입력과 보증금 원장
@@ -68,6 +70,10 @@ jobs:
         run: |
           node tools/qa/dev-model.js
           python3 tools/parity/dev-model.py
+      - name: 개발 기간 입력 및 편집 범위
+        run: |
+          node tools/qa/input-contract.js
+          python3 tools/parity/input-contract.py
       - name: 다운로드 엑셀 표시 (4개 딜·보유기간·렌트롤)
         run: node tools/qa/excel-format.js
       - name: 테스트 훅 유출 확인
@@ -100,6 +106,10 @@ jobs:
           done
       - name: 가정 수정 후 경제적 타당성 (상환·분배·민감도·세후 표시)
         run: python3 tools/parity/financial-calculations.py
+      - name: 다운로드 후 보유기간 변경 (매각·상환·분배·민감도)
+        run: |
+          node tools/qa/editable-hold.js
+          python3 tools/parity/editable-hold.py
       - name: 렌트롤 재계산 및 캐시 (계약·시장 가정·만기·공실·동일 임차인)
         run: |
           node tools/parity/gen-lease-live.js
@@ -119,5 +129,7 @@ jobs:
         run: npm install --no-save --no-package-lock playwright@1.62.1
       - name: 실제 브라우저 사용자 경로 49건
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/smoke.js
+      - name: 개발 입력 blur 및 실제 엑셀 다운로드
+        run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/editable-browser.js
       - name: 저가 모바일 첫 결과 5초 예산
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/perf-load.js

@@ -89,3 +89,31 @@ python3 tools/parity/lease-live.py --report /tmp/lease-live-checks.json
 가정이 없는 링크로 대체하지 않고 원본 파일 복원 안내를 표시해야 합니다.
 정상 링크, 링크 제외 선택, 임차인명 마스킹과 숨김 복원 데이터도 함께 검사합니다.
 엑셀 재저장 파일의 복원은 지원 범위에 포함하지 않습니다.
+
+## 보유기간 편집과 개발 일정 입력
+
+```bash
+node tools/qa/editable-hold.js
+python3 tools/parity/editable-hold.py
+node tools/qa/input-contract.js
+python3 tools/parity/input-contract.py
+CHROME_BIN=/path/to/chrome node tools/qa/editable-browser.js
+node tools/qa/template-compaction.js
+```
+
+`editable-hold`는 5년으로 받은 매입 엑셀의 `A&R!C79`만 바꿔 3·5·7·10년의
+매각·대출·지분 현금흐름·세후 수익률·민감도를 독립 재계산합니다. 오피스·물류,
+직접 NOI, 원리금균등, 중순위 PIK, 무차입을 포함하며 종료 뒤 현금흐름은 공란이어야 합니다.
+3~10년 범위를 벗어난 값, 소수, 문자를 붙여넣으면 결과를 숨기고 검증에 실패해야 합니다.
+임차계약을 모델에 반영한 렌트롤 파일은 기간 변경 후 웹에서 다시 받아야 합니다.
+해당 파일의 고정 기간을 덮어쓰면 결과를 숨기고 재다운로드 안내와 검증 실패를
+표시해야 합니다. 원래 기간으로 되돌리면 계산이 복구되는지도 확인합니다.
+
+`input-contract`는 개발 일정의 정수·범위 검증과 준공 후 분양의 월별 원장을 확인합니다.
+`editable-browser`는 Chromium에서 실제 입력·blur·다운로드를 실행해 잘못된 값이
+정상 숫자로 바뀌지 않는지 검사합니다. `EDITABLE_BROWSER_OUT` 환경변수를 지정하면
+물류 매입·공동주택 개발·리파이낸싱 다운로드 파일도 해당 폴더에 저장합니다.
+
+`template-compaction`은 압축 저장한 기본 템플릿을 복원한 뒤 13개 내부 시트·1,620개
+셀 전체의 수식·스타일·순서가 기존 템플릿과 같은지 확인합니다. 원본 HTML이 있으면
+`--baseline /path/to/index.html`로 해시 외에 원본 객체도 직접 비교할 수 있습니다.

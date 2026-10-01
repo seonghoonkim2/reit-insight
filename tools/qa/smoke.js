@@ -591,8 +591,11 @@ async function closeOverlays(page) {
       const wb = await downloadWorkbook(), ar = wb.sheets.find(s => s.name === 'A&R'), debt = wb.sheets.find(s => s.name === '대출');
       const number = (sheet, ref) => { const cell = sheet.cells.get(ref); return cell && cell.value !== '' ? Number(cell.value) : NaN; };
       const debtValues = [...debt.cells.values()].filter(c => /^[C-Z]+(?:5|6|7|8|9)$/.test(c.r) && c.formula);
+      const hold = number(ar, 'C79'), activeDebt = debtValues.filter(c => c.r.charCodeAt(0) - 66 <= hold);
+      const laterDebt = debtValues.filter(c => c.r.charCodeAt(0) - 66 > hold);
       ok(number(ar, 'C45') === 0 && number(ar, 'C49') === 0 && number(ar, 'C20') === 0 &&
-        debtValues.length === 25 && debtValues.every(c => c.value !== '' && Number(c.value) === 0) &&
+        activeDebt.length === hold * 5 && activeDebt.every(c => c.value !== '' && Number(c.value) === 0) &&
+        laterDebt.length === (config.leases ? 0 : (10 - hold) * 5) && laterDebt.every(c => c.t === 'str' && c.value === '') &&
         ar.cells.get('H13').t === 'str' && ar.cells.get('H13').value === '', label + ': 실제 다운로드에도 대출·원리금 0, DSCR 공란');
       const restoreCode = /^MTSNAP1:(.+):PANSTM$/.exec(wb.sheets.find(s => s.name === '_Restore').cells.get('B3').value)[1];
       const restored = await page.evaluate(code => JSON.parse(mtLZ.decompress(code)).k, restoreCode);

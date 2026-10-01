@@ -16,8 +16,8 @@ CI(`tools/modelter-ci-check.js`)는 구조·행동 검사까지만 하므로,
 
 ```bash
 # 1) 생성 — 배포 index.html을 헤드리스로 실행해 엑셀 + 엔진 기대값 덤프
-node tools/parity/gen-xlsx.js office      # 오피스 13시트
-node tools/parity/gen-xlsx.js logistics   # 물류 13시트
+node tools/parity/gen-xlsx.js office      # 오피스 표시 6시트 + 내부 계산·복원 시트
+node tools/parity/gen-xlsx.js logistics   # 물류 표시 6시트 + 내부 계산·복원 시트
 node tools/parity/gen-xlsx.js dev         # 분양수지 6시트
 node tools/parity/gen-xlsx.js refi        # 리파이낸싱 4시트
 
@@ -82,3 +82,12 @@ simModel() 결과가 실제로 달라졌는지(sig 가드) 확인한 다음 엑�
 
 주의: 시트 구조(셀 위치)를 바꾸면 `check.py`의 셀 맵도 함께 갱신해야 합니다.
 09_Return_Summary는 C=보통주 · D=우선주 · E=총자기자본 열 구조입니다.
+
+현재 매입 다운로드는 A&R에 요약·가정·민감도를 합칩니다. 위 표의 원본 템플릿
+이름은 검사기에서 실제 출력 시트명으로 변환합니다. 예를 들어 수익률은
+`A&R!H:J`, 검증은 `검증`, 대출은 `대출` 시트에서 읽습니다.
+계약별 렌트롤을 포함하면 표시 시트는 7개입니다.
+
+다운로드 이후 보유기간을 바꾸는 검사는 `tools/qa/editable-hold.js`와
+`tools/parity/editable-hold.py`를 순서대로 실행합니다. 생성 당시 값과 편집 뒤 값을
+분리해 검사하며, 기존 11조합 파리티를 대체하지 않습니다.
