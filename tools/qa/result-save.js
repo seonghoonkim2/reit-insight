@@ -88,7 +88,11 @@ const server=http.createServer((q,r)=>{if(q.url.startsWith('/e')){r.writeHead(20
     const pr=prompts.length;await page.evaluate(()=>document.getElementById('resultSave').click());check(prompts.length===pr,'readonly handler is guarded');
     await page.goto(url);await reset();await edit();
     for(const size of [{width:1280,height:900},{width:390,height:844}]){
-      await page.setViewportSize(size);await page.locator('#resultSave').scrollIntoViewIfNeeded();
+      await page.setViewportSize(size);
+      // Responsive placement is debounced; finish moving the card before testing its focus.
+      await page.waitForFunction(width=>document.getElementById('simCard').parentElement===
+        (width<=920?document.querySelector('.grid2'):document.getElementById('resultCol')),size.width);
+      await page.locator('#resultSave').scrollIntoViewIfNeeded();
       check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow at '+size.width);
       const boxes=await Promise.all(['#xlDownload','#resultSave','#outputsFold summary'].map(s=>page.locator(s).boundingBox()));
       check(boxes.every(b=>b&&b.width>0&&b.x>=0&&b.x+b.width<=size.width),'all result actions remain within viewport at '+size.width);
