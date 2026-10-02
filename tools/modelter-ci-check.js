@@ -91,7 +91,7 @@ if (fs.existsSync(path.join(DIR, 'howto.html'))) {
   ok(hw.includes('/#t=office') && hw.includes('/#t=dev&view=lender'), 'howto.html → 계산기 딥링크');
   ok(hw.includes('href="/guide"'), 'howto ↔ 용어사전 상호 링크(무확장 정식 URL)');
   ok(hw.includes('투자 권유가 아닌'), 'howto 고지 문구');
-  ok(hw.includes('IM 받은 뒤 30분 안에 1차 검토하는 순서') && hw.includes('팀에 1차 검토 공유'), '북극성 검색: IM 직후 계산→팀 전달 워크플로');
+  ok(hw.includes('IM 받은 뒤 30분 안에 1차 검토하는 순서') && hw.includes('이 조건 저장') && hw.includes('이전과 비교') && hw.includes('결과 링크 (읽기 전용)'), '북극성 검색: IM 직후 계산→저장·재검토→읽기 전용 전달 워크플로');
   ok((hw.match(/src=howto/g) || []).length >= 5 && !hw.includes('처음 열면 역할('), '북극성 검색: howto 유입 태그·삭제된 온보딩 설명 없음');
 }
 ok(fs.existsSync(path.join(DIR, 'im-checklist.html')), 'IM 첫 검토 체크리스트 존재 (고의도 검색 착지)');
@@ -254,8 +254,10 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const workerSrc4 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
   const workerEventBlock = (workerSrc4.match(/const EVENT_NAMES = new Set\(\[([^\]]+)\]\);/) || [])[1] || '';
   const workerEvents = [...workerEventBlock.matchAll(/"([a-z_0-9]+)"/g)].map(m => m[1]).sort();
-  const expectedWorkerEvents = [...codeEvents, 'ci_probe_live'].sort();
-  ok(JSON.stringify(workerEvents) === JSON.stringify(expectedWorkerEvents), '계측 사전: worker 이벤트 허용 목록 = 앱 64개 + 운영 점검 1개');
+  // nudge_save는 기존 캐시 클라이언트 수신·과거 집계용으로만 유지한다.
+  const expectedWorkerEvents = [...codeEvents, 'ci_probe_live', 'nudge_save'].sort();
+  ok(JSON.stringify(workerEvents) === JSON.stringify(expectedWorkerEvents), '계측 사전: worker 허용 목록 = 현재 앱 + 운영 점검 + 기존 저장 안내');
+  ok(!codeEvents.includes('nudge_save') && md.includes('과거 이벤트: `nudge_save`'), '계측 사전: 저장 안내 발화 중단과 과거 기록의 의미 보존');
   // 네거티브 자기 검사 — 이 비교기가 가짜 이벤트를 실제로 잡는지(잡지 못하면 게이트 자체가 무의미)
   ok([...docEvents, 'zz_fake_event'].filter(e => !codeEvents.includes(e)).length > 0, '계측 사전: 비교기 네거티브 자기 검사(가짜 이벤트 감지)');
   // 산출물 정의 단일 진실 — labels.js OUTPUT_EVENTS 전부가 문서 표에 존재
@@ -395,7 +397,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const devCalcPath = path.join(cDir, 'dev.html');
   const devCalc = fs.existsSync(devCalcPath) ? fs.readFileSync(devCalcPath, 'utf8') : '';
   ok(devCalc.includes('토지비 지급 시점과 공사비 기성 곡선(균등 또는 S-커브)을 반영합니다') && !devCalc.includes('공사비는 S-커브(기성 곡선)로 월별 전개됩니다'), '개발 검색 착지: 토지 지급·선택 기성 곡선 설명');
-  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('첫 항목부터 실제 값으로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
+  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('예시 숫자를 내 딜의 값으로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
   const naverDocPath = path.join(__dirname, '..', 'docs', 'NAVER_BLOG_IM_FIRST_LOOK.md');
   const naverDoc = fs.existsSync(naverDocPath) ? fs.readFileSync(naverDocPath, 'utf8') : '';
   const capturePath = path.join(__dirname, 'capture-naver-assets.js');
@@ -614,7 +616,14 @@ ok(html.includes('결과 카드와 엑셀은 입력한 세부 가정으로 다�
   '즉시 점검·PPT 안내: 현재 계산 경로를 정확한 문장으로 설명');
 ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfirmOutput'), '예시값 잔존 추적 + 산출물 확인 존재');
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
-ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
+// 자동 저장은 별도 페이로드를 중복 작성하지 않고 버전 스냅샷을 재사용한다.
+// 함수별 연결을 확인하고, 아래 헤드리스 실행에서 세 경로의 실제 왕복도 검증한다.
+const snapshotSource = html.slice(html.indexOf('function wsSnapshot(){'), html.indexOf('function wsStable('));
+const shareSource = html.slice(html.indexOf('function sharePayload(){'), html.indexOf('function encodeState('));
+const localSaveSource = html.slice(html.indexOf('function saveLocal(){'), html.indexOf('function tryRestoreLocal('));
+const localUsesSnapshot = /\bwsSnapshot\(\)/.test(localSaveSource) && /localStorage\.setItem\("mt_state",\s*JSON\.stringify\(p\)\)/.test(localSaveSource);
+ok([snapshotSource, shareSource].every(s => /ek:Array\.from\(exampleKeys\)/.test(s) && /ue:exUserEdited\?1:0/.test(s)) && localUsesSnapshot,
+  '예시 추적: 버전·공유 페이로드 보존 + 자동 저장의 공통 스냅샷 사용');
 // PASS/FAIL 수식은 _row() 헬퍼가 행 번호로 조립한다(무차입 등 정의되지 않는 지표는 '해당 없음'으로 우회).
 ok(html.includes('다운로드 시점 결과와 비교') && /IF\(ABS\(C'\+r\+'-D'\+r\+'\)<'\+cmp\+',"PASS","FAIL"\)/.test(html)
   && html.includes("_row(19,'세전 IRR"), '엑셀 다운로드 시점 비교(11시트 PASS/FAIL) 존재');
@@ -639,7 +648,8 @@ ok(html.includes('function renderAdjBar') && html.includes('id="adjBar"'), '미�
 ok(html.includes('function summaryCardPNG') && html.includes('임차인 정보 미포함'), '요약 카드 PNG(고지 포함) 존재');
 ok(html.includes('function wsLinkDiff') && html.includes('data-ws="lcmp"'), '공유 링크 2개 가정 diff 존재');
 ok(html.includes('function cmpTableText') && html.includes('data-cmp='), '딜 비교 대상 선택 + 비교표 복사 존재');
-ok(html.includes('function srcPop') && html.includes('var srcTags={}') && (html.match(/st:srcTags\}/g)||[]).length>=3, '가정 출처·기준일 기록(3경로 영속) 존재');
+ok(html.includes('function srcPop') && html.includes('var srcTags={}') && [snapshotSource, shareSource].every(s => /st:srcTags\}/.test(s)) && localUsesSnapshot,
+  '가정 출처·기준일: 버전·공유 페이로드 보존 + 자동 저장의 공통 스냅샷 사용');
 ok(html.includes("name:'_Restore'") && html.includes('wsXlsxRestore') && html.includes('MTSNAP1:'), '엑셀 라운드트립(_Restore 시트+복원 입력) 존재');
 ok(html.includes('거치후 원리금균등') && html.includes("n('C80',0)"), '거치후 원리금균등 상환(엔진+엑셀 C80) 존재');
 ok(html.includes('cov-lender') && html.includes('대주 관점 · 금리 × 공실 결합 스트레스'), '매입 대주 관점(금리×공실 스트레스) 존재');
@@ -740,13 +750,12 @@ ok(html.includes('modelter.com/im-checklist') && html.includes('MTIM.checklist()
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'DSCR 우위'"), '미니 KPI 전 탭(분양·리파이) 확장');
-ok(html.includes('mt_nudge') && html.includes('nudge_save') &&
-  /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 공유하세요/.test(html) &&
-  /exRemaining\(\)\.length>0[\s\S]{0,350}남은 예시값/.test(html),
-  '저장·팀 전달 넛지: 세션 1회·기존 공유 중복 억제·예시 상태별 문구');
-ok(html.includes('매입 모델의 NOI·보증금'), "What's new v3: 매입 모델 계산 변경 안내");
-ok(html.includes('개발 모델의 중도금'), "What's new v3: 중도금 횟수 수정 안내");
-ok(html.includes('리파이낸싱 상환표'), "What's new v3: 리파이낸싱 계산 수정 안내");
+ok(html.includes('id="resultSave"') && html.includes('function wsCanSaveResult') &&
+  !html.includes("track('nudge_save')") && !html.includes("getItem('mt_nudge')"),
+  '결과 저장: 기존 보관함으로 연결하고 25초 중복 저장 안내 제거');
+ok(html.includes('매입 엑셀의 보유기간') && html.includes('계약별 렌트롤의 보유기간은 웹에서 바꾼 뒤 엑셀을 다시 내려받으세요'), "What's new v3: 보유기간 편집 범위 안내");
+ok(html.includes('개발 일정 입력') && html.includes('준공 후에 분양을 시작하는 일정도 입력한 대로 계산'), "What's new v3: 개발 일정 변경 안내");
+ok(html.includes('렌트롤·리파이 편집 안내') && html.includes('참고용 렌트롤의 열 제목을 고쳤습니다'), "What's new v3: 렌트롤 표시와 편집 안내");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('const FIELD_REF_DEAL=') && html.includes('function fieldRef'), '시장 참고치 v2(딜 유형별) 존재');
 ok(html.includes('수도권 물류 5~7%') && html.includes('도심·강남 9~13만원'), '참고치 자산 유형별 분화(오피스≠물류)');
@@ -1241,6 +1250,27 @@ const driver = `;(function(){
     window.rrModel = null;
     cur = "office"; fillExample();
   }
+  // 예시 잔존·사용자 수정 여부·출처/기준일: 자동 저장, 저장 버전, 압축 공유의 실제 왕복.
+  // 원래 DOM 스텁의 no-op 저장소 대신 이 검사에서만 메모리 저장소를 사용한다.
+  var _oldMarkerStore=window.localStorage, _markerStore=Object.create(null);
+  window.localStorage={getItem:function(k){return _markerStore[k]===undefined?null:_markerStore[k];},setItem:function(k,v){_markerStore[k]=String(v);},removeItem:function(k){delete _markerStore[k];}};
+  function _assertMarkers(p,label){
+    if(!p||!Array.isArray(p.ek)||p.ek.length!==2||p.ek.indexOf('price')<0||p.ek.indexOf('exitcap')<0||p.ue!==1)throw new Error(label+': 예시 잔존/수정 여부 유실');
+    if(!p.st||!p.st.price||p.st.price.s!=='IM 기재'||p.st.price.d!=='2026-10-02'||!p.st.exitcap||p.st.exitcap.s!=='추정')throw new Error(label+': 가정 출처/기준일 유실');
+  }
+  function _clearMarkers(){exampleKeys=new Set();exUserEdited=false;srcTags={};}
+  try{
+    cur='office';fillExample();localPause=false;window.__mtReadonly=false;
+    exampleKeys=new Set(['price','exitcap']);exUserEdited=true;srcTags={price:{s:'IM 기재',d:'2026-10-02'},exitcap:{s:'추정'}};
+    _assertMarkers(wsSnapshot(),'공통 스냅샷');
+    saveLocal();_assertMarkers(JSON.parse(localStorage.getItem('mt_state')),'자동 저장 파일');
+    _clearMarkers();if(!tryRestoreLocal())throw new Error('자동 저장 복원 실패');_assertMarkers(wsSnapshot(),'자동 저장 복원');
+    var _markerDeal={id:'marker-ci',versions:[]},_markerVersion=wsAddVersion(_markerDeal,wsSnapshot(),'marker');
+    _assertMarkers(_markerVersion.snap,'저장 버전');
+    _clearMarkers();wsApplySnapshot(JSON.parse(JSON.stringify(_markerVersion.snap)));_assertMarkers(wsSnapshot(),'버전 복원');
+    var _markerShared=JSON.parse(mtLZ.decompress(encodeState()));_assertMarkers(_markerShared,'압축 공유 파일');
+    _clearMarkers();applySharedPayload(_markerShared);_assertMarkers(wsSnapshot(),'공유 복원');
+  }finally{window.localStorage=_oldMarkerStore;cur='office';window.rrModel=null;fillExample();}
   globalThis.__CI_OK = 1;
 })();`;
 

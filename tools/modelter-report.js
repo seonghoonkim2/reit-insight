@@ -38,6 +38,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&am
 const num = n => Math.round(Number(n) || 0).toLocaleString();
 const dnum = v => { const n = Math.round(Number(v)); return Number.isFinite(n) && n > 0 ? n : '?'; };  // days 를 안전한 정수로(HTML 삽입 무해화)
 const pct = (a, b) => { a = Number(a) || 0; b = Number(b) || 0; return b > 0 ? (a / b * 100).toFixed(1) + '%' : '—'; };  // 부분/누락 값도 NaN% 대신 안전한 수치로
+const outputsPerVisit = (a, b) => Number(b) > 0 ? ((Number(a) || 0) / Number(b)).toFixed(2) + '건' : '—';
 const utcDay = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || '')) ? Date.parse(String(s) + 'T00:00:00Z') : NaN;
 const addDays = (s, n) => { const t = utcDay(s); return Number.isFinite(t) ? new Date(t + n * 86400000).toISOString().slice(0, 10) : ''; };
 
@@ -81,12 +82,12 @@ function mergeFeat(featMap) {
 }
 function dealLabelMap(deals) { const o = {}; for (const k in deals) o[DEAL_LABEL[k] || k] = deals[k]; return o; }
 
-// 채널별 퍼널 표 (attribution.bySrc / byRef → 방문·결과·산출·전환)
+// 직접 입력률과 반복 가능한 산출 횟수를 구분한다. 원본 집계 필드는 변경하지 않는다.
 function attrTable(byGroup, emptyMsg) {
   const groups = Object.entries(byGroup || {}).sort((a, b) => (b[1].session || 0) - (a[1].session || 0)).slice(0, 12);
   if (!groups.length) return `<p class="empty">${esc(emptyMsg || '(데이터 없음)')}</p>`;
-  return `<table class="snt"><tr><th>채널</th><th>방문</th><th>결과</th><th>산출</th><th>전환</th></tr>` +
-    groups.map(([k, f]) => `<tr><td>${esc(k)}</td><td>${num(f.session)}</td><td>${num(f.computed)}</td><td>${num(f.output)}</td><td>${pct(f.output, f.session)}</td></tr>`).join('') +
+  return `<table class="snt"><tr><th>채널</th><th>방문</th><th>입력/방문</th><th>결과</th><th>산출 횟수</th><th>방문당 산출물</th></tr>` +
+    groups.map(([k, f]) => `<tr><td>${esc(k)}</td><td>${num(f.session)}</td><td>${pct(f.activate, f.session)}</td><td>${num(f.computed)}</td><td>${num(f.output)}</td><td>${outputsPerVisit(f.output, f.session)}</td></tr>`).join('') +
     `</table>`;
 }
 
@@ -103,15 +104,13 @@ function build(snaps) {
   const f = { session: Number(rawF.session) || 0, activate: Number(rawF.activate) || 0, computed: Number(rawF.computed) || 0, output: Number(rawF.output) || 0 };
 
   // KPI 타일 (최신 스냅샷)
-  //   산출물은 "매 산출 행동 합계"라 결과(세션당 1회)로 나눈 백분율이 100%를 넘을 수 있다 →
-  //   퍼널 전환처럼 오독되지 않게 '결과당 N.N건'(결과 세션당 평균 산출 건수)으로 표기.
-  const perResult = f.computed > 0 ? '결과당 ' + (f.output / f.computed).toFixed(1) + '건' : '총 ' + num(f.output) + '건';
+  //   예시 산출물은 computed 없이도 발생한다. output/computed를 결과 세션의 평균으로 해석할 수 없다.
   const kpis = [
     ['방문 (session)', num(f.session), '최근 ' + dnum(last.days) + '일'],
     ['직접 입력', num(f.activate), pct(f.activate, f.session) + ' of 방문'],
     ['결과 도달', num(f.computed), pct(f.computed, f.session) + ' of 방문'],
-    ['산출물', num(f.output), perResult],
-    ['방문→산출물 전환', pct(f.output, f.session), '핵심 지표'],
+    ['산출물 횟수', num(f.output), '예시·반복 생성 포함'],
+    ['방문 1회당 산출물', outputsPerVisit(f.output, f.session), '사용자 전환율 아님'],
   ].map(k => `<div class="kpi"><div class="kv">${k[1]}</div><div class="kl">${esc(k[0])}</div><div class="ks">${esc(k[2])}</div></div>`).join('');
 
   // 추세: 스냅샷별 session/computed/output (누적 이력)
@@ -130,7 +129,7 @@ function build(snaps) {
         { name: '산출물', color: '#b4552d', dash: '1.5 3', data: trendSnaps.map(s => (s.funnel || {}).output || 0) },
       ],
     });
-    trend += `<p class="note">최근 ${dnum(win)}일 집계 스냅샷 ${trendSnaps.length}개${dropped ? ` · 집계범위가 다른 ${dropped}개는 왜곡 방지 위해 제외` : ''}.</p>`;
+    trend += `<p class="note">최근 ${dnum(win)}일 집계 스냅샷 ${trendSnaps.length}개${dropped ? ` · 집계범위가 다른 ${dropped}개는 왜곡 방지 위해 제외` : ''}. 서로 겹치는 기간이므로 합산하거나 독립된 전후 실험으로 해석하지 않습니다.</p>`;
   } else if (last.daily && last.daily.length >= 2) {
     // 스냅샷이 1개뿐이면 그 안의 일자별 시계열로 대체
     trend = lineChart({
@@ -147,7 +146,7 @@ function build(snaps) {
 
   // 퍼널 바
   const fmax = Math.max(f.session, f.activate, f.computed, f.output, 1);
-  const funnelHtml = [['방문', f.session], ['직접 입력', f.activate], ['결과 도달', f.computed], ['산출물', f.output]]
+  const funnelHtml = [['방문', f.session], ['직접 입력', f.activate], ['결과 도달', f.computed], ['산출 횟수', f.output]]
     .map(([lb, v]) => `<div class="frow"><span class="fk">${lb}</span><span class="ftrack"><span class="ffill" style="width:${v / fmax * 100}%"></span></span><span class="fn">${num(v)}</span></div>`).join('');
 
   // 산출물 종류
@@ -221,7 +220,7 @@ function build(snaps) {
 
   <div class="row2">
     <div class="card"><h2>활성화 퍼널 <span>최근 ${dnum(last.days)}일</span></h2><div class="funnel">${funnelHtml}</div>
-      <p class="note">방문·직접입력·결과도달은 <b>세션당 1회</b> 신호. 산출물은 <b>매 산출 행동의 합계</b>라 결과보다 클 수 있습니다(한 세션이 엑셀·티저 등 여러 개 생성).</p></div>
+      <p class="note">방문·직접입력·결과도달은 <b>세션당 1회</b> 신호. 산출물은 <b>예시·반복 생성을 포함한 횟수</b>이며 결과 도달의 하위 집합이 아닙니다. 사용자 전환율·재방문율은 이 집계로 알 수 없습니다.</p></div>
     <div class="card"><h2>산출물 종류</h2>${barList(outObj, {})}</div>
   </div>
 
@@ -232,26 +231,26 @@ function build(snaps) {
   ${firstNumberCard}
 
   <div class="row2">
-    <div class="card"><h2>딜 유형</h2>${barList(dealLabelMap(last.deals || {}), {})}</div>
-    <div class="card"><h2>기기</h2>${barList(last.device || {}, { label: DEVICE_LABEL })}</div>
+    <div class="card"><h2>딜 유형 <span>전체 이벤트 기준</span></h2>${barList(dealLabelMap(last.deals || {}), {})}<p class="note">반복 행동을 포함한 이벤트 분포이며, 딜 수나 사용자 수가 아닙니다.</p></div>
+    <div class="card"><h2>기기 <span>전체 이벤트 기준</span></h2>${barList(last.device || {}, { label: DEVICE_LABEL })}<p class="note">기기별 이벤트 비중이며, 방문자 구성비가 아닙니다.</p></div>
   </div>
 
   <div class="row2">
-    <div class="card"><h2>유입 경로 <span>ref 호스트</span></h2>${barList(last.ref || {}, { top: 8 })}
-      <p class="note">대부분 <code>modelter.com</code>이면 내부 이동입니다. 링크에 붙은 <code>src</code> 태그로 최초 유입 채널을 봅니다(아래 채널 카드).</p></div>
-    <div class="card"><h2>활성 기능 채택 <span>feats</span></h2>${barList(mergeFeat(last.feats || {}), {})}</div>
+    <div class="card"><h2>유입 경로 <span>ref 호스트 · 전체 이벤트 기준</span></h2>${barList(last.ref || {}, { top: 8 })}
+      <p class="note">이벤트에 기록된 호스트입니다. <code>modelter.com</code>만으로 최초 유입원을 알 수 없습니다. 채널 판단에는 방문·직접 입력을 나눈 집계를 함께 봅니다.</p></div>
+    <div class="card"><h2>기능 플래그 발생 <span>반복·동시 사용 포함</span></h2>${barList(mergeFeat(last.feats || {}), {})}<p class="note">같은 이벤트에 여러 플래그가 있을 수 있습니다. 채택 사용자 수가 아닙니다.</p></div>
   </div>
 
   <div class="row2">
-    <div class="card"><h2>채널 <span>src 태그</span></h2>${barList(last.src || {}, { top: 10 })}
-      <p class="note">산출물 회수 링크·검색 착지·노트 CTA가 붙인 채널명. 채널명뿐(수치·PII 없음).</p></div>
+    <div class="card"><h2>채널 <span>src 태그 · 전체 이벤트 기준</span></h2>${barList(last.src || {}, { top: 10 })}
+      <p class="note">산출물 회수 링크·검색 착지·노트 CTA가 붙인 채널명별 이벤트 수입니다. 방문 수는 오른쪽 표에서 확인합니다.</p></div>
     <div class="card"><h2>채널별 퍼널 <span>src → 산출물</span></h2>${attrTable((last.attribution || {}).bySrc, '아직 src 태그 유입이 없습니다. 산출물 회수 링크(E2)·노트(E8)가 채널을 붙이기 시작하면 채워집니다.')}
-      <p class="note">어느 링크가 방문→산출물까지 가나. 전환 높은 채널에 시간을 집중.</p></div>
+      <p class="note">입력/방문은 직접 입력률입니다. 방문당 산출물은 예시·반복 생성을 포함한 횟수이며 사용자 전환율이 아닙니다. 표본 수를 함께 확인합니다.</p></div>
   </div>
 
   <div class="card sn"><h2>스냅샷 이력 <span>${snaps.length}개</span></h2>
-    <table class="snt"><tr><th>기준일</th><th>범위</th><th>방문</th><th>결과도달</th><th>산출물</th><th>전환</th></tr>
-    ${snaps.slice().reverse().map(s => { const ff = s.funnel || {}; return `<tr><td>${esc(s.endDate)}</td><td>${dnum(s.days)}일</td><td>${num(ff.session)}</td><td>${num(ff.computed)}</td><td>${num(ff.output)}</td><td>${pct(ff.output, ff.session)}</td></tr>`; }).join('')}
+    <table class="snt"><tr><th>기준일</th><th>범위</th><th>방문</th><th>결과도달</th><th>산출 횟수</th><th>방문당 산출물</th></tr>
+    ${snaps.slice().reverse().map(s => { const ff = s.funnel || {}; return `<tr><td>${esc(s.endDate)}</td><td>${dnum(s.days)}일</td><td>${num(ff.session)}</td><td>${num(ff.computed)}</td><td>${num(ff.output)}</td><td>${outputsPerVisit(ff.output, ff.session)}</td></tr>`; }).join('')}
     </table></div>
 
   <p class="foot">봇·크롤러 주의: 자동 스캐너가 많은 요청을 만들지만 이 집계는 <b>앱이 직접 보낸 이벤트(mtevent)만</b> 셉니다 — 취약점 탐색 GET, og.png 크롤링 등은 포함되지 않습니다. 수치·임차인명·개인정보는 애초에 수집하지 않습니다.</p>`;

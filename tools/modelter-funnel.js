@@ -21,7 +21,7 @@
 'use strict';
 const fs = require('fs');
 
-const OUTPUT_EVENTS = ['xlsx_download', 'teaser', 'share_link', 'memo_copy', 'png_card', 'pipeline_copy', 'inquiry_copy', 'slot_save', 'prompt_copy', 'pdf_export', 'sample_download'];
+const { OUTPUT_EVENTS } = require('./modelter-labels');
 const OUTPUT_SET = new Set(OUTPUT_EVENTS);
 
 // ── 입력 읽기 (파일 인자 또는 stdin) ──
@@ -115,14 +115,7 @@ function rows(obj, opts) {
 const FEAT_LABEL = { rr: '렌트롤', dep: '보증금승계', fee: '운용보수', bido: '비도관과세', vac: '공실', resi: '분양수지', hold: '보유기간변경', pref: '우선주', scen: '시나리오' };
 const DEAL_LABEL = { office: '오피스', logistics: '물류', dev: '개발·PF', refi: '리파이낸싱' };
 
-function main() {
-  const text = readInput();
-  const evs = extractEvents(text);
-  if (!evs.length) {
-    console.error('이벤트를 찾지 못했습니다.\n  사용: node tools/modelter-funnel.js <로그파일>\n  또는: wrangler tail --format=json | node tools/modelter-funnel.js');
-    process.exit(1);
-  }
-  const t = tally(evs);
+function render(t) {
   const S = t.byEv.session || 0, A = t.byEv.activate || 0, C = t.byEv.computed || 0, O = t.outputs;
 
   const L = [];
@@ -133,14 +126,15 @@ function main() {
   L.push('  이벤트 ' + t.total + '건 · 이벤트 종류 ' + Object.keys(t.byEv).length + '개');
 
   L.push('');
-  L.push('■ 활성화 퍼널 (세션당 1회 신호 기준)');
+  L.push('■ 방문 → 직접 입력 → 결과 (각 단계 세션당 1회)');
   const fmax = Math.max(S, A, C, O, 1);
   const fline = (label, n, base) => '   ' + label.padEnd(22) + String(n).padStart(6) + '  ' + bar(n, fmax, 20) + '  ' + (base != null ? pct(n, base) : '');
   L.push(fline('방문 (session)', S, null));
   L.push(fline('→ 직접 입력 (activate)', A, S) + (S ? '  of 방문' : ''));
   L.push(fline('→ 결과 도달 (computed)', C, A) + (A ? '  of 입력' : ''));
-  L.push(fline('→ 산출물 (output)', O, C) + (C ? '  of 결과' : ''));
-  L.push('   ' + '전환(방문→산출물)'.padEnd(22) + ' '.repeat(6) + '  ' + pct(O, S));
+  L.push(fline('산출물 횟수 (output)', O, null));
+  L.push('   ' + '방문 1회당 산출물'.padEnd(22) + ' '.repeat(6) + '  ' + (S > 0 ? (O / S).toFixed(2) + '건' : '—'));
+  L.push('   산출물은 반복 생성·예시 다운로드를 포함한 횟수입니다. 사용자 전환율이나 재방문율이 아닙니다.');
 
   L.push('');
   L.push('■ 산출물 종류');
@@ -154,22 +148,32 @@ function main() {
   L.push(rows(dealObj, { pad: 12 }).join('\n') || '   (없음)');
 
   L.push('');
-  L.push('■ 활성 기능 채택 (feats 플래그 빈도)');
+  L.push('■ 기능 플래그 발생 (반복·동시 사용 포함, 채택 사용자 수 아님)');
   const featObj = {}; for (const k in t.byFeat) featObj[(FEAT_LABEL[k] || k)] = t.byFeat[k];
   L.push(rows(featObj, { pad: 14 }).join('\n') || '   (없음)');
 
   L.push('');
-  L.push('■ 모델 깊이 · 기기 · 유입');
+  L.push('■ 모델 깊이 · 기기 · 유입 (전체 이벤트 기준)');
   L.push('  [깊이] ' + (Object.entries(t.byDepth).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + v).join(' · ') || '—'));
-  L.push('  [기기] ' + (Object.entries(t.byDev).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + v + ' (' + pct(v, t.total) + ')').join(' · ') || '—'));
+  const deviceTotal = Object.values(t.byDev).reduce((sum, count) => sum + count, 0);
+  L.push('  [기기별 이벤트] ' + (Object.entries(t.byDev).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + v + ' (' + pct(v, deviceTotal) + ')').join(' · ') || '—'));
   L.push('  [유입] ' + (Object.entries(t.byRef).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => k + ' ' + v).join(' · ') || '직접/미상'));
 
   L.push('');
   L.push('■ 전체 이벤트');
   L.push(rows(t.byEv, { pad: 18 }).join('\n'));
   L.push('');
-  console.log(L.join('\n'));
+  return L.join('\n');
+}
+
+function main() {
+  const evs = extractEvents(readInput());
+  if (!evs.length) {
+    console.error('이벤트를 찾지 못했습니다.\n  사용: node tools/modelter-funnel.js <로그파일>\n  또는: wrangler tail --format=json | node tools/modelter-funnel.js');
+    process.exit(1);
+  }
+  console.log(render(tally(evs)));
 }
 
 if (require.main === module) main();
-module.exports = { extractEvents, tally };
+module.exports = { extractEvents, tally, render };

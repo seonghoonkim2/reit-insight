@@ -365,7 +365,8 @@ function styleChecks(wb, config, expected, generated) {
   }
   const pane = tags(assumptions.xml, 'pane')[0];
   check(pane && pane.topLeftCell === 'C5', config.name + ': 가정표 머리글만 고정하여 작업 영역 확보');
-  check(/^(?:'A&R'!)?C79$/.test(((assumptions.cells.get('C57') || {}).formula || '').replace(/\$/g, '')), config.name + ': 보유기간 표시는 생성 기준 기간 참조');
+  const holdingFormula=((assumptions.cells.get('C57') || {}).formula || '').replace(/\$/g, '');
+  check((config.rentroll==='model'?/^IF\('_Calc'!C16,(?:'A&R'!)?C79,""\)$/:/^(?:'A&R'!)?C79$/).test(holdingFormula), config.name + ': 보유기간 표시는 생성 기준 기간 참조');
   check(Number((assumptions.cells.get('C79') || {}).value) === config.hold, config.name + ': 생성 기준 보유기간 값');
   const validations = tags(assumptions.xml, 'dataValidation');
   function ruleFor(ref) { return validations.find(rule => rule.sqref.split(/\s+/).includes(ref)); }

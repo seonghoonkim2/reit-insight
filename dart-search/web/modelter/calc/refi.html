@@ -4,12 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>리파이낸싱 비교 | CRE 계산기·엑셀 | 모델터</title>
-<meta name="description" content="대출 리파이낸싱 비교, DSCR·중도상환수수료·텀시트. 현재 대출과 신규 텀시트 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산해 4시트 엑셀로 정리합니다." />
+<meta name="description" content="대출 리파이낸싱 비교, DSCR·중도상환수수료·텀시트. 기존 대출을 전액 대환하는 조건으로 신규 대출 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산하며, 엑셀은 4시트로 내려받습니다." />
 <link rel="canonical" href="https://modelter.com/calc/refi" />
 <meta name="author" content="김성훈 (Seonghoon Kim)" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="리파이낸싱 비교 | CRE 계산기·엑셀 | 모델터" />
-<meta property="og:description" content="대출 리파이낸싱 비교, DSCR·중도상환수수료·텀시트. 현재 대출과 신규 텀시트 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산해 4시트 엑셀로 정리합니다." />
+<meta property="og:description" content="대출 리파이낸싱 비교, DSCR·중도상환수수료·텀시트. 기존 대출을 전액 대환하는 조건으로 신규 대출 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산하며, 엑셀은 4시트로 내려받습니다." />
 <meta property="og:url" content="https://modelter.com/calc/refi" />
 <meta property="og:image" content="https://modelter.com/og-first-deal-v1.png" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a9792b'/%3E%3Cg fill='%23fbf6ec'%3E%3Crect x='8.5' y='17.5' width='3.4' height='6' rx='1.1'/%3E%3Crect x='14.3' y='14' width='3.4' height='9.5' rx='1.1'/%3E%3Crect x='20.1' y='10.5' width='3.4' height='13' rx='1.1'/%3E%3Crect x='7.5' y='24.2' width='17' height='1.7' rx='0.85'/%3E%3C/g%3E%3C/svg%3E" />
@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" media="print" onload="this.media='all'" />
 <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" /></noscript>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"리파이낸싱 비교 — 모델터","applicationCategory":"FinanceApplication","operatingSystem":"Web","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"현재 대출과 신규 텀시트 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산해 4시트 엑셀로 정리합니다.","url":"https://modelter.com/calc/refi"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"계산기","item":"https://modelter.com/"},{"@type":"ListItem","position":3,"name":"리파이낸싱 비교","item":"https://modelter.com/calc/refi"}]},{"@type":"HowTo","name":"리파이낸싱 비교 계산 순서","description":"현재 대출과 신규 텀시트 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산해 4시트 엑셀로 정리합니다.","totalTime":"PT5M","step":[{"@type":"HowToStep","position":1,"name":"딜 유형에서 리파이낸싱을 고릅니다","text":"딜 유형에서 리파이낸싱을 고릅니다 — 기존 대출과 신규 3안 비교 양식이 열립니다","url":"https://modelter.com/calc/refi#step1"},{"@type":"HowToStep","position":2,"name":"자산 NOI·감정가와 기존 대출 조건을 넣습니다","text":"자산 NOI·감정가와 기존 대출 조건을 넣습니다 — 잔액·금리·잔존 만기가 비교의 기준선이 됩니다","url":"https://modelter.com/calc/refi#step2"},{"@type":"HowToStep","position":3,"name":"신규 텀시트 3안(LTV·금리·만기·상환)을 입력합니다","text":"신규 텀시트 3안(LTV·금리·만기·상환)을 입력합니다 — 대주에게 받은 조건을 그대로 넣으면 됩니다","url":"https://modelter.com/calc/refi#step3"},{"@type":"HowToStep","position":4,"name":"중도상환수수료·취급수수료를 반영합니다","text":"중도상환수수료·취급수수료를 반영합니다 — 순조달액과 총금융비용에 포함됩니다","url":"https://modelter.com/calc/refi#step4"},{"@type":"HowToStep","position":5,"name":"연도별 DSCR로 안별 안전성을 확인합니다","text":"연도별 DSCR로 안별 안전성을 확인합니다 — 요구 DSCR 미달 연차가 붉게 표시됩니다","url":"https://modelter.com/calc/refi#step5"},{"@type":"HowToStep","position":6,"name":"엑셀 4시트로 텀시트 비교표를 내려받습니다","text":"엑셀 4시트로 텀시트 비교표를 내려받습니다 — 입력값과 안별 결과를 같은 파일에서 확인할 수 있습니다","url":"https://modelter.com/calc/refi#step6"}]},{"@type":"FAQPage","inLanguage":"ko","mainEntity":[{"@type":"Question","name":"리파이낸싱은 무엇을 기준으로 비교하나요?","acceptedAnswer":{"@type":"Answer","text":"순조달액, 총금융비용, 연도별 DSCR과 만기 잔액을 함께 봅니다. 모델터는 세 안을 같은 기준으로 계산하고, DSCR 기준을 충족한 안 중 전 기간 최소 DSCR이 가장 높은 안을 표시합니다."}},{"@type":"Question","name":"중도상환수수료는 어떻게 반영하나요?","acceptedAnswer":{"@type":"Answer","text":"기존 대출을 조기 상환할 때 내는 비용입니다. 잔액 대비 요율로 입력하면 순조달액과 총금융비용에 포함됩니다."}},{"@type":"Question","name":"상환방식이 DSCR에 어떤 영향을 주나요?","acceptedAnswer":{"@type":"Answer","text":"만기일시(이자만)는 보유 중 DSCR이 편한 대신 만기에 원금을 한 번에 갚아야 하고, 원리금균등·원금균등은 매기 부담이 커지는 대신 만기 잔액이 줄어듭니다. 모델터는 방식별 연도별 DSCR을 나란히 보여줍니다."}}]}]}
+{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"리파이낸싱 비교 — 모델터","applicationCategory":"FinanceApplication","operatingSystem":"Web","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"기존 대출을 전액 대환하는 조건으로 신규 대출 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산하며, 엑셀은 4시트로 내려받습니다.","url":"https://modelter.com/calc/refi"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"모델터","item":"https://modelter.com/"},{"@type":"ListItem","position":2,"name":"계산기","item":"https://modelter.com/"},{"@type":"ListItem","position":3,"name":"리파이낸싱 비교","item":"https://modelter.com/calc/refi"}]},{"@type":"HowTo","name":"리파이낸싱 비교 계산 순서","description":"기존 대출을 전액 대환하는 조건으로 신규 대출 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산하며, 엑셀은 4시트로 내려받습니다.","totalTime":"PT5M","step":[{"@type":"HowToStep","position":1,"name":"딜 유형에서 리파이낸싱을 고릅니다","text":"딜 유형에서 리파이낸싱을 고릅니다 — 기존 대출과 신규 3안 비교 양식이 열립니다","url":"https://modelter.com/calc/refi#step1"},{"@type":"HowToStep","position":2,"name":"자산 NOI·감정가와 기존 대출 조건을 넣습니다","text":"자산 NOI·감정가와 기존 대출 조건을 넣습니다 — 검토 시점에 기존 잔액을 전액 대환합니다. 기존 잔존 만기와 상환방식은 참고 항목입니다","url":"https://modelter.com/calc/refi#step2"},{"@type":"HowToStep","position":3,"name":"신규 텀시트 3안(LTV·금리·만기·상환)을 입력합니다","text":"신규 텀시트 3안(LTV·금리·만기·상환)을 입력합니다 — 대주에게 받은 조건을 그대로 넣으면 됩니다","url":"https://modelter.com/calc/refi#step3"},{"@type":"HowToStep","position":4,"name":"중도상환수수료·취급수수료를 반영합니다","text":"중도상환수수료·취급수수료를 반영합니다 — 순조달액과 총금융비용에 포함됩니다","url":"https://modelter.com/calc/refi#step4"},{"@type":"HowToStep","position":5,"name":"연도별 DSCR로 대안별 상환 부담을 비교합니다","text":"연도별 DSCR로 대안별 상환 부담을 비교합니다 — 요구 DSCR에 못 미치는 연도가 붉게 표시됩니다","url":"https://modelter.com/calc/refi#step5"},{"@type":"HowToStep","position":6,"name":"엑셀 4시트로 텀시트 비교표를 내려받습니다","text":"엑셀 4시트로 텀시트 비교표를 내려받습니다 — 입력값과 안별 결과를 같은 파일에서 확인할 수 있습니다","url":"https://modelter.com/calc/refi#step6"}]},{"@type":"FAQPage","inLanguage":"ko","mainEntity":[{"@type":"Question","name":"리파이낸싱은 무엇을 기준으로 비교하나요?","acceptedAnswer":{"@type":"Answer","text":"순조달액, 총금융비용, 연도별 DSCR과 만기 잔액을 함께 봅니다. 모델터는 세 안을 같은 기준으로 계산하고, DSCR 기준을 충족한 안 중 전 기간 최소 DSCR이 가장 높은 안을 표시합니다."}},{"@type":"Question","name":"중도상환수수료는 어떻게 반영하나요?","acceptedAnswer":{"@type":"Answer","text":"기존 대출을 조기 상환할 때 내는 비용입니다. 잔액 대비 요율로 입력하면 순조달액과 총금융비용에 포함됩니다."}},{"@type":"Question","name":"상환방식이 DSCR에 어떤 영향을 주나요?","acceptedAnswer":{"@type":"Answer","text":"만기일시는 보유 중 이자만 내고 만기에 원금을 갚습니다. 원리금균등·원금균등은 원금도 나눠 갚으므로 보유 중 원리금 부담이 늘고 만기 잔액은 줄어듭니다. 모델터에서 각 방식의 연도별 DSCR을 비교할 수 있습니다."}}]}]}
 </script>
 <style>:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink-2:#46505f;--ink-3:#6a7280;--muted:#8b8f98;--line:#e3e0d8;--line-soft:#efece4;--accent:#a9792b;--accent-deep:#86601f;--green:#2e7d4f;--red:#b4552d;--font:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}
 @media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink-2:#b6bcc7;--ink-3:#8a909b;--muted:#8b919c;--line:#2a3039;--line-soft:#20252d;--accent:#cda557;--accent-deep:#ddb86f;--green:#57b07f;--red:#d98a5f}}
@@ -98,58 +98,53 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   <div class="hero">
     <div class="eyebrow">상업용 부동산 계산기</div>
     <h1>리파이낸싱 비교</h1>
-    <p class="lead">현재 대출과 신규 텀시트 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산해 4시트 엑셀로 정리합니다.</p>
+    <p class="lead">기존 대출을 전액 대환하는 조건으로 신규 대출 세 안을 비교합니다. 연도별 DSCR, 중도상환수수료와 순조달액을 계산하며, 엑셀은 4시트로 내려받습니다.</p>
   </div>
   <section>
     <a class="cta" href="/#t=refi&src=seo">내 값으로 계산하기 →<span class="sub">기본 예시가 들어 있습니다. 첫 입력부터 바꾸면 결과가 다시 계산됩니다.</span></a>
   </section>
   <section>
     <div class="io">
-      <div class="card"><h2>넣는 값</h2><ul><li>잔여 대출·금리·만기</li><li>신규 텀시트 3안(금리·LTV·상환)</li><li>중도상환수수료·취급수수료</li><li>최소 DSCR 기준</li></ul></div>
-      <div class="card"><h2>나오는 값</h2><ul><li>안별 연도 DSCR 전개</li><li>순조달액·총금융비용 비교</li><li>기준 충족안 중 최소 DSCR 비교</li><li>만기 잔액(balloon)</li></ul></div>
+      <div class="card"><h2>넣는 값</h2><ul><li>현재 NOI·감정가</li><li>기존 대출 잔액·금리</li><li>신규 텀시트 3안(금리·LTV·만기·상환)</li><li>중도상환수수료·취급수수료</li><li>최소 DSCR 기준</li></ul></div>
+      <div class="card"><h2>나오는 값</h2><ul><li>대안별 연도 DSCR</li><li>순조달액·총금융비용 비교</li><li>기준을 충족한 대안의 최소 DSCR</li><li>만기 잔액(balloon)</li></ul></div>
     </div>
   </section>
   <section>
     <h2>계산 예시</h2>
-    <p class="lead" style="font-size:14.5px">예시 — 분당 B빌딩 차환 검토 (앱에 미리 채워져 있는 딜)</p>
+    <p class="lead" style="font-size:14.5px">예시 — 분당 B빌딩</p>
     <div class="wex"><table>
       <tr><th>넣은 값</th><th></th></tr>
       <tr><td>자산 NOI · 성장률</td><td class="r">42억 · 연 1.5%</td></tr>
       <tr><td>감정평가액</td><td class="r">850억</td></tr>
       <tr><td>기존 대출 잔액 · 금리</td><td class="r">460억 · 3.6%</td></tr>
-      <tr><td>기존 만기 잔존</td><td class="r">0.5년</td></tr>
+      <tr><td>기존 만기 잔존 (참고)</td><td class="r">0.5년</td></tr>
       <tr><td>중도상환수수료 · 취급수수료</td><td class="r">0.5% · 0.3%</td></tr>
       <tr><td>요구 최소 DSCR</td><td class="r">1.2x</td></tr>
-      <tr><th>나온 결과</th><th></th></tr>
-      <tr class="out"><td>대안 3안별 연도별 DSCR 전개</td><td class="r">만기까지 연차별</td></tr>
-      <tr class="out"><td>순조달액 (수수료 차감 후)</td><td class="r">안별 비교</td></tr>
-      <tr class="out"><td>총금융비용 (이자+수수료)</td><td class="r">안별 비교</td></tr>
-      <tr class="out"><td>만기 잔액 (벌룬)</td><td class="r">상환방식별</td></tr>
-      <tr class="out"><td>최소 DSCR 우위</td><td class="r">자동 비교</td></tr>
     </table></div>
-    <p class="tip">신규 텀시트 3안(LTV·금리·만기·상환방식)을 나란히 놓고 비교합니다. 수치는 입력한 텀시트에 따라 달라집니다.</p>
-    <a class="cta" href="/#t=refi&src=seo">이 예시 열기 →<span class="sub">위 표의 값이 입력되어 있습니다. 내 값으로 바꾸면 결과가 다시 계산됩니다.</span></a>
+    <p class="tip">실제 거래가 아닌 연습용 예시입니다. 아래에서 신규 대출 세 안의 금리·LTV·만기·상환방식과 계산 결과를 확인할 수 있습니다.</p>
+    <a class="cta" href="/#t=refi&src=seo">이 조건으로 계산 결과 보기 →<span class="sub">위 표의 값으로 열립니다. 내 조건으로 바꾸며 비교할 수 있습니다.</span></a>
   </section>
   <section>
     <h2>리파이 계산 순서</h2>
     <ol class="steps">
       <li id="step1">딜 유형에서 <b>리파이낸싱</b>을 고릅니다<br><span style="font-size:13px;color:var(--muted)">기존 대출과 신규 3안 비교 양식이 열립니다</span></li>
-      <li id="step2"><b>자산 NOI·감정가</b>와 기존 대출 조건을 넣습니다<br><span style="font-size:13px;color:var(--muted)">잔액·금리·잔존 만기가 비교의 기준선이 됩니다</span></li>
+      <li id="step2"><b>자산 NOI·감정가</b>와 기존 대출 조건을 넣습니다<br><span style="font-size:13px;color:var(--muted)">검토 시점에 기존 잔액을 전액 대환합니다. 기존 잔존 만기와 상환방식은 참고 항목입니다</span></li>
       <li id="step3"><b>신규 텀시트 3안</b>(LTV·금리·만기·상환)을 입력합니다<br><span style="font-size:13px;color:var(--muted)">대주에게 받은 조건을 그대로 넣으면 됩니다</span></li>
       <li id="step4"><b>중도상환수수료·취급수수료</b>를 반영합니다<br><span style="font-size:13px;color:var(--muted)">순조달액과 총금융비용에 포함됩니다</span></li>
-      <li id="step5"><b>연도별 DSCR</b>로 안별 안전성을 확인합니다<br><span style="font-size:13px;color:var(--muted)">요구 DSCR 미달 연차가 붉게 표시됩니다</span></li>
+      <li id="step5"><b>연도별 DSCR</b>로 대안별 상환 부담을 비교합니다<br><span style="font-size:13px;color:var(--muted)">요구 DSCR에 못 미치는 연도가 붉게 표시됩니다</span></li>
       <li id="step6"><b>엑셀 4시트</b>로 텀시트 비교표를 내려받습니다<br><span style="font-size:13px;color:var(--muted)">입력값과 안별 결과를 같은 파일에서 확인할 수 있습니다</span></li>
     </ol>
   </section>
   <section>
-    <h2>화면 = 다운로드 엑셀</h2>
-    <p>화면과 엑셀은 같은 계산식을 사용합니다. 파일 안에서 값을 바꾸면 수식도 다시 계산됩니다. 딜 데이터는 서버로 전송되지 않고 브라우저 안에서 처리됩니다. <a href="/verification">검증 결과 보기 →</a></p>
+    <h2>엑셀에서 이어서 검토하기</h2>
+    <p>엑셀의 입력 셀에서 기존 조건과 생성된 대안을 수정할 수 있습니다. 새 대안을 추가하려면 웹에서 입력한 뒤 다시 내려받습니다. 기존 잔존 만기와 상환방식은 참고 항목입니다.</p>
+    <p>다운로드 시점의 화면 결과와 엑셀 계산값이 일치하는지 검증합니다. 입력한 딜 데이터는 브라우저 안에서 처리됩니다. <a href="/verification">검증 결과 보기 →</a></p>
   </section>
   <section>
     <h2>자주 묻는 질문</h2>
     <details class="faq"><summary>리파이낸싱은 무엇을 기준으로 비교하나요?</summary><p>순조달액, 총금융비용, 연도별 DSCR과 만기 잔액을 함께 봅니다. 모델터는 세 안을 같은 기준으로 계산하고, DSCR 기준을 충족한 안 중 전 기간 최소 DSCR이 가장 높은 안을 표시합니다.</p></details>
     <details class="faq"><summary>중도상환수수료는 어떻게 반영하나요?</summary><p>기존 대출을 조기 상환할 때 내는 비용입니다. 잔액 대비 요율로 입력하면 순조달액과 총금융비용에 포함됩니다.</p></details>
-    <details class="faq"><summary>상환방식이 DSCR에 어떤 영향을 주나요?</summary><p>만기일시(이자만)는 보유 중 DSCR이 편한 대신 만기에 원금을 한 번에 갚아야 하고, 원리금균등·원금균등은 매기 부담이 커지는 대신 만기 잔액이 줄어듭니다. 모델터는 방식별 연도별 DSCR을 나란히 보여줍니다.</p></details>
+    <details class="faq"><summary>상환방식이 DSCR에 어떤 영향을 주나요?</summary><p>만기일시는 보유 중 이자만 내고 만기에 원금을 갚습니다. 원리금균등·원금균등은 원금도 나눠 갚으므로 보유 중 원리금 부담이 늘고 만기 잔액은 줄어듭니다. 모델터에서 각 방식의 연도별 DSCR을 비교할 수 있습니다.</p></details>
   </section>
   <section>
     <h2>관련 용어</h2>

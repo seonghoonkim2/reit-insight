@@ -22,8 +22,8 @@
   {"@type":"HowToStep","position":2,"name":"내 딜 숫자 넣기","text":"폼, 모바일 핵심 입력, IM 텍스트 자동 인식 중 편한 방법으로 매입가·임대료·Exit Cap 등을 채운다."},
   {"@type":"HowToStep","position":3,"name":"결과 읽기","text":"레버드 IRR, Equity Multiple과 최소 DSCR을 참고값과 비교한다. 지표 옆 ?를 누르면 용어 설명이 열린다."},
   {"@type":"HowToStep","position":4,"name":"리스크 점검","text":"Exit Cap×성장률/금리 민감도 히트맵, 렌트롤 업로드(WALE·만기 집중), 부채 커버넌트를 확인한다."},
-  {"@type":"HowToStep","position":5,"name":"팀에 1차 검토 공유","text":"한 줄 보고나 읽기 전용 링크를 팀에 보내고, 필요하면 엑셀·PPT를 내려받는다."},
-  {"@type":"HowToStep","position":6,"name":"저장·버전 관리","text":"딜을 브라우저에 저장하고 조건이 바뀔 때마다 새 버전을 남긴다."}
+  {"@type":"HowToStep","position":5,"name":"저장하고 다시 검토하기","text":"숫자를 수정한 뒤 결과 아래 이 조건 저장을 누르고 딜 이름을 입력한다. 조건이 바뀌면 새 버전으로 저장한다. 다음 검토 때 딜 보관함에서 열어 직전 버전과 비교한다."},
+  {"@type":"HowToStep","position":6,"name":"검토 결과 전달하기","text":"결과 공유에서 결과 링크 (읽기 전용)를 골라 전달한다. 엑셀은 딜 유형에 따라 파일에서 바꿀 수 있는 항목을 확인하고 수정한다."}
  ]}
 </script>
 <script type="application/ld+json">
@@ -103,8 +103,8 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
       <a href="#step2">② 내 딜 숫자 넣기</a>
       <a href="#step3">③ 결과 읽기</a>
       <a href="#step4">④ 리스크 점검</a>
-      <a href="#step5">⑤ 산출물로 보고</a>
-      <a href="#step6">⑥ 저장·버전</a>
+      <a href="#step5">⑤ 저장·재검토</a>
+      <a href="#step6">⑥ 결과 전달</a>
       <a href="#faq">FAQ</a>
     </nav>
   </div>
@@ -128,45 +128,45 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
     <p class="sec-intro">입력 방법은 세 가지입니다. 금액을 넣으면 억·조 단위 환산값도 함께 표시됩니다.</p>
     <div class="card">
       <h3>A. 폼에 직접 입력</h3>
-      <p>핵심 입력에는 오류를 확인하기 위한 참고 범위가 표시됩니다. 참고 범위와 기본값은 샘플이며 시점, 입지와 자산에 따라 달라집니다. 실제 딜의 근거를 따로 확인하고, 비어 있는 항목에 적용된 기본값도 검토하세요.</p>
+      <p>입력란의 참고 범위와 기본값은 예시입니다. 시점·입지·자산에 따라 다르므로 실제 자료와 대조하세요. 빈칸에 적용된 기본값도 함께 확인합니다.</p>
     </div>
     <div class="card">
-      <h3>B. 모바일이면 ⚡핵심만 위저드</h3>
-      <p>이동 중이라면 입력 패널의 <b>⚡ 핵심만</b> 버튼을 누르세요. 핵심 입력을 한 개씩 큰 글씨로 물어보고, 마지막에 KPI 미리보기와 자동 판정까지 보여줍니다.</p>
+      <h3>B. 모바일에서 하나씩 입력</h3>
+      <p>이동 중이라면 입력 패널의 <b>⚡ 핵심만</b> 버튼을 누르세요. 큰 글씨로 한 항목씩 입력하고, 마지막에 주요 지표와 판정을 확인합니다.</p>
     </div>
     <div class="card">
       <h3>C. IM 텍스트 자동 인식</h3>
-      <p>오피스·물류의 <b>도구·저장</b>에서 <b>IM 붙여넣기 → 자동 인식</b>을 선택하세요. 브라우저가 매입가, 연면적, 임대료, Exit Cap 등을 찾아 보여주며, 확인한 항목만 입력값에 반영됩니다. 복잡한 문서는 본인 Anthropic API 키를 쓰는 AI 정밀 추출(β)로 다시 볼 수 있습니다.</p>
+      <p>오피스·물류에서 <b>“도구 · AI 모델 깊이” 안의 “IM에서 숫자 가져오기”</b>를 열고 <b>IM 붙여넣기 → 자동 인식</b>을 선택하세요. 매입가, 연면적, 임대료, Exit Cap 등을 찾으면 원문과 대조한 뒤 필요한 항목만 반영합니다. 복잡한 문서는 본인 Anthropic API 키로 AI 정밀 추출(β)을 사용할 수 있습니다.</p>
       <p class="tip">기본 자동 인식은 네트워크를 사용하지 않습니다. AI 정밀 추출을 선택하면 IM 텍스트와 API 키가 브라우저에서 api.anthropic.com으로 직접 전송되고 모델터 서버는 거치지 않습니다. 문서 반출과 외부 API 사용에 관한 사내 정책을 먼저 확인하세요.</p>
     </div>
   </section>
 
   <section id="step3">
     <h2><span class="n">3</span>결과 읽기 <small style="font-size:13px;color:var(--muted)">· 3분</small></h2>
-    <p class="sec-intro">숫자를 바꾸는 즉시 결과가 갱신됩니다. 화면 수치는 내려받는 엑셀과 같은 계산식에서 나옵니다(파리티 검증).</p>
+    <p class="sec-intro">숫자를 바꾸면 결과도 바로 바뀝니다. 화면과 다운로드 엑셀은 같은 계산식을 사용합니다.</p>
     <div class="card">
       <h3>주요 지표와 참고값을 확인합니다</h3>
       <p>결과 카드 상단에서 주요 지표를 화면의 참고값과 비교합니다.</p>
       <table class="judge">
         <tr><th>지표</th><th>참고값</th><th>판정</th></tr>
         <tr><td><b>레버드 IRR</b></td><td>8% 이상</td><td>충족 ✓ / 5% 미만이면 주의 ⚠</td></tr>
-        <tr><td><b>최소 DSCR</b></td><td>1.2x 이상 (대주 기준)</td><td>미달 시 배당 제한·리파이 난항 소지</td></tr>
+        <tr><td><b>최소 DSCR</b></td><td>1.2x (예시 참고값)</td><td>실제 요구 배수와 산식은 대출 약정에서 확인</td></tr>
         <tr><td><b>Exit Cap 스프레드</b></td><td>진입 대비 +0.1%p 이상 보수적</td><td>−0.5%p 넘게 낮으면 역스프레드 주의</td></tr>
       </table>
-      <p class="tip">지표 옆 <b>?</b>를 누르면 용어사전 해당 항목이 열립니다. 화면의 참고값은 입력을 점검하기 위한 예시입니다. 투자 판단이나 회사별 심의 기준을 대신하지 않으므로 자산 성격과 회사 기준에 맞게 확인하세요.</p>
+      <p class="tip">지표 옆 <b>?</b>를 누르면 용어사전 해당 항목이 열립니다. 화면의 참고값은 예시이므로 자산 성격과 회사 심의 기준에 맞춰 판단하세요.</p>
     </div>
   </section>
 
   <section id="step4">
     <h2><span class="n">4</span>리스크 점검 <small style="font-size:13px;color:var(--muted)">· 5분</small></h2>
-    <p class="sec-intro">기본안만 보지 말고 가정이 나빠졌을 때 결과가 어디까지 내려가는지도 확인합니다.</p>
+    <p class="sec-intro">가정을 보수적으로 바꿨을 때 수익률과 상환 여력이 얼마나 줄어드는지 확인합니다.</p>
     <div class="card">
       <h3>민감도 히트맵</h3>
       <p>5×5 표에서 Exit Cap과 성장률(또는 선순위 금리)에 따른 레버드 IRR 변화를 확인합니다. 분양 사업은 분양률과 분양가에 따른 사업이익률, <b>손익분기·PF 상환한계 분양률</b>을 봅니다.</p>
     </div>
     <div class="card">
       <h3>렌트롤 업로드 (오피스·물류)</h3>
-      <p>임차인별 계약을 붙여넣으면 현 계약·공실 해소·만기 롤오버를 분해해 연도별 NOI로 전개하고, WALE·만기 집중·최대 임차인 비중 같은 임대차 리스크를 자동 산출합니다. 임차인 실명은 화면·엑셀·공유에서 가릴 수 있습니다.</p>
+      <p>임차인별 계약을 붙여넣으면 계약 만기와 공실의 재임대 가정을 반영해 연도별 NOI를 계산합니다. WALE, 만기 집중, 최대 임차인 비중도 함께 봅니다. 임차인 실명은 화면·엑셀·공유에서 가릴 수 있습니다.</p>
     </div>
     <div class="card">
       <h3>대주 관점 (분양·PF)</h3>
@@ -176,24 +176,28 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </section>
 
   <section id="step5">
-    <h2><span class="n">5</span>팀에 1차 검토 공유 <small style="font-size:13px;color:var(--muted)">· 2분</small></h2>
-    <p class="sec-intro">결과 아래의 “팀에 1차 검토 공유”에서 한 줄 요약이나 읽기 전용 링크를 보낼 수 있습니다.</p>
+    <h2><span class="n">5</span>저장하고 다시 검토하기 <small style="font-size:13px;color:var(--muted)">· 1분</small></h2>
     <div class="card">
       <ul>
-        <li><b>한 줄 보고 복사</b>: 딜명, 주요 지표, 판정과 읽기 전용 링크를 한 줄로 복사합니다.</li>
-        <li><b>공유 링크</b>: 결과만 보는 링크와 값을 수정할 수 있는 링크 중 하나를 고릅니다. 임차인명은 자동으로 가립니다.</li>
-        <li><b>재무모델 엑셀</b>: 화면과 같은 수식이 들어 있습니다. 작업 시트는 기본 6개, 렌트롤 반영 시 7개입니다.</li>
-        <li><b>IC 패키지 PPT 7장</b>: 투자 요약, 자본 구조, 핵심 가정, 현금흐름, 민감도와 리스크 점검을 담습니다.</li>
-        <li><b>원페이지 티저</b>: 1장짜리 간이 검토 보고서입니다.</li>
+        <li><b>처음 저장</b>: 숫자를 수정한 뒤 결과 아래 <b>이 조건 저장</b>을 누르고 딜 이름을 입력합니다. 입력값이 v0.1로 저장됩니다.</li>
+        <li><b>매입가 변경</b>: 매입가를 바꾸고 <b>이 조건 저장</b>을 다시 누릅니다. 새 버전으로 저장되며, 버전 설명은 비워도 됩니다.</li>
+        <li><b>다음 검토</b>: 딜 보관함에서 저장한 딜을 고릅니다. <b>도구 · AI 모델 깊이</b>에서 <b>“버전(2)·백업”을 열고 “이전과 비교”</b>를 누르면 직전 버전과 달라진 가정·결과를 볼 수 있습니다. 괄호 안 숫자는 저장된 버전 수입니다.</li>
       </ul>
-      <p class="tip">인쇄(📄 요약)를 누르면 IC 원페이저 형태로도 뽑을 수 있습니다.</p>
+      <p class="tip">이 브라우저에만 저장됩니다. 다른 PC로 옮길 때는 .modelter로 내보내세요.</p>
     </div>
   </section>
 
   <section id="step6">
-    <h2><span class="n">6</span>저장 · 버전 관리 <small style="font-size:13px;color:var(--muted)">· 1분</small></h2>
+    <h2><span class="n">6</span>검토 결과 전달하기 <small style="font-size:13px;color:var(--muted)">· 2분</small></h2>
+    <p class="sec-intro">결과 아래 <b>“결과 공유”에서 “결과 링크 (읽기 전용)”</b>를 고릅니다. 이 링크를 전달하면 되며, 임차인명은 자동으로 가려집니다.</p>
     <div class="card">
-      <p>딜을 저장하면 <b>이 브라우저에만</b> 버전이 남습니다(v0.1, v0.2 …). 대출 조건이나 렌트롤이 바뀔 때 새 버전을 저장하면 이전 값과 비교하거나 해당 버전의 엑셀·티저를 다시 만들 수 있습니다. 다른 PC로 옮길 때는 .modelter 파일로 내보내세요.</p>
+      <h3>엑셀에서 작업을 이어갈 때</h3>
+      <ul>
+        <li><b>오피스·물류 매입: 6개, 렌트롤 반영 시 7개</b>. 일반 매입은 A&R에서 가정과 보유기간(3~10년)을 바꿉니다. 렌트롤을 반영한 모델의 보유기간은 웹에서 바꾸고 다시 다운로드하세요.</li>
+        <li><b>공동주택 분양: 6개</b>. 금액과 비율은 입력 셀에서 바꿉니다. 일정과 민감도는 웹에서 바꾸고 다시 다운로드하세요.</li>
+        <li><b>리파이낸싱: 4개</b>. 파일에 들어 있는 대안은 입력 셀에서 수정합니다. 새 대안은 웹에서 추가하고 다시 다운로드하세요.</li>
+      </ul>
+      <p class="tip">위 숫자는 작업 시트 수입니다. 엑셀에서 바꾼 값은 웹에 자동 반영되지 않습니다.</p>
     </div>
   </section>
 
@@ -205,9 +209,9 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   </section>
 
   <div class="cta">
-    <h2>딜 받았으면, 모델터부터.</h2>
-    <p>예시를 열고 핵심 가정을 바꾸면 IRR·DSCR과 하방을 확인할 수 있습니다.</p>
-    <a href="/?src=howto">예시 딜 열기 →</a>
+    <h2>검토할 딜의 숫자를 넣어보세요</h2>
+    <p>예시의 숫자를 바꾸면서 IRR·DSCR과 하방을 확인하세요.</p>
+    <a href="/#t=office&src=howto">오피스 예시 열기 →</a>
   </div>
 </main>
 
