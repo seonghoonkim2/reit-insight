@@ -15,7 +15,9 @@
 | `computed` | activate 이후 자기 딜 결과 도달 | `__mtComputed()` — activate 전이면 무시 |
 | output | 산출물 — 아래 표의 **산출물 12종 합산**(개별 이벤트명 `output`은 없음) | 각 산출물 이벤트 |
 
-활성화율 = activate ÷ session. 산출물 전환율 = output ÷ session. `output > computed`는 예시값 그대로 내보내는 "구경꾼" 패턴(정상 — 버그 아님).
+활성화율 = activate ÷ session. output ÷ session은 **방문당 산출물 행동 횟수**이며 사람 단위 전환율이 아니다. 한 방문에서 여러 종류·여러 번의 산출물이 나올 수 있고 예시 상태에서도 생성하므로 `output > computed`만으로 오류나 특정 사용자 유형을 판단하지 않는다. 산출물 이벤트는 각 발화 지점의 행동을 뜻하며, 파일 생성 성공·고유 사용자 수와 동일하지 않다.
+
+스냅샷 최상위 `device`·`deals`·`depth`·`ref`·`src`는 **전체 이벤트 건수**의 분해다. 방문 비중을 구할 때 이 값을 `session`으로 나누지 않는다. 이벤트 비중은 해당 분류의 전체 이벤트 합을 분모로 삼는다. 유입별 방문·입력은 `attribution.byRef`·`attribution.bySrc`의 `session`·`activate`로 판독한다. 계정·사용자 식별자 없이 사람 단위 재방문율을 산출하지 않는다.
 
 ## 2. 분모 규칙 (2026-07-10 이후)
 

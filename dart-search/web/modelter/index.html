@@ -110,8 +110,7 @@ header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(1
 .intro .flow .ar{color:var(--accent); font-weight:600}
 .intro-cta{display:inline-block; margin-top:11px; font-size:14.5px; font-weight:600; color:var(--accent-deep); text-decoration:none; border:1px solid var(--line); border-radius:999px; padding:8px 18px; transition:.16s}
 .intro-cta:hover{border-color:var(--accent); background:rgba(169,121,43,.06)}
-/* 재방문 착지(2026-08-11) — 한 번이라도 실제로 써 본 사람은 소개를 접고 딜 탭·입력부터 보이게.
-   처음 온 사람에게는 그대로 소개가 보인다(검색 유입 착지 유지). 소개는 한 줄 링크로 언제든 펼침. */
+/* 재방문자는 소개를 접고 계산기부터 표시 */
 html[data-back="1"] .why,html[data-back="1"] .compare{display:none}
 html[data-back="1"] .intro{padding:16px 0 12px}
 html[data-back="1"] .intro .eyebrow,html[data-back="1"] .intro>.wrap>p,html[data-back="1"] .intro-cta{display:none}
@@ -1343,8 +1342,6 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
   </div>
 </div>
 
-<!-- 첫 방문 역할 선택 모달은 제거(2026-08-11) — 도착하자마자 창이 뜨는 대신 예시가 채워진 화면을 바로 보여준다.
-     역할별 진입은 상단 딜 탭과 /calc 착지면이 대신한다. -->
 
 <div class="wn-overlay" id="wnOverlay" hidden>
   <div class="wn-modal" role="dialog" aria-modal="true" aria-labelledby="wnTitle">
@@ -1491,8 +1488,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
       </div>
       <div class="panel-body" id="formBody"></div>
 
-      <!-- 도구 · 저장 — 자주 쓰지 않는 것들을 입력 아래 한 곳에 접어 둔다(기본 닫힘).
-           30일 사용량 기준: IM 가져오기 3.6% · 딜 저장 44 · 내 기본값 4 · 공유 10 — 입력칸 위를 차지할 이유가 없다. -->
+      <!-- 부가 도구는 기본 닫힘 -->
       <details class="tools-fold" id="toolsFold">
         <summary><span class="tf-ic">⚙</span> 도구 · AI 모델 깊이 <span class="tf-now" id="tfNow"></span><span class="chev">▾</span></summary>
         <div class="tf-body">
@@ -1941,7 +1937,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-10-01·9a91634a15';
+window.MT_BUILD='2026-10-02·fbe84c59e2';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -1954,8 +1950,8 @@ function exMarkExample(){ try{
   exampleKeys=new Set(Object.keys(state).filter(function(k){ return ((state[k]||'')+'').trim()!==''; }));
   exUserEdited=false; srcTags={}; renderExChip();
 }catch(e){} }
-function exTouch(k){ try{ exampleKeys.delete(k); exUserEdited=true; renderExChip(); }catch(e){} }
-function exMarkEdited(){ try{ exUserEdited=true; renderExChip(); }catch(e){} }
+function exTouch(k){ try{ resumeLocal(); exampleKeys.delete(k); exUserEdited=true; renderExChip(); }catch(e){} }
+function exMarkEdited(){ try{ resumeLocal(); exUserEdited=true; renderExChip(); }catch(e){} }
 function exClearAllTrack(){ try{ exampleKeys.clear(); exUserEdited=false; srcTags={}; renderExChip(); }catch(e){} }
 function exRemaining(){ // 현재 딜 폼에 존재하는 숫자·텍스트 필드 중, 값이 있고 아직 예시 그대로인 키
   var out=[]; try{ exampleKeys.forEach(function(k){
@@ -2035,7 +2031,7 @@ function renderTabs(){
     `<button class="deal-tab deal-soon" data-want="${x.k}" title="준비 중 — 클릭하면 이 딜 유형에 관심 있다고 익명으로 알려집니다">${x.label}<span class="badge-soon">준비중</span></button>`
   ).join("");
   $("dealTabs").innerHTML=real+soon;
-  $("dealTabs").querySelectorAll(".deal-tab:not(.deal-soon)").forEach(b=>b.addEventListener("click",()=>{ cur=b.dataset.k; fillExample(); }));
+  $("dealTabs").querySelectorAll(".deal-tab:not(.deal-soon)").forEach(b=>b.addEventListener("click",()=>{ resumeLocal(); cur=b.dataset.k; fillExample(); }));
   $("dtLabel").textContent=DEALS[cur].label;
 }
 
@@ -2457,14 +2453,14 @@ function renderForm(){
     });
   });
   $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",(ev)=>{ refiState[el.dataset.rk]=el.value; exMarkEdited(); if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 리파이 텀시트 직접 입력 = 활성화 신호
-  $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",(ev)=>{ scenState[el.dataset.scen]=el.value; if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 시나리오 직접 입력 = 활성화 신호
+  $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",(ev)=>{ resumeLocal();scenState[el.dataset.scen]=el.value; if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 시나리오 직접 입력 = 활성화 신호
   bindDevGrids();
-  var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
+  var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ resumeLocal();scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
   ["c_freq"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",update); });
   // model depth segmented control
   const seg=$("depthSeg");
   if(seg){ seg.querySelectorAll(".depth-opt").forEach(btn=>btn.addEventListener("click",()=>{
-    depth=btn.dataset.depth;
+    resumeLocal();depth=btn.dataset.depth;
     renderForm();      // 깊이에 따라 입력 폼 구성이 달라짐
     restoreInputs();   // 기존 입력값 복원
     update();
@@ -2958,6 +2954,8 @@ document.addEventListener('keydown',function(e){ if((e.metaKey||e.ctrlKey)&&e.ke
 /* ---------- 딜 워크스페이스: 딜 → 버전(v0.N) → 산출물 이력 (브라우저 로컬 저장) ---------- */
 var WS_KEY='mt_deals', WS_SCHEMA='1.0';
 var WS={dealId:null, versionId:null, savedHash:null};
+var localPause=/[#&][evdth]=/.test(location.hash), localWarn=false;
+function resumeLocal(){if(localPause){try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}localPause=false;}}
 var _wsCache=null;
 function wsDB(){
   if(_wsCache) return _wsCache;
@@ -2965,7 +2963,7 @@ function wsDB(){
   if(!_wsCache||!_wsCache.deals){ _wsCache={schema:WS_SCHEMA, deals:{}}; wsMigrateSlots(_wsCache); wsPersist(); }
   return _wsCache;
 }
-function wsPersist(){ try{ localStorage.setItem(WS_KEY, JSON.stringify(_wsCache)); }catch(e){ try{ toast('저장 공간이 부족합니다 — 딜을 .modelter로 백업 후 정리하세요'); }catch(e2){} } }
+function wsPersist(){ try{ localStorage.setItem(WS_KEY, JSON.stringify(_wsCache)); return true; }catch(e){ try{ toast('저장하지 못했습니다 — 딜을 .modelter로 백업 후 저장 공간을 확인하세요'); }catch(e2){} return false; } }
 function wsId(pfx){ return pfx+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 // 기존 딜 보관함(mt_slots) → 딜(v0.1)로 1회 이관
 function wsMigrateSlots(db){
@@ -2980,11 +2978,16 @@ function wsMigrateSlots(db){
   }catch(e){}
 }
 // 현재 입력 스냅샷 — 입력값만 저장하고, 복원 시 엔진이 결과를 재계산 (결과 하드코딩 없음)
+function wsAnonRR(rr,source){
+  if(!rr)return null;var names=[];
+  return {leases:rr.leases.map(function(l,i){var o={},n=source&&source.leases&&source.leases.length===rr.leases.length?source.leases[i].name:l.name;n=n||('#'+i);var g=names.indexOf(n);if(g<0){g=names.length;names.push(n);}o.name='임차인'+(g+1);'area netArea rentPP camPP deposit yrsToExp rentFreeRemain stepUp'.split(' ').forEach(function(k){if(l[k]!==undefined)o[k]=l[k];});return o;}),mkt:rr.mkt};
+}
 function wsSnapshot(){
   var s={}; for(var k in state) s[k]=state[k];
   var kk={}; for(var k2 in stackState) kk[k2]=stackState[k2];
   var rr2={}; for(var k3 in refiState) rr2[k3]=refiState[k3];
-  return {c:cur,d:depth,s:s,k:kk,r:rr2,rr:(window.rrModel&&window.rrModel.on)?{leases:window.rrModel.leases,mkt:window.rrModel.mkt}:null,ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags};
+  var rr=(window.rrModel&&window.rrModel.on)?wsAnonRR(window.rrModel,window.rrState):null;
+  return {c:cur,d:depth,s:s,k:kk,r:rr2,rr:rr,sc:{on:!!scenOn,s:scenState},ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags};
 }
 function wsStable(v){
   if(v===null||typeof v!=='object') return JSON.stringify(v);
@@ -2993,7 +2996,7 @@ function wsStable(v){
   for(var j=0;j<ks.length;j++) o.push(JSON.stringify(ks[j])+':'+wsStable(v[ks[j]]));
   return '{'+o.join(',')+'}';
 }
-function wsHash(snap){ var s=wsStable(snap), hh=2166136261>>>0; for(var i=0;i<s.length;i++){ hh^=s.charCodeAt(i); hh=Math.imul(hh,16777619)>>>0; } return ('0000000'+hh.toString(16)).slice(-8); }
+function wsHash(snap){ snap=Object.assign({},snap,{sc:snap.sc||{on:false,s:{}}});if(snap.rr)snap.rr=wsAnonRR(snap.rr);var s=wsStable(snap), hh=2166136261>>>0; for(var i=0;i<s.length;i++){ hh^=s.charCodeAt(i); hh=Math.imul(hh,16777619)>>>0; } return ('0000000'+hh.toString(16)).slice(-8); }
 // 버전 요약 — 기존 엔진 결과에서 추출만 (별도 계산 없음)
 function wsSummary(snap){
   var o=null; try{ o=computeForSnapshot(snap); }catch(e){}
@@ -3037,7 +3040,7 @@ function wsSaveDeal(){
   var db=wsDB(), id=wsId('deal'), now=new Date().toISOString();
   db.deals[id]={id:id,name:name,createdAt:now,updatedAt:now,currentVersionId:null,versions:[],outputs:[]};
   var v=wsAddVersion(db.deals[id], wsSnapshot(), vname, now);
-  wsPersist(); WS={dealId:id, versionId:v.id, savedHash:v.hash};
+  if(!wsPersist()){delete db.deals[id];return;} WS={dealId:id, versionId:v.id, savedHash:v.hash}; resumeLocal(); saveLocal();
   refreshSlotSel(); renderWorkspace();
   toast(name+' 저장됨 — '+v.label+(v.name?(' · '+v.name):'')+'. 이 버전 기준으로 엑셀·티저를 다시 뽑을 수 있습니다');
   if(window.mtTrack) try{ mtTrack('ws_save',{kind:'deal'}); }catch(e){}
@@ -3047,8 +3050,8 @@ function wsSaveVersion(){
   var next='v0.'+(deal.versions.length+1);
   var vname=prompt(next+' 버전 설명 (선택) — 예: 렌트롤 반영 / 대출조건 변경','');
   if(vname===null) return;
-  var v=wsAddVersion(deal, wsSnapshot(), vname);
-  wsPersist(); WS.versionId=v.id; WS.savedHash=v.hash;
+  var before=JSON.stringify(deal),v=wsAddVersion(deal, wsSnapshot(), vname);
+  if(!wsPersist()){wsDB().deals[deal.id]=JSON.parse(before);return;} WS.versionId=v.id; WS.savedHash=v.hash; resumeLocal(); saveLocal();
   refreshSlotSel(); renderWorkspace();
   toast(deal.name+' → '+v.label+' 저장됨');
   if(window.mtTrack) try{ mtTrack('ws_save',{kind:'version'}); }catch(e){}
@@ -3064,8 +3067,9 @@ function wsDupDeal(dealId){
   var id=wsId('deal'), now=new Date().toISOString();
   db.deals[id]={id:id,name:name,createdAt:now,updatedAt:now,currentVersionId:null,versions:[],outputs:[]};
   var v=wsAddVersion(db.deals[id], snap, '복제: '+src.name+(live?' 화면 기준':(cv?' '+cv.label:'')), now);
-  wsPersist(); WS={dealId:id, versionId:v.id, savedHash:v.hash};
+  if(!wsPersist()){delete db.deals[id];return;} WS={dealId:id, versionId:v.id, savedHash:v.hash}; resumeLocal();
   if(!live) wsApplySnapshot(JSON.parse(JSON.stringify(snap)));
+  saveLocal();
   refreshSlotSel(); renderWorkspace(); renderWsPanel();
   toast(name+' 생성됨 — v0.1부터 새로 시작 (원본 이력은 그대로)');
   if(window.mtTrack) try{ mtTrack('ws_save',{kind:'dup'}); }catch(e){}
@@ -3074,6 +3078,7 @@ function wsApplySnapshot(pp){
   if(pp.c&&DEALS[pp.c]) cur=pp.c; if(pp.d&&DEPTHS[pp.d]) depth=pp.d;
   state=Object.assign({},pp.s||{}); stackState=Object.assign({},pp.k||{}); refiState=Object.assign({},pp.r||{});
   exampleKeys=new Set(pp.ek||[]); exUserEdited=!!pp.ue; srcTags=pp.st||{};
+  scenOn=!!(pp.sc&&pp.sc.on);scenState=pp.sc&&pp.sc.s||{};
   window.rrModel=(pp.rr&&pp.rr.leases)?{leases:pp.rr.leases,mkt:pp.rr.mkt,on:true,confirmed:true}:null;
   window.rrState=null;
   renderTabs(); renderForm(); restoreInputs(); update();
@@ -3081,7 +3086,7 @@ function wsApplySnapshot(pp){
 function wsLoadVersion(dealId, vid){
   var db=wsDB(), deal=db.deals[dealId]; if(!deal||!deal.versions.length) return;
   var v=wsVersion(deal,vid)||wsVersion(deal,deal.currentVersionId)||deal.versions[deal.versions.length-1];
-  WS={dealId:deal.id, versionId:v.id, savedHash:v.hash};
+  WS={dealId:deal.id, versionId:v.id, savedHash:wsHash(v.snap)}; resumeLocal();
   deal.currentVersionId=v.id; wsPersist();
   wsApplySnapshot(JSON.parse(JSON.stringify(v.snap)));
   refreshSlotSel(); renderWorkspace();
@@ -3090,8 +3095,9 @@ function wsLoadVersion(dealId, vid){
 function wsDeleteDeal(dealId){
   var db=wsDB(), deal=db.deals[dealId]; if(!deal) return;
   if(!confirm(deal.name+' 딜을 삭제할까요? 버전 '+deal.versions.length+'개가 함께 삭제됩니다.')) return;
-  delete db.deals[dealId]; wsPersist();
+  delete db.deals[dealId]; if(!wsPersist()){db.deals[dealId]=deal;return;}
   if(WS.dealId===dealId) WS={dealId:null,versionId:null,savedHash:null};
+  saveLocal();
   refreshSlotSel(); renderWorkspace(); renderWsPanel(); toast('삭제됨');
 }
 function wsDeleteVersion(dealId, vid){
@@ -3099,23 +3105,26 @@ function wsDeleteVersion(dealId, vid){
   if(deal.versions.length<=1){ toast('마지막 버전입니다 — 딜 자체를 지우려면 보관함에서 삭제하세요'); return; }
   var v=wsVersion(deal,vid); if(!v) return;
   if(!confirm(v.label+(v.name?(' · '+v.name):'')+' 버전을 삭제할까요?')) return;
+  var before=JSON.stringify(deal),w=Object.assign({},WS);
   deal.versions=deal.versions.filter(function(x){return x.id!==vid;});
   if(deal.currentVersionId===vid) deal.currentVersionId=deal.versions[deal.versions.length-1].id;
-  if(WS.versionId===vid){ WS.versionId=deal.currentVersionId; var cv=wsVersion(deal,WS.versionId); WS.savedHash=cv?cv.hash:null; }
-  wsPersist(); renderWsPanel(); refreshSlotSel(); renderWorkspace(); toast('버전 삭제됨');
+  if(WS.versionId===vid){ WS.versionId=deal.currentVersionId; var cv=wsVersion(deal,WS.versionId); WS.savedHash=cv?wsHash(cv.snap):null; }
+  if(!wsPersist()){db.deals[dealId]=JSON.parse(before);WS=w;return;}saveLocal();renderWsPanel(); refreshSlotSel(); renderWorkspace(); toast('버전 삭제됨');
 }
 // 버전 스냅샷을 임시 적용해 산출물만 생성 (전역 백업→적용→생성→복원)
 function wsWithSnapshot(snap, fn){
-  var bk={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:window.rrModel,rs:window.rrState};
+  var bk={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:window.rrModel,rs:window.rrState,on:scenOn,sc:scenState};
   try{
     if(snap.c&&DEALS[snap.c]) cur=snap.c; if(snap.d&&DEPTHS[snap.d]) depth=snap.d;
     state=snap.s||{}; stackState=snap.k||{}; refiState=snap.r||{};
+    scenOn=!!(snap.sc&&snap.sc.on);scenState=snap.sc&&snap.sc.s||{};
     window.rrModel=(snap.rr&&snap.rr.leases)?{leases:snap.rr.leases,mkt:snap.rr.mkt,on:true,confirmed:true}:null;
     window.rrState=null;
     fn();
   } finally{
     cur=bk.c; depth=bk.d; state=bk.s; stackState=bk.k; refiState=bk.r;
     window.rrModel=bk.rr; window.rrState=bk.rs;
+    scenOn=bk.on;scenState=bk.sc;
   }
 }
 // ── .modelter 내보내기/가져오기 ──
@@ -3141,7 +3150,7 @@ function wsImportFile(obj){
   d.versions=(d.versions||[]).map(function(v){ var nid=wsId('ver'); map[v.id]=nid; v.id=nid; v.dealId=d.id; return v; });
   if(d.currentVersionId) d.currentVersionId=map[d.currentVersionId]||((d.versions[d.versions.length-1]||{}).id||null);
   d.outputs=(d.outputs||[]).map(function(o){ o.id=wsId('out'); o.versionId=o.versionId?(map[o.versionId]||null):null; return o; });
-  db.deals[d.id]=d; wsPersist();
+  db.deals[d.id]=d; if(!wsPersist()){delete db.deals[d.id];throw new Error('딜 저장에 실패했습니다');}
   return d;
 }
 // ── 딜 비교(renderCompare) 호환 어댑터: 딜별 현재 버전 스냅샷 ──
@@ -3186,17 +3195,18 @@ function renderWorkspace(){
 
 // 스냅샷(딜)을 전역을 건드리지 않고 계산 — 비교·요약용. 전역 백업→적용→simModel→반드시 복원.
 function computeForSnapshot(snap){
-  var bk={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:window.rrModel};
+  var bk={c:cur,d:depth,s:state,k:stackState,r:refiState,rr:window.rrModel,on:scenOn,sc:scenState};
   var out=null;
   try{
     cur=(snap.c&&DEALS[snap.c])?snap.c:cur; depth=(snap.d&&DEPTHS[snap.d])?snap.d:depth;
     state=snap.s||{}; stackState=snap.k||{}; refiState=snap.r||{};
+    scenOn=!!(snap.sc&&snap.sc.on);scenState=snap.sc&&snap.sc.s||{};
     window.rrModel=(snap.rr&&snap.rr.leases)?{leases:snap.rr.leases,mkt:snap.rr.mkt,on:true}:null;
     var m=simModel();
     var vd=null; try{ vd=(typeof dealVerdict==='function')?dealVerdict(m):null; }catch(eV){}
     out={label:((state.asset||'').trim())||DEALS[cur].label, deal:DEALS[cur].label, dealKey:cur, kpis:(m&&m.kpis)?m.kpis:[], raw:(m&&m.raw)||null, verdict:vd, state:state};
   }catch(e){ out=null; }
-  finally{ cur=bk.c; depth=bk.d; state=bk.s; stackState=bk.k; refiState=bk.r; window.rrModel=bk.rr; }
+  finally{ cur=bk.c; depth=bk.d; state=bk.s; stackState=bk.k; refiState=bk.r; window.rrModel=bk.rr;scenOn=bk.on;scenState=bk.sc; }
   return out;
 }
 var CMP_SEL=null; // 비교 대상 딜 이름 목록 (null=기본: 앞 4개)
@@ -3500,7 +3510,7 @@ function renderWsPanel(){
         var m=txt.match(/MTSNAP1:([A-Za-z0-9_-]+):PANSTM/);
         if(!m){ toast('복원 코드를 찾지 못했습니다. 수정·재저장 전 모델터 다운로드 원본 파일을 선택하세요.'); t.value=''; return; }
         var p=JSON.parse(mtLZ.decompress(m[1]));
-        applySharedPayload(p);
+        resumeLocal(); applySharedPayload(p);
         var ovl=document.getElementById('wsOverlay'); if(ovl){ ovl.hidden=true; document.body.style.overflow=''; }
         toast('엑셀에서 딜을 복원했습니다 — 생성 시점 입력 기준 (엑셀에서 고친 셀은 반영되지 않음)',3400);
         if(window.mtTrack) try{ mtTrack('xlsx_restore'); }catch(e2){}
@@ -3621,8 +3631,8 @@ function scenHtml(){
   var rowsH=drv.map(function(d){
     var base=String(scenBase(d.k)).trim();
     return '<tr><td class="sc-d">'+d.l+' <span class="unit">'+d.u+'</span></td><td class="sc-b">'+(base||'—')+'</td>'+
-      '<td><input data-scen="up_'+d.k+'" inputmode="decimal" placeholder="'+scenDef('up',d)+'"></td>'+
-      '<td><input data-scen="down_'+d.k+'" inputmode="decimal" placeholder="'+scenDef('down',d)+'"></td></tr>';
+      '<td><input data-scen="up_'+d.k+'" inputmode="decimal" value="'+esc(scenState['up_'+d.k]||'')+'" placeholder="'+scenDef('up',d)+'"></td>'+
+      '<td><input data-scen="down_'+d.k+'" inputmode="decimal" value="'+esc(scenState['down_'+d.k]||'')+'" placeholder="'+scenDef('down',d)+'"></td></tr>';
   }).join('');
   return '<div class="fgroup"><div class="fgroup-h"><span class="gh-left"><span class="gl">S</span> 시나리오 비교</span>'+
     '<label class="scen-tg"><input type="checkbox" id="scenOn" '+(scenOn?'checked':'')+'> 사용</label></div>'+
@@ -3742,7 +3752,7 @@ function _sensHeat(v,min,max){
 /* ---------- 임차인명 비식별 (화면·엑셀·인쇄 공용) ---------- */
 function rrMaskOn(){ return String(state['rrmask']||'')==='1'; }
 function rrAlias(i){ var A='ABCDEFGHIJKLMNOPQRSTUVWXYZ'; return '임차인'+(i<26?A[i]:(A[Math.floor(i/26)-1]+A[i%26])); }
-function rrDisplayName(nm,i){ return rrMaskOn()?rrAlias(i):(nm||('임차'+(i+1))); }
+function rrDisplayName(nm,i){ if(!rrMaskOn())return nm||('임차'+(i+1));var rm=window.rrModel,ls=window.rrState&&window.rrState.leases;if(!ls||rm&&ls.length!==rm.leases.length)ls=rm&&rm.leases;if(nm&&ls){var g=ls.findIndex(function(l){return l.name===nm;});if(g>=0)i=g;}return rrAlias(i); }
 /* ---------- 역산 솔버 (bisection, 가드레일 포함) ---------- */
 function mtBisect(fn, lo, hi, target, tol, maxIter){
   // 1) 범위를 스캔해 유효(계산 가능)하면서 부호가 바뀌는 구간을 찾음
@@ -3903,7 +3913,7 @@ function renderRRRisk(){
 }
 (function(){
   document.addEventListener('change',function(e){ var t=e.target; if(!t||t.id!=='rrMaskCk') return;
-    state['rrmask']=t.checked?'1':''; saveLocal(); update();
+    resumeLocal();state['rrmask']=t.checked?'1':''; saveLocal(); update();
     if(window.mtTrack) try{ mtTrack('rr_mask',{on:t.checked?1:0}); }catch(err){} });
 })();
 function renderHeat(m){
@@ -4803,12 +4813,14 @@ function restoreInputs(){
 }
 
 function fillStandard(){
+  resumeLocal();
   var d=DEALS[cur], changed=0;
   d.groups.forEach(function(g){ g.f.forEach(function(f){ if(f.t==='textarea'||f.t==='select'||f.k==='asset') return; if(!f.ph) return; if(((state[f.k]||'').trim())===''){ state[f.k]=f.ph; changed++; } }); });
   renderForm(); restoreInputs(); update(); toast(changed?('빈 칸 '+changed+'개를 표준값으로 채웠습니다'):'이미 모두 채워져 있습니다'); }
 
 function fillExample(){
   const ex=EXAMPLES[cur]; if(!ex) return;
+  WS={dealId:null,versionId:null,savedHash:null}; window.rrModel=null; window.rrState=null; scenOn=false;scenState={};refreshSlotSel();
   depth="standard";  // 예시는 표준 깊이 기준
   state=Object.assign({},ex.state);
   stackState={}; refiState={};
@@ -4824,6 +4836,7 @@ function fillExample(){
 }
 
 function clearAll(){
+  WS={dealId:null,versionId:null,savedHash:null}; window.rrModel=null; window.rrState=null;scenOn=false;scenState={};resumeLocal(); refreshSlotSel();
   state={}; stackState={}; refiState={}; depth="standard";
   exClearAllTrack();
   try{ localStorage.removeItem("mt_state"); }catch(e){}
@@ -4898,7 +4911,7 @@ async function sendFeedback(){
 
 $("copyBtn").addEventListener("click",copyOut);
 $("dlBtn").addEventListener("click",downloadOut);
-$("fillExample").addEventListener("click",fillExample);
+$("fillExample").addEventListener("click",function(){resumeLocal();fillExample();});
 var _ssb=$("sampleStartBtn"); if(_ssb) _ssb.addEventListener("click",startOwnDeal);
 var _fs=$("fillStd"); if(_fs) _fs.addEventListener("click",fillStandard);
 const clearB=$("clearBtn"); if(clearB) clearB.addEventListener("click",clearAll);
@@ -4987,12 +5000,9 @@ var mtLZ=(function(){
 function sharePayload(){
   var rr=null;
   if(window.rrModel&&window.rrModel.on&&window.rrModel.leases){
-    var masked=window.rrModel.leases.map(function(l,i){
-      var o={}; for(var k in l) o[k]=l[k]; o.name='임차인'+String.fromCharCode(65+(i%26))+(i>=26?Math.floor(i/26):''); return o;
-    });
-    rr={leases:masked, mkt:window.rrModel.mkt};
+    rr=wsAnonRR(window.rrModel,window.rrState);
   }
-  return {c:cur,d:depth,s:state,k:stackState,r:refiState,rr:rr,ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags};
+  return {c:cur,d:depth,s:state,k:stackState,r:refiState,rr:rr,sc:{on:!!scenOn,s:scenState},ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags};
 }
 function encodeState(){ try{ return mtLZ.compress(JSON.stringify(sharePayload())); }catch(e){ return ""; } }
 window.__mtSnapForXlsx=function(){ try{ return encodeState()||null; }catch(e){ return null; } };
@@ -5121,6 +5131,7 @@ function srcPop(){
     if(t2.dataset.srck!=null) c2.s=t2.value||undefined;
     if(t2.dataset.srcd!=null) c2.d=t2.value||undefined;
     if(!c2.s&&!c2.d) delete srcTags[k]; else srcTags[k]=c2;
+    resumeLocal();saveLocal();
     if(window.mtTrack&&!ov2.__srcT){ ov2.__srcT=1; try{ mtTrack('src_tag'); }catch(e3){} }
   });
 }
@@ -5246,6 +5257,7 @@ var ADJ_DEFS={
 ADJ_DEFS.logistics=ADJ_DEFS.office;
 function adjGet(d){ var raw=d.sk?stackState[d.sk]:state[d.k]; if((raw==null||String(raw).trim()==='')&&d.def!=null) raw=d.def; return parseNum(raw); }
 function adjSet(d,v){
+  resumeLocal();
   var s=(d.d!=null)?String(Math.round(v*Math.pow(10,d.d))/Math.pow(10,d.d)):String(Math.round(v));
   if(d.sk){ stackState[d.sk]=s; var se=document.querySelector('[data-sk="'+d.sk+'"]'); if(se) se.value=s; }
   else { state[d.k]=s; if(typeof exTouch==='function') exTouch(d.k); var fe=document.querySelector('[data-k="'+d.k+'"]'); if(fe) fe.value=s; }
@@ -5291,6 +5303,7 @@ function renderAdjBar(){
   bar.addEventListener('click',function(e){
     var rs=e.target.closest?e.target.closest('#adjReset'):null;
     if(rs&&ADJ_BASE){
+      resumeLocal();
       Object.keys(ADJ_BASE).forEach(function(key){
         var b=ADJ_BASE[key];
         if(b.sk){ if(b.v==null) delete stackState[key]; else stackState[key]=b.v; var se=document.querySelector('[data-sk="'+key+'"]'); if(se) se.value=(b.v==null?'':b.v); }
@@ -5546,10 +5559,12 @@ function shareInputs(anchor){
   setTimeout(function(){ document.addEventListener('click',function h(e){ if(!pop.contains(e.target)&&e.target!==btn){ pop.remove(); document.removeEventListener('click',h); } }); },0);
 }
 function applySharedPayload(p){
+  WS={dealId:null,versionId:null,savedHash:null};refreshSlotSel();
   if(p.c && DEALS[p.c]){ cur=p.c; }
   if(p.d && DEPTHS[p.d]){ depth=p.d; }
   state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
   exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue; srcTags=p.st||{};
+  scenOn=!!(p.sc&&p.sc.on);scenState=p.sc&&p.sc.s||{};
   window.rrModel=(p.rr&&p.rr.leases)?{leases:p.rr.leases,mkt:p.rr.mkt,on:true,confirmed:true}:null;
   window.rrState=null;
   renderTabs(); renderForm(); restoreInputs(); update();
@@ -5571,17 +5586,15 @@ function tryRestoreFromURL(){
       cur=mT[1]; fillExample();
       if(/[#&]view=lender/.test(h)&&cur==='dev'&&typeof window.__setDevView==='function') window.__setDevView('lender');
       setTimeout(function(){ var t=document.getElementById('builder-start'); if(t&&t.scrollIntoView) t.scrollIntoView({block:'start'}); },80);
-      /* 검색·IM 실무 콘텐츠에서 온 방문자 — 판독 2026-08-10: src=seo 누적 21세션 활성화 0.
-         착지 페이지에서 이미 같은 예시를 보고 오므로 "내 숫자로 바꾸는 순간"을 만들어 준다.
-         표시 전용(하이라이트·안내·데스크톱 포커스) — 계측 발화 없음. */
+      /* 검색·가이드에서 첫 숫자 입력으로 연결 — 표시 전용 */
       if(/[#&]src=(?:seo|dscr|imcheck|howto|sns|team)\b/.test(h)) setTimeout(function(){
         try{
           var cg=document.querySelector('#formBody .core-g');
           if(cg){ cg.classList.add('core-hi'); setTimeout(function(){ cg.classList.remove('core-hi'); },3200); }
           if(typeof toast==='function') toast('기본 예시가 입력되어 있습니다. 첫 항목부터 실제 값으로 바꾸면 결과가 다시 계산됩니다', 5200);
-          // 모바일은 포커스 생략 — 키보드가 올라와 결과 카드를 가림(7/14 착지 개선 원칙)
-          if(window.matchMedia && matchMedia('(max-width:920px)').matches) return;
-          var fi=cg&&cg.querySelector('input[data-k]:not([type=range])');
+          var fi=document.getElementById('f_'+({office:'price',logistics:'price',dev:'landcost',refi:'noi'}[cur]));
+          // 모바일은 입력 위치만 보여주고 키보드는 열지 않는다.
+          if(window.matchMedia && matchMedia('(max-width:920px)').matches){if(fi)fi.scrollIntoView({block:'center'});return;}
           if(fi&&fi.focus){ fi.focus({preventScroll:true}); if(fi.select) fi.select(); }
         }catch(eS){}
       },420);
@@ -5612,6 +5625,7 @@ function enterReadonly(){
 }
 window.__mtExitReadonly=function(){
   window.__mtReadonly=false;
+  resumeLocal(); saveLocal();
   try{ document.body.classList.remove('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=true;
     var cta=document.getElementById('roCta'); if(cta) cta.hidden=true;
     try{ history.replaceState(null,'',location.pathname); }catch(e2){} }catch(e){}
@@ -5619,16 +5633,22 @@ window.__mtExitReadonly=function(){
 };
 
 /* ---------- 입력값 브라우저 자동 저장/복원 ---------- */
-function saveLocal(){ try{ localStorage.setItem("mt_state", JSON.stringify({c:cur,d:depth,s:state,k:stackState,r:refiState,ek:Array.from(exampleKeys),ue:exUserEdited?1:0,st:srcTags})); }catch(e){} }
+function saveLocal(){ if(localPause||window.__mtReadonly)return; try{ var p=wsSnapshot();p.ws=WS;localStorage.setItem("mt_state",JSON.stringify(p));localWarn=false; }catch(e){if(!localWarn){localWarn=true;toast('자동 저장하지 못했습니다. 백업·가져오기에서 파일로 보관하세요.');}} }
 function tryRestoreLocal(){
   let raw=null; try{ raw=localStorage.getItem("mt_state"); }catch(e){ return false; }
   if(!raw) return false;
   try{
     const p=JSON.parse(raw);
+    if(!p||!DEALS[p.c]||!p.s||typeof p.s!=='object'||Array.isArray(p.s)||p.rr&&(!Array.isArray(p.rr.leases)||!p.rr.mkt)||p.sc&&(!p.sc.s||typeof p.sc.s!=='object'||Array.isArray(p.sc.s)))return false;
     if(p.c && DEALS[p.c]) cur=p.c;
     if(p.d && DEPTHS[p.d]) depth=p.d;
     state=p.s||{}; stackState=p.k||{}; refiState=p.r||{};
     exampleKeys=new Set(p.ek||[]); exUserEdited=!!p.ue; srcTags=p.st||{};
+    scenOn=!!(p.sc&&p.sc.on);scenState=p.sc&&p.sc.s||{};
+    window.rrModel=p.rr&&(cur==='office'||cur==='logistics')?{leases:p.rr.leases,mkt:p.rr.mkt,on:true,confirmed:true}:null; window.rrState=null;
+    var d=p.ws&&wsDB().deals[p.ws.dealId],v=d&&wsVersion(d,p.ws.versionId);
+    if(v&&(wsHash(v.snap)===p.ws.savedHash||v.hash===p.ws.savedHash)&&v.snap.c===cur)WS={dealId:d.id,versionId:v.id,savedHash:wsHash(v.snap)};
+    refreshSlotSel();
     renderTabs(); renderForm(); restoreInputs(); update();
     return true;
   }catch(e){ return false; }
@@ -9066,6 +9086,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     if(!pending){ return; }
     var agg=pending.agg;
     if(typeof state==='undefined') return;
+    resumeLocal();
     var rep=(typeof stackState!=='undefined'&&stackState['senior_extra'])||'만기일시';
     var repMap={'만기일시':'만기일시(이자만)','원금균등':'원금균등','원리금균등':'원리금균등','거치후 원리금균등':'거치후 원리금균등'}; var __gr=(function(){ var g=parseFloat(String((typeof stackState!=='undefined'&&stackState&&stackState['senior_grace'])||'').replace(/,/g,'')); return (isFinite(g)&&g>0)?Math.round(g):0; })();
     var mkt={ marketPP:rrv('rr_mktrent',Math.round(agg.wAvgRentPP)), marketCamPP:rrv('rr_mktcam',Math.round(agg.wAvgCamPP)),
@@ -9105,6 +9126,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
   };
   function loadSampleDeal(key){
     var sm=MT_SAMPLES[key]; if(!sm||typeof state==='undefined') return;
+    resumeLocal();
     cur=sm.cur; fillExample();
     var leases=sm.leases.map(function(l){ return {area:l.area, netArea:null, rentPP:l.rentPP, camPP:l.camPP, deposit:Math.round(l.area*l.rentPP*12), yrsToExp:l.yrs, rentFreeRemain:0, stepUp:null}; });
     var A=0,R=0,C=0,D=0; leases.forEach(function(l){ A+=l.area; R+=l.area*l.rentPP; C+=l.area*l.camPP; D+=l.deposit; });

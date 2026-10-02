@@ -52,6 +52,10 @@ jobs:
           git diff --exit-code -- dart-search/web/modelter data/build.json
       - name: 모델터 검증
         run: node tools/modelter-ci-check.js
+      - name: 검색 예시 일치 및 이용 통계 분모
+        run: |
+          node tools/qa/search-handoff.js
+          node tools/qa/growth-metrics.js
       - name: 엔진 불변식 (경제적 단조성 17건)
         run: node tools/qa/invariants.js
       - name: 다운로드 수식 캐시 (값 유형·빈 값·오류 차단)
@@ -131,5 +135,9 @@ jobs:
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/smoke.js
       - name: 개발 입력 blur 및 실제 엑셀 다운로드
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/editable-browser.js
+      - name: 재방문 복원 및 모바일 검색 첫 입력
+        run: |
+          CHROME_BIN="$(command -v google-chrome)" node tools/qa/retention.js
+          CHROME_BIN="$(command -v google-chrome)" node tools/qa/search-handoff.js --browser
       - name: 저가 모바일 첫 결과 5초 예산
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/perf-load.js

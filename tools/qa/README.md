@@ -1,5 +1,21 @@
 # 모델터 스모크 QA — 실제 브라우저 회귀 검사
 
+## 재방문과 검색 유입 검사
+
+```bash
+node tools/qa/growth-metrics.js
+node tools/qa/search-handoff.js
+CHROME_BIN=/path/to/chrome node tools/qa/search-handoff.js --browser
+CHROME_BIN=/path/to/chrome node tools/qa/retention.js
+```
+
+`growth-metrics`는 방문·입력·산출물 횟수를 구분하고 기기별 이벤트의 분모를 검사합니다.
+한 방문에서 여러 산출물이 생기는 예시와 실제 저장 스냅샷을 사용하며 수집 정의는 바꾸지 않습니다.
+`search-handoff`는 검색 페이지의 예시 조건과 앱 입력을 대조하고, 모바일에서 첫 숫자 입력이
+화면에 보이는지와 자동 키보드·가로 넘침이 없는지 확인합니다.
+`retention`은 딜·버전·미저장 변경과 렌트롤을 새로고침 전후 비교하고,
+공유·검색 링크가 기존 작업을 덮어쓰지 않는지 확인합니다. QA는 로컬 서버에서 수행합니다.
+
 `smoke.js` 하나가 배포 파일(`dart-search/web/modelter/`)을 내장 http 서버로 띄우고
 Chromium(Playwright)으로 핵심 사용자 경로를 검사합니다.
 

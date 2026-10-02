@@ -102,6 +102,7 @@ function toMap(rows) { const m = {}; for (const r of rows) { const k = String(r.
 // ── 출력 헬퍼 (modelter-funnel.js와 동일 스타일) ──
 function bar(n, max, w) { const x = max > 0 ? Math.round(n / max * w) : 0; return '█'.repeat(x) + '·'.repeat(Math.max(0, w - x)); }
 function pct(a, b) { return b > 0 ? (a / b * 100).toFixed(1) + '%' : '—'; }
+function outputsPerVisit(outputs, visits) { return visits > 0 ? (outputs / visits).toFixed(2) + '건' : '—'; }
 function rowsOf(obj, opt) {
   opt = opt || {};
   const ents = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, opt.top || 99);
@@ -120,14 +121,15 @@ function render(data) {
   L.push('╚══════════════════════════════════════════════════╝');
 
   L.push('');
-  L.push('■ 활성화 퍼널 (세션당 1회 신호)');
+  L.push('■ 방문 → 직접 입력 → 결과 (각 단계 세션당 1회)');
   const fmax = Math.max(S, A, C, O, 1);
   const fl = (label, n, base, suffix) => '   ' + label.padEnd(22) + String(Math.round(n)).padStart(6) + '  ' + bar(n, fmax, 20) + '  ' + (base != null ? pct(n, base) : '') + (suffix || '');
   L.push(fl('방문 (session)', S, null));
   L.push(fl('→ 직접 입력 (activate)', A, S, S ? '  of 방문' : ''));
   L.push(fl('→ 결과 도달 (computed)', C, A, A ? '  of 입력' : ''));
-  L.push(fl('→ 산출물 (output)', O, C, C ? '  of 결과' : ''));
-  L.push('   ' + '전환(방문→산출물)'.padEnd(22) + ' '.repeat(6) + '  ' + pct(O, S));
+  L.push(fl('산출물 횟수 (output)', O, null));
+  L.push('   ' + '방문 1회당 산출물'.padEnd(22) + ' '.repeat(6) + '  ' + outputsPerVisit(O, S));
+  L.push('   산출물은 반복 생성·예시 다운로드를 포함한 횟수입니다. 사용자 전환율이나 재방문율이 아닙니다.');
 
   L.push('');
   L.push('■ 산출물 종류');
@@ -135,22 +137,24 @@ function render(data) {
   L.push(Object.keys(outObj).length ? rowsOf(outObj, { denom: O }) : '   (없음)');
 
   L.push('');
-  L.push('■ 딜 유형 분포');
+  L.push('■ 딜 유형별 이벤트 분포 (방문자 수 아님)');
   const dealObj = {}; for (const k in data.deals) dealObj[DEAL_LABEL[k] || k] = data.deals[k];
   L.push(Object.keys(dealObj).length ? rowsOf(dealObj, { pad: 12 }) : '   (없음)');
 
   L.push('');
-  L.push('■ 활성 기능 채택 (feats)');
+  L.push('■ 기능 플래그 발생 (반복·동시 사용 포함, 채택 사용자 수 아님)');
   const featObj = {};
   for (const combo in data.feats) { const n = data.feats[combo]; for (const f of combo.split(',')) { if (f) featObj[FEAT_LABEL[f] || f] = (featObj[FEAT_LABEL[f] || f] || 0) + n; } }
   L.push(Object.keys(featObj).length ? rowsOf(featObj, { pad: 14 }) : '   (없음)');
 
   L.push('');
-  L.push('■ 깊이 · 기기 · 유입');
+  L.push('■ 깊이 · 기기 · 유입 (전체 이벤트 기준)');
+  const deviceTotal = Object.values(data.device).reduce((sum, count) => sum + count, 0);
   L.push('  [깊이] ' + (Object.entries(data.depth).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + Math.round(v)).join(' · ') || '—'));
-  L.push('  [기기] ' + (Object.entries(data.device).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + Math.round(v) + ' (' + pct(v, S) + ')').join(' · ') || '—'));
+  L.push('  [기기별 이벤트] ' + (Object.entries(data.device).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + Math.round(v) + ' (' + pct(v, deviceTotal) + ')').join(' · ') || '—'));
   L.push('  [유입] ' + (Object.entries(data.ref).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => k + ' ' + Math.round(v)).join(' · ') || '직접/미상'));
   if (data.src) L.push('  [채널] ' + (Object.entries(data.src).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => k + ' ' + Math.round(v)).join(' · ') || '태그 없음'));
+  L.push('   위 분포는 모든 이벤트를 합산합니다. 방문·입력 비교에는 --attribution의 같은 채널 세션을 사용하세요.');
 
   L.push('');
   L.push('■ 전체 이벤트');
@@ -175,13 +179,14 @@ function renderAttr(title, byGroup) {
   const L = ['', '■ ' + title];
   const groups = Object.entries(byGroup).sort((a, b) => (b[1].session || 0) - (a[1].session || 0));
   if (!groups.length) { L.push('   (없음)'); return L.join('\n'); }
-  L.push('   ' + '채널'.padEnd(14) + '  방문   입력   결과   산출    전환(방문→산출)');
+  L.push('   ' + '채널'.padEnd(14) + '  방문   입력   결과   산출 횟수    입력/방문    방문당 산출물');
   for (const [k, f] of groups) {
     L.push('   ' + String(k).slice(0, 14).padEnd(14) +
       String(Math.round(f.session)).padStart(5) + String(Math.round(f.activate)).padStart(7) +
       String(Math.round(f.computed)).padStart(7) + String(Math.round(f.output)).padStart(7) +
-      '     ' + pct(f.output, f.session));
+      '     ' + pct(f.activate, f.session).padStart(6) + '        ' + outputsPerVisit(f.output, f.session));
   }
+  L.push('   산출물은 예시·반복 생성을 포함한 횟수이며, 산출물 사용자 수나 전환율은 이 집계로 알 수 없습니다.');
   return L.join('\n');
 }
 

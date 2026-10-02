@@ -614,7 +614,14 @@ ok(html.includes('결과 카드와 엑셀은 입력한 세부 가정으로 다�
   '즉시 점검·PPT 안내: 현재 계산 경로를 정확한 문장으로 설명');
 ok(html.includes('let exampleKeys=new Set()') && html.includes('function exConfirmOutput'), '예시값 잔존 추적 + 산출물 확인 존재');
 ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)'), '예시값 칩 + 한 줄 보고 꼬리표');
-ok((html.match(/ek:Array\.from\(exampleKeys\)/g)||[]).length>=3, '예시 추적 저장·공유·버전 왕복(3경로)');
+// 자동 저장은 별도 페이로드를 중복 작성하지 않고 버전 스냅샷을 재사용한다.
+// 함수별 연결을 확인하고, 아래 헤드리스 실행에서 세 경로의 실제 왕복도 검증한다.
+const snapshotSource = html.slice(html.indexOf('function wsSnapshot(){'), html.indexOf('function wsStable('));
+const shareSource = html.slice(html.indexOf('function sharePayload(){'), html.indexOf('function encodeState('));
+const localSaveSource = html.slice(html.indexOf('function saveLocal(){'), html.indexOf('function tryRestoreLocal('));
+const localUsesSnapshot = /\bwsSnapshot\(\)/.test(localSaveSource) && /localStorage\.setItem\("mt_state",\s*JSON\.stringify\(p\)\)/.test(localSaveSource);
+ok([snapshotSource, shareSource].every(s => /ek:Array\.from\(exampleKeys\)/.test(s) && /ue:exUserEdited\?1:0/.test(s)) && localUsesSnapshot,
+  '예시 추적: 버전·공유 페이로드 보존 + 자동 저장의 공통 스냅샷 사용');
 // PASS/FAIL 수식은 _row() 헬퍼가 행 번호로 조립한다(무차입 등 정의되지 않는 지표는 '해당 없음'으로 우회).
 ok(html.includes('다운로드 시점 결과와 비교') && /IF\(ABS\(C'\+r\+'-D'\+r\+'\)<'\+cmp\+',"PASS","FAIL"\)/.test(html)
   && html.includes("_row(19,'세전 IRR"), '엑셀 다운로드 시점 비교(11시트 PASS/FAIL) 존재');
@@ -639,7 +646,8 @@ ok(html.includes('function renderAdjBar') && html.includes('id="adjBar"'), '미�
 ok(html.includes('function summaryCardPNG') && html.includes('임차인 정보 미포함'), '요약 카드 PNG(고지 포함) 존재');
 ok(html.includes('function wsLinkDiff') && html.includes('data-ws="lcmp"'), '공유 링크 2개 가정 diff 존재');
 ok(html.includes('function cmpTableText') && html.includes('data-cmp='), '딜 비교 대상 선택 + 비교표 복사 존재');
-ok(html.includes('function srcPop') && html.includes('var srcTags={}') && (html.match(/st:srcTags\}/g)||[]).length>=3, '가정 출처·기준일 기록(3경로 영속) 존재');
+ok(html.includes('function srcPop') && html.includes('var srcTags={}') && [snapshotSource, shareSource].every(s => /st:srcTags\}/.test(s)) && localUsesSnapshot,
+  '가정 출처·기준일: 버전·공유 페이로드 보존 + 자동 저장의 공통 스냅샷 사용');
 ok(html.includes("name:'_Restore'") && html.includes('wsXlsxRestore') && html.includes('MTSNAP1:'), '엑셀 라운드트립(_Restore 시트+복원 입력) 존재');
 ok(html.includes('거치후 원리금균등') && html.includes("n('C80',0)"), '거치후 원리금균등 상환(엔진+엑셀 C80) 존재');
 ok(html.includes('cov-lender') && html.includes('대주 관점 · 금리 × 공실 결합 스트레스'), '매입 대주 관점(금리×공실 스트레스) 존재');
@@ -1241,6 +1249,27 @@ const driver = `;(function(){
     window.rrModel = null;
     cur = "office"; fillExample();
   }
+  // 예시 잔존·사용자 수정 여부·출처/기준일: 자동 저장, 저장 버전, 압축 공유의 실제 왕복.
+  // 원래 DOM 스텁의 no-op 저장소 대신 이 검사에서만 메모리 저장소를 사용한다.
+  var _oldMarkerStore=window.localStorage, _markerStore=Object.create(null);
+  window.localStorage={getItem:function(k){return _markerStore[k]===undefined?null:_markerStore[k];},setItem:function(k,v){_markerStore[k]=String(v);},removeItem:function(k){delete _markerStore[k];}};
+  function _assertMarkers(p,label){
+    if(!p||!Array.isArray(p.ek)||p.ek.length!==2||p.ek.indexOf('price')<0||p.ek.indexOf('exitcap')<0||p.ue!==1)throw new Error(label+': 예시 잔존/수정 여부 유실');
+    if(!p.st||!p.st.price||p.st.price.s!=='IM 기재'||p.st.price.d!=='2026-10-02'||!p.st.exitcap||p.st.exitcap.s!=='추정')throw new Error(label+': 가정 출처/기준일 유실');
+  }
+  function _clearMarkers(){exampleKeys=new Set();exUserEdited=false;srcTags={};}
+  try{
+    cur='office';fillExample();localPause=false;window.__mtReadonly=false;
+    exampleKeys=new Set(['price','exitcap']);exUserEdited=true;srcTags={price:{s:'IM 기재',d:'2026-10-02'},exitcap:{s:'추정'}};
+    _assertMarkers(wsSnapshot(),'공통 스냅샷');
+    saveLocal();_assertMarkers(JSON.parse(localStorage.getItem('mt_state')),'자동 저장 파일');
+    _clearMarkers();if(!tryRestoreLocal())throw new Error('자동 저장 복원 실패');_assertMarkers(wsSnapshot(),'자동 저장 복원');
+    var _markerDeal={id:'marker-ci',versions:[]},_markerVersion=wsAddVersion(_markerDeal,wsSnapshot(),'marker');
+    _assertMarkers(_markerVersion.snap,'저장 버전');
+    _clearMarkers();wsApplySnapshot(JSON.parse(JSON.stringify(_markerVersion.snap)));_assertMarkers(wsSnapshot(),'버전 복원');
+    var _markerShared=JSON.parse(mtLZ.decompress(encodeState()));_assertMarkers(_markerShared,'압축 공유 파일');
+    _clearMarkers();applySharedPayload(_markerShared);_assertMarkers(wsSnapshot(),'공유 복원');
+  }finally{window.localStorage=_oldMarkerStore;cur='office';window.rrModel=null;fillExample();}
   globalThis.__CI_OK = 1;
 })();`;
 
