@@ -191,7 +191,7 @@ async function closeOverlays(page) {
         wn: (() => { const o = document.getElementById('wnOverlay'); return o ? !o.hidden : false; })(),
         res: (() => { const c = document.getElementById('simCard'); return c && !c.hidden && !c.classList.contains('noresult'); })(),
         hi: !!document.querySelector('#formBody .core-g.core-hi'),
-        toast: /첫 항목부터 실제 값으로/.test(document.getElementById('toast').textContent),
+        toast: /예시 숫자를 내 딜의 값으로/.test(document.getElementById('toast').textContent),
         src: sessionStorage.getItem('mt_src'),
       })));
     }

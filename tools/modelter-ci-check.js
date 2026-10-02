@@ -397,7 +397,7 @@ ok(!html.includes("var hNm=hOn?'사내 기준 '"), '팀 기준: 판정 리드 �
   const devCalcPath = path.join(cDir, 'dev.html');
   const devCalc = fs.existsSync(devCalcPath) ? fs.readFileSync(devCalcPath, 'utf8') : '';
   ok(devCalc.includes('토지비 지급 시점과 공사비 기성 곡선(균등 또는 S-커브)을 반영합니다') && !devCalc.includes('공사비는 S-커브(기성 곡선)로 월별 전개됩니다'), '개발 검색 착지: 토지 지급·선택 기성 곡선 설명');
-  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('첫 항목부터 실제 값으로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
+  ok(html.includes('src=(?:seo|dscr|imcheck|howto|sns|team)') && html.includes('예시 숫자를 내 딜의 값으로 바꾸면'), '고의도·팀 파일럿 6채널: 계산기 착지 후 딜 유형 공통 첫 입력 인계');
   const naverDocPath = path.join(__dirname, '..', 'docs', 'NAVER_BLOG_IM_FIRST_LOOK.md');
   const naverDoc = fs.existsSync(naverDocPath) ? fs.readFileSync(naverDocPath, 'utf8') : '';
   const capturePath = path.join(__dirname, 'capture-naver-assets.js');
@@ -753,8 +753,8 @@ ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'DSCR �
 ok(html.includes('id="resultSave"') && html.includes('function wsCanSaveResult') &&
   !html.includes("track('nudge_save')") && !html.includes("getItem('mt_nudge')"),
   '결과 저장: 기존 보관함으로 연결하고 25초 중복 저장 안내 제거');
-ok(html.includes('매입 엑셀의 보유기간') && html.includes('임차계약을 반영한 렌트롤 모델은 웹에서 다시 받으세요'), "What's new v3: 보유기간 편집 범위 안내");
-ok(html.includes('개발 일정 입력') && html.includes('준공 후 분양도 입력한 개시월을 유지'), "What's new v3: 개발 일정 변경 안내");
+ok(html.includes('매입 엑셀의 보유기간') && html.includes('계약별 렌트롤의 보유기간은 웹에서 바꾼 뒤 엑셀을 다시 내려받으세요'), "What's new v3: 보유기간 편집 범위 안내");
+ok(html.includes('개발 일정 입력') && html.includes('준공 후에 분양을 시작하는 일정도 입력한 대로 계산'), "What's new v3: 개발 일정 변경 안내");
 ok(html.includes('렌트롤·리파이 편집 안내') && html.includes('참고용 렌트롤의 열 제목을 고쳤습니다'), "What's new v3: 렌트롤 표시와 편집 안내");
 ok(html.includes('const FIELD_REF=') && html.includes('class="f-ref"'), '입력 참고 범위 칩 존재');
 ok(html.includes('const FIELD_REF_DEAL=') && html.includes('function fieldRef'), '시장 참고치 v2(딜 유형별) 존재');
