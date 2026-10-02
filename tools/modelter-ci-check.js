@@ -91,7 +91,7 @@ if (fs.existsSync(path.join(DIR, 'howto.html'))) {
   ok(hw.includes('/#t=office') && hw.includes('/#t=dev&view=lender'), 'howto.html → 계산기 딥링크');
   ok(hw.includes('href="/guide"'), 'howto ↔ 용어사전 상호 링크(무확장 정식 URL)');
   ok(hw.includes('투자 권유가 아닌'), 'howto 고지 문구');
-  ok(hw.includes('IM 받은 뒤 30분 안에 1차 검토하는 순서') && hw.includes('팀에 1차 검토 공유'), '북극성 검색: IM 직후 계산→팀 전달 워크플로');
+  ok(hw.includes('IM 받은 뒤 30분 안에 1차 검토하는 순서') && hw.includes('이 조건 저장') && hw.includes('이전과 비교') && hw.includes('결과 링크 (읽기 전용)'), '북극성 검색: IM 직후 계산→저장·재검토→읽기 전용 전달 워크플로');
   ok((hw.match(/src=howto/g) || []).length >= 5 && !hw.includes('처음 열면 역할('), '북극성 검색: howto 유입 태그·삭제된 온보딩 설명 없음');
 }
 ok(fs.existsSync(path.join(DIR, 'im-checklist.html')), 'IM 첫 검토 체크리스트 존재 (고의도 검색 착지)');
