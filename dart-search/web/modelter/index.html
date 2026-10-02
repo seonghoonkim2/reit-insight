@@ -808,7 +808,10 @@ header{background:rgba(253,252,249,.82)}
 .dl-row[hidden]{display:none}
 .dl-row .xl-dl{margin-top:0; width:auto; flex:2; min-width:0}
 .dl-opt{display:flex; align-items:flex-start; gap:7px; margin-top:9px; font-size:12px; color:var(--ink-2); line-height:1.5; cursor:pointer}
+.dl-opt[hidden]{display:none}
 .dl-opt input{margin-top:2px; flex-shrink:0; accent-color:var(--accent-solid)}
+.dl-opt-copy{flex:1;min-width:0}
+.dl-opt-copy>.dl-opt-note{display:block;margin-top:3px}
 .dl-opt-note{color:var(--muted); font-size:11.5px}
 .dl-row .tz-dl{flex:1; background:var(--ink); color:var(--panel); box-shadow:0 4px 14px rgba(0,0,0,.18); font-size:13px; padding:14px 8px}
 .dl-row .tz-dl .xl-ext{opacity:.6}
@@ -1534,7 +1537,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
             </div>
           </details>
         </div>
-        <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> 받는 사람이 같은 결과를 브라우저에서 열 수 있습니다. 링크에는 화면의 가정 수치가 들어가며, 임차인 실명은 자동으로 가립니다. 파일 자체와 같은 수준의 정보이므로 전달 범위를 확인하세요.</span></label>
+        <label class="dl-opt" id="recoverOpt" hidden><input type="checkbox" id="recoverChk" checked><span class="dl-opt-copy"> 산출물에 <b>「이 모델 열기」 링크·QR</b> 넣기<span class="dl-opt-note"> 받는 사람이 같은 결과를 브라우저에서 열 수 있습니다. 링크에는 화면의 가정 수치가 들어가며, 임차인 실명은 자동으로 가립니다. 파일 자체와 같은 수준의 정보이므로 전달 범위를 확인하세요.</span></span></label>
       </div>
       <div class="metrics" id="metricsCard" hidden>
         <details id="mxFold">
@@ -1937,7 +1940,7 @@ function quickFieldKeys(deal){
 let cur="office";
 let state={};
 /* 빌드 스탬프: tools/stamp-build.js */
-window.MT_BUILD='2026-10-02·020d681866';
+window.MT_BUILD='2026-10-02·d7655a6726';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
