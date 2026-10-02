@@ -1525,6 +1525,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
         </div>
         <div class="dl-row" id="dlRow" hidden>
           <button class="xl-dl" id="xlDownload" type="button" title="작업 시트 6개, 렌트롤 반영 시 7개. 계산·복원용 숨김 시트는 별도입니다">⬇ 엑셀 다운로드 · 6시트 <span class="xl-ext">.xlsx</span></button>
+          <button class="sl-btn" id="resultSave" type="button" title="이 브라우저의 딜 보관함에 저장" hidden>이 조건 저장</button>
           <details class="outputs-fold" id="outputsFold">
             <summary>추가 산출물 · PPT</summary>
             <div class="outputs-buttons">
@@ -1935,9 +1936,8 @@ function quickFieldKeys(deal){
 
 let cur="office";
 let state={};
-/* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
-   전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-10-02·ec603de9ca';
+/* 빌드 스탬프: tools/stamp-build.js */
+window.MT_BUILD='2026-10-02·020d681866';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2381,10 +2381,7 @@ function renderForm(){
       }
       return true;
     });
-    /* 핵심 입력 우선 — 2주 판독(2026-07-31): quick 깊이 2.4%·모바일 위저드 3회로 '간이 모드' 2종이 모두 실패했다.
-       원인은 간소화가 아니라 **사용자가 골라야만 보이는 옵션**이었다는 것. 같은 핵심 필드 묶음(QUICK_FIELDS)을
-       표준·심층에서도 맨 앞 그룹으로 노출해 간소화를 기본 동선으로 만든다.
-       중복 렌더 금지 — 여기 올린 필드는 아래 원래 그룹에서 제외한다(입력 1개당 DOM 1개 유지). */
+    /* 핵심 필드는 깊이에 관계없이 앞에 배치하고 원래 그룹에서 제외한다(DOM 중복 금지). */
     const coreSet=new Set(quickKeys), coreFields=[];
     d.groups.forEach(g=>visibleFields(g).forEach(f=>{ if(coreSet.has(f.k)) coreFields.push(f); }));
     coreFields.sort((a,b)=>quickKeys.indexOf(a.k)-quickKeys.indexOf(b.k));
@@ -2453,9 +2450,9 @@ function renderForm(){
     });
   });
   $("formBody").querySelectorAll("[data-rk]").forEach(el=>{ el.addEventListener(el.tagName==="SELECT"?"change":"input",(ev)=>{ refiState[el.dataset.rk]=el.value; exMarkEdited(); if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 리파이 텀시트 직접 입력 = 활성화 신호
-  $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",(ev)=>{ resumeLocal();scenState[el.dataset.scen]=el.value; if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 시나리오 직접 입력 = 활성화 신호
+  $("formBody").querySelectorAll("[data-scen]").forEach(el=>{ el.addEventListener("input",(ev)=>{ exMarkEdited();scenState[el.dataset.scen]=el.value; if(ev&&ev.isTrusted&&window.__mtActivate) window.__mtActivate(); update(); }); });   // 시나리오 직접 입력 = 활성화 신호
   bindDevGrids();
-  var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ resumeLocal();scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
+  var _so=$("scenOn"); if(_so) _so.addEventListener("change",()=>{ exMarkEdited();scenOn=_so.checked; var w=document.querySelector(".scen-wrap"); if(w) w.hidden=!scenOn; update(); });
   ["c_freq"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",update); });
   // model depth segmented control
   const seg=$("depthSeg");
@@ -3041,14 +3038,12 @@ function wsSaveDeal(){
   var def=((state.asset||'').trim())||DEALS[cur].label;
   var name=prompt('딜 이름을 입력하세요', def); if(name===null) return;
   name=(name||'').trim(); if(!name){ toast('이름을 입력하세요'); return; }
-  var vname=prompt('v0.1 버전 설명 (선택) — 예: Broker IM 기준','');
-  if(vname===null) vname='';
   var db=wsDB(), id=wsId('deal'), now=new Date().toISOString();
   db.deals[id]={id:id,name:name,createdAt:now,updatedAt:now,currentVersionId:null,versions:[],outputs:[]};
-  var v=wsAddVersion(db.deals[id], wsSnapshot(), vname, now);
+  var v=wsAddVersion(db.deals[id], wsSnapshot(), '', now);
   if(!wsPersist()){delete db.deals[id];return;} WS={dealId:id, versionId:v.id, savedHash:v.hash}; resumeLocal(); saveLocal();
   refreshSlotSel(); renderWorkspace();
-  toast(name+' 저장됨 — '+v.label+(v.name?(' · '+v.name):'')+'. 이 버전 기준으로 엑셀·티저를 다시 뽑을 수 있습니다');
+  toast(name+' 저장됨 — '+v.label);
   if(window.mtTrack) try{ mtTrack('ws_save',{kind:'deal'}); }catch(e){}
 }
 function wsSaveVersion(){
@@ -3180,7 +3175,12 @@ function refreshSlotSel(){
   var del=$('slotDel'); if(del) del.hidden=!sel.value;
   var cmp=$('cmpOpen'); if(cmp) cmp.hidden=!ids.length;
 }
+function wsCanSaveResult(){
+  var c=$('simCard');
+  return !window.__mtReadonly&&c&&!c.hidden&&!c.classList.contains('noresult')&&(wsDeal()?wsDirty():exUserEdited);
+}
 function renderWorkspace(){
+  $('resultSave').hidden=!wsCanSaveResult();
   var deal=wsDeal();
   var sv=$('slotSave');
   var n=deal?wsNextVersion(deal):0;if(sv)sv.textContent=deal?(n<0?'버전 번호 확인 필요':('+ v0.'+n+' 저장')):'딜로 저장';
@@ -3195,6 +3195,7 @@ function renderWorkspace(){
     if(sel.value) wsLoadVersion(sel.value);
   });
   var sv=$('slotSave'); if(sv) sv.addEventListener('click',function(){ wsSaveVersion(); });
+  $('resultSave').addEventListener('click',function(){ if(!wsCanSaveResult()) return; var focused=document.activeElement===this; wsSaveVersion(); var xl=$('xlDownload'); if(this.hidden&&focused&&!$('dlRow').hidden&&!xl.disabled) xl.focus({preventScroll:true}); });
   var dl=$('slotDel'); if(dl) dl.addEventListener('click',function(){ var s=$('slotSel'); if(s&&s.value) wsDeleteDeal(s.value); });
   refreshSlotSel(); renderWorkspace();
 })();
@@ -5263,7 +5264,7 @@ var ADJ_DEFS={
 ADJ_DEFS.logistics=ADJ_DEFS.office;
 function adjGet(d){ var raw=d.sk?stackState[d.sk]:state[d.k]; if((raw==null||String(raw).trim()==='')&&d.def!=null) raw=d.def; return parseNum(raw); }
 function adjSet(d,v){
-  resumeLocal();
+  exMarkEdited();
   var s=(d.d!=null)?String(Math.round(v*Math.pow(10,d.d))/Math.pow(10,d.d)):String(Math.round(v));
   if(d.sk){ stackState[d.sk]=s; var se=document.querySelector('[data-sk="'+d.sk+'"]'); if(se) se.value=s; }
   else { state[d.k]=s; if(typeof exTouch==='function') exTouch(d.k); var fe=document.querySelector('[data-k="'+d.k+'"]'); if(fe) fe.value=s; }
@@ -5619,7 +5620,7 @@ function tryRestoreFromURL(){
 }
 // 읽기 전용 모드: 입력을 보기만 가능하게 잠그고, 결과·민감도는 그대로. '내 모델로 열기'로 해제
 function enterReadonly(){
-  window.__mtReadonly=true;
+  window.__mtReadonly=true; renderWorkspace();
   try{ document.body.classList.add('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=false;
     var cta=document.getElementById('roCta'); if(cta) cta.hidden=false; }catch(e){}
   // 모바일 수신자: 입력 폼이 아니라 결과부터 보이게 (받은 사람은 결과가 목적)
@@ -5630,7 +5631,7 @@ function enterReadonly(){
   }catch(e2){}
 }
 window.__mtExitReadonly=function(){
-  window.__mtReadonly=false;
+  window.__mtReadonly=false; renderWorkspace();
   resumeLocal(); saveLocal();
   try{ document.body.classList.remove('mt-ro'); var bn=document.getElementById('roBanner'); if(bn) bn.hidden=true;
     var cta=document.getElementById('roCta'); if(cta) cta.hidden=true;
@@ -9092,7 +9093,8 @@ if(typeof module!=='undefined'&&module.exports) module.exports=api; else global.
     if(!pending){ return; }
     var agg=pending.agg;
     if(typeof state==='undefined') return;
-    resumeLocal();
+    ['noimode','rentpp','campp'].forEach(exTouch);
+    if(agg.depositMonths>0) exTouch('depmult');
     var rep=(typeof stackState!=='undefined'&&stackState['senior_extra'])||'만기일시';
     var repMap={'만기일시':'만기일시(이자만)','원금균등':'원금균등','원리금균등':'원리금균등','거치후 원리금균등':'거치후 원리금균등'}; var __gr=(function(){ var g=parseFloat(String((typeof stackState!=='undefined'&&stackState&&stackState['senior_grace'])||'').replace(/,/g,'')); return (isFinite(g)&&g>0)?Math.round(g):0; })();
     var mkt={ marketPP:rrv('rr_mktrent',Math.round(agg.wAvgRentPP)), marketCamPP:rrv('rr_mktcam',Math.round(agg.wAvgCamPP)),
@@ -12305,23 +12307,7 @@ var qrcode = function() {
       else if(firstNumberMs<=1800000) track('first_number_30m');
       else track('first_number_slow');
     }catch(eT){}
-    // 저장 넛지: 자기 딜 결과까지 봤는데 저장·공유 없이 이탈하기 쉬운 시점에 1회만
-    try{
-      setTimeout(function(){
-        try{
-          if(sessionStorage.getItem('mt_nudge')==='1') return;
-          if(typeof wsDeal==='function'&&wsDeal()) return;   // 이미 딜로 저장함
-          if(sessionStorage.getItem('mt_handoff_open')==='1') return;   // 이미 팀 전달 메뉴를 확인함 — 같은 행동을 재촉하지 않음
-          if(window.__mtReadonly) return;
-          sessionStorage.setItem('mt_nudge','1');
-          var _exLeft=false; try{ _exLeft=(typeof exRemaining==='function'&&exRemaining().length>0); }catch(_e3){}
-          if(typeof toast==='function') toast(_exLeft
-            ? '결과가 나왔습니다. 남은 예시값을 확인한 뒤 저장하거나 팀에 공유하세요'
-            : '결과가 나왔습니다. 버전을 저장하거나 결과 아래에서 팀에 공유할 수 있습니다');
-          track('nudge_save');
-        }catch(e2){}
-      }, 25000);
-    }catch(e3){}
+
   };
   // 채널 어트리뷰션 — 착지 URL의 src= 태그(공유·산출물 회수·검색 착지가 부착)를 이 탭 세션 동안 유지.
   //  sessionStorage = 탭을 닫으면 소멸(교차세션 추적 아님), 값은 채널명 화이트리스트뿐(수치·PII 없음).
@@ -12377,7 +12363,7 @@ var qrcode = function() {
       return;
     }
     if(t.closest('#pdfBtn')){ track('pdf_export'); return; }
-    if(t.closest('#slotSave')){ track('slot_save'); return; }
+    if(t.closest('#slotSave,#resultSave')){ track('slot_save'); return; }
     if(t.closest('#slotDel')){ track('slot_delete'); return; }
     if((el=t.closest('.depth-opt'))){ track('depth_change',{depth:(el.dataset&&el.dataset.depth)||''}); return; }
   }, true);

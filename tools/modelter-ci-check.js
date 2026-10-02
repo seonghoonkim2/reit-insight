@@ -254,8 +254,10 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   const workerSrc4 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
   const workerEventBlock = (workerSrc4.match(/const EVENT_NAMES = new Set\(\[([^\]]+)\]\);/) || [])[1] || '';
   const workerEvents = [...workerEventBlock.matchAll(/"([a-z_0-9]+)"/g)].map(m => m[1]).sort();
-  const expectedWorkerEvents = [...codeEvents, 'ci_probe_live'].sort();
-  ok(JSON.stringify(workerEvents) === JSON.stringify(expectedWorkerEvents), '계측 사전: worker 이벤트 허용 목록 = 앱 64개 + 운영 점검 1개');
+  // nudge_save는 기존 캐시 클라이언트 수신·과거 집계용으로만 유지한다.
+  const expectedWorkerEvents = [...codeEvents, 'ci_probe_live', 'nudge_save'].sort();
+  ok(JSON.stringify(workerEvents) === JSON.stringify(expectedWorkerEvents), '계측 사전: worker 허용 목록 = 현재 앱 + 운영 점검 + 기존 저장 안내');
+  ok(!codeEvents.includes('nudge_save') && md.includes('과거 이벤트: `nudge_save`'), '계측 사전: 저장 안내 발화 중단과 과거 기록의 의미 보존');
   // 네거티브 자기 검사 — 이 비교기가 가짜 이벤트를 실제로 잡는지(잡지 못하면 게이트 자체가 무의미)
   ok([...docEvents, 'zz_fake_event'].filter(e => !codeEvents.includes(e)).length > 0, '계측 사전: 비교기 네거티브 자기 검사(가짜 이벤트 감지)');
   // 산출물 정의 단일 진실 — labels.js OUTPUT_EVENTS 전부가 문서 표에 존재
@@ -748,10 +750,9 @@ ok(html.includes('modelter.com/im-checklist') && html.includes('MTIM.checklist()
 ok(html.includes('function dealVerdict') && html.includes('id="simVerdict"'), '결과 자동 판정 코멘트 존재');
 ok(html.includes('cmp-vrow'), '딜 비교 판정 행 존재');
 ok(html.includes("mini:{irrL:'이익률'") && html.includes("mini:{irrL:'DSCR 우위'"), '미니 KPI 전 탭(분양·리파이) 확장');
-ok(html.includes('mt_nudge') && html.includes('nudge_save') &&
-  /mt_handoff_open'\)==='1'\) return;[\s\S]{0,700}팀에 공유하세요/.test(html) &&
-  /exRemaining\(\)\.length>0[\s\S]{0,350}남은 예시값/.test(html),
-  '저장·팀 전달 넛지: 세션 1회·기존 공유 중복 억제·예시 상태별 문구');
+ok(html.includes('id="resultSave"') && html.includes('function wsCanSaveResult') &&
+  !html.includes("track('nudge_save')") && !html.includes("getItem('mt_nudge')"),
+  '결과 저장: 기존 보관함으로 연결하고 25초 중복 저장 안내 제거');
 ok(html.includes('매입 엑셀의 보유기간') && html.includes('임차계약을 반영한 렌트롤 모델은 웹에서 다시 받으세요'), "What's new v3: 보유기간 편집 범위 안내");
 ok(html.includes('개발 일정 입력') && html.includes('준공 후 분양도 입력한 개시월을 유지'), "What's new v3: 개발 일정 변경 안내");
 ok(html.includes('렌트롤·리파이 편집 안내') && html.includes('참고용 렌트롤의 열 제목을 고쳤습니다'), "What's new v3: 렌트롤 표시와 편집 안내");

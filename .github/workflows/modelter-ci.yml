@@ -139,6 +139,7 @@ jobs:
         run: |
           CHROME_BIN="$(command -v google-chrome)" node tools/qa/retention.js
           CHROME_BIN="$(command -v google-chrome)" node tools/qa/workspace-versions.js
+          CHROME_BIN="$(command -v google-chrome)" node tools/qa/result-save.js
           CHROME_BIN="$(command -v google-chrome)" node tools/qa/search-handoff.js --browser
       - name: 저가 모바일 첫 결과 5초 예산
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/perf-load.js
