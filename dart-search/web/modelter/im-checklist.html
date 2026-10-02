@@ -26,7 +26,7 @@
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"IM에 없는 숫자는 어떻게 하나요?","acceptedAnswer":{"@type":"Answer","text":"없는 값을 억지로 추정하지 말고 비워 둡니다. 모델터의 표준가정으로 먼저 계산한 뒤, 결과를 전달할 때 어떤 값이 표준가정인지 함께 밝힙니다."}},
+{"@type":"Question","name":"IM에 없는 숫자는 어떻게 하나요?","acceptedAnswer":{"@type":"Answer","text":"자료가 없으면 확인할 항목으로 남겨두세요. 빈칸은 0을 뜻하지 않으며 기본 가정이 적용될 수 있습니다. 결과를 공유할 때 실제 확인한 값과 임시 가정을 구분하세요."}},
 {"@type":"Question","name":"첫 계산은 투자심의 모델을 대신하나요?","acceptedAnswer":{"@type":"Answer","text":"아닙니다. 첫 계산은 검토를 계속할지와 무엇을 더 물어볼지 정하는 1차 스크리닝입니다. 실사 자료와 회사별 심의 기준으로 다시 검증해야 합니다."}},
 {"@type":"Question","name":"입력한 딜 숫자가 모델터 서버로 전송되나요?","acceptedAnswer":{"@type":"Answer","text":"계산을 위해 입력한 딜 수치는 브라우저 안에서 처리되며 모델터 서버로 전송되지 않습니다. 공유 링크에는 입력값이 포함되므로 권한 있는 채널로만 전달해야 합니다."}}]}
 </script>
@@ -151,7 +151,8 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
         <a class="go" href="/#t=office&src=imcheck">오피스 계산하기 →</a>
       </div>
       <div class="card deal">
-        <h3>물류센터 매입</h3><p class="sub">매입가 · 면적 · 층별 임대료 · 공실 · LTV/금리 · Exit Cap</p>
+        <h3>물류센터 매입</h3><p class="sub">매입가 · 면적 · 가중평균 임대료 또는 연 NOI · 공실 · LTV/금리 · Exit Cap</p>
+        <p class="sub">층별 단가가 다르면 면적 가중평균을 넣고, 계약별 조건은 렌트롤로 반영합니다.</p>
         <ul class="checks"><li><b>마스터리스</b><small>책임임대차 범위와 해지 조건 확인</small></li><li><b>임차 수요·공급 리스크</b><small>안정화 공실과 현 공실을 분리</small></li></ul>
         <div class="outputs"><b>먼저 볼 결과</b> 레버드 IRR · EM · Debt Yield · 최소 DSCR · Exit 하방</div>
         <a class="go" href="/#t=logistics&src=imcheck">물류 계산하기 →</a>
@@ -163,9 +164,9 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
         <a class="go secondary" href="/#t=dev&src=imcheck">사업수지 계산하기 →</a> <a class="go" href="/#t=dev&view=lender&src=imcheck">대주 관점으로 보기 →</a>
       </div>
       <div class="card deal">
-        <h3>리파이낸싱</h3><p class="sub">감정가 · NOI · 기존 잔액/금리/만기 · 신규 LTV/금리/상환</p>
-        <ul class="checks"><li><b>현재 대출의 남은 비용</b><small>중도상환수수료와 만기 일정을 포함</small></li><li><b>신규 조건 비교</b><small>금리만 보지 말고 DSCR·현금흐름 함께 확인</small></li></ul>
-        <div class="outputs"><b>먼저 볼 결과</b> 기존·신규 이자비용 · DSCR · 현금 유출입 · 손익분기</div>
+        <h3>리파이낸싱</h3><p class="sub">감정가 · NOI · 기존 잔액/금리 · 신규 LTV/금리/만기/상환</p>
+        <ul class="checks"><li><b>기존 대출 상환</b><small>현재 잔액을 전액 대환하고 중도상환수수료를 반영합니다. 기존 만기·상환방식은 참고 항목입니다.</small></li><li><b>신규 조건 비교</b><small>금리만 보지 말고 DSCR·현금흐름 함께 확인</small></li></ul>
+        <div class="outputs"><b>먼저 볼 결과</b> 순조달액 · 총금융비용 · 연도별 DSCR · 만기 잔액</div>
         <a class="go" href="/#t=refi&src=imcheck">리파이 비교하기 →</a>
       </div>
     </div>
@@ -199,7 +200,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
 
   <section id="faq" class="faq">
     <h2>자주 묻는 질문</h2>
-    <details><summary>IM에 없는 숫자는 어떻게 하나요?</summary><p>비워 두거나 임시 가정으로 표시하세요. 결과를 공유할 때 어떤 값이 기본 가정인지 밝히고, 필요한 값은 자료 요청 목록에 넣습니다.</p></details>
+    <details><summary>IM에 없는 숫자는 어떻게 하나요?</summary><p>자료가 없으면 확인할 항목으로 남겨두세요. 빈칸은 0을 뜻하지 않으며 기본 가정이 적용될 수 있습니다. 결과를 공유할 때 실제 확인한 값과 임시 가정을 구분하세요.</p></details>
     <details><summary>첫 계산은 투자심의 모델을 대신하나요?</summary><p>아닙니다. 첫 계산은 검토를 계속할지와 무엇을 더 물어볼지 정하는 1차 스크리닝입니다. 실사 자료, 법률·세무 검토, 회사별 투자심의 기준으로 다시 검증해야 합니다.</p></details>
     <details><summary>화면 수치와 엑셀이 같은가요?</summary><p>모델터는 실제 수식 엔진으로 다운로드한 엑셀을 재계산해 화면과 일치하는지 검사합니다. 최근 검증 결과와 재현 방법은 <a href="/verification">파리티 검증</a>에서 공개합니다.</p></details>
     <details><summary>입력한 딜 숫자가 서버로 전송되나요?</summary><p>계산을 위해 입력한 딜 수치는 브라우저 안에서 처리되며 모델터 서버로 전송되지 않습니다. 단, 사용자가 직접 만든 공유 링크에는 입력값이 포함되므로 권한 있는 채널로만 전달해야 합니다.</p></details>

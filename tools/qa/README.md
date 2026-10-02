@@ -7,6 +7,7 @@ node tools/qa/growth-metrics.js
 node tools/qa/search-handoff.js
 CHROME_BIN=/path/to/chrome node tools/qa/search-handoff.js --browser
 CHROME_BIN=/path/to/chrome node tools/qa/retention.js
+CHROME_BIN=/path/to/chrome node tools/qa/workspace-versions.js
 ```
 
 `growth-metrics`는 방문·입력·산출물 횟수를 구분하고 기기별 이벤트의 분모를 검사합니다.
@@ -15,6 +16,7 @@ CHROME_BIN=/path/to/chrome node tools/qa/retention.js
 화면에 보이는지와 자동 키보드·가로 넘침이 없는지 확인합니다.
 `retention`은 딜·버전·미저장 변경과 렌트롤을 새로고침 전후 비교하고,
 공유·검색 링크가 기존 작업을 덮어쓰지 않는지 확인합니다. QA는 로컬 서버에서 수행합니다.
+`workspace-versions`는 실제 선택 버전 표시, 삭제 후 번호 발급, 기존 백업 가져오기와 저장 실패 롤백을 확인합니다.
 
 `smoke.js` 하나가 배포 파일(`dart-search/web/modelter/`)을 내장 http 서버로 띄우고
 Chromium(Playwright)으로 핵심 사용자 경로를 검사합니다.

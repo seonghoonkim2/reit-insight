@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <script>(function(){try{var t=localStorage.getItem('mt_theme');if(!t){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}
-/* 재방문 착지 — 써 본 적 있으면 소개를 접고 도구부터. 첫 렌더 전에 걸어야 깜빡임이 없다(테마와 같은 이유) */
+/* 재방문 착지를 첫 렌더 전에 적용 */
 try{if(localStorage.getItem('mt_used')==='1')document.documentElement.setAttribute('data-back','1');}catch(e){}})();</script>
 <title>모델터 · CRE 딜 검토 첫 계산 | 부동산 재무모델</title>
 
@@ -1467,7 +1467,7 @@ details.imfold[open]>summary .chev{transform:rotate(180deg)}
     <div class="panel">
       <div class="panel-head">
         <div class="t">투자 조건 <span class="dt" id="dtLabel">오피스 매입</span></div>
-        <!-- 상단에는 '숫자를 넣기 전에 누를 만한 것'만 둔다. 나머지 도구는 입력 아래 '도구 · 저장'으로 내림(2026-08-11) -->
+        <!-- 입력 전 필요한 동작 -->
         <div class="ph-actions">
           <button class="ex ghost wiz-launch" id="wizBtn" title="핵심 입력만 큰 글씨로 차례로 (모바일)">⚡ 핵심만</button>
           <button class="ex ghost" id="fillStd" title="빈 칸을 자산유형별 표준값으로 채움">표준값</button>
@@ -1937,7 +1937,7 @@ let cur="office";
 let state={};
 /* 빌드 스탬프 — 재현성. tools/stamp-build.js 가 커밋 타임에 날짜·콘텐츠 해시로 치환(런타임 빌드 아님).
    전 산출물(엑셀·PPT·PNG·메모)에 찍혀, "이 숫자를 만든 빌드"를 감사 시점에 특정하게 한다. */
-window.MT_BUILD='2026-10-02·fbe84c59e2';
+window.MT_BUILD='2026-10-02·ec603de9ca';
 function mtBuild(){ try{ return (window.MT_BUILD&&window.MT_BUILD!=='DEV')?window.MT_BUILD:''; }catch(e){ return ''; } }
 // 푸터 '마지막 업데이트'를 빌드 스탬프 날짜에서 파생 — 손으로 고치는 날짜가 스탬프와 어긋나는 사고 방지(단일 출처)
 try{ var _fu=document.getElementById('footUpd'); if(_fu){ var _bd=(mtBuild()||'').split('\u00b7')[0]; _fu.textContent=_bd||'2026'; } }catch(e){}
@@ -2353,7 +2353,7 @@ function renderForm(){
   const coreModeHtml = rrEligible
     ? `<button class="core-mode" type="button" data-core-noi="${directNoi?'rent':'noi'}" aria-label="${directNoi?'평당 임대료 방식으로 입력':'IM의 연 NOI로 직접 입력'}" title="${directNoi?'평당 임대료·관리비 방식으로 바꿉니다':'IM에 연 NOI만 있으면 여기서 바로 바꿉니다'}">${directNoi?'임대료로 입력':'NOI로 입력'}</button>`
     : '';
-  // 깊이 선택·IM 가져오기는 '숫자를 넣기 전에 고를 것'이 아니다 → 입력 아래 '도구 · 저장' 블록으로(2026-08-11).
+  // 깊이·IM 도구는 입력 아래에 표시
   // 여기서는 입력 그룹만 만들고, 도구 내용은 renderTools() 가 #toolsDyn 에 따로 그린다.
   let html='';
   if(isQuick){
@@ -2961,6 +2961,7 @@ function wsDB(){
   if(_wsCache) return _wsCache;
   try{ var raw=localStorage.getItem(WS_KEY); _wsCache=raw?JSON.parse(raw):null; }catch(e){ _wsCache=null; }
   if(!_wsCache||!_wsCache.deals){ _wsCache={schema:WS_SCHEMA, deals:{}}; wsMigrateSlots(_wsCache); wsPersist(); }
+  Object.keys(_wsCache.deals).forEach(function(id){var d=_wsCache.deals[id],n=wsVersionSeq(d);if(n>=0)d.versionSeq=n;});
   return _wsCache;
 }
 function wsPersist(){ try{ localStorage.setItem(WS_KEY, JSON.stringify(_wsCache)); return true; }catch(e){ try{ toast('저장하지 못했습니다 — 딜을 .modelter로 백업 후 저장 공간을 확인하세요'); }catch(e2){} return false; } }
@@ -3006,8 +3007,13 @@ function wsSummary(snap){
     prefAmt:fin(r.prefAmt), common:fin(r.common), IRR:fin(r.IRR), IRRat:fin(r.IRRat), EM:fin(r.EM),
     coc:fin(r.coc), minDSCR:fin(r.minDSCR), exitCap:fin(r.exitCap) };
 }
+function wsVersionSeq(deal){
+  var n=0,bad=false;function take(v){if(v===undefined)return;if(typeof v!=='number'&&!(typeof v==='string'&&/^\d+$/.test(v))){bad=true;return;}v=Number(v);if(!Number.isSafeInteger(v)||v<0)bad=true;else n=Math.max(n,v);}take(deal.versionSeq);
+  deal.versions.forEach(function(v){take(v.n);var m=/^v0\.(\d+)$/.exec(v.label||'');if(m)take(m[1]);else if(v.n==null)bad=true;});return bad?-1:n;
+}
+function wsNextVersion(deal){var n=wsVersionSeq(deal);return n<0||n===Number.MAX_SAFE_INTEGER?-1:n+1;}
 function wsAddVersion(deal, snap, name, nowIso){
-  var n=deal.versions.length+1;
+  var n=wsNextVersion(deal);if(n<0)throw new Error('버전 번호를 확인해 주세요.');deal.versionSeq=n;
   var v={id:wsId('ver'), n:n, label:'v0.'+n, name:(name||'').trim(),
     createdAt:nowIso||new Date().toISOString(), hash:wsHash(snap),
     snap:JSON.parse(JSON.stringify(snap)), summary:wsSummary(snap)};
@@ -3047,7 +3053,7 @@ function wsSaveDeal(){
 }
 function wsSaveVersion(){
   var deal=wsDeal(); if(!deal){ wsSaveDeal(); return; }
-  var next='v0.'+(deal.versions.length+1);
+  var n=wsNextVersion(deal);if(n<0){toast('버전 번호가 올바르지 않아 저장하지 못했습니다. 백업 파일을 확인해 주세요.');return;}var next='v0.'+n;
   var vname=prompt(next+' 버전 설명 (선택) — 예: 렌트롤 반영 / 대출조건 변경','');
   if(vname===null) return;
   var before=JSON.stringify(deal),v=wsAddVersion(deal, wsSnapshot(), vname);
@@ -3056,7 +3062,7 @@ function wsSaveVersion(){
   toast(deal.name+' → '+v.label+' 저장됨');
   if(window.mtTrack) try{ mtTrack('ws_save',{kind:'version'}); }catch(e){}
 }
-// 딜 복제 — 원본 이력은 그대로 두고 현재 상태를 새 딜 v0.1로 시작 (버전 이력 오염 방지)
+// 딜 복제는 새 v0.1부터 시작
 function wsDupDeal(dealId){
   var db=wsDB(), src=db.deals[dealId]; if(!src) return;
   var live=(WS.dealId===dealId); // 열려 있는 딜이면 화면 그대로(저장 안 된 변경 포함) 복제
@@ -3105,7 +3111,7 @@ function wsDeleteVersion(dealId, vid){
   if(deal.versions.length<=1){ toast('마지막 버전입니다 — 딜 자체를 지우려면 보관함에서 삭제하세요'); return; }
   var v=wsVersion(deal,vid); if(!v) return;
   if(!confirm(v.label+(v.name?(' · '+v.name):'')+' 버전을 삭제할까요?')) return;
-  var before=JSON.stringify(deal),w=Object.assign({},WS);
+  var n=wsVersionSeq(deal);if(n<0){toast('버전 번호를 확인해 주세요.');return;}var before=JSON.stringify(deal),w=Object.assign({},WS);deal.versionSeq=n;
   deal.versions=deal.versions.filter(function(x){return x.id!==vid;});
   if(deal.currentVersionId===vid) deal.currentVersionId=deal.versions[deal.versions.length-1].id;
   if(WS.versionId===vid){ WS.versionId=deal.currentVersionId; var cv=wsVersion(deal,WS.versionId); WS.savedHash=cv?wsHash(cv.snap):null; }
@@ -3143,7 +3149,7 @@ function wsExportDownload(dealId){
 function wsImportFile(obj){
   if(!obj||obj.fileType!=='MODELTER_DEAL_EXPORT'||!obj.deal||!obj.deal.versions) throw new Error('Modelter 딜 백업 파일이 아닙니다');
   if(String(obj.schema||'').split('.')[0]!=='1') throw new Error('지원하지 않는 파일 버전입니다 — 최신 모델터에서 다시 내보내 주세요');
-  var db=wsDB(), d=JSON.parse(JSON.stringify(obj.deal));
+  var n=wsVersionSeq(obj.deal);if(n<0)throw new Error('버전 번호를 확인해 주세요.');var db=wsDB(),d=JSON.parse(JSON.stringify(obj.deal));d.versionSeq=n;
   var map={}; d.id=wsId('deal');
   var taken=Object.keys(db.deals).some(function(k){ return db.deals[k].name===d.name; });
   if(taken) d.name=d.name+' (가져옴)';
@@ -3168,7 +3174,7 @@ function refreshSlotSel(){
   var db=wsDB(), ids=Object.keys(db.deals);
   ids.sort(function(a,b){ return (db.deals[b].updatedAt||'').localeCompare(db.deals[a].updatedAt||''); });
   sel.innerHTML='<option value="">— 딜 열기 ('+ids.length+') —</option>'+ids.map(function(id){
-    var d=db.deals[id]; return '<option value="'+id+'"'+(WS.dealId===id?' selected':'')+'>'+esc(d.name)+' · v0.'+d.versions.length+'</option>';
+    var d=db.deals[id],v=wsVersion(d,WS.dealId===id?WS.versionId:d.currentVersionId)||d.versions[d.versions.length-1];return '<option value="'+id+'"'+(WS.dealId===id?' selected':'')+'>'+esc(d.name)+(v?' · '+esc(v.label):'')+'</option>';
   }).join('');
   if(WS.dealId&&db.deals[WS.dealId]) sel.value=WS.dealId;
   var del=$('slotDel'); if(del) del.hidden=!sel.value;
@@ -3177,7 +3183,7 @@ function refreshSlotSel(){
 function renderWorkspace(){
   var deal=wsDeal();
   var sv=$('slotSave');
-  if(sv) sv.textContent=deal?('+ v0.'+(deal.versions.length+1)+' 저장'):'딜로 저장';
+  var n=deal?wsNextVersion(deal):0;if(sv)sv.textContent=deal?(n<0?'버전 번호 확인 필요':('+ v0.'+n+' 저장')):'딜로 저장';
   var wsb=$('wsOpen'); if(wsb){ var db=wsDB(); wsb.hidden=false; wsb.textContent=deal?('버전('+deal.versions.length+')·백업'):'백업·가져오기'; }
   var dd=$('wsDirtyTag');
   if(dd){ var dirty=deal&&wsDirty(); dd.hidden=!dirty; }
@@ -5689,7 +5695,7 @@ initTheme();
 // URL 공유값 > 브라우저 저장값 > 예시 순으로 복원
 if(!tryRestoreFromURL() && !tryRestoreLocal()) fillExample();
 
-/* 재방문자는 소개를 건너뛰고 빌더로 바로 (신규 방문 서사는 유지) */
+/* 재방문 시 빌더로 이동 */
 (function(){
   try{
     if(/[#&][evdth]=/.test(location.hash||'')) return; // 공유·딥링크 복원 시엔 그대로
