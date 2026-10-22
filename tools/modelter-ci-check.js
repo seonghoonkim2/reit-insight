@@ -191,12 +191,12 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
 {
   const workerSrc2 = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
   ok(/const dr = s\(d\.dr, 40\)\.replace\(\/\[\^A-Za-z0-9.\\-\]\/g, ""\);/.test(workerSrc2) && workerSrc2.includes('if (dr) refHost = dr;'), 'worker.js: dr(진짜 유입원) 정화 후 ref로 기록');
-  const expectedSrc = ['xlsx', 'ppt', 'png', 'qr', 'share', 'notes', 'team', 'hero', 'pdf', 'sns', 'seo', 'dscr', 'imcheck', 'howto', 'pwa'].sort();
+  const expectedSrc = ['xlsx', 'ppt', 'png', 'qr', 'share', 'notes', 'team', 'hero', 'pdf', 'sns', 'seo', 'dscr', 'imcheck', 'howto', 'pwa', 'resume'].sort();
   const clientBlock = (html.match(/var SRC_CHANNELS=\{([^}]+)\};/) || [])[1] || '';
   const workerBlock = (workerSrc2.match(/const SRC_CHANNELS = new Set\(\[([^\]]+)\]\);/) || [])[1] || '';
   const clientSrc = [...clientBlock.matchAll(/([a-z0-9_]+):1/g)].map(m => m[1]).sort();
   const workerSrc = [...workerBlock.matchAll(/"([a-z0-9_]+)"/g)].map(m => m[1]).sort();
-  ok(JSON.stringify(clientSrc) === JSON.stringify(expectedSrc) && JSON.stringify(workerSrc) === JSON.stringify(expectedSrc), 'src 채널: 클라이언트·worker 15개 유한 허용 목록 정확 일치');
+  ok(JSON.stringify(clientSrc) === JSON.stringify(expectedSrc) && JSON.stringify(workerSrc) === JSON.stringify(expectedSrc), 'src 채널: 클라이언트·worker 16개 유한 허용 목록 정확 일치');
   ok(workerSrc2.includes('SRC_CHANNELS.has(srcRaw) ? srcRaw : ""'), 'worker.js: 임의 숫자·자유 문자열 src 폐기');
   const enumValues = name => {
     const m = workerSrc2.match(new RegExp('const ' + name + ' = (?:new Set\\()?\\[([^\\]]*)\\]\\)?;'));
@@ -279,7 +279,7 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
     const { validateSnap, Q_TEAM_HANDOFF, Q_FIRST_NUMBER_WINDOW, Q_SAMPLE_START_WINDOW } = require(path.join(__dirname, 'modelter-ae'));
     const { build } = require(path.join(__dirname, 'modelter-report'));
     const snapDir = path.join(__dirname, '..', 'data', 'ae-snapshots');
-    const latest = fs.readdirSync(snapDir).filter(f => f.endsWith('.json')).sort().pop();
+    const latest = '2026-09-29.json'; // 동결한 회귀 입력: 새 운영 통계에 의존하지 않음
     const fixture = JSON.parse(fs.readFileSync(path.join(snapDir, latest), 'utf8'));
     fixture.endDate = '2026-08-29';
     fixture.events = { ...fixture.events, first_number_5m: 99, first_number_15m: 99, first_number_30m: 99, first_number_slow: 99 };
@@ -296,9 +296,14 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
   } catch (e) { ok(false, '북극성 첫 숫자 고정 창 실행 검증 (' + e.message + ')'); }
   const snapWorkflowPath = path.join(__dirname, '..', '.github', 'workflows', 'modelter-snapshot.yml');
   const snapWorkflow = fs.existsSync(snapWorkflowPath) ? fs.readFileSync(snapWorkflowPath, 'utf8') : '';
-  ok(snapWorkflow.includes('automation/modelter-snapshot-${GITHUB_RUN_ID}') && snapWorkflow.includes('gh pr merge "$pr_url"'), '스냅샷 자동화: master 직접 push 대신 전수 검증 PR');
-  ok(snapWorkflow.includes('actions: write') && snapWorkflow.includes('select(.headSha == \\"$head_sha\\")') && snapWorkflow.includes('/approve"'), '스냅샷 자동화: 이 실행의 branch+head SHA CI만 승인');
-  ok(!snapWorkflow.includes('gh workflow run modelter-ci.yml') && snapWorkflow.includes('if [ "$state" = "MERGED" ]') && snapWorkflow.includes('git push origin --delete "$branch"'), '스냅샷 자동화: 중복 CI 없음·머지 후 브랜치 정리');
+  const patternsWorkflow = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'modelter-patterns.yml'), 'utf8');
+  const doctorWorkflow = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'modelter-doctor.yml'), 'utf8');
+  for (const [name, wf] of [['snapshot', snapWorkflow], ['patterns', patternsWorkflow], ['doctor', doctorWorkflow]]) {
+    ok(!/CF_API_TOKEN|CF_ACCOUNT_ID|upload-artifact|gh pr|contents: write|schedule:/.test(wf), '공개 ' + name + ': 상세 조회·게시·자동 병합 없음');
+    ok(wf.includes('migration-status') && wf.includes('contents: read'), '공개 ' + name + ': 상태 안내만 허용');
+  }
+  const privateWorkflow = fs.readFileSync(path.join(__dirname, 'private-reporting', 'collect.yml'), 'utf8');
+  ok(privateWorkflow.includes('github.event.repository.private') && privateWorkflow.includes('retention-days: 90') && privateWorkflow.includes('REPORTS_ENABLED'), '비공개 수집: 접근 범위·90일 보관·명시적 활성화');
 }
 
 /* ── 1j) 사용성 v3(로그 기반) — 복잡도 다이어트·조정 바·위저드 발견성 ── */
@@ -800,7 +805,7 @@ ok(html.includes('function wonConv') && html.includes('class="f-conv"'), '원화
 ok(html.includes('탭하면 결과로 이동'), '미니 KPI 탭 → 결과 스크롤 존재');
 ok(!/openWN\(\);?\s*\/\/\s*첫 방문/.test(html) && !html.includes('__mtOnboarding'), '온보딩 잔재 없음(딥링크 억제 분기 포함)');
 ok(html.includes('window.__wizOpen') && html.includes('id="wizBtn"') && html.includes('wiz-sheet'), '모바일 빠른 입력 위저드 존재');
-ok(html.includes("['asset','landcost','conscost','equity','pfrate']") && html.includes("['asset','noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 핵심 필드 세트');
+ok(html.includes("['landcost','conscost','equity','pfrate']") && html.includes("['noi','oldbal','oldrate','dscrmin']"), '위저드 딜별 첫 숫자와 핵심 필드 세트');
 ok(html.includes("_gf=mnum('gfa')"), '매입 계산 연면적 필수 가드(임대료·NOI 직접입력 침묵 기본값 차단)');
 ok(html.includes("'repay'"), '상환 방식 → 가이드 앵커 연결');
 ok(html.includes('function wizInvalid'), '위저드 최소값 검증 존재');

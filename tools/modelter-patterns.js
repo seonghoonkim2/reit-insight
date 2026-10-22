@@ -1,413 +1,259 @@
 #!/usr/bin/env node
-/* 모델터 사용 패턴 보고서 — Analytics Engine 교차 집계를 자기완결 HTML 한 장으로
- *
- * 계기판(modelter-report.js)이 "무엇이 얼마나"라면, 이 보고서는 "누가·언제·어떻게"입니다:
- * 주간 모멘텀, 일별 추이, 기기별 전환, 딜×산출물, 시간대·요일(KST), 국가, 기능 조합.
- *
- * 사용:
- *   CF_ACCOUNT_ID=... CF_API_TOKEN=... node tools/modelter-patterns.js
- *   node tools/modelter-patterns.js --days 30 --out data/patterns.html
- *
- * 수집 원칙(불변): 이벤트명·딜유형·기능플래그·기기·유입호스트·국가만. 수치·임차인명·PII 없음.
- */
 'use strict';
+/* 비공개 운영 보고서. KST 완료 일자만 읽으며 저장소/운영 사이트를 변경하지 않는다.
+ * CF_ACCOUNT_ID=... CF_API_TOKEN=... node tools/modelter-patterns.js
+ *   --days 30 --end-date 2026-10-22 --out data/patterns.html --json data/patterns.json
+ * --end-date는 제외할 첫 KST 날짜(기본 오늘). --fixture는 동일 SQL 결과의 오프라인 검증용.
+ * 수치·임차인·사용자 식별자·전체 URL은 조회/저장하지 않는다. 공개 저장소에 보고서 업로드 금지.
+ */
 const fs = require('fs');
 const path = require('path');
-const { OUTPUT_EVENTS, DEAL_LABEL, EV_LABEL, FEAT_LABEL, DEVICE_LABEL } = require('./modelter-labels');
-
-function arg(name, def) { const i = process.argv.indexOf('--' + name); return (i >= 0 && process.argv[i + 1]) ? process.argv[i + 1] : def; }
+const { OUTPUT_EVENTS, DEAL_LABEL, EV_LABEL, DEVICE_LABEL } = require('./modelter-labels');
+const DAY = 86400000, KST = 9 * 3600000, ROW_LIMIT = 10000;
+const NEW_EVENTS = ['xlsx_ready', 'xlsx_error', 'wizard_open', 'wizard_finish', 'ws_restore', 'resume_copy'];
+const CORE_EVENTS = [...new Set(['session', 'activate', 'computed', 'sample_start', 'landing', 'ws_save', ...OUTPUT_EVENTS, ...NEW_EVENTS])];
+const TIME_EVENTS = ['session', 'activate', 'computed', 'xlsx_download', 'xlsx_ready', 'xlsx_error', 'ws_save', 'ws_restore'];
 const ROOT = path.join(__dirname, '..');
-const OUT = arg('out', path.join(ROOT, 'data', 'patterns.html'));
-const DAYS = Math.max(7, parseInt(arg('days', '30'), 10) || 30);
-const ACCOUNT = process.env.CF_ACCOUNT_ID || arg('account', '');
-const TOKEN = process.env.CF_API_TOKEN || arg('token', '');
-const D = 'Modelter';
-const MD = arg('md', '');            // 마크다운 요약 파일( GitHub Actions run Summary 에 그대로 붙임)
-const FIXTURE = arg('fixture', '');  // 쿼리 결과 JSON 고정 입력 — 토큰 없는 환경에서 렌더 검증용
-const INCLUDE_BOTS = process.argv.includes('--include-bots');
-const BOTW = INCLUDE_BOTS ? '' : " AND blob10 != '1'";   // 봇 태깅분 기본 제외(구 데이터 blob10=''는 포함)
-const W = `timestamp > now() - INTERVAL '${DAYS}' DAY${BOTW}`;
+const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = n => n == null ? '확인 불가' : Number(n).toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+const pct = (a, b) => b > 0 ? (a / b * 100).toFixed(1) + '%' : '—';
 
-/* 데이터 주의 각주(날짜 상수) — 이 날짜들이 창에 걸릴 때만 의미가 있으나, 항상 명시해 오독 방지 */
-const NOTE_ACTIVATE_SINCE = '2026-07-07';   // activate·computed 신호가 존재하기 시작한 날
-const NOTE_FIX_DEPLOYED = '2026-07-09';     // 계측 보정(리파이·분양그리드·렌트롤·IM 경로) 배포일
-
-const Q = {
-  daily: `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN ('session','activate','computed','xlsx_download','prompt_copy') GROUP BY d, ev ORDER BY d`,
-  wow: `SELECT if(timestamp > now() - INTERVAL '7' DAY, 'this', 'prev') AS w, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE timestamp > now() - INTERVAL '14' DAY${BOTW} GROUP BY w, ev`,
-  dealOut: `SELECT blob2 AS deal, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN (${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY deal, ev`,
-  devEv: `SELECT blob4 AS dev, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN ('session','deal_select','activate','computed','xlsx_download','prompt_copy','onboard') GROUP BY dev, ev`,
-  hour: `SELECT toHour(timestamp) AS h, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='session' GROUP BY h ORDER BY h`,
-  dow: `SELECT toDayOfWeek(timestamp) AS dw, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='session' GROUP BY dw ORDER BY dw`,
-  cc: `SELECT blob6 AS cc, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='session' GROUP BY cc ORDER BY n DESC LIMIT 8`,
-  axis: `SELECT blob8 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='sens_axis' AND blob8!='' GROUP BY k ORDER BY n DESC LIMIT 8`,
-  depth: `SELECT blob3 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='deal_select' AND blob3!='' GROUP BY k ORDER BY n DESC`,
-  featCombo: `SELECT blob7 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob7!='' AND blob1='computed' GROUP BY k ORDER BY n DESC LIMIT 8`,
-  dealWant: `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1='deal_want' GROUP BY k ORDER BY n DESC LIMIT 10`,
-  refFun: `SELECT blob5 AS g, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob1 IN ('session','activate','computed',${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY g, ev`,
-  srcFun: `SELECT blob9 AS g, blob1 AS ev, sum(_sample_interval) AS n FROM ${D} WHERE ${W} AND blob9!='' AND blob1 IN ('session','activate','computed',${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY g, ev`,
-  // 북극성 K3 — 자기 숫자를 넣은 세션(blob11=act)의 산출물. act 계측 배포(2026-07-26) 이전 데이터는 blob11=''
-  actOut: `SELECT if(timestamp > now() - INTERVAL '7' DAY, 'this', 'prev') AS w, blob11 AS act, sum(_sample_interval) AS n FROM ${D} WHERE timestamp > now() - INTERVAL '14' DAY${BOTW} AND blob1 IN (${OUTPUT_EVENTS.map(e => `'${e}'`).join(',')}) GROUP BY w, act`,
-  /* 커버리지 게이트 — deal_want 는 2026-07-14 부터 브라우저당 유형별 1표. 조회 창(--days)과 무관한 절대 기간 누적.
-     ⚠ AE 보존기간(약 90일) 초과 시 과소집계 — 2026-10 이후 커밋된 스냅샷 누적 합산으로 전환할 것. */
-  wantGate: `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${D} WHERE blob1='deal_want' AND blob2!='' AND timestamp > toDateTime('2026-07-14 00:00:00')${BOTW} GROUP BY k ORDER BY n DESC`,
-};
-const GATE_TARGET = 50;
-
-async function runSQL(sql) {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/analytics_engine/sql`;
-  const res = await fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'text/plain' }, body: sql });
-  const txt = await res.text();
-  if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + txt.slice(0, 200));
-  let j; try { j = JSON.parse(txt); } catch (e) { throw new Error('응답 파싱 실패'); }
-  return (j && j.data) || [];
+function dateMs(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value))) throw new Error('날짜는 YYYY-MM-DD 형식이어야 합니다.');
+  const ms = Date.parse(value + 'T00:00:00Z');
+  if (!Number.isFinite(ms) || new Date(ms).toISOString().slice(0, 10) !== value) throw new Error('유효하지 않은 날짜입니다.');
+  return ms;
+}
+function addDays(value, days) { return new Date(dateMs(value) + days * DAY).toISOString().slice(0, 10); }
+function kstDate(now) { return new Date(new Date(now).getTime() + KST).toISOString().slice(0, 10); }
+function period(start, end) {
+  return { start, endExclusive: end, timezone: 'Asia/Seoul', startUtc: new Date(dateMs(start) - KST).toISOString(), endUtcExclusive: new Date(dateMs(end) - KST).toISOString() };
+}
+function makePeriods({ days = 30, endDate, now = new Date() } = {}) {
+  days = Number(days);
+  if (!Number.isInteger(days) || days < 7 || days > 90) throw new Error('--days는 7~90 사이의 정수여야 합니다.');
+  endDate = endDate || kstDate(now);
+  dateMs(endDate);
+  if (endDate > kstDate(now)) throw new Error('완료되지 않은 미래 KST 날짜를 포함할 수 없습니다.');
+  return { days, selected: period(addDays(endDate, -days), endDate), recent7: period(addDays(endDate, -7), endDate), previous7: period(addDays(endDate, -14), addDays(endDate, -7)), retention: period(addDays(endDate, -90), endDate) };
+}
+function assertRetainedPeriods(periods, now = new Date()) {
+  // 조회에 성공한 빈 응답도 보존기간 밖이면 0건이라는 근거가 될 수 없다.
+  // 약 3개월 보존을 정확한 90일 보장으로 해석하지 않는다. 기본 보고서는 최근 30일만 쓴다.
+  const floor = new Date(now).getTime() - 90 * DAY;
+  if (['selected', 'recent7', 'previous7'].some(name => Date.parse(periods[name].startUtc) < floor)) {
+    const error = new Error('선택 기간 또는 비교 기간이 조회 가능한 보존 범위를 벗어났습니다. 해당 기간의 사용량을 확인할 수 없습니다.');
+    error.code = 'RETENTION_LIMITED';
+    throw error;
+  }
+}
+function sqlDate(iso) { return iso.slice(0, 19).replace('T', ' '); }
+function where(p, includeBots) {
+  return `timestamp >= toDateTime('${sqlDate(p.startUtc)}') AND timestamp < toDateTime('${sqlDate(p.endUtcExclusive)}')${includeBots ? '' : " AND blob10 != '1'"}`;
+}
+function list(items) { return items.map(e => `'${e}'`).join(','); }
+function buildQueries(periods, includeBots = false) {
+  const w = where(periods.selected, includeBots);
+  const w14 = where(period(periods.previous7.start, periods.recent7.endExclusive), includeBots);
+  const split = `if(timestamp >= toDateTime('${sqlDate(periods.recent7.startUtc)}'), 'this', 'prev')`;
+  const core = `blob1 IN (${list(CORE_EVENTS)})`;
+  return {
+    events: `SELECT blob1 AS ev, sum(_sample_interval) AS n FROM Modelter WHERE ${w} GROUP BY ev LIMIT ${ROW_LIMIT}`,
+    hourly: `SELECT toStartOfInterval(timestamp, INTERVAL '1' HOUR) AS t, blob1 AS ev, sum(_sample_interval) AS n FROM Modelter WHERE ${w} AND blob1 IN (${list(TIME_EVENTS)}) GROUP BY t, ev ORDER BY t LIMIT ${ROW_LIMIT}`,
+    wow: `SELECT ${split} AS w, blob1 AS ev, sum(_sample_interval) AS n FROM Modelter WHERE ${w14} GROUP BY w, ev LIMIT ${ROW_LIMIT}`,
+    cross: `SELECT blob5 AS ref, blob4 AS device, blob2 AS deal, blob1 AS ev, blob11 AS act, blob9 AS src, sum(_sample_interval) AS n FROM Modelter WHERE ${w} AND ${core} GROUP BY ref, device, deal, ev, act, src LIMIT ${ROW_LIMIT}`,
+    weekCross: `SELECT ${split} AS w, blob1 AS ev, blob11 AS act, blob9 AS src, blob4 AS device, sum(_sample_interval) AS n FROM Modelter WHERE ${w14} AND ${core} GROUP BY w, ev, act, src, device LIMIT ${ROW_LIMIT}`,
+    wantRetention: `SELECT blob2 AS deal, sum(_sample_interval) AS n FROM Modelter WHERE ${where(periods.retention, includeBots)} AND blob1='deal_want' GROUP BY deal LIMIT ${ROW_LIMIT}`,
+  };
 }
 
-const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const num = n => Math.round(Number(n) || 0).toLocaleString();
-const pct = (a, b) => { a = Number(a) || 0; b = Number(b) || 0; return b > 0 ? (a / b * 100).toFixed(1) + '%' : '—'; };
-const AXIS_LABEL = { rate: '금리', growth: '성장률', cap: 'Exit Cap', price: '분양가', sold: '분양률' };
-const DEPTH_LABEL = { standard: '표준', deep: '심화', quick: '빠른 검토' };
-const DOW_LABEL = ['', '월', '화', '수', '목', '금', '토', '일'];
-
-/* ── 라인차트(멀티 시리즈 · 점선 이중부호화 · 호버 툴팁) ── */
-function lineChart(id, labels, sets) {
-  const Wc = 720, H = 210, P = { l: 42, r: 14, t: 14, b: 26 };
-  const all = sets.reduce((a, s) => a.concat(s.data), []);
-  const max = Math.max(1, ...all);
-  const n = labels.length;
-  const x = i => P.l + (n <= 1 ? 0 : (Wc - P.l - P.r) * i / (n - 1));
-  const y = v => H - P.b - (H - P.t - P.b) * (v / max);
-  let svg = `<svg viewBox="0 0 ${Wc} ${H}" class="chart" id="${id}" data-labels="${esc(labels.join('|'))}" data-sets="${esc(JSON.stringify(sets.map(s => ({ name: s.name, data: s.data }))))}">`;
-  for (let g = 0; g <= 4; g++) { const gy = P.t + (H - P.t - P.b) * g / 4; svg += `<line x1="${P.l}" y1="${gy}" x2="${Wc - P.r}" y2="${gy}" class="grid"/><text x="${P.l - 5}" y="${gy + 3}" class="axis" text-anchor="end">${Math.round(max * (1 - g / 4))}</text>`; }
-  labels.forEach((lb, i) => { if (n <= 12 || i % Math.ceil(n / 12) === 0) svg += `<text x="${x(i)}" y="${H - 8}" class="axis" text-anchor="middle">${esc(lb)}</text>`; });
-  sets.forEach(s => {
-    svg += `<polyline points="${s.data.map((v, i) => x(i) + ',' + y(v)).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2" stroke-dasharray="${s.dash || ''}"/>`;
-    s.data.forEach((v, i) => { svg += `<circle cx="${x(i)}" cy="${y(v)}" r="2.5" fill="${s.color}"/>`; });
+function readCount(row, query) {
+  const n = typeof row.n === 'string' && row.n.trim() !== '' ? Number(row.n) : row.n;
+  if (typeof n !== 'number' || !Number.isFinite(n) || n < 0) throw new Error(query + ': 표본 가중 합계가 유효하지 않습니다.');
+  return n;
+}
+function validateRows(rows, query) {
+  if (!Array.isArray(rows)) throw new Error(query + ': 조회 결과가 누락되었습니다.');
+  if (rows.length >= ROW_LIMIT) throw new Error(query + ': 행 제한에 도달하여 완전한 집계인지 확인할 수 없습니다.');
+  rows.forEach(row => { if (!row || typeof row !== 'object') throw new Error(query + ': 결과 행이 유효하지 않습니다.'); readCount(row, query); });
+}
+function add(map, key, n) { map[key] = (map[key] || 0) + n; }
+function tally(rows, key = 'ev') {
+  const map = Object.create(null);
+  for (const row of rows) add(map, String(row[key] || ''), readCount(row, key));
+  return map;
+}
+function sourceLabel(ref) {
+  if (!ref) return '출처 기록 없음';
+  if (ref === 'modelter.com' || ref === 'www.modelter.com') return ref + ' (최초 유입 미상)';
+  if (ref === 'teams.microsoft.com' || ref === 'teams.live.com' || ref === 'teams.cloud.microsoft' || ref === 'teams.public.onecdn.static.microsoft') return 'Teams · ' + ref;
+  return ref;
+}
+function utcHour(value) {
+  const text = String(value || '');
+  const iso = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(text) ? text.replace(' ', 'T') + 'Z' : text;
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(iso)) throw new Error('시간 버킷에 명시적인 UTC 시각이 필요합니다.');
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms) || ms % 3600000 !== 0) throw new Error('유효하지 않은 UTC 시간 버킷입니다.');
+  return ms;
+}
+function timeBuckets(rows, p) {
+  const byDay = Object.create(null), hours = Array(24).fill(0), weekdays = Array(7).fill(0);
+  for (let d = p.start; d < p.endExclusive; d = addDays(d, 1)) byDay[d] = { day: d };
+  for (const row of rows) {
+    const ms = utcHour(row.t), local = new Date(ms + KST), day = local.toISOString().slice(0, 10);
+    if (!byDay[day] || !TIME_EVENTS.includes(row.ev)) throw new Error('일별 집계에 조회 범위 밖의 행이 있습니다.');
+    const n = readCount(row, 'hourly');
+    add(byDay[day], row.ev, n);
+    if (row.ev === 'session') { hours[local.getUTCHours()] += n; weekdays[(local.getUTCDay() + 6) % 7] += n; }
+  }
+  return { daily: Object.values(byDay), hours, weekdays };
+}
+function reconcile(expected, actual, keys, description) {
+  // SQL 차원별 쿼리는 서로 다른 샘플을 사용할 수 있다. 차이는 숨기지 않고 표본 가중 추정임을 표시한다.
+  return keys.flatMap(key => {
+    const a = expected[key] || 0, b = actual[key] || 0;
+    return Math.abs(a - b) > 1e-7 * Math.max(1, a, b) ? [{ event: key, expected: a, actual: b, check: description }] : [];
   });
-  svg += `<line class="xh" x1="0" y1="${P.t}" x2="0" y2="${H - P.b}" stroke="currentColor" opacity="0" stroke-dasharray="2 3"/>`;
-  svg += `<rect class="hover" x="${P.l}" y="${P.t}" width="${Wc - P.l - P.r}" height="${H - P.t - P.b}" fill="transparent"/>`;
-  svg += '</svg>';
-  const legend = sets.map(s => `<span class="lg"><svg width="18" height="8"><line x1="0" y1="4" x2="18" y2="4" stroke="${s.color}" stroke-width="2.5" stroke-dasharray="${s.dash || ''}"/></svg>${esc(s.name)}</span>`).join('');
-  const tbl = `<details class="tbl"><summary>표로 보기</summary><div class="tblwrap"><table><tr><th>일자</th>${sets.map(s => '<th>' + esc(s.name) + '</th>').join('')}</tr>${labels.map((lb, i) => '<tr><td>' + esc(lb) + '</td>' + sets.map(s => '<td>' + num(s.data[i]) + '</td>').join('') + '</tr>').join('')}</table></div></details>`;
-  return `<div class="ln">${svg}<div class="legend">${legend}</div>${tbl}</div>`;
 }
-
-/* ── 세로 막대(시간대·요일) ── */
-function colChart(items, opt) {
-  opt = opt || {};
-  const Wc = 340, H = 150, P = { l: 8, r: 8, t: 16, b: 20 };
-  const max = Math.max(1, ...items.map(i => i.v));
-  const bw = (Wc - P.l - P.r) / items.length;
-  let svg = `<svg viewBox="0 0 ${Wc} ${H}" class="chart">`;
-  items.forEach((it, i) => {
-    const h = Math.max(1, (H - P.t - P.b) * it.v / max);
-    const bx = P.l + i * bw + 1, by = H - P.b - h;
-    const hot = it.v === max;
-    svg += `<rect x="${bx}" y="${by}" width="${Math.max(1, bw - 2)}" height="${h}" rx="2.5" fill="var(--gold)" opacity="${hot ? 1 : 0.55}"><title>${esc(it.k)}: ${num(it.v)}</title></rect>`;
-    if (hot) svg += `<text x="${bx + bw / 2 - 1}" y="${by - 4}" class="axis" text-anchor="middle" font-weight="700">${num(it.v)}</text>`;
-    if (items.length <= 8 || i % Math.ceil(items.length / 12) === 0) svg += `<text x="${bx + bw / 2 - 1}" y="${H - 6}" class="axis" text-anchor="middle">${esc(it.k)}</text>`;
+function dimensions(rows, field) {
+  const groups = Object.create(null);
+  for (const row of rows) {
+    const k = String(row[field] || ''), map = groups[k] || (groups[k] = Object.create(null));
+    add(map, row.ev, row.n);
+  }
+  return groups;
+}
+function buildReport(raw, periods, { now = new Date(), includeBots = false, fixture = false } = {}) {
+  assertRetainedPeriods(periods, now);
+  const queries = buildQueries(periods, includeBots);
+  for (const key of Object.keys(queries)) validateRows(raw[key], key);
+  const events = tally(raw.events), weeks = { this: Object.create(null), prev: Object.create(null) };
+  for (const row of raw.wow) {
+    if (!['this', 'prev'].includes(row.w)) throw new Error('주간 비교 구분이 유효하지 않습니다.');
+    add(weeks[row.w], row.ev, readCount(row, 'wow'));
+  }
+  const cross = raw.cross.map(row => {
+    if (!CORE_EVENTS.includes(row.ev)) throw new Error('교차 집계에 허용되지 않은 이벤트가 있습니다.');
+    return { ref: String(row.ref || ''), device: String(row.device || ''), deal: String(row.deal || ''), ev: row.ev, act: row.act === '1' ? '1' : row.act === '0' ? '0' : '', src: String(row.src || ''), n: readCount(row, 'cross') };
   });
-  svg += '</svg>';
-  return svg;
-}
-
-function barList(pairs, opt) {
-  opt = opt || {};
-  if (!pairs.length) return '<p class="empty">(데이터 없음)</p>';
-  const max = pairs[0][1], denom = opt.denom || pairs.reduce((s, p) => s + p[1], 0);
-  return '<div class="bars">' + pairs.slice(0, opt.top || 10).map(([k, v]) =>
-    `<div class="brow"><span class="bk">${esc(k)}</span><span class="btrack"><span class="bfill" style="width:${max ? v / max * 100 : 0}%"></span></span><span class="bn">${num(v)}<i>${pct(v, denom)}</i></span></div>`).join('') + '</div>';
-}
-
-const toPairs = (rows, labelMap) => { const m = {}; for (const r of rows) { const k = String(r.k == null ? '' : r.k); m[k] = (m[k] || 0) + Number(r.n || 0); } return Object.entries(m).sort((a, b) => b[1] - a[1]).map(([k, v]) => [(labelMap && labelMap[k]) || k, v]); };
-
-async function main() {
-  let raw = {};
-  if (FIXTURE) {
-    raw = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
-    for (const k of Object.keys(Q)) if (!raw[k]) raw[k] = [];
-  } else {
-    if (!ACCOUNT || !TOKEN) { console.error('CF_ACCOUNT_ID · CF_API_TOKEN 환경변수가 필요합니다.'); process.exit(1); }
-    for (const [k, sql] of Object.entries(Q)) raw[k] = await runSQL(sql);
-  }
-
-  /* ── 모델 구성 ── */
-  const days = [];
-  { // 최근 DAYS일의 연속 날짜축 (빈 날 0 채움)
-    const byDay = {};
-    for (const r of raw.daily) { const d = String(r.d).slice(0, 10); (byDay[d] = byDay[d] || {})[r.ev] = Number(r.n) || 0; }
-    const ds = Object.keys(byDay).sort();
-    if (ds.length) {
-      let cur = new Date(ds[0] + 'T00:00:00Z');
-      const end = new Date(ds[ds.length - 1] + 'T00:00:00Z');
-      while (cur <= end) { const key = cur.toISOString().slice(0, 10); days.push(Object.assign({ day: key }, byDay[key] || {})); cur = new Date(cur.getTime() + 86400000); }
-    }
-  }
-  const wow = {}; for (const r of raw.wow) { (wow[r.ev] = wow[r.ev] || { prev: 0, this: 0 })[r.w] = Number(r.n) || 0; }
-  const wget = ev => wow[ev] || { prev: 0, this: 0 };
-  const mult = (a, b) => b > 0 ? (a / b) : (a > 0 ? Infinity : 0);
-  const multTxt = (a, b) => b > 0 ? '×' + (a / b).toFixed(1) : (a > 0 ? '신규' : '—');
-
-  const dev = {}; for (const r of raw.devEv) { const d = String(r.dev || ''); (dev[d] = dev[d] || {})[r.ev] = Number(r.n) || 0; }
-  const dk = dev.desktop || {}, mb = dev.mobile || {};
-
-  const dealOut = {}; for (const r of raw.dealOut) { const d = String(r.deal || '?'); (dealOut[d] = dealOut[d] || {})[r.ev] = (dealOut[d] && dealOut[d][r.ev] || 0) + (Number(r.n) || 0); }
-
-  const hours = []; { const m = {}; for (const r of raw.hour) m[Number(r.h)] = Number(r.n) || 0; for (let k = 0; k < 24; k++) { const kst = (k + 9) % 24; hours.push({ kst, v: m[k] || 0 }); } hours.sort((a, b) => a.kst - b.kst); }
-  const dows = []; { const m = {}; for (const r of raw.dow) m[Number(r.dw)] = Number(r.n) || 0; for (let i = 1; i <= 7; i++) dows.push({ k: DOW_LABEL[i], v: m[i] || 0 }); }
-
-  /* ── 수요·유입/채널 퍼널·전 이벤트(주간 비교) ── */
-  function funBy(rows) {
-    const m = {};
-    for (const r of rows || []) {
-      const g = String(r.g == null ? '' : r.g) || '(직접/미상)';
-      const o = m[g] = m[g] || { session: 0, activate: 0, computed: 0, output: 0 };
-      const ev = String(r.ev), n = Number(r.n) || 0;
-      if (ev === 'session' || ev === 'activate' || ev === 'computed') o[ev] += n; else o.output += n;
-    }
-    return Object.entries(m).sort((a, b) => b[1].session - a[1].session);
-  }
-  const refFun = funBy(raw.refFun), srcFun = funBy(raw.srcFun);
-  const dealWantPairs = (raw.dealWant || []).map(r => [DEAL_LABEL[r.k] || String(r.k), Number(r.n) || 0]).sort((a, b) => b[1] - a[1]);
-  // 커버리지 게이트 — 누적 표 수 / 목표. 선두 유형이 목표에 닿으면 해당 딜 구현 착수.
-  const gatePairs = (raw.wantGate || []).map(r => [DEAL_LABEL[r.k] || String(r.k), Number(r.n) || 0]).sort((a, b) => b[1] - a[1]);
-  const gateLead = gatePairs[0] || null;
-  const evRows = Object.entries(wow).map(([ev, w]) => [ev, w.this || 0, w.prev || 0]).sort((a, b) => b[1] - a[1]);
-
-  /* KPI v1 트래커 (docs/STRATEGY.md 2026-07-13 확정) — K3 = act 플래그가 붙은 산출물(북극성) */
-  const _s7 = wget('session');
-  //  act 계측 배포(2026-07-26) 이전 이벤트는 blob11=''이므로 '1'만 실사용으로 집계.
-  //  아직 표식이 하나도 없으면(배포 직후) 기준선 수집 중임을 그대로 표기해 0을 성과 하락으로 오독하지 않게 함.
-  const actAgg = { this: 0, prev: 0 }; let actTagged = 0;
-  for (const r of (raw.actOut || [])) {
-    const n = Number(r.n) || 0;
-    if (String(r.act) === '1') { actAgg[r.w === 'this' ? 'this' : 'prev'] += n; actTagged += n; }
-  }
-  const k3Val = actTagged > 0 ? num(actAgg.this) + '건' : '기준선 수집 중';
-  const k3Goal = actTagged > 0 ? ('전주 ' + num(actAgg.prev) + ' · 8월 기준선 → +30%') : 'act 계측 2026-07-26 배포 → 8월 기준선';
-  const kpiV1 = [
-    ['K1 주간 방문', num(_s7.this), '목표 800', _s7.this >= 800],
-    ['K2 활성화율', pct(wget('activate').this, _s7.this), '목표 10%+ (다음 15%)', _s7.this > 0 && wget('activate').this / _s7.this >= 0.10],
-    ['K3 실사용 산출물', k3Val, k3Goal, actTagged > 0 ? (actAgg.this >= actAgg.prev) : null],
-    ['K4 회수 재진입(착지)', num(wget('landing').this), '목표 주 15', (wget('landing').this || 0) >= 15],
+  const weekCross = raw.weekCross.map(row => {
+    if (!['this', 'prev'].includes(row.w) || !CORE_EVENTS.includes(row.ev)) throw new Error('주간 교차 집계가 유효하지 않습니다.');
+    return { w: row.w, ev: row.ev, act: row.act === '1' ? '1' : row.act === '0' ? '0' : '', src: String(row.src || ''), device: String(row.device || ''), n: readCount(row, 'weekCross') };
+  });
+  const time = timeBuckets(raw.hourly, periods.selected);
+  const checks = [
+    ...reconcile(events, tally(raw.hourly), TIME_EVENTS, '시간별 합계 / 전체'),
+    ...reconcile(events, tally(cross), CORE_EVENTS, '교차 합계 / 전체'),
+    ...['this', 'prev'].flatMap(w => reconcile(weeks[w], tally(weekCross.filter(r => r.w === w)), CORE_EVENTS, w + ' 주간 교차 합계 / 전체')),
   ];
+  const grouped = { ref: dimensions(cross, 'ref'), device: dimensions(cross, 'device'), deal: dimensions(cross, 'deal'), src: dimensions(cross, 'src'), act: dimensions(cross, 'act') };
+  const queryStatus = Object.fromEntries(Object.keys(queries).map(k => [k, { status: 'ok', rows: raw[k].length }]));
+  return {
+    schema: 3, reportKey: `kst:${periods.selected.start}:${periods.selected.endExclusive}`, generatedAt: new Date(now).toISOString(), timezone: 'Asia/Seoul', periods, botExcluded: !includeBots, source: fixture ? 'fixture' : 'analytics-engine',
+    availability: { status: checks.length ? 'partial' : 'complete', queries: queryStatus, retentionLimited: false, reconciliation: checks, newEvents: Object.fromEntries(NEW_EVENTS.map(e => [e, events[e] > 0 ? 'observed' : 'not-observed'])) },
+    events, weeks, ...time, grouped, cross, weekCross,
+    retentionDemand: { period: periods.retention, completeness: 'retention-limited', byDeal: tally(raw.wantRetention, 'deal') },
+    notes: ['방문·행동 횟수이며 고유 사용자·실제 딜 개수가 아닙니다.', '엑셀 생성 완료는 기기 저장 완료가 아닙니다.', '새 이벤트 미관측은 미배포·미사용·미수집을 구분하지 못합니다.', 'src=resume은 링크 목적이며 동일인 기기 이동이나 재방문율이 아닙니다.', '기간이 겹치는 보고서는 합산하지 않습니다. 하루 자료의 키는 KST 날짜입니다.'],
+  };
+}
 
-  /* ── 자동 관찰(규칙 기반 · 데이터 없으면 생략) ── */
-  const obs = [];
-  const sW = wget('session');
-  if (sW.prev >= 10 && mult(sW.this, sW.prev) >= 1.5) obs.push(`방문이 주간 <b>${multTxt(sW.this, sW.prev)}</b> (${num(sW.prev)} → ${num(sW.this)}) — 성장 구간입니다.`);
-  else if (sW.prev >= 10 && mult(sW.this, sW.prev) <= 0.67) obs.push(`방문이 주간 <b>${multTxt(sW.this, sW.prev)}</b> (${num(sW.prev)} → ${num(sW.this)}) — 감속 신호, 유입원 점검이 필요합니다.`);
-  { // 최다 성장 산출물
-    let best = null;
-    for (const ev of OUTPUT_EVENTS) { const w = wget(ev); if (w.this >= 5 && w.this > w.prev && (!best || mult(w.this, w.prev) > mult(best.w.this, best.w.prev))) best = { ev, w }; }
-    if (best) obs.push(`가장 빠르게 크는 산출물은 <b>${EV_LABEL[best.ev] || best.ev}</b> (${num(best.w.prev)} → ${num(best.w.this)}, ${multTxt(best.w.this, best.w.prev)}).`);
-  }
-  { const dr = (dk.xlsx_download || 0) / Math.max(1, dk.session || 0), mr = (mb.xlsx_download || 0) / Math.max(1, mb.session || 0);
-    if ((mb.session || 0) >= 30 && dr > 0 && mr > 0 && dr / mr >= 2) obs.push(`모바일은 방문의 ${pct(mb.session, (mb.session || 0) + (dk.session || 0))}인데 방문당 엑셀이 데스크톱의 <b>1/${(dr / mr).toFixed(1)}</b> — 유입 채널 규명(E5 src 태그)이 필요합니다.`); }
-  { const a7 = wget('activate').this, s7 = wget('session').this; if (s7 >= 30 && a7 > 0) obs.push(`최근 7일 활성화율(직접 입력/방문)은 <b>${pct(a7, s7)}</b>.`); }
-  { const peakH = hours.slice().sort((a, b) => b.v - a.v)[0], peakD = dows.slice().sort((a, b) => b.v - a.v)[0];
-    if (peakH && peakH.v > 0 && peakD && peakD.v > 0) obs.push(`피크는 <b>${peakD.k}요일 · ${peakH.kst}시(KST)</b> — 업무시간 도구 패턴.`); }
-
-  /* ── 렌더 ── */
-  const genAt = new Date(Date.now() + 9 * 3600 * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' KST';
-  const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-
-  const kpiDefs = [
-    ['방문 (7일)', num(sW.this), sW.prev ? '전주 ' + num(sW.prev) + ' · ' + multTxt(sW.this, sW.prev) : '최근 7일'],
-    ['엑셀 (7일)', num(wget('xlsx_download').this), '전주 ' + num(wget('xlsx_download').prev) + ' · ' + multTxt(wget('xlsx_download').this, wget('xlsx_download').prev)],
-    ['AI프롬프트 (7일)', num(wget('prompt_copy').this), '전주 ' + num(wget('prompt_copy').prev) + ' · ' + multTxt(wget('prompt_copy').this, wget('prompt_copy').prev)],
-    ['활성화율 (7일)', pct(wget('activate').this, sW.this), '직접 입력 / 방문'],
-    ['결과 도달 (7일)', num(wget('computed').this), '자기 딜 결과'],
-  ];
-  const kpis = kpiDefs.map(k => `<div class="kpi"><div class="kv">${k[1]}</div><div class="kl">${esc(k[0])}</div><div class="ks">${esc(k[2])}</div></div>`).join('');
-
-  const trend = days.length >= 2 ? lineChart('trend',
-    days.map(d => d.day.slice(5)),
-    [
-      { name: '방문', color: 'var(--gold)', dash: '', data: days.map(d => d.session || 0) },
-      { name: '엑셀', color: 'var(--green)', dash: '5 3', data: days.map(d => d.xlsx_download || 0) },
-      { name: '직접입력', color: 'var(--red)', dash: '1.5 3', data: days.map(d => d.activate || 0) },
-    ]) : '<p class="empty">(일별 데이터 부족)</p>';
-
-  /* 기기 비교 — 방문당 비율 */
-  const devRows = [
-    ['방문', num(dk.session || 0), num(mb.session || 0)],
-    ['방문당 딜 선택', pct(dk.deal_select, dk.session), pct(mb.deal_select, mb.session)],
-    ['방문당 직접 입력', pct(dk.activate, dk.session), pct(mb.activate, mb.session)],
-    ['방문당 엑셀', pct(dk.xlsx_download, dk.session), pct(mb.xlsx_download, mb.session)],
-    ['AI프롬프트 복사', num(dk.prompt_copy || 0), num(mb.prompt_copy || 0)],
-  ].map(r => `<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
-
-  /* 딜 × 산출물 매트릭스 (상위 산출물 열만) */
-  const outCols = OUTPUT_EVENTS.map(ev => [ev, Object.values(dealOut).reduce((s, o) => s + (o[ev] || 0), 0)]).filter(c => c[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 6).map(c => c[0]);
-  const dealRowsArr = Object.entries(dealOut).map(([d, o]) => [d, o, Object.values(o).reduce((s, v) => s + v, 0)]).sort((a, b) => b[2] - a[2]);
-  const dealMatrix = dealRowsArr.length ? `<div class="tblwrap"><table class="mx"><tr><th>딜</th>${outCols.map(c => '<th>' + esc(EV_LABEL[c] || c) + '</th>').join('')}<th>합계</th></tr>` +
-    dealRowsArr.map(([d, o, tot]) => `<tr><td>${esc(DEAL_LABEL[d] || d)}</td>${outCols.map(c => '<td' + ((o[c] || 0) === 0 ? ' class="z"' : '') + '>' + (o[c] ? num(o[c]) : '·') + '</td>').join('')}<td><b>${num(tot)}</b></td></tr>`).join('') + '</table></div>' : '<p class="empty">(데이터 없음)</p>';
-
-  const featPairs = (() => { const m = {}; for (const r of raw.featCombo) { for (const f of String(r.k).split(',')) { if (f) m[FEAT_LABEL[f] || f] = (m[FEAT_LABEL[f] || f] || 0) + Number(r.n || 0); } } return Object.entries(m).sort((a, b) => b[1] - a[1]); })();
-
-  const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>모델터 사용 패턴</title>
-<style>
-:root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink2:#46505f;--muted:#8b8f98;--line:#e3e0d8;--line2:#efece4;--gold:#a9792b;--green:#2e7d4f;--red:#b4552d}
-@media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink2:#b6bcc7;--muted:#8b919c;--line:#2a3039;--line2:#20252d;--gold:#c99b4e;--green:#4da375;--red:#cf7a52}}
-:root[data-theme="dark"]{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--ink2:#b6bcc7;--muted:#8b919c;--line:#2a3039;--line2:#20252d;--gold:#c99b4e;--green:#4da375;--red:#cf7a52}
-:root[data-theme="light"]{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--ink2:#46505f;--muted:#8b8f98;--line:#e3e0d8;--line2:#efece4;--gold:#a9792b;--green:#2e7d4f;--red:#b4552d}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;padding:22px}
-.wrap{max-width:960px;margin:0 auto}
-h1{font-size:22px;margin:0 0 2px}.sub{color:var(--muted);font-size:12.5px;margin:0 0 18px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 17px;margin-bottom:14px}
-.card h2{font-size:14px;margin:0 0 11px;font-weight:700}.card h2 span{font-weight:500;color:var(--muted);font-size:11.5px;margin-left:6px}
-.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
-@media(max-width:720px){.grid5{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
-.kv{font-size:22px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.1}
-.kl{font-size:12px;font-weight:600;color:var(--ink2);margin-top:4px}.ks{font-size:10.5px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:720px){.row2{grid-template-columns:1fr}}
-.chart{width:100%;height:auto}.grid{stroke:var(--line2)}.axis{fill:var(--muted);font-size:9px}
-.legend{display:flex;gap:14px;margin-top:6px;font-size:11.5px;color:var(--ink2)}.lg svg{margin-right:5px;vertical-align:-1px}
-.obs{margin:0;padding-left:18px}.obs li{margin:4px 0}
-.bars{display:flex;flex-direction:column;gap:7px}
-.brow{display:flex;align-items:center;gap:9px}.bk{min-width:88px;font-size:12px;color:var(--ink2)}
-.btrack{flex:1;height:9px;background:var(--line2);border-radius:6px;overflow:hidden}
-.bfill{display:block;height:100%;background:var(--gold);border-radius:6px}
-.bn{min-width:72px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}.bn i{font-style:normal;color:var(--muted);font-weight:500;font-size:10.5px;margin-left:5px}
-.tblwrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
-th,td{border:1px solid var(--line2);padding:5px 9px;text-align:right}th{color:var(--ink2);font-weight:600;background:var(--bg)}
-td:first-child,th:first-child{text-align:left}.mx td.z{color:var(--muted)}
-.tbl{margin-top:8px;font-size:12px}.tbl summary{cursor:pointer;color:var(--muted)}
-.note,.empty{font-size:11px;color:var(--muted)}.note{margin:9px 0 0;line-height:1.6}
-.gate{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-.gate-h{font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
-.gate-h span{font-weight:400;color:var(--muted)}
-.gbar{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--line);vertical-align:middle;overflow:hidden;margin-right:5px}
-.gfill{display:block;height:100%;background:var(--accent);border-radius:3px}
-.up{color:var(--green)}
-.foot{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.7}
-.tip{position:fixed;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11.5px;box-shadow:0 4px 14px rgba(0,0,0,.12);opacity:0;transition:opacity .12s;font-variant-numeric:tabular-nums;z-index:9}
-</style></head><body><div class="wrap">
-<h1>모델터 사용 패턴</h1>
-<p class="sub">기준 ${today} · 최근 ${DAYS}일 · 생성 ${genAt} · 익명 집계(수치·PII 없음)</p>
-
-<div class="grid5">${kpis}</div>
-
-${obs.length ? `<div class="card"><h2>핵심 관찰 <span>자동 산출</span></h2><ul class="obs">${obs.map(o => '<li>' + o + '</li>').join('')}</ul></div>` : ''}
-
-<div class="card"><h2>KPI v1 트래커 <span>주 7일 창 · 목표는 docs/STRATEGY.md</span></h2>
-<div class="tblwrap"><table><tr><th>지표</th><th>이번 주</th><th>목표</th><th>상태</th></tr>${kpiV1.map(k => `<tr><td>${esc(k[0])}</td><td>${esc(k[1])}</td><td>${esc(k[2])}</td><td>${k[3] === null ? '—' : (k[3] ? '✅ 달성' : '진행 중')}</td></tr>`).join('')}</table></div></div>
-
-<div class="card"><h2>일별 추이 <span>방문 · 엑셀 · 직접입력</span></h2>${trend}</div>
-
-<div class="row2">
-  <div class="card"><h2>시간대 <span>KST · 세션</span></h2>${colChart(hours.map(h => ({ k: h.kst + '', v: h.v })))}
-    <p class="note">한국 업무시간 패턴이면 8~18시에 몰립니다.</p></div>
-  <div class="card"><h2>요일 <span>세션</span></h2>${colChart(dows)}</div>
-</div>
-
-<div class="row2">
-  <div class="card"><h2>기기별 행동 <span>방문당 비율</span></h2>
-    <div class="tblwrap"><table><tr><th></th><th>데스크톱</th><th>모바일</th></tr>${devRows}</table></div>
-    <p class="note">모바일 유입이 커도 작업 전환이 낮으면 "링크 확인" 방문일 가능성 — src 태그(E5)로 확인.</p></div>
-  <div class="card"><h2>딜 × 산출물 <span>최근 ${DAYS}일</span></h2>${dealMatrix}</div>
-</div>
-
-<div class="row2">
-  <div class="card"><h2>수요 신호 <span>준비 중 딜 클릭(deal_want)</span></h2>
-    ${dealWantPairs.length ? barList(dealWantPairs, { top: 8 }) : '<p class="empty">(아직 없음)</p>'}
-    ${gatePairs.length ? `<div class="gate"><div class="gate-h">커버리지 게이트 — 누적 표 수 / ${GATE_TARGET} <span>2026-07-14 이후(브라우저당 1표)</span></div>
-      <div class="tblwrap"><table><tr><th>딜 유형</th><th>누적</th><th>진행</th><th>판정</th></tr>
-      ${gatePairs.slice(0, 6).map(([k, n]) => { const p = Math.min(100, Math.round(n / GATE_TARGET * 100));
-        return `<tr><td>${esc(k)}</td><td>${num(n)} / ${GATE_TARGET}</td><td><span class="gbar"><span class="gfill" style="width:${p}%"></span></span> ${p}%</td><td>${n >= GATE_TARGET ? '<b class="up">착수 가능</b>' : '대기'}</td></tr>`;
-      }).join('')}</table></div></div>` : ''}
-    <p class="note">착수 기준: 단일 유형 누적 <b>${GATE_TARGET}표</b> — <b>2026-07-14부터 브라우저당 유형별 1표</b>(이전 수치는 반복 클릭 포함, 게이트 판정은 07-14 이후 집계만). 위 막대는 조회 기간과 무관한 <b>절대 누적</b>입니다.</p></div>
-  <div class="card"><h2>유입 호스트별 퍼널 <span>방문→입력→결과→산출물</span></h2>
-    <div class="tblwrap"><table><tr><th>유입</th><th>방문</th><th>입력</th><th>결과</th><th>산출물</th></tr>${refFun.slice(0, 8).map(([g, f]) => `<tr><td>${esc(g)}</td><td>${num(f.session)}</td><td>${num(f.activate)}</td><td>${num(f.computed)}</td><td>${num(f.output)}</td></tr>`).join('')}</table></div>
-    ${srcFun.length ? `<p class="note" style="margin-top:8px">채널(src) 태그: ${srcFun.map(([g, f]) => esc(g) + ' ' + num(f.session) + '·산출 ' + num(f.output)).join(' / ')}</p>` : ''}</div>
-</div>
-
-<div class="card"><h2>전 이벤트 주간 비교 <span>이번 7일 vs 지난 7일 · ${evRows.length}종</span></h2>
-<details class="tbl" open><summary>표 접기/펼치기</summary><div class="tblwrap"><table><tr><th>이벤트</th><th>라벨</th><th>이번 주</th><th>지난 주</th><th>추세</th></tr>${evRows.map(([ev, t, p]) => `<tr><td>${esc(ev)}</td><td>${esc(EV_LABEL[ev] || '')}</td><td>${num(t)}</td><td>${num(p)}</td><td>${p > 0 ? (t >= p ? '▲' : '▼') + ' ' + multTxt(t, p) : (t > 0 ? '신규' : '—')}</td></tr>`).join('')}</table></div></details></div>
-
-<div class="row2">
-  <div class="card"><h2>국가 <span>세션</span></h2>${barList(toPairs(raw.cc.map(r => ({ k: r.cc, n: r.n }))))}</div>
-  <div class="card"><h2>민감도 축 · 깊이 · 기능</h2>
-    ${barList(toPairs(raw.axis, AXIS_LABEL), { top: 5 })}
-    <p class="note" style="margin-bottom:7px">깊이: ${toPairs(raw.depth, DEPTH_LABEL).map(p => p[0] + ' ' + num(p[1])).join(' · ') || '—'}</p>
-    ${featPairs.length ? barList(featPairs, { top: 6 }) : ''}
-    <p class="note">기능은 "결과 도달" 시점에 켜져 있던 조합을 분해한 값.</p></div>
-</div>
-
-<p class="foot">데이터 주의: 직접입력(activate)·결과도달(computed) 신호는 <b>${NOTE_ACTIVATE_SINCE}</b>부터 존재하며,
-<b>${NOTE_FIX_DEPLOYED}</b>에 계측 보정(리파이 텀시트·분양 그리드·렌트롤·IM 경로 추가)이 배포되어 이후 수치는 보정 효과를 포함합니다.
-집계는 앱이 직접 보낸 이벤트만 세며(봇·크롤러 제외), 표본 가중 합산이라 소수점 반올림 오차가 있을 수 있습니다. 수치·임차인명·개인정보는 애초에 수집하지 않습니다.</p>
-</div>
-<div class="tip" id="tip"></div>
-<script>
-(function(){
-  var svg=document.getElementById('trend'); if(!svg) return;
-  var tip=document.getElementById('tip');
-  var labels=(svg.dataset.labels||'').split('|');
-  var sets=[]; try{ sets=JSON.parse(svg.dataset.sets||'[]'); }catch(e){}
-  var xh=svg.querySelector('.xh'), hov=svg.querySelector('.hover');
-  if(!hov||!sets.length) return;
-  var P={l:42,r:14}, W=720;
-  function idxAt(evt){
-    var r=svg.getBoundingClientRect(), sx=(evt.clientX-r.left)*(W/r.width);
-    var n=labels.length; if(n<2) return 0;
-    var t=(sx-P.l)/(W-P.l-P.r)*(n-1);
-    return Math.max(0,Math.min(n-1,Math.round(t)));
-  }
-  hov.addEventListener('mousemove',function(evt){
-    var i=idxAt(evt), n=labels.length;
-    var xx=P.l+(W-P.l-P.r)*i/(n-1);
-    xh.setAttribute('x1',xx); xh.setAttribute('x2',xx); xh.setAttribute('opacity','.45');
-    tip.innerHTML='<b>'+labels[i]+'</b><br>'+sets.map(function(s){return s.name+' '+(s.data[i]||0);}).join('<br>');
-    tip.style.left=(evt.clientX+14)+'px'; tip.style.top=(evt.clientY+10)+'px'; tip.style.opacity='1';
+function table(headers, rows) {
+  return '<div class="scroll"><table><thead><tr>' + headers.map(x => '<th>' + esc(x) + '</th>').join('') + '</tr></thead><tbody>' + rows.map(row => '<tr>' + row.map(x => '<td>' + esc(x) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>';
+}
+function bars(labels, values) {
+  const max = Math.max(1, ...values);
+  return '<div class="bars">' + labels.map((label, i) => `<div class="bar"><span>${esc(label)}</span><div><i style="width:${values[i] / max * 100}%"></i></div><b>${num(values[i])}</b></div>`).join('') + '</div>';
+}
+function page(content) {
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>모델터 사용 보고서</title><style>
+  :root{--bg:#f3f1ec;--panel:#fdfcf9;--ink:#1b2230;--muted:#626a75;--line:#e3e0d8;--gold:#a9792b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 -apple-system,"Malgun Gothic",sans-serif;padding:24px}.wrap{max-width:1100px;margin:auto}h1{font-size:24px;margin:0}h2{font-size:17px;margin:0 0 12px}.sub,.note{color:var(--muted);font-size:12px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:16px 0}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:12px}th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}th{color:var(--muted)}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.row>.card{margin:0}.bar{display:flex;align-items:center;gap:10px;font-size:12px;margin:3px 0}.bar>span{width:38px}.bar>div{flex:1;height:7px;background:var(--bg)}.bar i{display:block;height:7px;background:var(--gold)}.bar>b{width:48px;text-align:right;font-weight:500}.warning{border-left:4px solid var(--gold);padding-left:12px}summary{cursor:pointer;color:var(--muted)}@media(max-width:700px){body{padding:12px}.row{display:block}.row>.card{margin:16px 0}}@media(prefers-color-scheme:dark){:root{--bg:#14171d;--panel:#1c2027;--ink:#e8eaef;--muted:#b6bcc7;--line:#303641;--gold:#c99b4e}}
+  </style></head><body><main class="wrap">${content}</main></body></html>`;
+}
+function render(report) {
+  const p = report.periods, ev = report.events, w = report.weeks;
+  const periodText = x => `${x.start} ~ ${addDays(x.endExclusive, -1)} KST`;
+  const mainMetrics = ['session', 'activate', 'computed', 'xlsx_download', ...NEW_EVENTS, 'ws_save'];
+  const newLabel = (e, n) => NEW_EVENTS.includes(e) && !n ? '미관측' : num(n || 0);
+  const metricRows = mainMetrics.map(e => [EV_LABEL[e] || e, newLabel(e, w.prev[e]), newLabel(e, w.this[e]), newLabel(e, ev[e])]);
+  metricRows.push(['직접 입력 / 방문', pct(w.prev.activate || 0, w.prev.session || 0), pct(w.this.activate || 0, w.this.session || 0), pct(ev.activate || 0, ev.session || 0)]);
+  const groupedTable = (field, labels) => table(['구분', '방문', '입력', '결과', '엑셀 버튼', '생성 완료', '생성 오류', '저장 완료', '저장 버전 열기'], Object.entries(report.grouped[field]).sort((a, b) => (b[1].session || 0) - (a[1].session || 0)).map(([k, vals]) => [field === 'ref' ? sourceLabel(k) : ((labels || {})[k] || k || '기록 없음'), ...['session', 'activate', 'computed', 'xlsx_download', 'xlsx_ready', 'xlsx_error', 'ws_save', 'ws_restore'].map(e => newLabel(e, vals[e]))]));
+  const actRows = ['prev', 'this'].map(key => {
+    const rows = report.weekCross.filter(r => r.w === key);
+    const count = fn => rows.filter(fn).reduce((sum, r) => sum + r.n, 0);
+    return [key === 'this' ? '최근 완료 7일' : '이전 7일', num(count(r => OUTPUT_EVENTS.includes(r.ev) && r.act === '1')), num(count(r => OUTPUT_EVENTS.includes(r.ev) && r.act === '0')), num(count(r => OUTPUT_EVENTS.includes(r.ev) && r.act === '')), num(count(r => r.ev === 'landing' && r.src === 'resume' && r.device === 'desktop'))];
   });
-  hov.addEventListener('mouseleave',function(){ tip.style.opacity='0'; xh.setAttribute('opacity','0'); });
-})();
-</script>
-</body></html>`;
+  const allEvents = [...new Set([...Object.keys(w.prev), ...Object.keys(w.this)])].sort((a, b) => (w.this[b] || 0) - (w.this[a] || 0));
+  return page(`<h1>모델터 사용 보고서</h1><p class="sub">${periodText(p.selected)} · 생성 ${esc(report.generatedAt)} · ${report.botExcluded ? '봇 태그 제외' : '봇 포함'} · ${report.source === 'fixture' ? '검증용 자료' : '비공개 운영 자료'}</p>
+  ${report.availability.status !== 'complete' ? '<div class="card warning"><b>집계 사이에 표본 가중합 차이가 있습니다.</b><p>조회마다 사용하는 표본이 달라 합계가 다를 수 있습니다. 차이는 JSON의 availability.reconciliation에 남겼으며 원본 숫자를 맞추어 바꾸지 않았습니다. 진단 자료로만 사용하고 정확한 전환율이나 성과 달성으로 판정하지 마세요.</p></div>' : ''}
+  <section class="card"><h2>최근 사용</h2><p class="note">최근 7일: ${periodText(p.recent7)} · 이전 7일: ${periodText(p.previous7)} · 오늘 제외</p>${table(['항목', '이전 7일', '최근 7일', `선택 ${p.days}일`], metricRows)}<p class="note">방문·행동 횟수입니다. 실제 딜 수나 사용자 전환율이 아닙니다. 엑셀 버튼, 생성 완료, 디스크 저장 완료는 서로 다릅니다. 새 기록의 ‘미관측’은 배포 전인지 사용이 없었는지 구분할 수 없다는 뜻입니다. wizard의 이전 혼합 기록은 새 시작·마지막 단계 기록과 합치지 않습니다.</p></section>
+  <section class="card"><h2>입력 후 산출과 PC 링크 열기</h2>${table(['기간', '입력 표식 있는 산출', '입력 표식 없는 산출', '표식 미수집 산출', 'PC 이어보기 링크 열기'], actRows)}<p class="note">산출은 기존 버튼·복사 행동 정의를 유지합니다. 새 성공 이벤트를 더해 중복 계산하지 않습니다. 입력 표식은 실제 딜 여부를 보장하지 않으며, PC 링크 열기는 같은 사람의 기기 이동을 증명하지 않습니다. landing 전체는 재방문이 아닙니다.</p></section>
+  <section class="card"><h2>일별 기록 · KST</h2>${table(['날짜', ...TIME_EVENTS.map(e => EV_LABEL[e] || e)], report.daily.map(d => [d.day, ...TIME_EVENTS.map(e => newLabel(e, d[e]))]))}<p class="note">조회에 성공한 범위의 빈 날짜만 0으로 표시합니다. 조회 실패는 0으로 표시하지 않습니다.</p></section>
+  <div class="row"><section class="card"><h2>시간대 · KST 방문</h2>${bars(Array.from({ length: 24 }, (_, i) => i + '시'), report.hours)}</section><section class="card"><h2>요일 · KST 방문</h2>${bars(['월', '화', '수', '목', '금', '토', '일'], report.weekdays)}</section></div>
+  <section class="card"><h2>기기별 사용</h2>${groupedTable('device', DEVICE_LABEL)}</section>
+  <section class="card"><h2>딜 유형별 사용</h2>${groupedTable('deal', DEAL_LABEL)}</section>
+  <section class="card"><h2>유입 호스트</h2>${groupedTable('ref')}<p class="note">modelter.com은 최초 유입 미상입니다. 직접 방문·재방문으로 해석하지 않습니다. Teams는 실제 Teams 호스트가 기록된 경우만 표시하며, 출처가 없는 방문을 추정해 합치지 않습니다.</p></section>
+  <section class="card"><h2>링크 구분</h2>${groupedTable('src')}<p class="note">src는 링크의 용도입니다. team은 Teams가 아니며, resume은 PC 이어보기 용도입니다.</p></section>
+  <section class="card"><h2>준비 중 딜에 대한 관심</h2>${table(['딜', '조회 가능한 최근 90일 클릭'], Object.entries(report.retentionDemand.byDeal).sort((a, b) => b[1] - a[1]).map(([k, n]) => [DEAL_LABEL[k] || k, num(n)]))}<p class="note">${periodText(p.retention)} 조회 결과입니다. Analytics Engine의 약 90일 보존 한계로 과거 일부가 없을 수 있습니다. 전체 누적이나 고유 사용자 수가 아니며, 클릭 수만으로 새 유형 개발을 결정하지 않습니다.</p></section>
+  <section class="card"><details><summary>전체 이벤트 주간 비교</summary>${table(['이벤트', '설명', '이전 7일', '최근 7일'], allEvents.map(e => [e, EV_LABEL[e] || '', num(w.prev[e] || 0), num(w.this[e] || 0)]))}</details></section>
+  <p class="note">각 수치는 sum(_sample_interval)의 표본 가중 추정치입니다. 차원별 조회의 표본 차이는 availability.reconciliation에 남깁니다. 겹치는 기간 보고서를 합산하지 않습니다. 새 기록과 모바일 이름 단계 변경의 배포일을 경계로 비교해야 합니다. 2026년 8월 고정 실험은 과거 기록이며 현재 성과 판정에 사용하지 않습니다. 딜 수치·이름·임차인·사용자 식별자·전체 링크는 수집하지 않습니다.</p>`);
+}
+function markdown(report) {
+  const p = report.periods.selected, w = report.weeks;
+  return [`# 모델터 사용 보고서`, `${p.start} ~ ${addDays(p.endExclusive, -1)} KST · 생성 ${report.generatedAt}`, `자료 상태: ${report.availability.status}`, '', '| 항목 | 이전 완료 7일 | 최근 완료 7일 |', '|---|---:|---:|', ...['session', 'activate', 'computed', 'xlsx_download', 'xlsx_ready', 'xlsx_error', 'ws_save', 'ws_restore', 'resume_copy'].map(e => `| ${EV_LABEL[e]} | ${NEW_EVENTS.includes(e) && !w.prev[e] ? '미관측' : num(w.prev[e] || 0)} | ${NEW_EVENTS.includes(e) && !w.this[e] ? '미관측' : num(w.this[e] || 0)} |`), '', '방문·행동 횟수이며 사용자 전환율·실제 딜 수가 아닙니다. 생성 완료는 디스크 저장 완료가 아닙니다.', '상세 보고서는 비공개 저장소에서만 보관합니다. 겹치는 기간을 합산하지 않습니다.', ''].join('\n');
+}
 
+async function runSQL(sql, account, token) {
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/analytics_engine/sql`, { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'text/plain' }, body: sql, signal: AbortSignal.timeout(45000) });
+  if (!res.ok) throw new Error('Analytics Engine HTTP ' + res.status);
+  let j; try { j = await res.json(); } catch (_) { throw new Error('Analytics Engine 응답을 읽지 못했습니다.'); }
+  if (!j || j.success === false || (Array.isArray(j.errors) && j.errors.length) || !Array.isArray(j.data)) throw new Error('Analytics Engine 집계가 누락되었습니다.');
+  return j.data;
+}
+function write(file, content) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, content); }
+function parseArgs(argv) {
+  const options = { days: 30, out: path.join(ROOT, 'data', 'patterns.html'), json: '', md: '', fixture: '', endDate: '', account: process.env.CF_ACCOUNT_ID || '', token: process.env.CF_API_TOKEN || '', includeBots: false, sql: false };
+  const fields = { days: 'days', out: 'out', json: 'json', md: 'md', fixture: 'fixture', 'end-date': 'endDate', account: 'account', token: 'token' };
+  for (let i = 0; i < argv.length; i++) {
+    const name = argv[i];
+    if (name === '--include-bots') options.includeBots = true;
+    else if (name === '--sql') options.sql = true;
+    else if (name.startsWith('--') && fields[name.slice(2)] && argv[i + 1] && !argv[i + 1].startsWith('--')) options[fields[name.slice(2)]] = argv[++i];
+    else throw new Error('지원하지 않거나 값이 빠진 인자가 있습니다.');
+  }
+  return options;
+}
+async function main(argv = process.argv.slice(2)) {
+  const options = parseArgs(argv), now = new Date(), periods = makePeriods({ days: options.days, endDate: options.endDate, now });
+  const queries = buildQueries(periods, options.includeBots);
+  if (options.sql) { console.log(JSON.stringify(queries, null, 2)); return; }
+  const raw = {}, availability = { status: 'unavailable', queries: Object.fromEntries(Object.keys(queries).map(k => [k, { status: 'not-run' }])) };
   try {
-    fs.mkdirSync(path.dirname(OUT), { recursive: true });
-    fs.writeFileSync(OUT, html);
+    assertRetainedPeriods(periods, now);
+    if (options.fixture) {
+      const input = JSON.parse(fs.readFileSync(options.fixture, 'utf8'));
+      for (const key of Object.keys(queries)) { validateRows(input[key], key); raw[key] = input[key]; availability.queries[key] = { status: 'ok', rows: raw[key].length }; }
+    } else {
+      if (!options.account || !options.token) throw new Error('조회용 CF_ACCOUNT_ID · CF_API_TOKEN이 필요합니다.');
+      for (const [key, sql] of Object.entries(queries)) {
+        try { raw[key] = await runSQL(sql, options.account, options.token); validateRows(raw[key], key); availability.queries[key] = { status: 'ok', rows: raw[key].length }; }
+        catch (e) { availability.queries[key] = { status: 'failed' }; throw e; }
+      }
+    }
+    const report = buildReport(raw, periods, { now, includeBots: options.includeBots, fixture: !!options.fixture });
+    write(options.out, render(report));
+    if (options.json) write(options.json, JSON.stringify(report, null, 2) + '\n');
+    if (options.md) write(options.md, markdown(report));
+    console.log('보고서 생성 완료 · ' + report.availability.status + ' · ' + report.reportKey);
   } catch (e) {
-    console.error('보고서 파일을 쓰지 못했습니다: ' + OUT + '\n  → ' + e.message); process.exit(1);
-  }
-  console.log('✅ 패턴 보고서 생성: ' + path.relative(ROOT, OUT));
-
-  /* ── 마크다운 요약 — GitHub Actions run Summary 에 그대로 붙여 '다운로드 없이 보기' ── */
-  if (MD) {
-    const fmtT = (t, p) => p > 0 ? ((t >= p ? '▲' : '▼') + multTxt(t, p)) : (t > 0 ? '신규' : '—');
-    const md = [];
-    md.push(`# 모델터 사용 보고 — ${today} (최근 ${DAYS}일 · 봇 제외)`);
-    md.push('');
-    md.push('## KPI v1 (주 7일 창)');
-    md.push('| 지표 | 이번 주 | 목표 | 상태 |');
-    md.push('|---|---|---|---|');
-    kpiV1.forEach(k => md.push(`| ${k[0]} | ${k[1]} | ${k[2]} | ${k[3] === null ? '—' : (k[3] ? '✅ 달성' : '진행 중')} |`));
-    md.push('');
-    const outThis = OUTPUT_EVENTS.reduce((a, e) => a + (wget(e).this || 0), 0);
-    md.push(`**주간 퍼널**: 방문 ${num(sW.this)} → 직접 입력 ${num(wget('activate').this)} → 결과 ${num(wget('computed').this)} → 산출물 ${num(outThis)}`);
-    md.push('');
-    if (dealWantPairs.length) md.push('**수요(deal_want)**: ' + dealWantPairs.slice(0, 6).map(p => `${p[0]} ${num(p[1])}`).join(' · ') + ' _(07-14부터 브라우저당 1표 — 게이트 50건은 그 이후 집계로 판정)_');
-    if (gateLead) md.push(`**커버리지 게이트**: ${gateLead[0]} **${num(gateLead[1])}/${GATE_TARGET}**` +
-      (gateLead[1] >= GATE_TARGET ? ' — ✅ **착수 가능**' : ` (${Math.round(gateLead[1] / GATE_TARGET * 100)}%)`) +
-      (gatePairs.length > 1 ? ' · 다음: ' + gatePairs.slice(1, 4).map(p => `${p[0]} ${num(p[1])}`).join(' · ') : '') + ' _(07-14 이후 절대 누적)_');
-    const extRef = refFun.filter(([g]) => g && g.indexOf('modelter.com') < 0 && g !== '(직접/미상)').slice(0, 6);
-    if (extRef.length) md.push('**외부 유입(방문·산출물)**: ' + extRef.map(([g, f]) => `${g} ${num(f.session)}·${num(f.output)}`).join(' · '));
-    md.push('');
-    md.push('## 이번 주 이벤트 상위 15');
-    md.push('| 이벤트 | 라벨 | 이번 주 | 지난 주 | 추세 |');
-    md.push('|---|---|---|---|---|');
-    evRows.slice(0, 15).forEach(([ev, t, p]) => md.push(`| ${ev} | ${EV_LABEL[ev] || ''} | ${num(t)} | ${num(p)} | ${fmtT(t, p)} |`));
-    md.push('');
-    md.push('_전체 상세(차트·기기·시간대·유입 퍼널)는 Artifacts → modelter-usage-report 의 patterns.html_');
-    fs.writeFileSync(MD, md.join('\n') + '\n');
-    console.log('✅ 마크다운 요약: ' + path.relative(ROOT, MD));
+    // 이전 실행의 HTML/JSON을 정상 결과로 재사용하지 못하게 실패 상태로 덮어쓴다. 응답 원문/비밀은 저장하지 않는다.
+    if (e.code === 'RETENTION_LIMITED') { availability.retentionLimited = true; availability.reason = 'retention-limited'; }
+    const failed = { schema: 3, timezone: 'Asia/Seoul', generatedAt: now.toISOString(), periods, availability, events: null, weeks: null, cross: null };
+    write(options.out, page('<h1>사용 보고서를 확인할 수 없습니다</h1><p>조회나 검증이 완료되지 않았습니다. 이 보고서에는 0건이나 이전 실행의 수치를 대신 표시하지 않습니다.</p>'));
+    if (options.json) write(options.json, JSON.stringify(failed, null, 2) + '\n');
+    if (options.md) write(options.md, '# 모델터 사용 보고서\n\n조회 또는 검증 실패. 사용량을 0건으로 해석하지 마세요.\n');
+    throw e;
   }
 }
-
-main().catch(e => { console.error('조회 실패: ' + e.message + '\n· CF_ACCOUNT_ID·CF_API_TOKEN 과 토큰 권한(Account Analytics : Read)을 확인하세요.'); process.exit(1); });
+if (require.main === module) main().catch(e => { console.error('보고서 생성 실패: ' + e.message); process.exitCode = 1; });
+module.exports = { DAY, KST, ROW_LIMIT, NEW_EVENTS, CORE_EVENTS, TIME_EVENTS, makePeriods, assertRetainedPeriods, addDays, kstDate, buildQueries, validateRows, timeBuckets, buildReport, render, markdown, sourceLabel, parseArgs, runSQL, main };

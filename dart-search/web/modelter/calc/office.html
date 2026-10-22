@@ -82,7 +82,18 @@ footer a{color:var(--ink-3)}
 .faq summary::-webkit-details-marker{display:none}
 .faq summary::before{content:"＋";color:var(--accent);font-weight:800;margin-right:9px}
 .faq[open] summary::before{content:"－"}
-.faq p{font-size:14px;color:var(--ink-2);padding:9px 0 2px 23px;line-height:1.65}</style>
+.faq p{font-size:14px;color:var(--ink-2);padding:9px 0 2px 23px;line-height:1.65}
+.review-cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.review-case{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;min-width:0}
+.review-case h3{font-size:16px;margin:0 0 8px}
+.review-case p{font-size:13px;line-height:1.6;min-height:4.8em;color:var(--ink-2);margin:0 0 12px}
+.review-case dl{margin:0 0 14px}
+.review-case dl div{border-top:1px solid var(--line-soft);padding:8px 0}
+.review-case dt{font-size:12px;color:var(--muted)}
+.review-case dd{font-family:var(--mono);font-size:18px;font-weight:700;margin:3px 0 0;color:var(--ink)}
+.review-case .case-open{margin-top:auto;font-size:13px;font-weight:700;line-height:1.6;color:var(--accent-deep);text-underline-offset:3px}
+@media(max-width:680px){.review-cases{grid-template-columns:1fr}.review-case p{min-height:0}.review-case dl{display:flex;gap:12px;flex-wrap:wrap}.review-case dl div{flex:1 1 80px}.review-case dd{font-size:17px}}
+</style>
 <script>
 /* 외부 검색·콘텐츠 → 정적 착지 → 계산기 이동 사이에 유입 호스트만 같은 탭에 보존한다. */
 try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(document.referrer).hostname;if(_rh&&_rh!==location.hostname)sessionStorage.setItem('mt_ref0',_rh.slice(0,40));}}catch(_e){}
@@ -122,7 +133,26 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
       <tr><td>Exit Cap · 보유기간</td><td class="r">4.8% · 5년</td></tr>
     </table></div>
     <p class="tip">실제 거래가 아닌 연습용 예시입니다. 아래에서 같은 조건의 수익률과 필요한 자기자본을 확인할 수 있습니다.</p>
-    <a class="cta" href="/#t=office&src=seo">이 조건으로 계산 결과 보기 →<span class="sub">위 표의 값으로 열립니다. 내 조건으로 바꾸며 비교할 수 있습니다.</span></a>
+    <h3>조건 하나를 바꿔 보면</h3>
+    <p>다른 가정은 그대로 두고 비교했습니다. 실제 거래나 시세를 뜻하지 않습니다.</p>
+    <div class="review-cases">
+      <article class="review-case" data-review-case="office-base">
+        <h3>기준 조건</h3><p>위 표의 조건입니다.</p>
+        <dl><div><dt>세전 레버드 IRR</dt><dd>7.79%</dd></div><div><dt>최소 DSCR</dt><dd>2.11x</dd></div><div><dt>필요 자기자본</dt><dd>545.1억</dd></div></dl>
+        <a class="case-open" href="/#v=AAADAwewIgYwIgOgIgbwZgZgaQYwZQIgLAIgZBAwIgcwdAYQbgZAYQchDxDQcxAxAAYQcwcwZQdBEA6gsAlQ6wggqAIAQQ7QgwgA7AmwjBDAIgZwZgYREAOALANAMAMBMgcAchCRCxBAMQMgMALBOxPBDQYQYwcREweBEANALgNhMhSgcQZgZRQQIgMQLgNRUwcBPgYQaQcwYQbBEBQwMwLANROxMgbgbwaQbQbwZBWA7AnghA6wjAgA6wowjAwgtw6gtBeApgrA6wuRdQoQnAIA7AggsA7AtgnBMgcgZQbgdBXhEANgMhRhahDQYwYQbRlBBAMgMRmBSBDgZQcAbQdQbBIhQgMhaxbQMREBrQaQZxEAMgLhowdhShFAYweREBXBDRcQcBHgcwdQbRWA6wsAmA7AmAgRMgbwcBVhWAMALgNBMhCAeAYwbxEhEBowaAbwbBDxBBvgIgZQeAaQdBmwcBTwLgOBMhYgbAZR0BZR6wIgfRDQaxHBERkQaQbwcgXwbwbhAwdAcgdQZRGh-h_AXxqQdhvR4hIAbh-x_QcgYQdBWBUBrBDRxQegeh_iAAOhNQbBIBDRPh8CHCASAyBQIiIwZiCQdCCxBAMxoyKgXx2BAhBANhthMh2AbRbwbiJQOiAiBBmgbyOx_yLCLhWR4iOiPCMwbyNRWRrB9QIgchHCUQciUwOgbhqAbBGiNRAB_xAyHyIRESVCUQZR9wOgWwIhwhIRMhNBNiIhPxChUxSxTScxVRVxXRXxYRYxsRbxcRjxkRkx6RmhnBlBvxpRpxqRsRsxDRuBmwbhuxMhwBwhxBCxDRzh8RDR1h2B2hDR3R3xMh5B5h6B7RYx8CeAXRDSBBAxRRERqgewfQfQ&amp;src=seo" aria-label="기준 조건 — 이 조건으로 계산하기">이 조건으로 계산하기 →</a>
+      </article>
+      <article class="review-case" data-review-case="office-price">
+        <h3>매입가 5% 낮추기</h3><p>매입가만 낮춥니다. 감정가와 대출 조건은 같습니다.</p>
+        <dl><div><dt>세전 레버드 IRR</dt><dd>11.07%</dd></div><div><dt>최소 DSCR</dt><dd>2.12x</dd></div><div><dt>필요 자기자본</dt><dd>481.4억</dd></div></dl>
+        <a class="case-open" href="/#v=AAADAgewIgYwIgOgIgbwZgZgaQYwZQIgLAIgZBAwIgcwdAYQbgZAYQchDxDQcxAxAAYQcwcwZQdBEA6gsAlQ6wggqAIAQQ7QgwgA7AmwjBDAIgZwZgYREAOALANAMAMBMgcAchCRCxBAMQMROhOxMgYQYwcREweBEANALgNhRxSQZgZRQQIgMQLgNRRwcBPgYQaQcwYQbBEAMQMgMwLANRRhDQbgbwaQbQbwZBVQ7AnghA6wjAgA6wowjAwgtw6gtBdgpgrA6wuRcwoQnAIA7AggsA7AtgnBMgcgZQbgdBWxEANgMgLBOxPBDQYwYQbRkhBAMgMRlhaBDgZQcAbQdQbBIhQgMhMhagaQMREBrBawZxEAMgLhmAIgdhSBFAYweREBWRDRbwcBHgcwdQbRVQ6wsAmA7AmAgRMgbwcBUxVQMALgNBMhCAeAYwbxEhEBtwaAbwbBDxBBvwIgZQeAaQdBmgcBTQLgOBMhXwbAZR0RYh7AIgfRDQaxHBERjwaQbwcgXwbwbhAwdAcgdQZRGh-x_QXxqAdhvh4xIAbh_B_gcgYQdBVRThqxDRxgegeh_yAQOhNQbBIBDRPh8SHSAiBCBgIiJAZiCgdCDBBAMxtyKwXx2RAhBANhthMh2QbRbQbiJgOiAyBRmQbyPCACLSLxVh4yOyPSNAbyNhVhqx9gIgchHCUgciVAOgbhpwbBGiNhACABAyICIhESVSUgZR-AOgWwIhwxIRMhNBNiIxPxChURSgYRTBDRSAcR8ieBWyExXhYBsRbBbhCxDRjhkBkhmRmyiBoxpRpxIhaRshMhuRmgbhvBMhwRwxxShBBR0BVB1gaR2B2ijwIh3h4BMh5R5x6R7hYB8SngXRDSBRAwMBGhqQewfQfQ&amp;src=seo" aria-label="매입가 5% 낮추기 — 이 조건으로 계산하기">이 조건으로 계산하기 →</a>
+      </article>
+      <article class="review-case" data-review-case="office-rate">
+        <h3>대출금리 1%p 높이기</h3><p>선순위 대출금리만 높입니다. 매입가와 나머지 조건은 같습니다.</p>
+        <dl><div><dt>세전 레버드 IRR</dt><dd>6.61%</dd></div><div><dt>최소 DSCR</dt><dd>1.70x</dd></div><div><dt>필요 자기자본</dt><dd>545.1억</dd></div></dl>
+        <a class="case-open" href="/#v=AAADAwewIgYwIgOgIgbwZgZgaQYwZQIgLAIgZBAwIgcwdAYQbgZAYQchDxDQcxAxAAYQcwcwZQdBEA6gsAlQ6wggqAIAQQ7QgwgA7AmwjBDAIgZwZgYREAOALANAMAMBMgcAchCRCxBAMQMgMALBOxPBDQYQYwcREweBEANALgNhMhSgcQZgZRQQIgMQLgNRUwcBPgYQaQcwYQbBEBQwMwLANROxMgbgbwaQbQbwZBWA7AnghA6wjAgA6wowjAwgtw6gtBeApgrA6wuRdQoQnAIA7AggsA7AtgnBMgcgZQbgdBXhEANgMhRhahDQYwYQbRlBBAMgMRmBSBDgZQcAbQdQbBIhQgMhaxbQMREBrQaQZxEAMgLhowdhShFAYweREBXBDRcQcBHgcwdQbRWA6wsAmA7AmAgRMgbwcBVhWAMALgNBMhCAeAYwbxEhEBowaAbwbBDxBBvgIgZQeAaQdBmwcBTwLgOBMhYgbAZR0BZR6wIgfRDQaxHBERkQaQbwcgXwbwbhAwdAcgdQZRGh-h_AXxqQdhvR4hIAbh-x_QcgYQdBWANQLhrBDRxQegeh_iAAOhNQbBIBDRPh8CHSASAyBQIiJAZiCQdCCxBAMxoyKwXx2BAhBANhthMh2AbRbwbiJgOiAiBBmgbyPB_yLSLxWR4iOyPSNAbyNhWRrB9QIgchHCUgciVAOgbhqAbBGiNhAB_xAyICIhESVSUgZR9wOgWwIhwhIRMhNBNiIxPxChUxSxTSdBVRVxXRXxYRYxsRbxcRjxkRkx6RmhnBlBvxpRpxqRsRsxDRuBmwbhuxMhwBwhxBCxDRzh8RDR1h2B2hDR3R3xMh5B5h6B7RYx8CeQXRDSBBAxRRERqgewfQfQ&amp;src=seo" aria-label="대출금리 1%p 높이기 — 이 조건으로 계산하기">이 조건으로 계산하기 →</a>
+      </article>
+    </div>
+    <p class="tip">조건은 읽기 전용으로 열립니다. 이 상태로 보는 동안 기존 작업은 유지됩니다. ‘내 모델로 열기’를 누르면 수정할 수 있습니다.</p>
   </section>
   <section>
     <h2>오피스 계산 순서</h2>

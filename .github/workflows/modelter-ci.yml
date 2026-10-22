@@ -56,6 +56,8 @@ jobs:
         run: |
           node tools/qa/search-handoff.js
           node tools/qa/growth-metrics.js
+          node tools/qa/reporting-periods.js
+          node tools/qa/review-cases.js
       - name: 엔진 불변식 (경제적 단조성 17건)
         run: node tools/qa/invariants.js
       - name: 다운로드 수식 캐시 (값 유형·빈 값·오류 차단)
@@ -141,5 +143,7 @@ jobs:
           CHROME_BIN="$(command -v google-chrome)" node tools/qa/workspace-versions.js
           CHROME_BIN="$(command -v google-chrome)" node tools/qa/result-save.js
           CHROME_BIN="$(command -v google-chrome)" node tools/qa/search-handoff.js --browser
+          CHROME_BIN="$(command -v google-chrome)" node tools/qa/mobile-handoff.js
+          CHROME_BIN="$(command -v google-chrome)" node tools/qa/review-cases.js --browser
       - name: 저가 모바일 첫 결과 5초 예산
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/perf-load.js
