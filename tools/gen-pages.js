@@ -27,7 +27,13 @@ function readExamples(html) {
   }
   return examples;
 }
-const APP_EXAMPLES = readExamples(fs.readFileSync(path.join(DIR, 'index.html'), 'utf8'));
+const APP_HTML = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
+const APP_EXAMPLES = readExamples(APP_HTML);
+let generatedReviewCases;
+function getReviewCases() {
+  if (!generatedReviewCases) generatedReviewCases = require('./review-case-engine').reviewCases(APP_HTML, APP_EXAMPLES);
+  return generatedReviewCases;
+}
 function exampleRows(deal, examples = APP_EXAMPLES) {
   const s = examples[deal].state, k = examples[deal].stack || {};
   const amount = value => {
@@ -306,7 +312,7 @@ function shell(o) {
 <script type="application/ld+json">
 ${JSON.stringify(o.ld)}
 </script>
-<style>${CSS}</style>
+<style>${CSS}${o.extraCss || ''}</style>
 <script>
 /* 외부 검색·콘텐츠 → 정적 착지 → 계산기 이동 사이에 유입 호스트만 같은 탭에 보존한다. */
 try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(document.referrer).hostname;if(_rh&&_rh!==location.hostname)sessionStorage.setItem('mt_ref0',_rh.slice(0,40));}}catch(_e){}
@@ -399,6 +405,37 @@ ${meta.faqs ? `  <section>
   return shell({ title, desc, canonical, ld, backHref: '/guide', backLabel: '← 용어사전', body });
 }
 
+const REVIEW_CSS = `
+.review-cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.review-case{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;min-width:0}
+.review-case h3{font-size:16px;margin:0 0 8px}
+.review-case p{font-size:13px;line-height:1.6;min-height:4.8em;color:var(--ink-2);margin:0 0 12px}
+.review-case dl{margin:0 0 14px}
+.review-case dl div{border-top:1px solid var(--line-soft);padding:8px 0}
+.review-case dt{font-size:12px;color:var(--muted)}
+.review-case dd{font-family:var(--mono);font-size:18px;font-weight:700;margin:3px 0 0;color:var(--ink)}
+.review-case .case-open{margin-top:auto;font-size:13px;font-weight:700;line-height:1.6;color:var(--accent-deep);text-underline-offset:3px}
+@media(max-width:680px){.review-cases{grid-template-columns:1fr}.review-case p{min-height:0}.review-case dl{display:flex;gap:12px;flex-wrap:wrap}.review-case dl div{flex:1 1 80px}.review-case dd{font-size:17px}}
+`;
+function reviewMetrics(deal, raw) {
+  const num = (n, places) => n.toLocaleString('ko-KR', {minimumFractionDigits:places,maximumFractionDigits:places});
+  return deal === 'office'
+    ? [['세전 레버드 IRR', num(raw.IRR*100,2)+'%'],['최소 DSCR',num(raw.minDSCR,2)+'x'],['필요 자기자본',num(raw.equity/100,1)+'억']]
+    : [['사업이익',num(raw.profit/100,1)+'억'],['사업이익률',num(raw.margin,2)+'%'],['필요 본PF 한도',num(raw.loan/100,1)+'억']];
+}
+function reviewCaseSection(deal) {
+  return `<h3>조건 하나를 바꿔 보면</h3>
+    <p>다른 가정은 그대로 두고 비교했습니다. 실제 거래나 시세를 뜻하지 않습니다.</p>
+    <div class="review-cases">${getReviewCases()[deal].map(c=>`
+      <article class="review-case" data-review-case="${deal}-${c.id}">
+        <h3>${esc(c.title)}</h3><p>${esc(c.note)}</p>
+        <dl>${reviewMetrics(deal,c.raw).map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>
+        <a class="case-open" href="${esc('/' + new URL(c.url).hash)}" aria-label="${esc(c.title)} — 이 조건으로 계산하기">이 조건으로 계산하기 →</a>
+      </article>`).join('')}
+    </div>
+    <p class="tip">조건은 읽기 전용으로 열립니다. 이 상태로 보는 동안 기존 작업은 유지됩니다. ‘내 모델로 열기’를 누르면 수정할 수 있습니다.</p>`;
+}
+
 function calcPage(deal, terms) {
   const d = DEALS[deal];
   const ex = APP_EXAMPLES[deal];
@@ -447,7 +484,7 @@ ${d.ex ? `  <section>
       ${exampleRows(deal).map(r => `<tr><td>${esc(r[0])}</td><td class="r">${esc(r[1])}</td></tr>`).join('\n      ')}
     </table></div>
     <p class="tip">${esc(d.ex.note)}</p>
-    <a class="cta" href="/#t=${deal}&src=seo">이 조건으로 계산 결과 보기 →<span class="sub">위 표의 값으로 열립니다. 내 조건으로 바꾸며 비교할 수 있습니다.</span></a>
+    ${deal === 'office' || deal === 'dev' ? reviewCaseSection(deal) : `<a class="cta" href="/#t=${deal}&src=seo">이 조건으로 계산 결과 보기 →<span class="sub">위 표의 값으로 열립니다. 내 조건으로 바꾸며 비교할 수 있습니다.</span></a>`}
   </section>
 ` : ''}${d.steps ? `  <section>
     <h2>${esc(d.short)} 계산 순서</h2>
@@ -472,7 +509,7 @@ ${d.faqs ? `  <section>
     <h2>다른 딜 유형</h2>
     <div class="chips">${Object.keys(DEALS).filter(k => k !== deal).map(k => `<a href="/calc/${k}">${esc(DEALS[k].short)} 계산기</a>`).join('')}<a href="/calc/hotel">호텔 (준비중)</a></div>
   </section>`;
-  return shell({ title, desc, canonical, ld, backHref: '/', backLabel: '← 모델터 홈', body });
+  return shell({ title, desc, canonical, ld, backHref: '/', backLabel: '← 모델터 홈', body, extraCss:deal === 'office' || deal === 'dev' ? REVIEW_CSS : '' });
 }
 
 /* ── 준비 중 딜 착지면 (수요 선점) ──
@@ -605,4 +642,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { readExamples, exampleRows, calcPage, extractTerms };
+module.exports = { readExamples, exampleRows, calcPage, extractTerms, getReviewCases, reviewMetrics };

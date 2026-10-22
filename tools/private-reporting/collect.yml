@@ -1,0 +1,58 @@
+name: Modelter private usage report
+
+on:
+  workflow_dispatch:
+    inputs:
+      end_date:
+        description: "종료일(한국 시간, 해당 날짜 제외). 비우면 오늘"
+        required: false
+        type: string
+  schedule:
+    - cron: "17 21 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modelter-private-report
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    # 최초 실데이터 검증 후 운영자가 REPORTS_ENABLED=true로 설정한다.
+    if: github.event_name == 'workflow_dispatch' || vars.REPORTS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: 비공개 저장소 및 조회 설정 확인
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          test "$REPOSITORY_PRIVATE" = "true" || { echo "Private repository required" >&2; exit 1; }
+          test -n "$CF_ACCOUNT_ID" && test -n "$CF_API_TOKEN" || { echo "Read-only analytics credentials are not configured" >&2; exit 1; }
+      - name: 완료된 한국 시간 기간 조회
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          REPORT_END_DATE: ${{ inputs.end_date }}
+        run: |
+          args=()
+          if [ -n "$REPORT_END_DATE" ]; then args+=(--end-date "$REPORT_END_DATE"); fi
+          node tools/modelter-patterns.js --days 30 --out reports/patterns.html --json reports/patterns.json --md reports/summary.md "${args[@]}"
+      - name: 실데이터 및 집계 상태 확인
+        run: node tools/private-reporting/validate-report.js reports/patterns.json --allow-sampling-difference
+      - name: 실행 상태
+        run: echo "한국 시간 보고서를 생성했습니다. 자료 상태·표본 가중합 차이·기준 시각은 비공개 파일에서 확인하세요. 실행 성공만으로 집계 일치나 전환 검증 통과를 뜻하지 않습니다." >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always() && hashFiles('reports/patterns.json') != ''
+        with:
+          name: modelter-usage-report
+          path: reports/
+          retention-days: 90
+          if-no-files-found: error
