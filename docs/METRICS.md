@@ -31,7 +31,7 @@
 
 | AE | 필드 | 내용 |
 |---|---|---|
-| blob1 (index) | ev | 아래 현재 이벤트 63개 + 과거 `nudge_save` + 운영 점검 `ci_probe_live`만 허용. 그 외 값은 이벤트 전체 폐기 |
+| blob1 (index) | ev | 아래 현재 이벤트 표 + 과거 `nudge_save` + 운영 점검 `ci_probe_live`만 허용. 그 외 값은 이벤트 전체 폐기 |
 | blob2 | deal | 8개 유한 목록(office·logistics·dev·refi·hotel·retail·rental·datacenter). 뒤 4개는 deal_want 투표값. ⚠ `reit`는 2026-07-06 제거된 옛 탭의 과거 데이터에만 남으며 이후 Worker가 받지 않음 |
 | blob3 | depth | 3개 유한 목록(quick·standard·deep) |
 | blob4 | dev | 기기(desktop·mobile) |
@@ -39,7 +39,7 @@
 | blob6 | cc | 국가 코드 |
 | blob7 | feats | 9개 유한 기능 플래그의 쉼표 결합(rr·dep·fee·bido·vac·resi·hold·pref·scen), 중복·임의값 폐기 |
 | blob8 | axis | 4개 유한 민감도 축(growth·rate·dev_price·dev_cost) |
-| blob9 | src | 채널 태그(15개 유한 허용 목록: `xlsx`·`ppt`·`png`·`qr`·`share`·`notes`·`team`·`hero`·`pdf`·`sns`·`seo`·`dscr`·`imcheck`·`howto`·`pwa`) |
+| blob9 | src | 채널 태그(16개 유한 허용 목록: `xlsx`·`ppt`·`png`·`qr`·`share`·`notes`·`team`·`hero`·`pdf`·`sns`·`seo`·`dscr`·`imcheck`·`howto`·`pwa`·`resume`) |
 | blob10 | bot | 자동화 트래픽(0/1) — §2 분모 규칙 |
 | double1 | rr | 렌트롤 사용(0/1) |
 | double2 | featN | 활성 기능 수 |
@@ -62,7 +62,9 @@
 | `first_number_30m` | 페이지 진입 후 첫 자기 딜 결과가 15분 초과~30분 이내 | |
 | `first_number_slow` | 페이지 진입 후 첫 자기 딜 결과가 30분 초과 | |
 | `landing` | src= 채널 태그를 달고 들어온 착지 1건 | |
-| `xlsx_download` | 수식 살아있는 엑셀 다운로드 | ○ |
+| `xlsx_download` | 엑셀 다운로드 버튼 클릭. 파일 생성·기기 저장 성공과 다름 | ○ |
+| `xlsx_ready` | 오피스·물류·개발·리파이 엑셀의 비어 있지 않은 파일 데이터 생성 완료. 기기 저장 완료는 아님 | |
+| `xlsx_error` | 엑셀 파일 데이터 생성 전 예외. 필수값 부족·사용자 취소 제외, 오류 원문 미전송 | |
 | `teaser` | 티저(요약) 복사 | ○ |
 | `ic_ppt` | IC 멀티슬라이드 PPT 다운로드 | ○ |
 | `share_link` | 공유 링크 생성·복사(#v=/#e=) | ○ |
@@ -81,7 +83,9 @@
 | `example_fill` | 예시 딜 채우기 | |
 | `fill_std` | 표준값 채우기 | |
 | `sample_deal` | 예시 딜 카드 선택(key=딜 키) | |
-| `wizard` | 모바일 빠른 입력 위저드(open=열림·done=완료) | |
+| `wizard` | 기존 간단 입력 열기·마지막 단계 도달 합계. open/done 추가값은 저장되지 않아 완료율 산출 불가 | |
+| `wizard_open` | 간단 입력을 연 횟수. 한 번 연 흐름에서 1회 | |
+| `wizard_finish` | 간단 입력의 마지막 확인 화면 도달. 열린 흐름당 1회이며 계산 성공을 뜻하지 않음 | |
 | `fsub_open` | 세부 항목 접기(fsub) 펼침 — 복잡도 수요 신호 | |
 | `rentroll_upload` | 렌트롤 붙여넣기 인식(내용 비저장) | |
 | `im_quick_open` | IM 자동 인식(무키) 열기 | |
@@ -110,6 +114,8 @@
 | `rr_mask` | 공유 시 임차인명 자동 마스킹 동작 | |
 | `ws_open` | 딜 보관함 패널 열기 | |
 | `ws_save` | 새 딜·새 버전·딜 복제의 로컬 저장 성공. 취소·저장 실패는 제외 | |
+| `ws_restore` | 사용자가 저장된 딜·버전을 선택해 화면에 불러오기 완료. 자동 초안 복원 제외 | |
+| `resume_copy` | PC 이어보기 링크 자동 복사 성공. 복사 실패·수동 복사창·취소 제외 | |
 | `ws_status` | 딜 상태 태그 변경 | |
 | `ws_diff` | 두 버전 가정 diff | |
 | `slot_delete` | 보관함 삭제 | |
@@ -120,6 +126,8 @@
 <!-- EVENTS:END -->
 
 `slot_save`는 클릭, `ws_save`는 저장 성공을 센다. 같은 저장에서 둘 다 발생할 수 있으므로 합산해 저장 건수로 쓰지 않는다. `slot_save`는 기존 `OUTPUT_EVENTS`에 그대로 포함되며 산출물 총합도 성공 건수가 아닌 행동 횟수다. `ws_save`에는 복제처럼 `slot_save`를 거치지 않는 경로도 있어 두 이벤트의 단순 비율을 저장 전환율로 해석하지 않는다. 저장 위치를 구분하는 신규 필드는 수집하지 않는다.
+
+`xlsx_ready`·`xlsx_error`·`wizard_open`·`wizard_finish`·`ws_restore`·`resume_copy`는 성공·과정 확인용이며 기존 산출물 합계에 더하지 않는다. `xlsx_ready`는 버전 목록의 재생성에도 발화하므로 버튼 클릭 `xlsx_download`와 일대일 관계가 아니다. `resume_copy`는 보내는 쪽의 기존 유입 src를 유지한다. 받는 쪽은 기존 `landing` 이벤트의 `src=resume`과 기기값으로 확인한다. 두 기록을 연결하는 식별자는 없으며 동일인 기기 이동·고유 재방문 전환율로 해석하지 않는다.
 
 **과거 이벤트: `nudge_save`** — 계산 결과 도달 25초 후 표시한 저장 안내 토스트 노출(세션 최대 1회). 결과의 ‘이 조건 저장’ 버튼으로 대체하며 이 변경 배포 후 신규 발화를 중단한다. 버튼 노출 이벤트로 재사용하지 않는다. 2026-10-01의 최근 30일 집계인 넛지 65회·저장 성공 4회는 저장 동선을 조사할 근거이며 넛지 효과나 저장 전환율의 증거가 아니다. 이 변경 배포 후 `nudge_save`가 0으로 줄어드는 것은 발화 중단의 결과로, 사용성 개선·악화나 방문 변화로 해석하지 않는다. 배포 전 운영 클라이언트와 이전 캐시에서는 과거 이벤트가 남을 수 있어 Worker 허용 목록에는 유지한다.
 
@@ -135,14 +143,15 @@
   - `outputsByAct: {act, nonact, unknown, since:'2026-07-26'}` — 북극성 K3. 산출물이 **자기 숫자 세션**(blob11=1)에서 나왔는지. `unknown`은 act 계측 개시(07-26) 이전 구간이므로 **act/nonact와 합산 금지**.
   - `teamHandoffByAct: {since:'2026-08-15', decisionDate:'2026-08-29', window:{session,activate}, handoff_open:{act,nonact,unknown}, share_link:{act,nonact,unknown}, firstNumber:{since,until,first_number_5m,first_number_15m,first_number_30m,first_number_slow}}` — 첫 숫자의 팀 전달·속도 선행지표. 팀 전달은 08-15 08:03 KST~08-29 08:03 KST, 첫 숫자 속도는 실제 계측 배포 완료 시각인 08-15 10:18:30 KST~08-29 10:18:30 KST 직전의 **각각 고정된 14일 창**만 집계한다. 두 쿼리는 `--days`의 최근 N일 조건을 적용하지 않는다. 사전 기준은 실사용 `handoff_open` 10건·`share_link` 5건·동일 창 활성화율 10% 이상, 속도 표본 n≥20일 때 15분 이내 70% 이상이다. 종료 전에는 채택·철회 판정을 내리지 않는다. 이전 `share_link`는 메뉴 열기만 한 건이 섞여 있어 합산 금지.
   - `sampleStartWindow: {since,until,session,sample_start,activate,computed}` — 예시→내 딜 첫 입력 CTA의 실제 프로덕션 배포 완료 시각(08-15 11:23:17 KST)부터 08-29 11:23:17 KST 직전까지의 고정 14일 진단 창. `--days` 조건을 적용하지 않는다. CTA를 건너뛰고 직접 입력할 수 있어 엄격한 포함 퍼널이나 성공 판정으로 쓰지 않고, CTA 발견과 실제 입력 사이 병목만 분리한다.
-  - `dealWantGate: {<딜>:표수, since:'2026-07-14', target:50}` — 커버리지 착수 게이트. 조회 창(`--days`)과 무관한 **절대 기간 누적**(dedupe 배포일 이후). ⚠ AE 보존기간(약 90일) 초과 시 과소집계 — 2026-10 이후 커밋된 스냅샷 누적 합산으로 전환 필요.
+  - `dealWantGate: {<딜>:표수, since:'2026-07-14', target:50}` — 과거 커버리지 실험 필드. AE 보존기간을 넘긴 자료가 빠지므로 전체 누적으로 해석하지 않는다. 날짜가 겹치는 스냅샷을 합산하지 않으며 새 비공개 보고서는 조회 가능한 기간을 명시한다. 관심 클릭만으로 새 유형 개발을 결정하지 않는다.
   - 참고: `daily[]`에는 `depth_change`·`fsub_open`을 포함한 **전 이벤트**가 이미 들어 있다(별도 추가 불필요).
 
 ### 계측 변경 이력 (판독 시 소급 참고)
 
 | 날짜 | 변경 | 판독 영향 |
 |---|---|---|
-| 배포 대기 (2026-10-02 작성) | 결과 저장 버튼으로 25초 저장 토스트를 대체하고 `nudge_save` 발화 중단 | 실제 배포 UTC 시각부터 해석에 반영. `slot_save`는 두 위치의 클릭, `ws_save`는 저장 성공을 유지. 넛지 감소를 성과로 판정하지 않음 |
+| 배포 대기 (2026-10-22 작성) | 파일 생성 완료·오류, 간단 입력 시작·마지막 단계, 저장 버전 불러오기, PC 이어보기 복사·착지 추가 | 신규 이벤트는 실제 배포 시각부터 존재. 기존 산출물 합계 유지. 간단 입력에서 자산명 단계를 제외하므로 입력 시작 전후 구성 차이를 별도 해석. 기존 `wizard`는 호환을 위해 유지하며 신호 간 합산 금지 |
+| 2026-10-02 07:12:31 UTC 운영 반영 확인 | 결과 저장 버튼으로 25초 저장 토스트를 대체하고 `nudge_save` 발화 중단 | PR #148, 빌드 `2026-10-02·bac2d064d5`. 최초 새 빌드 관측 시각이며 정확한 최초 요청 시각은 아님. `slot_save`는 두 위치의 클릭, `ws_save`는 저장 성공을 유지. 넛지 감소를 성과로 판정하지 않음 |
 | 2026-08-18 | `src_tag` 설명을 실제 코드 동작(가정 출처·기준일 기록)과 일치시킴 | 공유 링크 유입은 `landing`의 `src=share`로 집계하며 서로 다른 의미를 섞지 않음 |
 | ~2026-07-07 | 계측 확장 배포 전 | daily에서 activate=0은 "없음"이 아니라 **미계측** |
 | 2026-07-09 | activate 미계측 6경로 수정(리파이 텀시트·분양 그리드 등) | 이전 활성화율(4.3%)은 과소 — 이후와 비교 금지 |

@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-/* 모델터 계기판 대시보드 — data/ae-snapshots/*.json 을 읽어 자기완결 HTML 한 장으로 렌더
- *
- * 누적 원리: Analytics Engine 은 ~90일만 보관하므로, modelter-ae.js --snapshot 으로
- *           주기적(주 1회 권장) 집계를 저장소에 커밋한다. 이 스크립트는 그 스냅샷들을
- *           읽어 시간에 따른 추세·퍼널·분해를 하나의 정적 HTML 로 만든다(외부 의존 0).
+/* 과거 스냅샷 열람용 계기판 — data/ae-snapshots/*.json 을 읽어 자기완결 HTML로 렌더.
+ * 현재 KST 완료일 보고서는 modelter-patterns.js --json 결과가 기준이다.
+ * 과거 UTC/rolling 스냅샷은 변경하거나 합산하지 않으며, 새 상세 통계는 비공개로 보관한다.
  *
  * 사용:
  *   node tools/modelter-report.js                       # data/dashboard.html 생성
@@ -92,12 +90,12 @@ function attrTable(byGroup, emptyMsg) {
 }
 
 function build(snaps) {
-  const genAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
+  const genAt = new Date(Date.now() + 9 * 3600000).toISOString().replace('T', ' ').slice(0, 16) + ' KST';
   if (!snaps.length) {
     return page(genAt, `<div class="card empty-state"><h2>아직 스냅샷이 없습니다</h2>
-      <p>먼저 계기판 집계를 저장하세요:</p>
-      <pre>CF_ACCOUNT_ID=... CF_API_TOKEN=... node tools/modelter-ae.js --days 30 --snapshot</pre>
-      <p>그 뒤 이 스크립트를 다시 실행하면 여기에 누적 대시보드가 그려집니다. 주 1회 스냅샷을 커밋하면 시간에 따른 추세가 쌓입니다.</p></div>`);
+      <p>현재 보고서는 비공개 통계 작업에서 생성합니다:</p>
+      <pre>node tools/modelter-patterns.js --days 30 --json data/patterns.json</pre>
+      <p>이 페이지는 기존 스냅샷 열람용입니다. 새 상세 통계를 공개 저장소에 커밋하지 않습니다.</p></div>`);
   }
   const last = snaps[snaps.length - 1];
   const rawF = last.funnel || {};                    // 부분 funnel(키 일부 누락)도 NaN 없이: 키별 Number 강제
@@ -139,9 +137,9 @@ function build(snaps) {
         { name: '결과도달', color: '#2e7d4f', dash: '5 3', data: last.daily.map(d => d.computed || 0) },
       ],
     });
-    trend += `<p class="note">스냅샷 1개 — 그 안의 일자별 추이. 주 1회 스냅샷을 커밋하면 주간 추세로 바뀝니다.</p>`;
+    trend += `<p class="note">스냅샷 1개 — 그 안의 UTC 일자별 추이입니다. 현재 KST 일별 보고서와 날짜 기준이 다릅니다.</p>`;
   } else {
-    trend = '<p class="empty">추세는 같은 집계범위 스냅샷이 2개 이상 쌓이면 표시됩니다 (주 1회 커밋 권장).</p>';
+    trend = '<p class="empty">같은 집계범위의 과거 스냅샷이 2개 이상일 때 추이를 표시합니다.</p>';
   }
 
   // 퍼널 바
@@ -214,6 +212,7 @@ function build(snaps) {
     : `<div class="card"><h2>예시 → 내 딜 첫 입력</h2><p class="empty">새 스냅샷부터 첫 입력 전환의 고정 14일 창이 표시됩니다.</p></div>`;
 
   const body = `
+  <div class="card"><h2>과거 스냅샷 기록</h2><p>이 화면은 기존 UTC·실행시각 기준 집계를 보존한 기록입니다. 오늘을 제외하는 KST 보고서는 비공개 통계 작업의 <code>patterns.html / patterns.json</code>을 확인하세요.</p><p class="note">과거 숫자를 KST 기준으로 소급 변환하거나 여러 스냅샷을 합산하지 않습니다. 아래 고정 실험은 당시 자료이며 현재 성과 판정에 사용하지 않습니다.</p></div>
   <div class="grid5">${kpis}</div>
 
   <div class="card"><h2>추세 <span>스냅샷별 · 누적 이력</span></h2>${trend}</div>
@@ -224,11 +223,11 @@ function build(snaps) {
     <div class="card"><h2>산출물 종류</h2>${barList(outObj, {})}</div>
   </div>
 
+  <details class="card"><summary>2026년 8월 고정 실험 · 과거 기록 펼치기</summary><p class="note">종료된 실험의 당시 기준입니다. 보존기간 이후 다시 조회한 값은 일부가 빠졌을 수 있으며, 현재 채택·철회 판단으로 해석하지 않습니다.</p>
   ${teamCard}
-
   ${sampleStartCard}
-
   ${firstNumberCard}
+  </details>
 
   <div class="row2">
     <div class="card"><h2>딜 유형 <span>전체 이벤트 기준</span></h2>${barList(dealLabelMap(last.deals || {}), {})}<p class="note">반복 행동을 포함한 이벤트 분포이며, 딜 수나 사용자 수가 아닙니다.</p></div>
@@ -259,7 +258,7 @@ function build(snaps) {
 }
 
 function page(genAt, body, last) {
-  const sub = last ? `최신 스냅샷 ${esc(last.endDate)} · 최근 ${dnum(last.days)}일 기준` : '스냅샷 대기 중';
+  const sub = last ? `과거 스냅샷 ${esc(last.endDate)} · 당시 ${dnum(last.days)}일 집계 · UTC/실행시각 기준` : '보관된 과거 스냅샷 없음';
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>모델터 계기판</title>
 <style>

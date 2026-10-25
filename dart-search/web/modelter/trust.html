@@ -133,11 +133,13 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
       <tr data-field="axis"><td>axis</td><td>사전에 정의한 4개 민감도 축만</td><td><code>growth</code>, <code>rate</code>, <code>dev_price</code>, <code>dev_cost</code></td></tr>
       <tr data-field="dev"><td>dev</td><td>기기 종류(User-Agent 기반)</td><td><code>desktop</code> / <code>mobile</code></td></tr>
       <tr data-field="ref"><td>ref</td><td>유입 도메인(호스트만, 전체 URL 아님 — 정적 안내면을 거쳐도 같은 탭에서만 보존)</td><td><code>naver.com</code></td></tr>
-      <tr data-field="src"><td>src</td><td>유입 채널 태그(사전 정의한 15개 채널명만 — 임의 숫자·자유 문자열은 폐기)</td><td><code>xlsx</code>, <code>seo</code>, <code>imcheck</code></td></tr>
+      <tr data-field="src"><td>src</td><td>유입 경로·링크 용도 태그(사전 정의한 16개 이름만 — 임의 숫자·자유 문자열은 폐기)</td><td><code>xlsx</code>, <code>seo</code>, <code>resume</code>(PC 이어보기)</td></tr>
       <tr data-field="cc"><td>cc</td><td>접속 국가(Cloudflare 제공)</td><td><code>KR</code></td></tr>
       <tr data-field="bot"><td>bot</td><td>자동화 트래픽 판별(0/1) — 통계에서 크롤러를 제외하기 위한 플래그</td><td><code>0</code> / <code>1</code></td></tr>
       <tr data-field="act"><td>act</td><td>실사용 여부(0/1) — 이 방문에서 <b>직접 값을 입력했는지</b>만 표시합니다. 예시만 둘러본 방문과 구분하려는 용도이며, <b>입력한 값 자체는 전송되지 않습니다.</b></td><td><code>0</code> / <code>1</code></td></tr>
     </table>
+    <p>엑셀 파일 생성 완료·오류, 간단 입력 시작·마지막 단계 도달, 저장 버전 불러오기, PC 이어보기 링크 복사 여부도 이벤트 이름으로 기록합니다. 파일 생성 완료는 기기 저장 완료를 뜻하지 않습니다. PC 이어보기 링크가 열려도 같은 사람의 재방문인지 연결해 추적하지 않습니다.</p>
+    <p>파일명·딜 수치·자산명·전체 링크·오류 메시지는 사용 통계에 수집하지 않습니다. <code>resume</code>은 링크의 용도이며 Teams 같은 전달 서비스의 이름이 아닙니다.</p>
     <div class="never">
       <h3>익명 사용 통계(/e)에 포함하지 않는 정보</h3>
       <ul>
@@ -198,6 +200,7 @@ try{if(!sessionStorage.getItem('mt_ref0')&&document.referrer){var _rh=new URL(do
   <section id="storage">
     <h2>브라우저 저장과 공유 링크</h2>
     <p>저장한 딜은 <b>사용자 브라우저(localStorage)</b>에만 남습니다. 공유 링크에는 입력값을 <b>링크 문자열 안에 압축해</b> 넣으며 서버에는 저장하지 않습니다. 공유 링크와 산출물에서는 <b>임차인 실명을 자동으로 마스킹</b>(임차인 A·B…)합니다.</p>
+    <p>PC 이어보기 중 기존 작업으로 돌아가면 이어보기 링크를 현재 탭의 임시 저장소(<code>sessionStorage</code>)에 보관합니다. 모델을 편집용으로 연 뒤 삭제하며 서버로 보내지 않습니다.</p>
     <div class="never"><b>공유 링크의 압축은 암호화가 아닙니다.</b> 링크를 가진 사람은 딜명·입력 가정·계산 결과를 볼 수 있고, 전체 링크가 브라우저 방문 기록이나 메일·메신저 로그에 남을 수 있습니다. 사내 정보 반출 정책을 확인하고 권한 있는 채널로만 보내세요. 매우 민감한 딜은 공유 링크·QR을 사용하지 말고, 산출물의 「이 모델 열기」 옵션도 끄세요.</div>
   </section>
 
