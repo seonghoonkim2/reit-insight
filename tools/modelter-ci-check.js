@@ -294,11 +294,29 @@ ok(html.includes('if(_d0) b.dr=_d0;'), '진짜 유입원: 이벤트에 dr(외부
     fixture.sampleStartWindow.activate = '깨짐';
     ok(validateSnap(fixture).some(e => e.includes('sampleStartWindow.activate')), '북극성 스냅샷: 첫 입력 전환 고정 창 숫자 검증');
   } catch (e) { ok(false, '북극성 첫 숫자 고정 창 실행 검증 (' + e.message + ')'); }
-  const snapWorkflowPath = path.join(__dirname, '..', '.github', 'workflows', 'modelter-snapshot.yml');
-  const snapWorkflow = fs.existsSync(snapWorkflowPath) ? fs.readFileSync(snapWorkflowPath, 'utf8') : '';
-  ok(snapWorkflow.includes('automation/modelter-snapshot-${GITHUB_RUN_ID}') && snapWorkflow.includes('gh pr merge "$pr_url"'), '스냅샷 자동화: master 직접 push 대신 전수 검증 PR');
-  ok(snapWorkflow.includes('actions: write') && snapWorkflow.includes('select(.headSha == \\"$head_sha\\")') && snapWorkflow.includes('/approve"'), '스냅샷 자동화: 이 실행의 branch+head SHA CI만 승인');
-  ok(!snapWorkflow.includes('gh workflow run modelter-ci.yml') && snapWorkflow.includes('if [ "$state" = "MERGED" ]') && snapWorkflow.includes('git push origin --delete "$branch"'), '스냅샷 자동화: 중복 CI 없음·머지 후 브랜치 정리');
+  // Public reporting cutover: no collection, publishing, or automatic snapshot merge.
+  for (const name of ['snapshot', 'patterns', 'doctor']) {
+    const wf = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'modelter-' + name + '.yml'), 'utf8');
+    ok(!/CF_API_TOKEN|CF_ACCOUNT_ID|analytics_engine|modelter-(?:ae|patterns|report)\.js|upload-artifact|gh pr|git push|(?:contents|actions|pull-requests): write|schedule:/.test(wf), '공개 ' + name + ': 상세 조회·게시·자동 병합 없음');
+    ok(wf.includes('migration-status') && wf.includes('contents: read'), '공개 ' + name + ': 상태 안내만 허용');
+  }
+  // Public snapshot freeze: compare the full file list and LF-normalized content hashes.
+  try {
+    const hash = content => require('crypto').createHash('sha256').update(content.replace(/\r\n/g, '\n')).digest('hex');
+    const freezeText = fs.readFileSync(path.join(__dirname, '..', 'docs', 'PUBLIC-REPORTING-FREEZE.json'), 'utf8');
+    const frozen = JSON.parse(freezeText);
+    const expected = Object.keys(frozen).sort();
+    const snapDir = path.join(__dirname, '..', 'data', 'ae-snapshots');
+    const entries = fs.readdirSync(snapDir, { withFileTypes: true });
+    const actual = entries.filter(entry => entry.name !== 'README.md').map(entry => entry.name).sort();
+    ok(hash(freezeText) === '701cfd88a9e8d6c38d4b3ee195493f886d1956e1b3b64de45e43154a40759d4f', '공개 과거 통계: 동결 목록 변경 없음');
+    ok(expected.length > 0 && expected.every(name => /^\d{4}-\d{2}-\d{2}\.json$/.test(name) && /^[0-9a-f]{64}$/.test(frozen[name])), '공개 과거 통계: 동결 목록 형식');
+    ok(entries.every(entry => entry.isFile()) && JSON.stringify(actual) === JSON.stringify(expected), '공개 과거 통계: 새 파일·누락·폴더 없음');
+    ok(expected.every(name => /^[0-9-]+\.json$/.test(name) && fs.existsSync(path.join(snapDir, name)) && hash(fs.readFileSync(path.join(snapDir, name), 'utf8')) === frozen[name]), '공개 과거 통계: 원자료 변경 없음');
+  } catch (_) {
+    ok(false, '공개 과거 통계: 동결 목록과 파일 검증 실패');
+  }
+  // End public reporting cutover checks.
 }
 
 /* ── 1j) 사용성 v3(로그 기반) — 복잡도 다이어트·조정 바·위저드 발견성 ── */
