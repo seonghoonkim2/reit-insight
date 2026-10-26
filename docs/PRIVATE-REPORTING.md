@@ -1,0 +1,33 @@
+# 모델터 상세 통계 비공개 전환
+
+2026-10-26 사용자가 공개 보고서 생성 중단 배포를 승인했다. 이 변경은 공개 통계를 만드는 작업과 재반입 방지 검사에 한정한다. PR #155의 모바일 입력·PC 이어보기·새 이벤트·검토 사례는 이 배포에 포함하지 않는다.
+
+## 운영 경로
+
+- 실제 상세 보고서는 비공개 `seonghoonkim2/modelter-usage-reports` 저장소의 `Modelter private usage report` (`.github/workflows/collect.yml`)에서 생성한다.
+- 조회 전용 `CF_ACCOUNT_ID`, `CF_API_TOKEN`은 그 저장소의 Actions secrets에만 사용한다. 값은 문서·채팅·소스·검사 출력에 남기지 않는다.
+- `REPORTS_ENABLED=true`로 매일 06:17 KST 수집한다. GitHub 지연이 있을 수 있으므로 일정 시각을 수집 완료 시각으로 해석하지 않는다.
+- `modelter-usage-report` artifact의 `patterns.json`, `patterns.html`, `summary.md`를 90일 보관한다. 상세 자료를 Git에 커밋하지 않는다.
+- 공개 patterns/snapshot/doctor 파일은 상태 안내만 남긴다. 배포 검증 후 세 workflow 자체를 비활성화하여 과거 버전 실행의 재실행도 막는다. 예약, Analytics 조회, 보고서 업로드, 상세 실행 요약, 스냅샷 PR 및 자동 병합을 수행하지 않는다. 기존 인증정보를 삭제하거나 배포용 인증키를 수정하는 변경은 아니다.
+- 기존 `data/ae-snapshots/` JSON은 과거 자료로 동결한다. `PUBLIC-REPORTING-FREEZE.json`의 파일 목록·해시가 바뀌거나 새로운 파일이 들어오면 CI에서 거부한다. 동결을 해제해 새 실자료를 넣지 않는다. 과거 공개 이력까지 회수했다는 뜻은 아니다.
+
+## 전환 전 확인한 사실
+
+- 비공개 저장소의 인증정보·활성화 설정 누락을 해결했다. 재발급한 계정 Analytics 읽기 전용 키를 등록했다.
+- 실제 수집과 기존 schedule 실행의 재실행에서 보고서 생성·다운로드가 성공했다. `source=analytics-engine`, `availability.status=complete`, 조회 6개 성공, 기본 strict validator 통과 및 같은 절대기간의 독립 원본 조회 대조를 확인했다.
+- 위 schedule 검사는 기존 예약 실행의 수동 재실행이다. 다음 새 cron 실행의 자동 시작까지 확인한 것은 아니다. 새 예약의 실제 시작과 완료는 후속 실행 기록에서 확인한다.
+- 비인증 저장소 조회는 404, artifact 다운로드는 401로 거부됐고 인증된 다운로드는 성공했다.
+- 배포 전 실행 중·대기 중인 공개 작업과 미병합 snapshot PR·자동 병합 예약을 검사한다. 병합 후 세 공개 작업을 수동 실행하여 상태 안내만 출력하고 artifact를 만들지 않는지 확인한 뒤, 세 작업을 비활성화하고 `disabled_manually` 상태를 확인한다. GitHub는 [비활성화된 workflow와 job의 재실행을 허용하지 않는다](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs).
+- 상세 검증 자료는 비공개 저장소와 로컬 `D:/modelter-private-reporting-20261026/`에 보관한다. 공개 기록에는 검증 상태만 남긴다.
+
+## 월요일 08:50 KST 분석
+
+1. 비공개 저장소의 정확한 수집 workflow만 확인한다. `Verify reporting code`는 합성 테스트이며 실제 수집 성공을 뜻하지 않는다.
+2. 성공 실행의 만료되지 않은 `modelter-usage-report`를 내려받아 JSON의 출처·자료 상태·기간·생성 시각을 확인한다. 실행 목록 첫 항목이나 가장 큰 실행 번호만으로 최신 보고서를 고르지 않는다.
+3. 당일 KST를 제외한 완료 기간의 종료일이 가장 최근인 보고서를 우선한다. 같은 기간이면 `generatedAt`과 실행 시도(`run_attempt`)를 확인한다. 과거 기간을 나중에 다시 조회한 보고서가 오늘 자료를 대신하지 않게 한다.
+4. 새 실행 실패·누락·지연도 함께 보고한다. 이전 정상 자료를 쓰면 실제 종료일과 부족한 기간을 표시한다. 공개 과거 보고서나 fixture로 대체하지 않는다.
+5. `complete`는 조회와 핵심 가중합의 일치다. `partial`은 기록된 표본 차이의 실제 값과 한계를 밝히는 진단 자료다. `unavailable`이나 미관측 이벤트를 0건으로 표시하지 않는다.
+6. 완료 7일·직전 7일·완료 30일을 구분하고 겹치는 30일 보고서를 더하지 않는다. 행동 횟수를 사람 수, 엑셀 버튼 클릭을 파일 저장 완료, 링크 착지를 동일인의 기기 이동으로 바꾸어 해석하지 않는다.
+7. 실제 배포 기록을 기준으로 변경 전후를 비교한다. PR #155에만 있는 이벤트는 미배포 상태이며 미관측을 사용량 0으로 해석하지 않는다.
+
+월요일 자동화는 읽기와 개선 제안만 수행한다. 상세 자료를 공개 저장소에 기록하거나 코드를 배포하지 않는다. 중단된 시간당 개선 자동화는 재개하지 않는다.

@@ -1,49 +1,9 @@
-# 계기판 스냅샷 (누적 이력)
+# 과거 계기판 스냅샷
 
-Cloudflare Analytics Engine 은 데이터를 **약 90일만** 보관합니다. 그래서 여기에
-주기적으로 집계 스냅샷을 커밋해 **영구 누적 이력**으로 만듭니다.
+이 폴더의 JSON은 비공개 통계 전환 전에 공개된 기록입니다. 당시의 UTC·실행 시각 기준과 내용을 그대로 보존합니다. 기존 공개 이력을 회수하거나 한국 시간 기준으로 다시 만든 자료가 아닙니다.
 
-## 쌓는 법 A — 자동 (권장, 손 안 대도 매주 누적)
+새 스냅샷을 추가하거나 기존 JSON을 수정·삭제하지 않습니다. 파일 목록과 LF 줄바꿈 기준 SHA256은 `docs/PUBLIC-REPORTING-FREEZE.json`에 고정되어 있으며 Modelter CI가 확인합니다. 새 자료를 넣기 위해 이 목록을 갱신하지 않습니다.
 
-`.github/workflows/modelter-snapshot.yml` 이 **매주 월요일** 스냅샷을 저장소에 자동 커밋합니다.
-한 번만 준비하면 됩니다:
+현재 통계는 비공개 `seonghoonkim2/modelter-usage-reports`의 최신 성공 실행에 첨부된 `patterns.json`과 `patterns.html`에서 확인합니다. 자료 상태·생성 시각·한국 시간 완료 기간을 먼저 확인합니다. 자세한 절차는 [상세 통계 비공개 전환](../../docs/PRIVATE-REPORTING.md)을 따릅니다.
 
-1. 저장소 **Settings → Secrets and variables → Actions** 에 시크릿 2개 추가
-   - `CF_ACCOUNT_ID` = Cloudflare 계정 ID
-   - `CF_API_TOKEN` = **Account Analytics : Read** 권한 토큰
-2. 끝. (시크릿이 없으면 워크플로우는 조용히 건너뜁니다 — 빨간불 안 뜸)
-
-수동으로 지금 한 번 돌리려면 **Actions 탭 → "Modelter snapshot" → Run workflow.**
-
-## 쌓는 법 B — 수동 (로컬에서 직접)
-
-```bash
-# 1) 스냅샷 저장 (최근 30일 집계를 data/ae-snapshots/<날짜>.json 으로)
-CF_ACCOUNT_ID=... CF_API_TOKEN=... node tools/modelter-ae.js --days 30 --snapshot
-
-# 2) 대시보드 생성 (스냅샷 전체를 자기완결 HTML 한 장으로)
-node tools/modelter-report.js
-#   → data/dashboard.html 을 브라우저로 열기
-
-# 2b) 사용 패턴 보고서 (누가·언제·어떻게 — 주간 모멘텀·기기·딜×산출물·시간대)
-#     매일 06:30 KST 자동 생성됨 → GitHub Actions → "Modelter patterns" 최신 실행 → Artifacts 다운로드
-#     (토큰 있으면 로컬 즉시 생성도 가능)
-node tools/modelter-patterns.js
-#   → data/patterns.html 을 브라우저로 열기
-
-# 3) 커밋 (스냅샷을 남겨 다음에도 추세가 이어지게)
-git add data/ae-snapshots/*.json && git commit -m "계기판 스냅샷 <날짜>"
-```
-
-토큰은 **Account Analytics : Read** 권한. 채팅·저장소에 토큰을 넣지 말고
-환경변수(CF_ACCOUNT_ID·CF_API_TOKEN) 또는 GitHub Actions 시크릿으로만 사용합니다.
-
-> 대시보드(`data/dashboard.html`)는 생성물이라 git에 커밋하지 않습니다(gitignore).
-> 트래픽 지표라 공개 배포도 하지 않습니다. `git pull` 후 위 2)를 돌려 로컬에서 엽니다.
-
-## 무엇이 담기나 (수치·PII 없음)
-
-이벤트명·딜유형·기능플래그·기기·유입호스트별 **집계 카운트만**. 매입가·임대료 같은
-딜 수치와 임차인명·개인정보는 애초에 수집되지 않으므로 스냅샷에도 없습니다.
-
-`<날짜>.json` = { endDate, days, funnel, events, deals, device, ref, feats, depth, daily }
+공개 저장소의 workflow·실행 로그·artifact·PR·문서에는 새 운영 집계를 남기지 않습니다. 과거 JSON의 기간이 겹치므로 여러 스냅샷을 더해 방문이나 행동을 계산하지 않습니다.

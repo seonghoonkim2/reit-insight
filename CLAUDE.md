@@ -41,7 +41,7 @@ python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pi
 7. `node tools/qa/smoke.js` — 실제 브라우저 49개 경로. Playwright·Chromium 경로가 자동 탐색되지 않으면 `CHROME_BIN`을 명시
 8. 계산·엑셀 로직 변경 시 위 절차와 별도로 11개 딜·경계 변형의 파리티 2단계를 전수 실행
 9. 한국어 커밋 → 작업 브랜치 push → PR. master 보호 규칙의 `검증`·`파리티 11조합`·`브라우저 스모크 49건`이 모두 통과한 뒤 머지
-10. Cloudflare 배포 성공과 라이브 `MT_BUILD`를 확인한다. 계기판 스냅샷도 master 직접 커밋이 아니라 자동 브랜치·PR·동일 게이트를 거친다.
+10. Cloudflare 배포 성공과 라이브 `MT_BUILD`를 확인한다. 상세 사용 통계는 비공개 보고서에서 확인하고 공개 저장소에 스냅샷 PR을 만들지 않는다.
 11. 검색 착지·canonical·sitemap을 바꿨다면 `docs/SEARCH_OPERATIONS.md`에 따라 라이브 사이트맵과 Search Console 발견 상태를 확인한다. 사이트맵 정답은 `https://modelter.com/sitemap.xml` 한 개다.
 
 ### 불변 규칙 (완화 금지)
@@ -56,7 +56,8 @@ python3 tools/parity/check.py office|logistics|dev|refi   # 재계산 비교 (pi
 ### 계기판 (사용 데이터)
 
 - `worker.js` `/e` → Cloudflare Analytics Engine(dataset `Modelter`) + Workers Logs
-- 조회: `node tools/modelter-ae.js`(누적 SQL, 계정ID·토큰은 사용자 로컬에서만 — 채팅에 토큰 금지), `tools/modelter-funnel.js`(wrangler tail 파싱)
+- 조회·보관: 비공개 `seonghoonkim2/modelter-usage-reports`의 최신 성공 보고서를 사용한다. 자료 상태·한국 시간 완료 기간·생성 시각을 확인하며 절차는 `docs/PRIVATE-REPORTING.md`를 따른다.
+- 공개 저장소에는 새 운영 집계·보고서·실행 요약을 남기지 않는다. `data/ae-snapshots/`의 기존 JSON과 `docs/PUBLIC-REPORTING-FREEZE.json`은 동결된 과거 기록이다. 기존 자료를 수정하거나 새 스냅샷을 추가하지 않는다. 인증정보는 비공개 저장소의 보안 설정에만 등록하고 채팅·문서·출력에 적지 않는다.
 - 퍼널: session → activate(신뢰 입력만) → computed → output(xlsx/share/pdf 등), 세션당 1회
 
 ### 참고

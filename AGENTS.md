@@ -133,5 +133,7 @@ done
 
 - 커밋 메시지는 **한국어**, 변경 의도가 드러나게
 - master는 PR로만 변경하고, `Modelter CI`의 검증·11조합 파리티·브라우저 스모크를 모두 통과한 뒤 머지
-- master 머지 = Cloudflare 즉시 배포. 계기판 스냅샷도 자동 브랜치·PR·동일 게이트를 거쳐 자동 머지
+- master 머지 = Cloudflare 즉시 배포.
+- 상세 사용 통계의 수집·보고서는 비공개 `seonghoonkim2/modelter-usage-reports`에서만 처리한다. 공개 저장소의 workflow·로그·artifact·PR·문서에 새 운영 집계를 남기지 않는다.
+- `data/ae-snapshots/`의 기존 JSON은 당시 기간 정의를 유지한 과거 자료로 동결한다. 새 파일 추가·원자료 수정·삭제 및 `docs/PUBLIC-REPORTING-FREEZE.json` 갱신으로 동결 검사를 우회하지 않는다. 전환·조회 절차는 `docs/PRIVATE-REPORTING.md`를 따른다.
 - 배포 후 라이브 스탬프 확인: `curl -s https://modelter.com/ | grep -o "MT_BUILD='[^']*'"`

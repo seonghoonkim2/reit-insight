@@ -388,13 +388,9 @@ E1~E8(발견·허가·전파)은 완료. 30일 로그의 기능 단위 판독이
 
 ## 5. 획득·채널 월간 리뷰 루틴 (E5 — 시간 배분의 데이터화)
 
-1인 운영이므로 "어디에 시간을 쓸지"를 감이 아니라 데이터로 정한다. 월 1회, 아래 한 줄을 돌린다:
+1인 운영이므로 "어디에 시간을 쓸지"를 감이 아니라 데이터로 정한다. 월 1회 비공개 `seonghoonkim2/modelter-usage-reports`의 최신 성공 보고서를 확인한다. 자료 상태·생성 시각·한국 시간 완료 기간을 먼저 확인하고, 겹치는 보고서를 더하지 않는다. 조회·보관 절차는 [상세 통계 비공개 전환](PRIVATE-REPORTING.md)을 따른다.
 
-```bash
-CF_ACCOUNT_ID=xxxx CF_API_TOKEN=yyyy node tools/modelter-ae.js --days 30 --attribution --snapshot
-git add data/ae-snapshots && git commit -m "계기판 월간 스냅샷"   # AE 90일 보존 극복 → 영구 추세
-node tools/modelter-report.js   # data/dashboard.html 갱신(로컬 확인용, 커밋 안 함)
-```
+공개 저장소에는 새 상세 보고서나 스냅샷 PR을 만들지 않는다. 기존 `data/ae-snapshots/` JSON은 당시 UTC·실행 시각 기준의 과거 자료로 유지하며, 새 보고서와 같은 기간으로 바꾸어 해석하지 않는다. 이 문서에 남은 과거 조회 명령과 실험 기록은 당시 방식의 설명이며 새 수집·공개 지시가 아니다.
 
 **무엇을 보고 무엇을 정하나 (채널 → 산출물 전환 기준)**
 
