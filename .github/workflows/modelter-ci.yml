@@ -143,3 +143,7 @@ jobs:
           CHROME_BIN="$(command -v google-chrome)" node tools/qa/search-handoff.js --browser
       - name: 저가 모바일 첫 결과 5초 예산
         run: CHROME_BIN="$(command -v google-chrome)" node tools/qa/perf-load.js
+      - name: 첫 입력과 파일 생성·선택 복원 기록
+        run: |
+          node tools/qa/worker-privacy.mjs
+          CHROME_BIN="$(command -v google-chrome)" node tools/qa/first-input.js

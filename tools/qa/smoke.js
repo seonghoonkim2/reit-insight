@@ -211,15 +211,14 @@ async function closeOverlays(page) {
     ok(await page.locator('#wizBtn').isVisible(), '⚡핵심만 버튼 표시');
     await page.evaluate(() => window.__wizOpen());
     await page.waitForTimeout(250);
-    // asset 스킵 → price 입력·환산 → 나머지 스킵 → 완료
-    await page.locator('[data-w="next"]').click(); await page.waitForTimeout(120);
+    // 첫 price 입력·환산 → 나머지 스킵 → 입력 내용 확인
     await page.locator('#wizIn').fill('120000'); await page.locator('#wizIn').dispatchEvent('input');
     const conv = await page.evaluate(() => document.getElementById('wizConv').textContent);
     ok(conv === '= 1,200억', '위저드 억조 환산 (' + conv + ')');
     const steps = await page.evaluate(() => document.querySelectorAll('.wiz-dot').length);
-    for (let i = 1; i < steps - 1; i++) { await page.locator('[data-w="next"]').click(); await page.waitForTimeout(100); }
+    for (let i = 0; i < steps - 1; i++) { await page.locator('[data-w="next"]').click(); await page.waitForTimeout(100); }
     const finTxt = await page.evaluate(() => document.querySelector('.wiz-sheet').textContent);
-    ok(/입력 완료/.test(finTxt), '위저드 완료 화면');
+    ok(/입력 내용 확인/.test(finTxt), '위저드 입력 내용 확인 화면');
     await page.locator('[data-w="done"]').click(); await page.waitForTimeout(500);
     const sync = await page.evaluate(() => ({ closed: !document.querySelector('.wiz-ov'), price: state.price, form: (document.getElementById('f_price') || {}).value }));
     ok(sync.closed && sync.price === '120000' && sync.form === '120000', '위저드 → 폼 상태 동기화');
