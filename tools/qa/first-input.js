@@ -217,6 +217,15 @@ async function numericFocused(p,id){
   await p.reload();await p.waitForFunction(()=>typeof window.__wizOpen==='function');
   check(await eventCount(p,'ws_restore')===0,'automatic reload recovery does not count as user restore');
   check(!JSON.stringify(await p.evaluate(()=>auditEvents)).includes('QA_PRIVATE_'),'automatic recovery events contain no private labels');
+  // Typing a price digit by digit passes through values where equity multiple and DSCR are null.
+  // isFinite(null) is true, so null.toFixed() used to abort recalculation and leave the previous KPIs on screen.
+  await p.evaluate(()=>{cur='office';fillExample();});
+  const staleKpi=await p.locator('#simKpis').innerText(),errorsBefore=pageErrors.length;
+  const price=p.locator('#f_price');await price.scrollIntoViewIfNeeded();await price.selectText();
+  await price.pressSequentially('1350');await price.press('Tab');
+  await p.waitForFunction(s=>document.getElementById('simKpis').innerText!==s,staleKpi,{timeout:5000}).catch(()=>{});
+  check(pageErrors.length===errorsBefore,'digit-by-digit tiny price recalculates without exceptions: '+pageErrors.slice(errorsBefore).join('; '));
+  check(await p.locator('#simKpis').innerText()!==staleKpi,'tiny price replaces the previous result instead of leaving stale KPIs');
   check(pageErrors.length===0,'no browser exceptions: '+pageErrors.join('; '));
   check(eventRequests===0,'telemetry intercepted locally; collector receives no requests');
   await ctx.close();
