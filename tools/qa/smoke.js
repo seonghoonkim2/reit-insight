@@ -509,7 +509,8 @@ async function closeOverlays(page) {
     }
     await page.evaluate(()=>{window.rrState=null;window.rrModel=null;});
     await page.evaluate(() => { cur='office'; fillExample(); document.getElementById('simCard').scrollIntoView({block:'start'}); updateJumpFab(); });
-    await page.waitForTimeout(250);
+    // Smooth scrolling can still be moving at 250ms on CI; wait for the actual result position and shortcut.
+    await page.waitForFunction(() => { const b=document.getElementById('jumpFab');return Math.abs(document.getElementById('simCard').getBoundingClientRect().top)<120&&b.classList.contains('show')&&b.dataset.target==='input'; }, null, {timeout:3000});
     ok(await page.locator('#jumpFab').innerText() === '내 값 입력', '모바일 결과에서 입력 이동 버튼 표시');
     await page.locator('#jumpFab').click(); await page.waitForTimeout(750);
     const inputJump = await page.evaluate(() => ({ top: document.getElementById('inpProg').getBoundingClientRect().top, target: document.getElementById('jumpFab').textContent.trim() }));
