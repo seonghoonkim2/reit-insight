@@ -68,7 +68,7 @@ const server=http.createServer((req,res)=>{if(req.url.startsWith('/e')){res.writ
     await page.evaluate(()=>localStorage.setItem('mt_state',JSON.stringify({c:'office',d:'standard',s:{asset:'Legacy',price:'110000'},k:{},r:{}})));
     await page.goto(url);check(await page.evaluate(()=>state.asset==='Legacy'&&!WS.dealId&&!window.rrModel),'legacy draft restores without new fields');
     for(const bad of ['{','null','[]','{"c":"office","s":[]}','{"c":"office","s":{},"rr":{"leases":{}}}']){
-      await page.evaluate(s=>localStorage.setItem('mt_state',s),bad);await page.reload();check(await page.evaluate(()=>!!simModel()&&!WS.dealId),'corrupt draft falls back safely: '+bad);
+      await page.evaluate(s=>{localStorage.removeItem('mt_state_backup');localStorage.setItem('mt_state',s);},bad);await page.reload();check(await page.evaluate(s=>!!simModel()&&!WS.dealId&&localStorage.getItem('mt_state')===s,bad),'corrupt draft without a valid backup is preserved safely: '+bad);
     }
     await page.setViewportSize({width:390,height:844});
     await page.goto(url+'?test='+Date.now()+'#t=office&src=seo');await page.waitForTimeout(500);

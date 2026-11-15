@@ -495,9 +495,9 @@ async function closeOverlays(page) {
       const file=await download.path();
       const parsed=require('./excel-format').workbook(fs.readFileSync(file));
       const visible=parsed.sheets.filter(s=>s.state!=='hidden').length;
-      const completion=completions.find(message=>/^엑셀 모델 받기 완료/.test(message))||completions.join(' | ');
+      const completion=completions.find(message=>/^엑셀 모델 다운로드 요청/.test(message))||completions.join(' | ');
       ok(visible===count&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(beforeDownload),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 버튼의 '+count+'시트 안내 = 파일 표시 시트 수');
-      ok(/완료/.test(completion)&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(completion)&&!/13\s*시트/.test(completion),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 완료 토스트도 파일 시트 수와 일치 ('+completion+')');
+      ok(/다운로드 요청/.test(completion)&&!/받기 완료|저장 완료/.test(completion)&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(completion)&&!/13\s*시트/.test(completion),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 요청 토스트도 파일 시트 수와 일치 ('+completion+')');
       if(withLeases){
         const zeroAxes=await page.evaluate(()=>{
           const oldRate=stackState.senior_rate;stackState.senior_rate='0';
@@ -509,7 +509,8 @@ async function closeOverlays(page) {
     }
     await page.evaluate(()=>{window.rrState=null;window.rrModel=null;});
     await page.evaluate(() => { cur='office'; fillExample(); document.getElementById('simCard').scrollIntoView({block:'start'}); updateJumpFab(); });
-    await page.waitForTimeout(250);
+    // Smooth scrolling can still be moving at 250ms on CI; wait for the actual result position and shortcut.
+    await page.waitForFunction(() => { const b=document.getElementById('jumpFab');return Math.abs(document.getElementById('simCard').getBoundingClientRect().top)<120&&b.classList.contains('show')&&b.dataset.target==='input'; }, null, {timeout:3000});
     ok(await page.locator('#jumpFab').innerText() === '내 값 입력', '모바일 결과에서 입력 이동 버튼 표시');
     await page.locator('#jumpFab').click(); await page.waitForTimeout(750);
     const inputJump = await page.evaluate(() => ({ top: document.getElementById('inpProg').getBoundingClientRect().top, target: document.getElementById('jumpFab').textContent.trim() }));

@@ -38,6 +38,8 @@ const server=http.createServer((req,res)=>{
       await page.evaluate(()=>window.__downloadXlsx());
       await page.waitForTimeout(100);
       ok(downloads.length===count,'invalid schedule blocks file generation');
+      ok(await page.locator('#xlsxFix').isVisible(),'invalid input has a correction action');
+      await page.locator('#xlsxFix').click();
     }
     await period.fill('32');await period.press('Tab');
     await page.waitForFunction(()=>!document.querySelector('.sim-empty'));
