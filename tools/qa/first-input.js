@@ -158,9 +158,10 @@ async function numericFocused(p,id){
   await p.evaluate(()=>{cur='office';fillExample();auditEvents=[];sessionStorage.removeItem('mt_ex_ack');const realConfirm=confirm;window.confirm=()=>false;try{window.__downloadXlsx();}finally{window.confirm=realConfirm;}});
   check(await eventCount(p,'xlsx_ready')===0&&await eventCount(p,'xlsx_error')===0,'declined example confirmation is not generation success or error');
   for(const failure of ['throw','empty']){
-    await p.evaluate(kind=>{auditEvents=[];sessionStorage.setItem('mt_ex_ack','1');const real=XLSXGEN.buildXlsx;XLSXGEN.buildXlsx=()=>{if(kind==='throw')throw new Error('QA_PRIVATE_ERROR_123456');return new Uint8Array();};try{window.__downloadXlsx();}finally{XLSXGEN.buildXlsx=real;}},failure);
+    await p.evaluate(async kind=>{auditEvents=[];sessionStorage.setItem('mt_ex_ack','1');const RealWorker=Worker;window.Worker=class extends RealWorker{postMessage(){setTimeout(()=>this.onmessage({data:kind==='throw'?{error:'QA_PRIVATE_ERROR_123456'}:{bytes:new Uint8Array()}}),0);}};try{await window.__downloadXlsx();}finally{window.Worker=RealWorker;}},failure);
     check(await eventCount(p,'xlsx_error')===1&&await eventCount(p,'xlsx_ready')===0,failure+' workbook records failure only');
     check(!JSON.stringify(await p.evaluate(()=>auditEvents)).includes('QA_PRIVATE_'),failure+' telemetry excludes raw error and deal details');
+    await p.locator('#xlsxClose').click();
   }
   await p.evaluate(()=>{cur='office';fillExample();state.asset='QA_PRIVATE_ASSET';});
   await p.locator('#slotSave').click();

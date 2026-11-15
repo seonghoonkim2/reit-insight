@@ -111,7 +111,7 @@ async function closeOverlays(page) {
     URL.createObjectURL = function (b) { blob = b; return orig.call(URL, b); };
     const oc = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function () { if (this.download) return; return oc.call(this); };  // 파일 저장 클릭만 흡수 — Blob 생성까지가 검증 대상
-    try { window.__downloadXlsx(); } finally { URL.createObjectURL = orig; HTMLAnchorElement.prototype.click = oc; }
+    try { await window.__downloadXlsx(); } finally { URL.createObjectURL = orig; HTMLAnchorElement.prototype.click = oc; }
     if (!blob) return { got: false };
     const u8 = new Uint8Array(await blob.arrayBuffer());
     return { got: true, size: blob.size, zip: u8[0] === 0x50 && u8[1] === 0x4b, type: blob.type };

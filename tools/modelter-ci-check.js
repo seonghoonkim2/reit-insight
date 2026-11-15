@@ -639,7 +639,7 @@ ok(html.includes('id="exChip"') && html.includes('(일부 가정은 예시값)')
 const snapshotSource = html.slice(html.indexOf('function wsSnapshot(){'), html.indexOf('function wsStable('));
 const shareSource = html.slice(html.indexOf('function sharePayload(){'), html.indexOf('function encodeState('));
 const localSaveSource = html.slice(html.indexOf('function saveLocal(){'), html.indexOf('function tryRestoreLocal('));
-const localUsesSnapshot = /\bwsSnapshot\(\)/.test(localSaveSource) && /localStorage\.setItem\("mt_state",\s*JSON\.stringify\(p\)\)/.test(localSaveSource);
+const localUsesSnapshot = /\bwsSnapshot\(\)/.test(localSaveSource) && /var next=JSON\.stringify\(p\)/.test(localSaveSource) && /localStorage\.setItem\(\x27mt_state\x27,next\)/.test(localSaveSource);
 ok([snapshotSource, shareSource].every(s => /ek:Array\.from\(exampleKeys\)/.test(s) && /ue:exUserEdited\?1:0/.test(s)) && localUsesSnapshot,
   '예시 추적: 버전·공유 페이로드 보존 + 자동 저장의 공통 스냅샷 사용');
 // PASS/FAIL 수식은 _row() 헬퍼가 행 번호로 조립한다(무차입 등 정의되지 않는 지표는 '해당 없음'으로 우회).
@@ -841,12 +841,12 @@ ok(html.includes('물류는 책임임대차 관행'), '물류 엑셀 다운로�
 ok(html.includes('function refiTemplate'), '리파이낸싱 비교 엑셀 생성기 존재');
 ok(html.includes('function refiSchedule'), '리파이낸싱 연도 전개(refiSchedule) 존재');
 ok(html.includes("'02_Term_Sheets'"), '텀시트 비교 시트 존재');
-ok(html.includes('리파이낸싱 비교 엑셀 받기 완료'), '리파이낸싱 다운로드 경로 존재');
+ok(html.includes('리파이낸싱 비교 엑셀 다운로드 요청'), '리파이낸싱 다운로드 요청 안내 존재');
 ok(!html.includes('refi:{label:"리파이낸싱", lite:true'), '리파이낸싱 간이 배지 졸업');
 ok(html.includes("var isOffice=(typeof cur!=='undefined')&&(cur==='office'||cur==='logistics');"), '엑셀 다운로드 게이트: 오피스+물류');
 ok(html.includes("'03_Monthly_CF'"), '분양수지 월별 CF 시트 존재');
 ok(html.includes('function devResiInputs'), '엔진·엑셀 공용 입력 파서(devResiInputs) 존재');
-ok(html.includes('분양수지 엑셀 받기 완료'), '분양수지 다운로드 경로 존재');
+ok(html.includes('분양수지 엑셀 다운로드 요청'), '분양수지 다운로드 요청 안내 존재');
 ok(!html.includes("cur==='reit'") && !html.includes('리츠 · 펀드 운용') && !html.includes('function simReit'), '리츠·펀드 운용 탭 제거 확인');
 
 /* ── 2) 앱 로드 + 딜별 계산 (DOM 스텁 헤드리스) ── */
@@ -879,7 +879,8 @@ G.window = G; G.addEventListener = () => {}; G.matchMedia = () => ({ matches: fa
 G.innerWidth = 1200; G.innerHeight = 800; G.scrollTo = () => {};
 G.document = { getElementById: () => stub(), querySelector: () => null, querySelectorAll: () => [], createElement: () => stub(), addEventListener: () => {}, body: stub(), documentElement: stub(), readyState: 'complete', fonts: { ready: Promise.resolve() } };
 G.location = { hash: '', origin: 'https://modelter.com', pathname: '/', href: '' };
-G.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
+const memoryStorage=Object.create(null);
+G.localStorage = { getItem:k=>memoryStorage[k]===undefined?null:memoryStorage[k], setItem:(k,v)=>{memoryStorage[k]=String(v);}, removeItem:k=>{delete memoryStorage[k];} };
 G.sessionStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 // navigator는 Node 내장 getter → defineProperty로 교체(sendBeacon 캡처). fetch 폴백도 캡처.
 try { Object.defineProperty(G, 'navigator', { configurable: true, value: { sendBeacon: (u, b) => { if (u === '/e') G.__beacon = b; return true; } } }); } catch (e) { }
@@ -1281,7 +1282,7 @@ const driver = `;(function(){
     cur='office';fillExample();localPause=false;window.__mtReadonly=false;
     exampleKeys=new Set(['price','exitcap']);exUserEdited=true;srcTags={price:{s:'IM 기재',d:'2026-10-02'},exitcap:{s:'추정'}};
     _assertMarkers(wsSnapshot(),'공통 스냅샷');
-    saveLocal();_assertMarkers(JSON.parse(localStorage.getItem('mt_state')),'자동 저장 파일');
+    _localDiskRaw=undefined;saveLocal();_assertMarkers(JSON.parse(localStorage.getItem('mt_state')),'자동 저장 파일');
     _clearMarkers();if(!tryRestoreLocal())throw new Error('자동 저장 복원 실패');_assertMarkers(wsSnapshot(),'자동 저장 복원');
     var _markerDeal={id:'marker-ci',versions:[]},_markerVersion=wsAddVersion(_markerDeal,wsSnapshot(),'marker');
     _assertMarkers(_markerVersion.snap,'저장 버전');

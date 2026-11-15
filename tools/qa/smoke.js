@@ -495,9 +495,9 @@ async function closeOverlays(page) {
       const file=await download.path();
       const parsed=require('./excel-format').workbook(fs.readFileSync(file));
       const visible=parsed.sheets.filter(s=>s.state!=='hidden').length;
-      const completion=completions.find(message=>/^엑셀 모델 받기 완료/.test(message))||completions.join(' | ');
+      const completion=completions.find(message=>/^엑셀 모델 다운로드 요청/.test(message))||completions.join(' | ');
       ok(visible===count&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(beforeDownload),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 버튼의 '+count+'시트 안내 = 파일 표시 시트 수');
-      ok(/완료/.test(completion)&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(completion)&&!/13\s*시트/.test(completion),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 완료 토스트도 파일 시트 수와 일치 ('+completion+')');
+      ok(/다운로드 요청/.test(completion)&&!/받기 완료|저장 완료/.test(completion)&&new RegExp(count+'\\s*시트|시트\\s*'+count+'개').test(completion)&&!/13\s*시트/.test(completion),'실제 '+(withLeases?'렌트롤':'기본')+' 다운로드 요청 토스트도 파일 시트 수와 일치 ('+completion+')');
       if(withLeases){
         const zeroAxes=await page.evaluate(()=>{
           const oldRate=stackState.senior_rate;stackState.senior_rate='0';
